@@ -7,6 +7,7 @@
 #include "marocco/routing/LocalRoute.h"
 #include "marocco/routing/routing_graph.h"
 #include "marocco/routing/SynapseRowSource.h"
+#include "marocco/routing/Result.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace marocco {
@@ -17,7 +18,7 @@ class SynapseLoss;
 class SynapseRouting
 {
 public:
-	typedef std::vector<DriverResult> Result;
+	typedef SynapseRoutingResult::result_type Result;
 
 	SynapseRouting(HMF::Coordinate::HICANNGlobal const& hicann,
 				   boost::shared_ptr<SynapseLoss> const& sl,

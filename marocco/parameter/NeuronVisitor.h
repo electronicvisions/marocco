@@ -15,6 +15,8 @@
 
 #include "marocco/parameter/detail.h"
 
+#include "marocco/routing/SynapseTargetMapping.h"
+
 namespace marocco {
 namespace parameter {
 
@@ -71,6 +73,7 @@ struct TransformNeurons
 	typedef chip_type<hardware_system_t>::type chip_t;
 	typedef HMF::NeuronCollection calib_t;
 	typedef HMF::Coordinate::NeuronOnHICANN neuron_t;
+	typedef routing::SynapseTargetMapping synapse_targets_t;
 
 	template <CellType N>
 		using cell_t = TypedCellParameterVector<N>;
@@ -79,11 +82,12 @@ struct TransformNeurons
 		: mTargetVReset(target_V_reset){}
 
 	template <CellType N>
-	return_type operator() (
+	return_type operator()(
 		cell_t<N> const& /*unused*/,
 		calib_t const& /*unused*/,
 		size_t /*unused*/,
 		neuron_t const& /*unused*/,
+		synapse_targets_t const& /*unused*/,
 		chip_t& /*unused*/) const
 	{
 		std::stringstream ss;
@@ -91,23 +95,46 @@ struct TransformNeurons
 		throw std::runtime_error(ss.str());
 	}
 
-	// AdEx Parameter Transformation
-	return_type operator() (
+	/// AdEx Parameter Transformation
+	return_type operator()(
 		cell_t<CellType::EIF_cond_exp_isfa_ista> const& v,
 		calib_t const& calib,
 		size_t neuron_bio_id,
 		neuron_t const& neuron_hw_id,
+		synapse_targets_t const& synaptic_targets,
 		chip_t& chip) const;
 
-	// LIF Parameter Transformation
-	return_type operator() (
+	/// LIF Parameter Transformation
+	return_type operator()(
 		cell_t<CellType::IF_cond_exp> const& v,
 		calib_t const& calib,
 		size_t neuron_bio_id,
 		neuron_t const& neuron_hw_id,
+		synapse_targets_t const& synaptic_targets,
+		chip_t& chip) const;
+
+	/// AdEx with multiple time constants Parameter Transformation
+	return_type operator()(
+		cell_t<CellType::EIF_multicond_exp_isfa_ista> const& v,
+		calib_t const& calib,
+		size_t neuron_bio_id,
+		neuron_t const& neuron_hw_id,
+		synapse_targets_t const& synaptic_targets,
+		chip_t& chip) const;
+
+	/// LIF with multiple time constants Parameter Transformation
+	return_type operator()(
+		cell_t<CellType::IF_multicond_exp> const& v,
+		calib_t const& calib,
+		size_t neuron_bio_id,
+		neuron_t const& neuron_hw_id,
+		synapse_targets_t const& synaptic_targets,
 		chip_t& chip) const;
 
 private:
+	static void
+	assert_synapse_target_mapping_is_default(synapse_targets_t::value_type const& targets);
+
 	double mTargetVReset; ///< target hardware V_reset in Volt
 };
 
@@ -117,6 +144,7 @@ void transform_analog_neuron(
 	Population const& pop,
 	size_t neuron_bio_id,
 	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id,
+	routing::SynapseTargetMapping const& synapse_targets,
 	TransformNeurons& visitor,
 	chip_type<hardware_system_t>::type& chip);
 

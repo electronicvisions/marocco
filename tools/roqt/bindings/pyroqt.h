@@ -18,19 +18,17 @@ class PyRoQt
 public:
 	typedef HMF::Coordinate::HICANNGlobal Index;
 	typedef marocco::routing::CrossbarRoutingResult CrossbarRouting;
-	typedef marocco::routing::SynapseRowRoutingResult SynapseRowRouting;
+	typedef marocco::routing::SynapseRoutingResult SynapseRouting;
 	typedef marocco::routing::routing_graph Graph;
 
 	PyRoQt();
-	PyRoQt(CrossbarRouting const& cb,
-		   SynapseRowRouting const& sr,
-		   Graph const& g);
+	PyRoQt(CrossbarRouting const& cb, SynapseRouting const& sr, Graph const& g);
 
 	void load(std::string const& fname);
 	void store(std::string const& fname) const;
 
 	CrossbarRouting const& crossbar() const;
-	SynapseRowRouting const& synapserow() const;
+	SynapseRouting const& synapserow() const;
 
 	Graph const& graph() const;
 
@@ -44,12 +42,12 @@ private:
 	{
 		using boost::serialization::make_nvp;
 		ar & make_nvp("crossbar_routing", mCrossbarRouting)
-		   & make_nvp("synapserow_routing", mSynapseRowRouting)
+		   & make_nvp("synapse_routing", mSynapseRouting)
 		   & make_nvp("routing_graph", mRoutingGraph);
 	}
 
 	CrossbarRouting mCrossbarRouting;
-	SynapseRowRouting mSynapseRowRouting;
+	SynapseRouting mSynapseRouting;
 	Graph mRoutingGraph;
 };
 

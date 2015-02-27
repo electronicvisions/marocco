@@ -84,7 +84,8 @@ private:
 	void neurons(
 		neuron_calib_t const& calib,
 		typename placement::neuron_placement_t::result_type const& neuron_placement,
-		typename placement::output_mapping_t::result_type const& output_mapping);
+		typename placement::output_mapping_t::result_type const& output_mapping,
+		routing::SynapseTargetMapping const& synapse_target_mapping);
 
 	void connect_denmems(
 		HMF::Coordinate::NeuronOnHICANN const& topleft_neuron,
@@ -111,9 +112,8 @@ private:
 
 	void synapses(
 		synapse_row_calib_t const& calib,
-		typename routing::synapse_driver_mapping_t::result_type const& synapse_mapping,
-		typename placement::neuron_placement_t::result_type const& neuron_placement
-		);
+		typename routing::synapse_driver_mapping_t::result_type const& synapse_routing,
+		typename placement::neuron_placement_t::result_type const& neuron_placement);
 
 	/// returns an array with the weight scale factor for each neuron on the hicann.
 	/// The factor to scale biological to hardware weights is calculated as: speedup * cm_hw/ cm_bio

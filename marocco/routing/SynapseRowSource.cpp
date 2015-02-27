@@ -62,17 +62,15 @@ SynapseRowSource::SynapseMapping &      SynapseRowSource::synapses()
 	return mSynapses;
 }
 
-SynapseRowSource::SynapseType const&
-SynapseRowSource::type() const
+HMF::Coordinate::Side const& SynapseRowSource::synaptic_input() const
 {
-	return mType;
+	return mSynapticInput;
 }
 
 bool SynapseRowSource::operator== (SynapseRowSource const& rhs) const
 {
-	return mPrefix == rhs.mPrefix
-		&& mType == rhs.mType
-		&& mSynapses == rhs.mSynapses;
+	return mPrefix == rhs.mPrefix && mSynapticInput == rhs.mSynapticInput &&
+		   mSynapses == rhs.mSynapses;
 }
 
 bool SynapseRowSource::operator!= (SynapseRowSource const& rhs) const
@@ -80,19 +78,16 @@ bool SynapseRowSource::operator!= (SynapseRowSource const& rhs) const
 	return !(*this == rhs);
 }
 
-SynapseRowSource::SynapseRowSource(SynapseType const& type) :
-	mPrefix(),
-	mType(type)
+SynapseRowSource::SynapseRowSource(HMF::Coordinate::Side const& syn_input)
+	: mPrefix(), mSynapticInput(syn_input)
 {}
 
 SynapseRowSource::SynapseRowSource()
 {}
 
 
-DriverResult::DriverResult(VLineOnHICANN const& vline) :
-	mLine(vline),
-	mDrivers(),
-	mRows()
+DriverResult::DriverResult(VLineOnHICANN const& vline)
+	: mLine(vline), mDrivers(), mRows(), mSTPSettings()
 {}
 
 DriverResult::VLineOnHICANN const&
@@ -134,6 +129,17 @@ DriverResult::drivers() const
 {
 	return mDrivers;
 }
+
+DriverResult::STPSettings& DriverResult::stp_settings()
+{
+	return mSTPSettings;
+}
+
+DriverResult::STPSettings const& DriverResult::stp_settings() const
+{
+	return mSTPSettings;
+}
+
 
 void DriverResult::check() const
 {

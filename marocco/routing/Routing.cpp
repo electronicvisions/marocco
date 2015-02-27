@@ -37,16 +37,13 @@ DefaultRouting::run(result_type const& placement_result)
 
 	result->crossbar_routing = global_router.run(placement);
 
-	HICANNRouting local_router(mSynapseLoss, mPyMarocco,
-		getGraph(), getHardware(), getManager(),
-		routinggraph);
-	result->synapse_row_routing = local_router.run(placement, result->crossbar_routing);
-
+	HICANNRouting local_router(
+		mSynapseLoss, mPyMarocco, getGraph(), getHardware(), getManager(), routinggraph);
+	result->synapse_routing = local_router.run(placement, result->crossbar_routing);
 
 	// write out the results for RoQt
 	if (!mPyMarocco.roqt.empty()) {
-		PyRoQt pyroqt(result->crossbar_routing, result->synapse_row_routing,
-		              routinggraph);
+		PyRoQt pyroqt(result->crossbar_routing, result->synapse_routing, routinggraph);
 		pyroqt.store(mPyMarocco.roqt);
 	}
 

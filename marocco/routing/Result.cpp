@@ -9,15 +9,15 @@
 namespace marocco {
 namespace routing {
 
-std::ostream& SynapseRowRoutingResult::operator<< (std::ostream& o) const
+std::ostream& SynapseRoutingResult::operator<<(std::ostream& o) const
 {
 	o << typestring(*this) << "(";
 	for (auto& it : this->_mapping)
 	{
 		o << "Chip: [" << it.first;
-		o << "] Result(size: " << it.second.size();
-		for(auto& iit : it.second)
-		{
+		std::vector<DriverResult> const& driver_result = it.second.driver_result;
+		o << "] DriverResult(size: " << driver_result.size();
+		for (auto& iit : driver_result) {
 			// FIXME: Coordinate::SynapseDriverOnHICANN printer doesn't work somehow
 			//o << " SynapseDriver(" << iit.first.side() << " " << iit.first.line() << ")" << std::endl;
 			////o << iit.first;

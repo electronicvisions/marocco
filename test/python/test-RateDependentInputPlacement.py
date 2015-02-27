@@ -5,17 +5,12 @@ import pyhmf as pynn
 import pymarocco
 import pyhalbe
 import numpy as np
+import debug_config
 
 
 pylogging.reset()
 pylogging.default_config(pylogging.LogLevel.INFO)
 pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.DEBUG)
-
-def get_bio_id(pop, idx):
-    bio_id = pymarocco.MappingStats.bio_id()
-    bio_id.pop = pop.euter_id()
-    bio_id.neuron = idx
-    return bio_id
 
 def default_marocco():
     marocco = pymarocco.PyMarocco()
@@ -70,7 +65,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         hicanns = {} # count number of stimuli mapped on Hicann
         fpgas = {} # count number of stimuli mapped on fpga
         for idx in range(len(pop_stim)):
-            bio_id = get_bio_id(pop_stim, idx)
+            bio_id = debug_config.get_bio_id(pop_stim, idx)
             hw_id = marocco.getStats().getHwId(bio_id) # returns list of placements
             assert len(hw_id) == 1 # stim nrns are only placed once per wafer
             hw_id = hw_id[0]

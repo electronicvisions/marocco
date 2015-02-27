@@ -7,12 +7,8 @@
 PyRoQt::PyRoQt()
 {}
 
-PyRoQt::PyRoQt(CrossbarRouting const& cb,
-			   SynapseRowRouting const& sr,
-			   Graph const& g) :
-	mCrossbarRouting(cb),
-	mSynapseRowRouting(sr),
-	mRoutingGraph(g)
+PyRoQt::PyRoQt(CrossbarRouting const& cb, SynapseRouting const& sr, Graph const& g)
+	: mCrossbarRouting(cb), mSynapseRouting(sr), mRoutingGraph(g)
 {}
 
 void PyRoQt::load(std::string const& fname)
@@ -35,10 +31,9 @@ PyRoQt::crossbar() const
 	return mCrossbarRouting;
 }
 
-PyRoQt::SynapseRowRouting const&
-PyRoQt::synapserow() const
+PyRoQt::SynapseRouting const& PyRoQt::synapserow() const
 {
-	return mSynapseRowRouting;
+	return mSynapseRouting;
 }
 
 PyRoQt::Graph const& PyRoQt::graph() const

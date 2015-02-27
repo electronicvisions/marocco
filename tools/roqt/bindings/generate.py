@@ -22,7 +22,8 @@ classes = [
         'L1Bus',
         'SynapseRowSource',
         'DriverResult',
-        'SynapseRowRoutingResult',
+        'DriverResultAndSynapseTargetMapping',
+        'SynapseRoutingResult',
         #'SynapseDriverList',
     ]
 

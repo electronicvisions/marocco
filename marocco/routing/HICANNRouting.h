@@ -30,17 +30,17 @@ public:
 				  routing_graph const& rgraph);
 	virtual ~HICANNRouting();
 
-	SynapseRowRoutingResult run(placement::Result const& placement,
-	                            CrossbarRoutingResult const& routes);
+	SynapseRoutingResult
+	run(placement::Result const& placement, CrossbarRoutingResult const& routes);
 
 private:
-	void run(HMF::Coordinate::HICANNGlobal const& hicann,
-			 placement::Result const& placement,
-			 CrossbarRoutingResult const& routes,
-			 SynapseRowRoutingResult& result);
+	void
+	run(HMF::Coordinate::HICANNGlobal const& hicann,
+		placement::Result const& placement,
+		CrossbarRoutingResult const& routes,
+		SynapseRoutingResult& result);
 
-	void configure_hardware(
-		routing::SynapseRowRoutingResult const& syndrvrouting);
+	void configure_hardware(routing::SynapseRoutingResult const& syndrvrouting);
 
 	void setSynapseSwitch(
 		HMF::Coordinate::VLineOnHICANN const& vline,

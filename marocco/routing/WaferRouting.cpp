@@ -9,7 +9,6 @@
 #include "marocco/routing/WeightMap.h"
 #include "marocco/placement/SpiralHICANNOrdering.h"
 #include "marocco/util/iterable.h"
-#include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/Logger.h"
 #include "hal/Coordinate/iter_all.h"
 
@@ -113,8 +112,14 @@ WaferRouting::run(placement::Result const& placement)
 
 		std::vector<HICANNGlobal> to_remove;
 		for (auto const& target : targets) {
-			SynapseDriverRequirements req(target, neuron_mapping);
+
+			// TODO(#1594): determination whether route has synapes to target does not
+			// need to count the total number of synapses.
+			SynapseTargetMapping syn_tgt_mapping;
+			syn_tgt_mapping.simple_mapping(neuron_mapping.at(target), getGraph());
+			SynapseDriverRequirements req(target, neuron_mapping, syn_tgt_mapping);
 			auto const num = req.calc(projections, getGraph());
+
 			if (!num.first) {
 				to_remove.push_back(target);
 			}

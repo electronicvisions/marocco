@@ -29,12 +29,10 @@ HICANNRouting::HICANNRouting(
 
 HICANNRouting::~HICANNRouting() {}
 
-SynapseRowRoutingResult
-HICANNRouting::run(
-	placement::Result const& placement,
-	routing::CrossbarRoutingResult const& routes)
+SynapseRoutingResult
+HICANNRouting::run(placement::Result const& placement, routing::CrossbarRoutingResult const& routes)
 {
-	SynapseRowRoutingResult result;
+	SynapseRoutingResult result;
 
 	// get all used process local chips
 	auto first = getManager().begin_allocated();
@@ -60,24 +58,26 @@ void HICANNRouting::run(
 	HMF::Coordinate::HICANNGlobal const& hicann,
 	placement::Result const& placement,
 	CrossbarRoutingResult const& routes,
-	SynapseRowRoutingResult& result)
+	SynapseRoutingResult& result)
 {
-	if (!routes.exists(hicann)) {
+	// synapse routing has to be run no matter there are routes ending at this
+	// chip or not, because we need the synapse target mapping for param trafo
+	SynapseRouting synapse_routing(
+		hicann, mSynapseLoss, mPyMarocco, getGraph(), mRoutingGraph, getManager(), getHardware());
+
+	if (routes.exists(hicann)) {
+		// get list of LocalRoutes ending @ this chip
+		std::vector<LocalRoute> const& route_list = routes.at(hicann);
+		synapse_routing.run(placement, route_list);
+	} else {
 		// this can only happen if HICANN is in use, meaning neurons have
 		// been placed on it and neurons don't get spiking input or
 		// resources have been exhausted, such that sources could not be
 		// routed to here.
 		MAROCCO_WARN("used hicann without spike input: "<< hicann);
-		return;
+		// run routing with empty routes to generate synapse target mapping
+		synapse_routing.run(placement, std::vector<LocalRoute>());
 	}
-
-	// get list of LocalRoutes ending @ this chip
-	std::vector<LocalRoute> const& route_list = routes.at(hicann);
-
-
-	SynapseRouting synapse_routing(hicann, mSynapseLoss, mPyMarocco,
-								   getGraph(), mRoutingGraph, getManager(), getHardware());
-	synapse_routing.run(placement, route_list);
 
 	mMutex.lock();
 	// insert results;
@@ -85,28 +85,26 @@ void HICANNRouting::run(
 	res = std::move(synapse_routing.getResult());
 	mMutex.unlock();
 
-	if (res.empty()) {
+	if (routes.exists(hicann) && res.driver_result.empty()) {
 		MAROCCO_ERROR("empty local routing result");
 		std::runtime_error("empty local routing result");
 	}
 }
 
-void HICANNRouting::configure_hardware(
-	routing::SynapseRowRoutingResult const& synrowrouting)
+void HICANNRouting::configure_hardware(routing::SynapseRoutingResult const& synapse_routing)
 {
 	// get all used process local chips
 	for (auto const& hicann: getManager().allocated())
 	{
 		auto& chip = getHardware()[hicann];
 
-		if (!synrowrouting.exists(hicann)) {
+		if (!synapse_routing.exists(hicann)) {
 			MAROCCO_DEBUG("no SynapseRowRouting Result for " << hicann << " this is ok, if there are "
 			   << "no neurons placed on this HICANN or routes could be realized to connect to this neurons");
 			continue;
 		}
 
-		SynapseRowRoutingResult::result_type const& synrow_routing =
-			synrowrouting.at(hicann);
+		std::vector<DriverResult> const& synrow_routing = synapse_routing.at(hicann).driver_result;
 
 		// for every target synapse row set switches, driver, weights, synaptic inputs.
 		for (DriverResult const& d : synrow_routing)
@@ -154,18 +152,10 @@ void HICANNRouting::setSynapseDriver(
 		auto& driver = chip.synapses[row.toSynapseDriverOnHICANN()];
 		RowConfig& config = driver[row.toRowOnSynapseDriver()];
 
-		if (source.type() == "excitatory") {
-			config.set_syn_in(left, true);
-		} else if (source.type() == "inhibitory") {
-			config.set_syn_in(right, true);
-		} else {
-			throw std::logic_error("unknown synapse type");
-		}
-
 		// make sure only one synaptic input is connected at a time.
-		if (config.get_syn_in(right) && config.get_syn_in(left)) {
-			throw std::runtime_error("only one synin");
-		}
+		config.set_syn_in(left, false);
+		config.set_syn_in(right, false);
+		config.set_syn_in(source.synaptic_input(), true);
 
 		/// there are 4 2-bit decoders per Synapse drivers. Two per synapse row: one
 		/// for odd and one for even denmem ids. To keep things simple, we set both
@@ -211,8 +201,18 @@ void HICANNRouting::setSynapseDriver(
 		{
 			auto& driver = chip.synapses[drv];
 
-			// STP (=switch off for now)
-			driver.disable_stp();
+			STPMode const& stp = d.stp_settings().at(drv);
+			switch (stp) {
+				case STPMode::off:
+					driver.disable_stp();
+					break;
+				case STPMode::depression:
+					driver.set_std();
+					break;
+				case STPMode::facilitation:
+					driver.set_stf();
+					break;
+			}
 		}
 	}
 }

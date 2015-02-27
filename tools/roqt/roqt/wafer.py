@@ -76,7 +76,7 @@ class Wafer(object):
             # find the corresponding synapse driver result (there can be up
             # to two with same vline, because vline X can be eiter from
             # this or adjacent HICANN).
-            for driver_result in synapserows.at(target_hicann):
+            for driver_result in synapserows.at(target_hicann).driver_result:
                 if driver_result.line()==vline and driver_result.from_adjacent()==is_adj:
                     # iterate over all primary drivers
                     for drv in driver_result.drivers():

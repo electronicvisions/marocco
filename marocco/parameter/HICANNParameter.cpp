@@ -176,6 +176,7 @@ HICANNTransformator::run(
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(mPyMarocco.speedup);
 		auto const& neuron_placement = placement.neuron_placement.at(chip().index());
+		auto const& synapse_routing = routing.synapse_routing.at(chip().index());
 
 		// Analog output: set correct values for output buffer
 		// FIXME: in principle this has nothing to with whether or not there are
@@ -187,7 +188,9 @@ HICANNTransformator::run(
 		if (has_output_mapping)
 		{
 			// 3. transform individual analog parameters
-			neurons(*neuron_calib, neuron_placement, output_mapping);
+			neurons(
+				*neuron_calib, neuron_placement, output_mapping,
+				synapse_routing.synapse_target_mapping);
 
 			if(local_routes) {
 				// transform synapses
@@ -199,8 +202,7 @@ HICANNTransformator::run(
 				else
 					synapse_row_calib->setDefaults();
 
-				auto const & synapse_mapping = routing.synapse_row_routing.at(chip().index());
-				synapses(*synapse_row_calib, synapse_mapping, neuron_placement);
+				synapses(*synapse_row_calib, synapse_routing, neuron_placement);
 			}
 
 			// current sources
@@ -231,7 +233,8 @@ void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
 void HICANNTransformator::neurons(
 	neuron_calib_t const& calib,
 	typename placement::neuron_placement_t::result_type const& neuron_placement,
-	typename placement::output_mapping_t::result_type const& output_mapping)
+	typename placement::output_mapping_t::result_type const& output_mapping,
+	routing::SynapseTargetMapping const& synapse_target_mapping)
 {
 	// GLOBAL DIGITAL Neuron Paramets
 	neuron_config(calib);
@@ -312,7 +315,8 @@ void HICANNTransformator::neurons(
 
 					// configure ANALOG neuron parameters
 					transform_analog_neuron(
-						calib, pop, bio.offset() + neuron.index(), nrn, visitor, chip());
+						calib, pop, bio.offset() + neuron.index(), nrn, synapse_target_mapping,
+						visitor, chip());
 				}
 
 				{
@@ -500,13 +504,13 @@ void HICANNTransformator::shared_parameters(
 
 void HICANNTransformator::synapses(
 	synapse_row_calib_t const& calib,
-	typename routing::synapse_driver_mapping_t::result_type const& synapse_mapping,
-	typename placement::neuron_placement_t::result_type const& neuron_placement
-	)
+	typename routing::synapse_driver_mapping_t::result_type const&
+		synapse_routing, // TODO change this to pass std::vector<DriverResult>
+	typename placement::neuron_placement_t::result_type const& neuron_placement)
 {
 	NeuronOnHICANNPropertyArray<double> const weight_scale = weight_scale_array( neuron_placement );
 
-	for ( routing::DriverResult const & driver_res : synapse_mapping ) {
+	for (routing::DriverResult const& driver_res : synapse_routing.driver_result) {
 		for (auto synrow : driver_res.rows() ) {
 			auto const & synrow_addr = synrow.first;
 			auto const & synrow_source = synrow.second;

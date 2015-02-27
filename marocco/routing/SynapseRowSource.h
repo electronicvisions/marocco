@@ -11,6 +11,8 @@
 #include "marocco/graph.h"
 #include "hal/Coordinate/HMFGeometry.h"
 #include "hal/HICANN/DriverDecoder.h"
+#include "hal/HICANN/RowConfig.h"
+#include "marocco/routing/STPMode.h"
 
 namespace marocco {
 namespace routing {
@@ -54,15 +56,10 @@ class SynapseRowSource
 {
 public:
 	typedef HMF::HICANN::DriverDecoder Address;
-#if !defined(PYPLUSPLUS)
-	typedef Projection::synapse_type SynapseType;
-#else
-	typedef std::string SynapseType;
-#endif
 
 	typedef std::array< SynapseSource, HMF::Coordinate::NeuronOnHICANN::x_type::end > SynapseMapping;
 
-	SynapseRowSource(SynapseType const& type);
+	SynapseRowSource(HMF::Coordinate::Side const& syn_input);
 
 	/// 2bit MSB of L1 Addresses forwarded on this line.
 	Address const& prefix(size_t ii) const;
@@ -75,10 +72,9 @@ public:
 	SynapseMapping &      synapses();
 #endif
 
-	/// SynapseType, either excitatory or inhibitory
-	SynapseType const& type() const;
+	/// Synaptic input of the neurons to which all synapses of a row connect (left or right)
+	HMF::Coordinate::Side const& synaptic_input() const;
 
-	// TODO: include synapse mapping in operators.
 	bool operator== (SynapseRowSource const& rhs) const;
 	bool operator!= (SynapseRowSource const& rhs) const;
 
@@ -98,13 +94,13 @@ private:
 	//HardwareProjection mProjection;
 
 	/// 2bit MSB of L1 Addresses forwarded on this line.
-	std::array<Address,2> mPrefix;
+	std::array<Address, HMF::HICANN::RowConfig::num_syn_ins> mPrefix;
 
-	/// SynapseType, either excitatory or inhibitory
-	/// TODO: change to left/right
-	SynapseType mType;
+	/// Synaptic input of the neurons to which all synapses of a row connect (left or right)
+	HMF::Coordinate::Side mSynapticInput;
 
-	SynapseMapping mSynapses; /// holds the biological synapses mapped to hw synapses
+	/// holds the biological synapses mapped to hw synapses
+	SynapseMapping mSynapses;
 };
 
 
@@ -123,10 +119,9 @@ public:
 			std::vector<SynapseDriverOnHICANN>
 		> Drivers; /// mapping of primaray Synapse Driver to adjacent Synapse Drivers
 
-	typedef std::map<
-			HMF::Coordinate::SynapseRowOnHICANN,
-			SynapseRowSource
-		> Rows;
+	typedef std::map<SynapseDriverOnHICANN, STPMode> STPSettings;
+
+	typedef std::map<HMF::Coordinate::SynapseRowOnHICANN, SynapseRowSource> Rows;
 
 	DriverResult(VLineOnHICANN const& vline);
 
@@ -150,6 +145,12 @@ public:
 #endif
 	Drivers const& drivers() const;
 
+/// for each SynapseDriver the stp config
+#if !defined(PYPLUSPLUS)
+	STPSettings& stp_settings();
+	STPSettings const& stp_settings() const;
+#endif
+
 	/// check whether the VLine is connected to maximally 2 primary drivers
 	/// TODO: why 2?
 	void check() const;
@@ -158,11 +159,7 @@ public:
 	std::vector<HMF::Coordinate::SynapseDriverOnHICANN> const&
 	getDrivers(HMF::Coordinate::SynapseDriverOnHICANN const& drv) const
 	{
-		Drivers::const_iterator it = mDrivers.find(drv);
-		if (it==mDrivers.end()) {
-			throw std::runtime_error("out of range");
-		}
-		return it->second;
+		return mDrivers.at(drv);
 	}
 
 private:
@@ -185,6 +182,9 @@ private:
 
 	/// a mapping of row properties to rows.
 	Rows mRows;
+
+	/// a mapping of STP config to driver.
+	STPSettings mSTPSettings;
 };
 
 
@@ -205,7 +205,7 @@ void SynapseRowSource::serialize(Archiver& ar, unsigned int const /*version*/)
 {
 	using namespace boost::serialization;
 	ar & make_nvp("prefix", mPrefix)
-	   & make_nvp("type", mType)
+	   & make_nvp("synaptic_input", mSynapticInput)
 	   & make_nvp("synapses", mSynapses);
 }
 
@@ -215,7 +215,8 @@ void DriverResult::serialize(Archiver& ar, unsigned int const /*version*/)
 	using namespace boost::serialization;
 	ar & make_nvp("vline", mLine)
 	   & make_nvp("drivers", mDrivers)
-	   & make_nvp("rows", mRows);
+	   & make_nvp("rows", mRows)
+	   & make_nvp("stp_settings", mSTPSettings);
 }
 
 } // namespace routing
