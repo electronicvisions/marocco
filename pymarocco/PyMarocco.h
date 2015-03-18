@@ -102,6 +102,12 @@ public:
 	/// path to output file for routing visualizer (RoQt). No roqt output if unset
 	std::string roqt;
 
+	/** Default wafer to fall back to when no manual placement or defects were specified.
+	 *  @note: This will go away in the long run. Do \b NOT use this anywhere but rely
+	 *  on \c HICANNManager.wafers() instead.
+	 */
+	HMF::Coordinate::Wafer default_wafer;
+
 	/// path to graphviz bio graph output file. No bio graph output if unset
 	std::string bio_graph;
 

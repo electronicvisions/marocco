@@ -37,8 +37,9 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 
 	if (wafers.empty()) {
 		LOG4CXX_INFO(log4cxx::Logger::getLogger("marocco"),
-		             "Could not deduce wafer, will use Wafer(0).");
-		wafers.insert({});
+		             "Could not deduce wafer, will use "
+		             << mi->default_wafer << ".");
+		wafers.insert(mi->default_wafer);
 	} else if (wafers.size() > 1) {
 		throw std::runtime_error("Currently only a single wafer is supported.");
 	}
