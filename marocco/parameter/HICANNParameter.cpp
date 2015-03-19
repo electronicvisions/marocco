@@ -738,6 +738,12 @@ HICANNTransformator::getCalibrationData()
 
 	} // switch hardware backend
 
+	if(calib->getPLLFrequency() != mPyMarocco.pll_freq) {
+		MAROCCO_WARN("PLL stored in HICANNCollection "
+		             << int(calib->getPLLFrequency()/1e6) << " MHz != "
+		             << int(mPyMarocco.pll_freq/1e6) << " MHz set here.");
+	}
+
 	return calib;
 }
 
