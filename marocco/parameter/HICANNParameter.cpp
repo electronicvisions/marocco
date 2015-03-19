@@ -709,8 +709,7 @@ HICANNTransformator::getCalibrationData()
 			calibtic::MetaData md;
 			auto backend = getCalibticBackend();
 
-			// FIXME: .id() is now global id
-			const int hicann_id = chip().index().id().value();
+			const int hicann_id = chip().index().toHICANNOnWafer().id().value();
 			std::stringstream calib_file;
 			calib_file << "w" << int(chip().index().toWafer()) << "-h";
 			calib_file << hicann_id;
