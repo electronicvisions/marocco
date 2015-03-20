@@ -596,7 +596,7 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 	typename placement::neuron_placement_t::result_type const& neuron_placement
 	) const {
 
-	CMVisitor const cm_visitor;
+	CMVisitor const cm_visitor{};
 	NeuronOnHICANNPropertyArray<double> rv;
 
 	//initialize all values to 0.
