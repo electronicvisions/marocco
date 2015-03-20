@@ -15,6 +15,9 @@ public:
 	typedef HMF::Coordinate::HICANNGlobal Index;
 	typedef std::list<Index> List;
 	typedef std::size_t size_type;
+
+	PYPP_INSTANTIATE(List);
+
 private:
 	typedef std::map<PopulationId, std::pair<List, size_type> > mapping_type;
 
