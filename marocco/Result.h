@@ -1,10 +1,12 @@
 #pragma once
 
-#include <stdexcept>
-
-#include "marocco/BaseResult.h"
+#include <typeinfo>
 
 namespace marocco {
+
+struct BaseResult {
+	virtual ~BaseResult() {}
+};
 
 template<typename T>
 T const& result_cast(BaseResult const& res)

@@ -25,7 +25,8 @@ TEST(HICANNPlacement, Basic)
 
 	hw[wafer]; // hack: to allocate a wafer;
 	HICANNPlacement placement(py_placement, graph, hw, mgr, comm);
-	placement.run();
+	NeuronPlacementResult res;
+	placement.run(res);
 }
 
 } // placement

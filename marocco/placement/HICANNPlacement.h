@@ -49,7 +49,7 @@ public:
 		resource_manager_t& mgr,
 		comm_t const& comm);
 
-	std::unique_ptr<NeuronPlacementResult> run();
+	void run(NeuronPlacementResult& res);
 
 private:
 	struct NoNeuronBlockFound {};

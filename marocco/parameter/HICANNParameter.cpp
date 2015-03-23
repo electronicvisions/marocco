@@ -55,7 +55,7 @@ HICANNParameter::run(
 		boost::shared_ptr<StepCurrentSource const>>> current_source_map;
 
 	auto const& pm = placement.placement();
-	auto const& np = get<0>(placement);
+	auto const& np = placement.neuron_placement;
 	for (auto const& entry : mCurrentSourceMap)
 	{
 		Vertex const v = entry.first;
@@ -151,10 +151,10 @@ HICANNTransformator::run(
 {
 
 	// assuming that neurons are always read out
-	auto const& output_mapping = get<1>(placement).at(chip().index());
+	auto const& output_mapping = placement.output_mapping.at(chip().index());
 	bool const local_neurons = !output_mapping.onlyInput();
 
-	bool const local_routes  = get<0>(routing).exists(chip().index());
+	bool const local_routes  = routing.crossbar_routing.exists(chip().index());
 
 	// spike input sources
 	spike_input(output_mapping);
@@ -183,7 +183,7 @@ HICANNTransformator::run(
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1543
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(mPyMarocco.speedup);
-		auto const& neuron_placement = get<0>(placement).at(chip().index());
+		auto const& neuron_placement = placement.neuron_placement.at(chip().index());
 
 		// Analog output: set correct values for output buffer
 		// FIXME: in principle this has nothing to with whether or not there are
@@ -202,7 +202,7 @@ HICANNTransformator::run(
 				auto synapse_row_calib = calib->atSynapseRowCollection();
 				// FIXME: remove next line when synapse calibration exists for real hardware (#1584)
 				synapse_row_calib->setDefaults();
-				auto const & synapse_mapping = get<1>(routing).at(chip().index());
+				auto const & synapse_mapping = routing.synapse_row_routing.at(chip().index());
 				synapses(*synapse_row_calib, synapse_mapping, neuron_placement);
 			}
 

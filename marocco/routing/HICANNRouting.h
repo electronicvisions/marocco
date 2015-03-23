@@ -31,9 +31,8 @@ public:
 				  routing_graph const& rgraph);
 	virtual ~HICANNRouting();
 
-	std::unique_ptr<SynapseRowRoutingResult> run(
-		placement::Result const& placement,
-		CrossbarRoutingResult const& routes);
+	SynapseRowRoutingResult run(placement::Result const& placement,
+	                            CrossbarRoutingResult const& routes);
 
 private:
 	void run(HMF::Coordinate::HICANNGlobal const& hicann,

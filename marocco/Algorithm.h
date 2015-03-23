@@ -1,6 +1,6 @@
 #pragma once
 
-#include "marocco/BaseResult.h"
+#include "marocco/Result.h"
 #include "marocco/config.h"
 #include "marocco/graph.h"
 

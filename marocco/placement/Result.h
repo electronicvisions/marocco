@@ -1,8 +1,8 @@
 #pragma once
 
 #include "marocco/config.h"
+#include "marocco/Result.h"
 #include "marocco/PartialResult.h"
-#include "marocco/ResultInterface.h"
 #include "marocco/placement/NeuronBlockMapping.h"
 #include "marocco/placement/OutputBufferMapping.h"
 #include "marocco/placement/PlacementMap.h"
@@ -48,14 +48,12 @@ class OutputMappingResult :
 
 typedef OutputMappingResult output_mapping_t;
 
+struct Result : public BaseResult {
+	NeuronPlacementResult neuron_placement;
+	OutputMappingResult output_mapping;
 
-// combine Results
-class Result :
-	public ResultInterface<NeuronPlacementResult, OutputMappingResult>
-{
-public:
-	PlacementMap const& placement() const { return get<0>(*this).placement(); }
-	PlacementMap&       placement()       { return get<0>(*this).placement(); }
+	PlacementMap const& placement() const { return neuron_placement.placement(); }
+	PlacementMap& placement() { return neuron_placement.placement(); }
 };
 
 } // namespace placement

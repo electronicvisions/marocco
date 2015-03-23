@@ -14,7 +14,7 @@ HardwareUsage::HardwareUsage(Hardware const& hw,
 							 BaseResult const& pl) :
 	mHW(hw),
 	mResource(r),
-	mPlacement(get<0>(marocco::result_cast<placement::Result>(pl)))
+	mPlacement(result_cast<placement::Result>(pl).neuron_placement)
 {}
 
 double HardwareUsage::overallNeuronUsage() const

@@ -17,10 +17,9 @@ DefaultRouting::run(result_type const& placement_result)
 {
 	std::unique_ptr<Result> result(new Result);
 
-	placement::Result const& placement =
-		dynamic_cast<placement::Result const&>(placement_result);
+	placement::Result const& placement = result_cast<placement::Result>(placement_result);
 
-	mSynapseLoss = boost::make_shared<SynapseLoss>(get<0>(placement), getGraph());
+	mSynapseLoss = boost::make_shared<SynapseLoss>(placement.neuron_placement, getGraph());
 
 	routing_graph routinggraph;
 
@@ -36,17 +35,18 @@ DefaultRouting::run(result_type const& placement_result)
 	// 	routinggraph, getGraph(), getHardware(),
 	// 	getManager(), getComm());
 
-	set<0>(*result, global_router.run(placement));
+	result->crossbar_routing = global_router.run(placement);
 
 	HICANNRouting local_router(mSynapseLoss, mPyMarocco,
 		getGraph(), getHardware(), getManager(),
 		getComm(), routinggraph);
-	set<1>(*result, local_router.run(placement, get<0>(*result)));
+	result->synapse_row_routing = local_router.run(placement, result->crossbar_routing);
 
 
 	// write out the results for RoQt
 	if (!mPyMarocco.roqt.empty()) {
-		PyRoQt pyroqt(get<0>(*result), get<1>(*result), routinggraph);
+		PyRoQt pyroqt(result->crossbar_routing, result->synapse_row_routing,
+		              routinggraph);
 		pyroqt.store(mPyMarocco.roqt);
 	}
 

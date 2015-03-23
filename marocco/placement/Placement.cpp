@@ -31,20 +31,15 @@ DefaultPlacement::run()
 		mPyMarocco.placement,
 		getGraph(), getHardware(),
 		getManager(), getComm());
-	set<0>(*result, hicannpl.run());
-
-	auto output_mapping =
-		std::unique_ptr<OutputMappingResult>(new OutputMappingResult());
+	hicannpl.run(result->neuron_placement);
 
 	MergerRouting merger_routing(mPyMarocco, getGraph(), getHardware(), getManager());
-	merger_routing.run(get<0>(*result), *output_mapping);
+	merger_routing.run(result->neuron_placement, result->output_mapping);
 
 	// placement of externals, eg spike inputs
 	InputPlacement input_placement(mPyMarocco,
 	                               getGraph(), getHardware(), getManager());
-	input_placement.run(get<0>(*result), *output_mapping);
-
-	set<1>(*result, std::move(output_mapping));
+	input_placement.run(result->neuron_placement, result->output_mapping);
 
 	// create reverse mapping
 	mRevMapping = std::make_shared<rev_map_t>(

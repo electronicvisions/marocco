@@ -510,7 +510,7 @@ SynapseRouting::SynapseRouting(
 void SynapseRouting::run(placement::Result const& placement,
 						 std::vector<LocalRoute> const& route_list)
 {
-	placement::NeuronPlacementResult const& nrnpl = marocco::get<0>(placement);
+	placement::NeuronPlacementResult const& nrnpl = placement.neuron_placement;
 	auto const& revmap = nrnpl.placement();
 	auto const projmap = boost::get(projection_t(), mGraph);
 	auto const popmap = boost::get(population_t(), mGraph);

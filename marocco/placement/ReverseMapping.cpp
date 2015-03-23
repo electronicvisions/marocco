@@ -48,7 +48,7 @@ ReverseMapping::ReverseMapping(Result const& result,
 	using namespace HMF::Coordinate;
 	auto const& popmap = boost::get(population_t(), graph);
 
-	auto const& om = get<1>(result);
+	auto const& om = result.output_mapping;
 	for (auto const& h : mgr.allocated())
 	{
 		for (auto const& outb : iter_all<OutputBufferOnHICANN>())

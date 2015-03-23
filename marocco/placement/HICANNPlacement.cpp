@@ -48,11 +48,8 @@ HICANNPlacement::HICANNPlacement(
 		mComm(comm)
 {}
 
-std::unique_ptr<NeuronPlacementResult>
-HICANNPlacement::run()
+void HICANNPlacement::run(NeuronPlacementResult& res)
 {
-	std::unique_ptr<NeuronPlacementResult> res(new NeuronPlacementResult);
-
 	// TODO: this should in priciple be provided by redman.
 	size_t const num_wafers = mHW.size();
 	if (num_wafers==0) {
@@ -65,7 +62,7 @@ HICANNPlacement::run()
 	for (auto const& hicann : mMgr.present()) {
 		auto const& defects = mMgr.get(hicann);
 		auto const& nrns = defects->neurons();
-		auto& neuron_placement = (*res)[hicann];
+		auto& neuron_placement = res[hicann];
 
 		for (auto it = nrns->begin_disabled(); it != nrns->end_disabled(); ++it) {
 			auto const nb = it->toNeuronBlockOnHICANN();
@@ -86,7 +83,7 @@ HICANNPlacement::run()
 		auto const& wafer = hicann.toWafer();
 		for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 		{
-			size_t const avail = (*res)[hicann].available(nb);
+			size_t const avail = res[hicann].available(nb);
 			hset[wafer][avail].insert(NeuronBlockGlobal(nb, hicann));
 		}
 
@@ -147,7 +144,7 @@ HICANNPlacement::run()
 						terminals.push_back(NeuronBlockGlobal(nb, entry));
 					}
 				}
-				place2_(terminals, pops, *res);
+				place2_(terminals, pops, res);
 			} else {
 				// we only have the hardware size put bo specific place to put
 				// the neurons.
@@ -169,10 +166,8 @@ HICANNPlacement::run()
 	for (auto const& wafer : wafers)
 	{
 		// do the actual placement
-		place2(hset.at(wafer), pset.at(wafer), *res);
+		place2(hset.at(wafer), pset.at(wafer), res);
 	}
-
-	return res;
 }
 
 void HICANNPlacement::place2(

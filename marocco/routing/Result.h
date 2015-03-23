@@ -7,10 +7,8 @@
 #include <hal/Coordinate/HMFGeometry.h>
 
 #include "marocco/config.h"
+#include "marocco/Result.h"
 #include "marocco/PartialResult.h"
-#ifndef PYPLUSPLUS
-#include "marocco/ResultInterface.h"
-#endif // PYPLUSPLUS
 #include "marocco/routing/LocalRoute.h"
 #include "marocco/routing/SynapseRowSource.h"
 #include "marocco/routing/DriverAssignment.h"
@@ -58,10 +56,10 @@ typedef SynapseRowRoutingResult detailed_routing_t;
 
 
 #ifndef PYPLUSPLUS
-// combine Results
-class Result :
-	public ResultInterface<CrossbarRoutingResult, SynapseRowRoutingResult>
-{};
+struct Result : public BaseResult {
+	CrossbarRoutingResult crossbar_routing;
+	SynapseRowRoutingResult synapse_row_routing;
+};
 #endif // PYPLUSPLUS
 
 } // namespace routing

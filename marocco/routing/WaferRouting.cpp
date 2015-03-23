@@ -66,7 +66,7 @@ WaferRouting::get_targets(
 	return targets;
 }
 
-std::unique_ptr<CrossbarRoutingResult>
+CrossbarRoutingResult
 WaferRouting::run(placement::Result const& placement)
 {
 	// apart from priorization do the routing from the center to the outer parts
@@ -75,8 +75,8 @@ WaferRouting::run(placement::Result const& placement)
 	for (auto const& hicann : getManager().allocated())
 		hicanns.insert(hicann);
 
-	placement::NeuronPlacementResult const& neuron_mapping = get<0>(placement);
-	mOutbMapping = &get<1>(placement);
+	placement::NeuronPlacementResult const& neuron_mapping = placement.neuron_placement;
+	mOutbMapping = &placement.output_mapping;
 
 	auto const projmap = boost::get(projection_t(), getGraph());
 	auto const& revmap = placement.placement();
@@ -84,7 +84,7 @@ WaferRouting::run(placement::Result const& placement)
 	WaferRoutingPriorityQueue queue(getGraph(), mPyMarocco, projmap);
 	queue.insert(*mOutbMapping, hicanns);
 
-	std::unique_ptr<CrossbarRoutingResult> res(new CrossbarRoutingResult);
+	CrossbarRoutingResult res;
 
 	while (!queue.empty())
 	{
@@ -155,13 +155,13 @@ WaferRouting::run(placement::Result const& placement)
 			HICANNGlobal const& target_hicann = segments.first;
 			assert(getManager().has(target_hicann));
 			assert(segments.second.size() > 0);
-			(*res)[target_hicann].push_back(LocalRoute(route, segments.second[0]));
+			res[target_hicann].push_back(LocalRoute(route, segments.second[0]));
 		}
 	}
 
 	// set actually set crossbar switches on hardware representation
 	if (mPyMarocco.routing.is_default()) {
-		configureHardware(*res);
+		configureHardware(res);
 	} else {
 		MAROCCO_WARN("non-default routing config => no hardware config");
 	}

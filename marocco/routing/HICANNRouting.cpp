@@ -30,12 +30,12 @@ HICANNRouting::HICANNRouting(
 
 HICANNRouting::~HICANNRouting() {}
 
-std::unique_ptr<SynapseRowRoutingResult>
+SynapseRowRoutingResult
 HICANNRouting::run(
 	placement::Result const& placement,
 	routing::CrossbarRoutingResult const& routes)
 {
-	std::unique_ptr<SynapseRowRoutingResult> result(new SynapseRowRoutingResult);
+	SynapseRowRoutingResult result;
 
 	// get all used process local chips
 	auto first = getManager().begin_allocated();
@@ -46,13 +46,13 @@ HICANNRouting::run(
 	//std::for_each(first, last,
 	tbb::parallel_for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
-			this->run(hicann, placement, routes, *result);
+			this->run(hicann, placement, routes, result);
 	});
 	auto end = std::chrono::system_clock::now();
 	size_t& time = const_cast<size_t&>(mPyMarocco.stats.timeSpentInParallelRegion);
 	time += std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 
-	configure_hardware(*result);
+	configure_hardware(result);
 
 	return result;
 }

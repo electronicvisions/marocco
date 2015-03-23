@@ -6,7 +6,6 @@
 
 #include <boost/serialization/nvp.hpp>
 
-#include "marocco/BaseResult.h"
 #include "marocco/Logger.h"
 #include "marocco/tbb.h"
 

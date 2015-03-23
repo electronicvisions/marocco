@@ -1,7 +1,6 @@
 #pragma once
 
 #include <limits>
-#include <memory>
 #include <vector>
 #include <unordered_set>
 
@@ -31,8 +30,7 @@ public:
 	             Args&& ... args);
 	virtual ~WaferRouting();
 
-	std::unique_ptr<CrossbarRoutingResult>
-	run(placement::Result const& placement);
+	CrossbarRoutingResult run(placement::Result const& placement);
 
 	routing_graph const& getRoutingGraph() const;
 
