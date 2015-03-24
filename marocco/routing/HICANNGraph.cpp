@@ -88,7 +88,7 @@ HICANNGraph::vertex_t
 HICANNGraph::getSendingL1(unsigned const outbuffer) const
 {
 	HRepeaterOnHICANN repeater(OutputBufferOnHICANN(outbuffer).toSendingRepeaterOnHICANN());
-	assert(repeater.is_sending());
+	assert(repeater.isSending());
 	return mHorizontal[repeater.toHLineOnHICANN()];
 }
 
