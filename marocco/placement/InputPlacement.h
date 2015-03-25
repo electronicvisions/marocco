@@ -12,12 +12,11 @@ namespace marocco {
 namespace placement {
 
 /**
- * @brief maps spike source populations and neuron blocks onto output buffer
- *
- * This class carries out the following task:
- *     place external spike sources onto dnc mergers
- *
- **/
+ * Assign addresses to external spike source populations and map onto
+ * output buffers.
+ * @pre Neuron placement and merger routing has been completed,
+ *    see \c HICANNPlacement and \c MergerRouting.
+ */
 struct InputPlacement
 {
 public:
@@ -26,6 +25,12 @@ public:
 				   hardware_system_t& hw,
 				   resource_manager_t& mgr);
 
+	/**
+	 * @param neuronpl Result of neuron placement step.
+	 * @param output_mapping Input/output parameter
+	 *    that contains the results of the \c MergerRouting step
+	 *    and is amended with the results of the input placement.
+	 */
 	void run(NeuronPlacementResult const& neuron_mapping,
 			 OutputMappingResult& output_mapping);
 

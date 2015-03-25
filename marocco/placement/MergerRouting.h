@@ -7,6 +7,10 @@
 namespace marocco {
 namespace placement {
 
+/**
+ * Map output of neurons to SPL1 repeaters and assign addresses.
+ * @pre Neuron placement is available, see \c HICANNPlacement.
+ */
 class MergerRouting
 {
 public:
@@ -17,6 +21,10 @@ public:
 		hardware_system_t& hw,
 		resource_manager_t const& mgr);
 
+	/**
+	 * @param neuronpl Result of neuron placement step.
+	 * @param output_mapping Output parameter used to store the result.
+	 */
 	void run(NeuronPlacementResult const& neuronpl,
 			 OutputMappingResult& output_mapping);
 

@@ -31,6 +31,10 @@ public:
 };
 
 
+/**
+ * Assign bio neurons to hardware neurons.
+ * @note Takes user defined population placement into account.
+ */
 class HICANNPlacement
 {
 private:
@@ -49,6 +53,9 @@ public:
 		resource_manager_t& mgr,
 		comm_t const& comm);
 
+	/**
+	 * @param res Output parameter used to store the result.
+	 */
 	void run(NeuronPlacementResult& res);
 
 private:
