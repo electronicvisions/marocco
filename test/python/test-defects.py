@@ -25,7 +25,8 @@ class MaroccoFixture(unittest.TestCase):
 
     def tearDown(self):
         super(MaroccoFixture, self).tearDown()
-        sim.reset()
+        # sim.reset() only needed for multiple run() in the same session
+        sim.end()
 
     def stats(self):
         return self.marocco.getStats()
@@ -70,7 +71,6 @@ resources = {
 class TestSynapseLoss(TrivialNetworkFixture):
     def test_no_disabled_synapses(self):
         sim.run(10)
-        sim.end()
 
         synapses = self.synapses
         stats = self.stats()
@@ -83,7 +83,6 @@ class TestSynapseLoss(TrivialNetworkFixture):
             name, iter_all(resources[name]))
 
         sim.run(10)
-        sim.end()
 
         # Assert complete loss of synapses
         synapses = self.synapses
@@ -98,7 +97,6 @@ class TestNeuronDefects(TrivialNetworkFixture):
 
         with self.assertRaisesRegexp(RuntimeError, '(no terminals left)'):
             sim.run(10)
-            sim.end()
 
 if __name__ == '__main__':
     unittest.main()
