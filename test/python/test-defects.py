@@ -7,7 +7,7 @@ from pymarocco import PyMarocco
 
 from pyhalbe.Coordinate import *
 from pyhalbe.Coordinate.iter_all import iter_all
-from pyhmf import *
+import pyhmf as sim
 
 import utils
 
@@ -20,13 +20,12 @@ class MaroccoFixture(unittest.TestCase):
         super(MaroccoFixture, self).setUp()
         self.marocco = PyMarocco()
         self.marocco.backend = PyMarocco.None
-        self.marocco.placement.setDefaultNeuronSize(2)
 
-        setup(marocco=self.marocco)
+        sim.setup(marocco=self.marocco)
 
     def tearDown(self):
         super(MaroccoFixture, self).tearDown()
-        reset()
+        sim.reset()
 
     def stats(self):
         return self.marocco.getStats()
@@ -36,17 +35,17 @@ class TrivialNetworkFixture(MaroccoFixture):
     def setUp(self):
         super(TrivialNetworkFixture, self).setUp()
 
-        target = Population(1, EIF_cond_exp_isfa_ista)
-        source = Population(1, EIF_cond_exp_isfa_ista)
+        target = sim.Population(1, sim.EIF_cond_exp_isfa_ista)
+        source = sim.Population(1, sim.EIF_cond_exp_isfa_ista)
 
         self.chip = HICANNGlobal(Enum(3))
         self.marocco.placement.add(target, self.chip)
         self.marocco.placement.add(source, self.chip)
 
-        connector = AllToAllConnector(
+        connector = sim.AllToAllConnector(
             allow_self_connections=True,
             weights=1.)
-        Projection(source, target, connector, target='excitatory')
+        sim.Projection(source, target, connector, target='excitatory')
 
         self.synapses = 1
 
@@ -70,8 +69,8 @@ resources = {
 
 class TestSynapseLoss(TrivialNetworkFixture):
     def test_no_disabled_synapses(self):
-        run(10)
-        end()
+        sim.run(10)
+        sim.end()
 
         synapses = self.synapses
         stats = self.stats()
@@ -83,8 +82,8 @@ class TestSynapseLoss(TrivialNetworkFixture):
         self.inject_disabled_component(
             name, iter_all(resources[name]))
 
-        run(10)
-        end()
+        sim.run(10)
+        sim.end()
 
         # Assert complete loss of synapses
         synapses = self.synapses
@@ -98,8 +97,8 @@ class TestNeuronDefects(TrivialNetworkFixture):
         self.inject_disabled_component('neurons', iter_all(NeuronOnHICANN))
 
         with self.assertRaisesRegexp(RuntimeError, '(no terminals left)'):
-            run(10)
-            end()
+            sim.run(10)
+            sim.end()
 
 if __name__ == '__main__':
     unittest.main()
