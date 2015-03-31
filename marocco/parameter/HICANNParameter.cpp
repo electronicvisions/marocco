@@ -100,8 +100,8 @@ HICANNParameter::run(
 	// Note, this works only if ALL threads use the same global population map
 	// instance.
 	auto start = std::chrono::system_clock::now();
-	tbb::parallel_for_each(first, last,
-	//std::for_each(first, last,
+	//tbb::parallel_for_each(first, last,
+	std::for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			chip_type& chip = getHardware()[hicann];
 			HICANNTransformator trafo(getGraph(), chip, mPyMarocco);
