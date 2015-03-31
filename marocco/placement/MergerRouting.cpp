@@ -42,8 +42,8 @@ void MergerRouting::run(NeuronPlacementResult const& neuronpl,
 	auto last  = mMgr.end_allocated();
 
 	auto start = std::chrono::system_clock::now();
-	tbb::parallel_for_each(first, last,
-	//std::for_each(first, last,
+	//tbb::parallel_for_each(first, last,
+	std::for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			OutputBufferMapping& local_output_mapping = output_mapping[hicann];
 			NeuronBlockMapping const& nbmap = neuronpl.at(hicann);

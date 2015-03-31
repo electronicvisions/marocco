@@ -43,8 +43,8 @@ HICANNRouting::run(
 
 	// configure GigabitLinks on Hardware
 	auto start = std::chrono::system_clock::now();
-	//std::for_each(first, last,
-	tbb::parallel_for_each(first, last,
+	std::for_each(first, last,
+	//tbb::parallel_for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			this->run(hicann, placement, routes, result);
 	});

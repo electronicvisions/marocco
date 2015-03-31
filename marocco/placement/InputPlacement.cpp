@@ -334,8 +334,8 @@ void InputPlacement::run(
 
 	// configure GigabitLinks on Hardware
 	auto start = std::chrono::system_clock::now();
-	tbb::parallel_for_each(first, last,
-	//std::for_each(first, last,
+	//tbb::parallel_for_each(first, last,
+	std::for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			configureGbitLinks(hicann, output_mapping.at(hicann));
 		});
