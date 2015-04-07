@@ -232,6 +232,20 @@ Fieres::Fieres(IntervalList const& _list,
 			return cnt + entry.synapses;
 		});
 
+	size_t const driver_count = std::accumulate(
+		_list.begin(), _list.end(), 0, [](size_t cnt, DriverInterval const& entry) {
+			return cnt + entry.driver;
+		});
+
+	MAROCCO_DEBUG("Requested Driver Intervals:");
+
+	for (auto di : _list) {
+		MAROCCO_DEBUG(di);
+	}
+
+	MAROCCO_DEBUG("Synapse Drivers required: " << driver_count );
+
+
 	typedef std::list<fieres::InboundRoute> List;
 	List list;
 	std::multimap<double, List::iterator, std::greater<double>> too_many;
@@ -262,6 +276,8 @@ Fieres::Fieres(IntervalList const& _list,
 			too_few.insert(std::make_pair(std::abs(_delta), it));
 		}
 	}
+
+	MAROCCO_DEBUG("Synapse Drivers initially assigned: " << assigned << ". Need rescale? " << rescale );
 
 	std::list<fieres::InboundRoute> last_resort;
 	if (assigned!=112 && rescale)
@@ -343,6 +359,12 @@ Fieres::Fieres(IntervalList const& _list,
 
 	// lock defect synapse drivers first.
 
+	size_t const assigned_after_rescale = std::accumulate(
+		list.begin(), list.end(), 0, [](size_t cnt, fieres::InboundRoute const& entry) {
+			return cnt + entry.assigned;
+		});
+
+	MAROCCO_DEBUG("Synapse Drivers assigned after rescale: " << assigned_after_rescale);
 
 	defrag(list, assignment, mRejected);
 

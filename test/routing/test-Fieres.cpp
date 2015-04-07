@@ -213,6 +213,123 @@ TEST_P(AssignmentTest, MayClipARoute) {
 INSTANTIATE_TEST_CASE_P(AssignmentTestSides, AssignmentTest,
                         ::testing::Values(left, right));
 
+TEST(Fieres, Issue1666_Case1) {
+	typedef std::vector<DriverInterval> IntervalList;
+	IntervalList list = {
+		DriverInterval(VLineOnHICANN(133), 2, 40),
+		DriverInterval(VLineOnHICANN(172), 7, 688),
+		DriverInterval(VLineOnHICANN(238), 8, 648),
+		DriverInterval(VLineOnHICANN(208), 7, 674),
+		DriverInterval(VLineOnHICANN(175), 6, 600),
+		DriverInterval(VLineOnHICANN(135), 1, 16),
+		DriverInterval(VLineOnHICANN(163), 1, 24),
+		DriverInterval(VLineOnHICANN(142), 7, 632),
+		DriverInterval(VLineOnHICANN(169), 6, 648),
+		DriverInterval(VLineOnHICANN(234), 7, 660),
+		DriverInterval(VLineOnHICANN(235), 7, 630),
+		DriverInterval(VLineOnHICANN(143), 6, 632),
+		DriverInterval(VLineOnHICANN(177), 7, 606),
+		DriverInterval(VLineOnHICANN(209), 8, 630),
+		DriverInterval(VLineOnHICANN(205), 3, 321),
+		DriverInterval(VLineOnHICANN(203), 4, 325)
+	};
+
+	Fieres fieres(list, HMF::Coordinate::right);
+
+	size_t const drivers_requested = std::accumulate(list.begin(), list.end(), 0,
+			[](size_t cnt, DriverInterval const& entry) {
+			return cnt + entry.driver;
+			});
+
+	auto result = fieres.result(HICANNGlobal(Enum(0)));
+
+	size_t drivers_assigned = 0;
+	for (auto const& vline : result) {
+		for (auto const& as : vline.second) {
+			drivers_assigned +=as.drivers.size();
+		}
+	}
+
+	ASSERT_EQ(drivers_requested, drivers_assigned);
+}
+
+TEST(Fieres, Issue1666_Case2) {
+	typedef std::vector<DriverInterval> IntervalList;
+	IntervalList list = {
+		DriverInterval(VLineOnHICANN(142), 6, 616),
+		DriverInterval(VLineOnHICANN(226), 2, 38),
+		DriverInterval(VLineOnHICANN(236), 8, 584),
+		DriverInterval(VLineOnHICANN(207), 6, 618),
+		DriverInterval(VLineOnHICANN(177), 7, 590),
+		DriverInterval(VLineOnHICANN(176), 6, 612),
+		DriverInterval(VLineOnHICANN(228), 2, 35),
+		DriverInterval(VLineOnHICANN(237), 7, 648),
+		DriverInterval(VLineOnHICANN(137), 8, 642),
+		DriverInterval(VLineOnHICANN(178), 7, 634),
+		DriverInterval(VLineOnHICANN(212), 7, 634),
+		DriverInterval(VLineOnHICANN(146), 7, 576),
+		DriverInterval(VLineOnHICANN(145), 7, 590),
+		DriverInterval(VLineOnHICANN(144), 4, 337),
+		DriverInterval(VLineOnHICANN(174), 4, 327),
+		DriverInterval(VLineOnHICANN(202), 4, 290),
+		DriverInterval(VLineOnHICANN(200), 4, 332)
+	};
+
+	Fieres fieres(list, HMF::Coordinate::right);
+
+	size_t const drivers_requested = std::accumulate(list.begin(), list.end(), 0,
+			[](size_t cnt, DriverInterval const& entry) {
+			return cnt + entry.driver;
+			});
+
+	auto result = fieres.result(HICANNGlobal(Enum(0)));
+
+	size_t drivers_assigned = 0;
+	for (auto const& vline : result) {
+		for (auto const& as : vline.second) {
+			drivers_assigned +=as.drivers.size();
+		}
+	}
+
+	ASSERT_EQ(drivers_requested, drivers_assigned);
+}
+
+TEST(Fieres, Issue1666_Case3) {
+	typedef std::vector<DriverInterval> IntervalList;
+	IntervalList list = {
+		DriverInterval(VLineOnHICANN(47), 7, 624),
+		DriverInterval(VLineOnHICANN(63), 2, 40),
+		DriverInterval(VLineOnHICANN(49), 7, 634),
+		DriverInterval(VLineOnHICANN(16), 7, 690),
+		DriverInterval(VLineOnHICANN(20), 6, 614),
+		DriverInterval(VLineOnHICANN(51), 8, 692),
+		DriverInterval(VLineOnHICANN(109), 8, 698),
+		DriverInterval(VLineOnHICANN(107), 6, 634),
+		DriverInterval(VLineOnHICANN(10), 8, 674),
+		DriverInterval(VLineOnHICANN(108), 7, 626),
+		DriverInterval(VLineOnHICANN(45), 4, 330),
+		DriverInterval(VLineOnHICANN(111), 4, 315)
+	};
+
+	Fieres fieres(list, HMF::Coordinate::left);
+
+	size_t const drivers_requested = std::accumulate(list.begin(), list.end(), 0,
+			[](size_t cnt, DriverInterval const& entry) {
+			return cnt + entry.driver;
+			});
+
+	auto result = fieres.result(HICANNGlobal(Enum(0)));
+
+	size_t drivers_assigned = 0;
+	for (auto const& vline : result) {
+		for (auto const& as : vline.second) {
+			drivers_assigned +=as.drivers.size();
+		}
+	}
+
+	ASSERT_EQ(drivers_requested, drivers_assigned);
+}
+
 } // namespace fieres
 } // namespace routing
 } // namespace marocco
