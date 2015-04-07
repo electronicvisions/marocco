@@ -35,7 +35,7 @@ public:
 
 	Fieres(IntervalList const& list,
 		   HMF::Coordinate::Side const& side,
-		   size_t max_chain_length=56);
+		   size_t max_chain_length=HMF::Coordinate::SynapseDriverOnQuadrant::end);
 
 	Fieres(IntervalList const& list,
 		   HMF::Coordinate::Side const& side,

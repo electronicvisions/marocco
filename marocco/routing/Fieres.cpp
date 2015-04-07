@@ -227,6 +227,7 @@ Fieres::Fieres(IntervalList const& _list,
                std::vector<SynapseDriverOnHICANN> const& defects)
 	: mSide(side)
 {
+	// Count number of requested drivers and synapses
 	size_t const synapse_count = std::accumulate(
 		_list.begin(), _list.end(), 0, [](size_t cnt, DriverInterval const& entry) {
 			return cnt + entry.synapses;
@@ -245,106 +246,139 @@ Fieres::Fieres(IntervalList const& _list,
 
 	MAROCCO_DEBUG("Synapse Drivers required: " << driver_count );
 
+	// Count number of available drivers: 112 - defect drivers on this side
+	auto const _side = mSide; // copy of side, which can be captured by lambda
+	auto isMySide = [_side] ( SynapseDriverOnHICANN const & driver) -> bool {
+		return driver.toSideHorizontal() == _side;
+	};
+	size_t const driver_available = SynapseDriverOnQuadrant::end*QuadrantOnHICANN::y_type::end
+						- std::count_if(defects.begin(), defects.end(), isMySide);
+
+	MAROCCO_DEBUG("Synapse Drivers available: " << driver_available);
 
 	typedef std::list<fieres::InboundRoute> List;
 	List list;
-	std::multimap<double, List::iterator, std::greater<double>> too_many;
-	std::multimap<double, List::iterator, std::greater<double>> too_few;
-	size_t assigned = 0;
-	bool rescale = false;
+	List last_resort;
 
-	// First, construct a list of pending assignments for subsequent bin
-	// packing.
-	for (DriverInterval const& entry : _list)
-	{
-		double const syns = entry.synapses;
-		size_t const assign = std::min(max_chain_length, std::max<size_t>(1, std::min<size_t>(entry.driver, syns/synapse_count*112.)));
-		rescale |= (entry.driver != assign);
-		assigned+=assign;
-		if (assign==0 || syns==0.) {
-			throw std::runtime_error("assignment error");
-		}
+	////////////////////////////////////////////////////////
+	// Less requested than available:                     //
+	// assign considering the max chain length constraint //
+	////////////////////////////////////////////////////////
 
-		auto it = list.insert(list.end(), fieres::InboundRoute(entry.line, std::min(max_chain_length, entry.driver), syns, assign));
-		// FIXME: shouldn't this be:
-		//     double const _delta = double(entry.driver) - syns/synapse_count*112.;
-		// rather than the following?
-		double const _delta = double(assign) - syns/synapse_count*112.;
-		if (_delta>0.) {
-			too_many.insert(std::make_pair(_delta, it));
-		} else if(_delta<0. && assign<entry.driver) {
-			too_few.insert(std::make_pair(std::abs(_delta), it));
+	if ( driver_count <= driver_available ) {
+		for (DriverInterval const& entry : _list)
+		{
+			double const syns = entry.synapses;
+			size_t const assign = std::min(max_chain_length, entry.driver);
+			if (assign==0 || syns==0.) {
+				throw std::runtime_error("assignment error");
+			}
+			list.insert(list.end(), fieres::InboundRoute(entry.line, assign, syns, assign));
 		}
 	}
 
-	MAROCCO_DEBUG("Synapse Drivers initially assigned: " << assigned << ". Need rescale? " << rescale );
+	//////////////////////////////////////////////////////////////////////////////
+	// Less available than requested:                                           //
+	// Normalize according to the fraction of total synapses realized per input //
+	// See Jeltsch 2014, Eq. 6.10, etc.                                         //
+	//////////////////////////////////////////////////////////////////////////////
 
-	std::list<fieres::InboundRoute> last_resort;
-	if (assigned!=112 && rescale)
-	{
-		while(assigned<112)
+	else {
+
+		std::multimap<double, List::iterator, std::greater<double>> too_many;
+		std::multimap<double, List::iterator, std::greater<double>> too_few;
+		size_t assigned = 0;
+		bool rescale = false;
+
+		// First, construct a list of pending assignments for subsequent bin
+		// packing.
+		for (DriverInterval const& entry : _list)
 		{
-			// increase assignments, start with biggest delta first
-			bool change = false;
-			for (auto it=too_few.begin(); it!=too_few.end() && assigned<112; ++it)
-			{
-				fieres::InboundRoute& val = *(it->second);
-				if (val.assigned<val.drivers) {
-					val.assigned++;
-					assigned++;
-					change = true;
-				}
-
-				//if (val.assigned==val.drivers) {
-					//too_few.erase(it);
-				//}
-
-				if (assigned==112) {
-					break;
-				}
+			double const syns = entry.synapses;
+			size_t const assign = std::min(max_chain_length, std::max<size_t>(1, std::min<size_t>(entry.driver, 1.*syns/synapse_count*driver_available)));
+			rescale |= (entry.driver != assign);
+			assigned+=assign;
+			if (assign==0 || syns==0.) {
+				throw std::runtime_error("assignment error");
 			}
 
-			if (!change) {
-				break;
+			auto it = list.insert(list.end(), fieres::InboundRoute(entry.line, std::min(max_chain_length, entry.driver), syns, assign));
+			double const _delta = double(assign) - 1.*syns/synapse_count*driver_available;
+			if (_delta>0.) {
+				too_many.insert(std::make_pair(_delta, it));
+			} else if(_delta<0. && assign<entry.driver) {
+				too_few.insert(std::make_pair(std::abs(_delta), it));
 			}
 		}
 
+		MAROCCO_DEBUG("Synapse Drivers initially assigned: " << assigned << ". Need rescale? " << rescale );
 
-		// In the following, the normalization artefacts are corrected if either too many or too few
-		// synapse drivers have ben assigned.
-
-
-		// decrease assignments, start with smallest delta first
-		while (assigned>112)
+		if (assigned!=driver_available && rescale)
 		{
-			for (auto it=too_many.begin(); it!=too_many.end() && assigned>112; ++it)
+			while(assigned<driver_available)
 			{
-				fieres::InboundRoute& val = *(it->second);
-				if (val.assigned>0) {
-					val.assigned--;
-					assigned--;
+				// increase assignments, start with biggest delta first
+				bool change = false;
+				for (auto it=too_few.begin(); it!=too_few.end() && assigned<driver_available; ++it)
+				{
+					fieres::InboundRoute& val = *(it->second);
+					if (val.assigned<val.drivers) {
+						val.assigned++;
+						assigned++;
+						change = true;
+					}
 
-					if (val.assigned<=0) {
-						last_resort.push_back(val);
-						list.erase(it->second);
-						//too_many.erase(it);
+					//if (val.assigned==val.drivers) {
+						//too_few.erase(it);
+					//}
+
+					if (assigned==driver_available) {
+						break;
 					}
 				}
 
-				if (assigned<=112) {
+				if (!change) {
 					break;
 				}
 			}
-		}
 
-		size_t const debug = std::accumulate(
-			list.begin(), list.end(), 0, [](size_t acc, fieres::InboundRoute const& entry) {
-				return acc + entry.assigned;
-			});
-		if (assigned != debug) {
-			throw std::runtime_error("broken resize");
+
+			// In the following, the normalization artefacts are corrected if either too many or too few
+			// synapse drivers have ben assigned.
+
+
+			// decrease assignments, start with smallest delta first
+			while (assigned>driver_available)
+			{
+				for (auto it=too_many.begin(); it!=too_many.end() && assigned>driver_available; ++it)
+				{
+					fieres::InboundRoute& val = *(it->second);
+					if (val.assigned>0) {
+						val.assigned--;
+						assigned--;
+
+						if (val.assigned<=0) {
+							last_resort.push_back(val);
+							list.erase(it->second);
+							//too_many.erase(it);
+						}
+					}
+
+					if (assigned<=driver_available) {
+						break;
+					}
+				}
+			}
+
+			size_t const debug = std::accumulate(
+				list.begin(), list.end(), 0, [](size_t acc, fieres::InboundRoute const& entry) {
+					return acc + entry.assigned;
+				});
+			if (assigned != debug) {
+				throw std::runtime_error("broken resize");
+			}
 		}
-	}
+	} // end of: Less available than requested
 
 
 	// do the defragmentation
