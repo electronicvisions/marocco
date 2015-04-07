@@ -60,4 +60,10 @@ doc = DocumentationJob(
     docshell    : "module load mongo\n./waf configure --disable-doxygen pdf\n./waf doc"
 )
 
+if (PROJECT_NAME == 'marocco') {
+    cov = CoverageJob(
+        test_publisher : true,
+    )
+}
+
 return "Any message you like..."
