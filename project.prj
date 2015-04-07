@@ -55,12 +55,12 @@ sw = SoftwareJob(
     clusterbuild: true,
 )
 
-doc = DocumentationJob(
-    htmldir     : "build/marocco/doc/html",
-    docshell    : "module load mongo\n./waf configure --disable-doxygen pdf\n./waf doc"
-)
-
 if (PROJECT_NAME == 'marocco') {
+    doc = DocumentationJob(
+        htmldir     : "build/marocco/doc/html",
+        docshell    : "module load mongo\n./waf configure --disable-doxygen pdf\n./waf doc"
+    )
+
     cov = CoverageJob(
         test_publisher : true,
     )
