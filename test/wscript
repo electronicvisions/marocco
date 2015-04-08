@@ -44,7 +44,6 @@ def build(bld):
         use             = [
             'marocco',
             'sthal_inc',
-            'halbe_inc',
             ],
         **flags)
 

@@ -102,7 +102,6 @@ def build(bld):
     bld(target          = 'marocco_inc',
         use             = [
             'boost_patches',
-            'halbe_inc',
             'sthal_inc',
             'redman_inc',
             'euter_inc',
