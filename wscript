@@ -1,28 +1,5 @@
 #!/usr/bin/env python
-import sys, os
 
-try:
-    from waflib.extras import symwaf2ic
-    recurse = lambda ctx: None
-except ImportError:
-    from symwaf2ic import recurse_depends
-    recurse = lambda ctx: recurse_depends(depends, ctx)
-
-
-def check_version_cxx(ctx):
-    error = "g++-4.7, clang-3.1 or newer required"
-
-    ctx.check_cxx(
-        msg      = "Checking compiler version",
-        errmsg   = error,
-        type     = "cxx",
-        cxxflags = '-std=c++0x',
-        execute  = False,
-        fragment = """
-                       #if __cplusplus != 201103L
-                         #error %(MSG)s
-                       #endif
-                   """ % { "MSG" : error })
 
 def remove_ndebug_from_pyext(cfg):
     for module in [ 'PYEMBED', 'PYEXT' ]:
@@ -32,9 +9,6 @@ def remove_ndebug_from_pyext(cfg):
         except:
             pass
 
-def load_waf_modules(ctx, modules):
-    for mo in modules:
-        ctx.load(mo)
 
 def depends(ctx):
     ctx('rant')
@@ -57,17 +31,30 @@ def depends(ctx):
     ctx('marocco', 'test')
     ctx('symap2ic', 'src/logging')
 
+
 def options(opt):
-    recurse(opt)
-    load_waf_modules(opt, ['compiler_cxx', 'boost', 'post_task'])
+    opt.load('compiler_cxx')
+    opt.load('boost')
+    opt.load('post_task')
+
 
 def configure(cfg):
-    # first check deps of all dependent modules
-    recurse(cfg)
+    cfg.load('compiler_cxx')
+    cfg.load('boost')
+    cfg.load('post_task')
 
-    # then check own dependencies
-    load_waf_modules(cfg, ['compiler_cxx', 'boost', 'post_task'])
-    check_version_cxx(cfg)
+    compiler_version_error = "g++-4.7, clang-3.1 or newer required"
+    cfg.check_cxx(
+        msg      = "Checking compiler version",
+        errmsg   = compiler_version_error,
+        type     = "cxx",
+        cxxflags = '-std=c++11',
+        execute  = False,
+        fragment = """#if __cplusplus != 201103L
+                          #error %(MSG)s
+                      #endif
+                   """ % { "MSG" : compiler_version_error })
+
 
     cfg.check_boost(lib='serialization filesystem system '
             'thread program_options mpi graph_parallel regex',
@@ -85,9 +72,8 @@ def configure(cfg):
     # finally remove NDEBUG from env, previously added by python feature
     remove_ndebug_from_pyext(cfg)
 
-def build(bld):
-    recurse(bld)
 
+def build(bld):
     flags = {
             "cxxflags" : [
                 '-g', '-O0', '-std=c++0x',
