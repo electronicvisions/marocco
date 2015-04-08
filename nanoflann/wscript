@@ -8,5 +8,5 @@ def configure(cfg):
     cfg.load('compiler_cxx')
 
 def build(bld):
-    bld(target          = 'nanoflann',
+    bld(target          = 'nanoflann_inc',
         export_includes = './current')

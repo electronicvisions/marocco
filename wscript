@@ -105,8 +105,7 @@ def build(bld):
             'sthal_inc',
             'redman_inc',
             'euter_inc',
-            'pywrap',
-            'nanoflann',
+            'nanoflann_inc',
             ],
         export_includes = '.')
 
