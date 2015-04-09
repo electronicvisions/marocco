@@ -90,7 +90,7 @@ void Mapper::run(ObjectStore const& pynn)
 	std::unique_ptr<placement::Placement> placer(
 		new placement::DefaultPlacement(*mPyMarocco, mGraph, mHW, mMgr, getComm()));
 	auto placement = placer->run();
-	mRevMapping = placer->getRevMapping();
+	mLookupTable = placer->getLookupTable();
 
 	// 2.  R O U T I N G
 	std::unique_ptr<routing::Routing> router(
@@ -198,10 +198,10 @@ pymarocco::MappingStats const& Mapper::getStats() const
 	return mPyMarocco->getStats();
 }
 
-std::shared_ptr<placement::Placement::rev_map_t>
-Mapper::getRevMapping() const
+std::shared_ptr<placement::LookupTable>
+Mapper::getLookupTable() const
 {
-	return mRevMapping;
+	return mLookupTable;
 }
 
 } // namespace marocco

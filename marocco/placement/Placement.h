@@ -12,7 +12,7 @@
 namespace marocco {
 namespace placement {
 
-class ReverseMapping; // fwd dcl
+class LookupTable; // fwd dcl
 
 /*! \class abstract placement interface
  */
@@ -30,13 +30,11 @@ public:
 	// placement start interface
 	virtual std::unique_ptr<result_type> run() = 0;
 
-	// TODO: hacky reverse mapping for preliminary reverse channel
-	typedef ReverseMapping rev_map_t;
-
-	std::shared_ptr<rev_map_t> getRevMapping() const;
+	// reverse mapping for result data (only neuron address translation for now)
+	std::shared_ptr<LookupTable> getLookupTable() const;
 
 protected:
-	std::shared_ptr<rev_map_t> mRevMapping;
+	std::shared_ptr<LookupTable> mLookupTable;
 };
 
 class DefaultPlacement :

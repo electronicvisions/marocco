@@ -13,14 +13,13 @@ public:
 	typedef marocco::hardware_system_t hardware_type;
 	typedef marocco::resource_manager_t resource_manager_t;
 	typedef MPI::Intracomm comm_t;
-	typedef marocco::placement::Placement::rev_map_t rev_map_t;
 
 	ReadResults(
 			pymarocco::PyMarocco const& pymarocco,
 			hardware_type const& hw,
 			resource_manager_t const& mgr);
 
-	void run(ObjectStore& objectstore, rev_map_t const& rev) const;
+	void run(ObjectStore& objectstore, marocco::placement::LookupTable const& rev) const;
 
 private:
 	/// translate hardware spike times in seconds back to the biological time domain in ms.

@@ -1,6 +1,6 @@
 #include "experiment/Result.h"
 #include "marocco/Logger.h"
-#include "marocco/placement/ReverseMapping.h"
+#include "marocco/placement/LookupTable.h"
 #include "hal/Coordinate/iter_all.h"
 
 #include <stdexcept>
@@ -41,10 +41,8 @@ void ReadResults::insertRandomSpikes(ObjectStore& objectstore) const
 	}
 }
 
-// FIXME: this is completely broken, because it assumes a fixed merger
-// configuration. This Information can directly be extracted from the Hardware
-// representation.
-void ReadResults::run(ObjectStore& objectstore, rev_map_t const& rev) const
+// FIXME: merger tree configuration is not used for translation, see inside
+void ReadResults::run(ObjectStore& objectstore, LookupTable const& table) const
 {
 	std::unordered_map<int, ObjectStore::population_vector::const_iterator> popMap;
 
@@ -86,13 +84,14 @@ void ReadResults::run(ObjectStore& objectstore, rev_map_t const& rev) const
 		}
 
 		// then insert them into the euter objectstore
-		for (size_t outb=0; outb<GbitLinkOnHICANN::end; ++outb)
-		{
-			for (auto const spike : spikes[outb])
-			{
+		for (size_t glink = 0; glink < GbitLinkOnHICANN::end; ++glink) {
+			for (auto const spike : spikes[glink]) {
 				if (spike.addr != L1Address(0)) {
-					RevKey const key { hicann, OutputBufferOnHICANN(outb), spike.addr };
-					RevVal const val = rev.at(key);
+					// FIXME: glink is a GbitLinkOnHICANN and NOT the OutputBufferOnHICANN!
+					// => we need to evaluate the merger tree config to get the
+					// matching OutputBufferOnHICANN from the GbitLinkOnHICANN.
+					hw_id const key{hicann, OutputBufferOnHICANN(glink), spike.addr};
+					bio_id const val = table.at(key);
 
 					auto it = popMap[val.pop];
 					(*it)->getSpikes(val.neuron).push_back(translate(spike.time));

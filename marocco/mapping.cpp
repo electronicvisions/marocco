@@ -91,7 +91,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 		// TODO: merge results and send it back to user
 
 		experiment::ReadResults reader{*mi, hw, resources};
-		reader.run(*store, *mapper.getRevMapping());
+		reader.run(*store, *mapper.getLookupTable());
 	}
 
 	mi->setStats(mapper.getStats());

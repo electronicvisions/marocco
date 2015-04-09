@@ -4,7 +4,7 @@
 #include "marocco/placement/InputPlacement.h"
 #include "marocco/placement/MergerRouting.h"
 #include "marocco/placement/HICANNPlacement.h"
-#include "marocco/placement/ReverseMapping.h"
+#include "marocco/placement/LookupTable.h"
 
 using namespace HMF::Coordinate;
 using HMF::HICANN::L1Address;
@@ -12,11 +12,11 @@ using HMF::HICANN::L1Address;
 namespace marocco {
 namespace placement {
 
-std::shared_ptr<Placement::rev_map_t> Placement::getRevMapping() const
+std::shared_ptr<LookupTable> Placement::getLookupTable() const
 {
-	if (!mRevMapping)
+	if (!mLookupTable)
 		throw std::runtime_error("reverse mapping not initialized");
-	return mRevMapping;
+	return mLookupTable;
 }
 
 DefaultPlacement::~DefaultPlacement()
@@ -42,7 +42,7 @@ DefaultPlacement::run()
 	input_placement.run(result->neuron_placement, result->output_mapping);
 
 	// create reverse mapping
-	mRevMapping = std::make_shared<rev_map_t>(
+	mLookupTable = std::make_shared<LookupTable>(
 		*result, getManager(), getGraph());
 
 	return { std::move(result) };

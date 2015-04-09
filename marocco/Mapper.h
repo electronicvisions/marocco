@@ -50,7 +50,7 @@ public:
 	pymarocco::MappingStats const& getStats() const;
 
 	// TODO: hacky reverse mapping for preliminary reverse channel
-	std::shared_ptr<placement::Placement::rev_map_t> getRevMapping() const;
+	std::shared_ptr<placement::LookupTable> getLookupTable() const;
 
 private:
 	// the actual pyNN graph,
@@ -65,7 +65,7 @@ private:
 	// communicator of participating mapping processes
 	comm_type mComm;
 
-	std::shared_ptr<placement::Placement::rev_map_t> mRevMapping;
+	std::shared_ptr<placement::LookupTable> mLookupTable;
 	boost::shared_ptr<pymarocco::PyMarocco> mPyMarocco;
 };
 
