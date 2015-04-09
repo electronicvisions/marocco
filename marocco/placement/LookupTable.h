@@ -39,6 +39,15 @@ struct hw_id
 	bool operator== (hw_id const& k) const;
 	bool operator!= (hw_id const& k) const;
 	std::ostream& operator<< (std::ostream& os) const;
+
+	template < typename Archive >
+	void serialize(Archive& ar, unsigned int const /*version*/)
+	{
+		using boost::serialization::make_nvp;
+		ar & make_nvp("hicann", hicann)
+		   & make_nvp("outb", outb)
+		   & make_nvp("addr", addr);
+	}
 };
 
 /**
@@ -52,6 +61,14 @@ struct bio_id
 	bool operator== (bio_id const& v) const;
 	bool operator!= (bio_id const& v) const;
 	std::ostream& operator<< (std::ostream& os) const;
+
+	template < typename Archive >
+	void serialize(Archive& ar, unsigned int const /*version*/)
+	{
+		using boost::serialization::make_nvp;
+		ar & make_nvp("pop", pop)
+		   & make_nvp("neuron", neuron);
+	}
 };
 
 } // namespace placement
@@ -112,6 +129,39 @@ private:
 	hw_to_bio_map_type mHw2BioMap;
 	bio_to_hw_map_type mBio2HwMap;
 	bio_to_denmem_map_type mBio2DenmemMap;
+
+	friend class boost::serialization::access;
+	template < typename Archive >
+	void serialize(Archive &ar, unsigned int const /*version*/)
+	{
+		using boost::serialization::make_nvp;
+		// ECM: boost::serialization does not yet support serialization of
+		// std::unordered_map; to workaround this problem, we de-serialize
+		// from/to a vector of key-value pairs.
+		std::vector< std::pair< hw_to_bio_map_type::key_type, hw_to_bio_map_type::mapped_type > >
+		    mHw2BioMapAsVector;
+		std::vector< std::pair< bio_to_hw_map_type::key_type, bio_to_hw_map_type::mapped_type > >
+		    mBio2HwMapAsVector;
+		std::vector< std::pair< bio_to_denmem_map_type::key_type,
+		                        bio_to_denmem_map_type::mapped_type > > mBio2DenmemMapAsVector;
+		if (Archive::is_saving::value) {
+			std::copy(mHw2BioMap.begin(), mHw2BioMap.end(), std::back_inserter(mHw2BioMapAsVector));
+			std::copy(mBio2HwMap.begin(), mBio2HwMap.end(), std::back_inserter(mBio2HwMapAsVector));
+			std::copy(mBio2DenmemMap.begin(), mBio2DenmemMap.end(),
+			          std::back_inserter(mBio2DenmemMapAsVector));
+		}
+		ar & make_nvp("mHw2BioMapAsVector", mHw2BioMapAsVector);
+		ar & make_nvp("mBio2HwMapAsVector", mBio2HwMapAsVector);
+		ar & make_nvp("mBio2DenmemMapAsVector", mBio2DenmemMapAsVector);
+		if (Archive::is_loading::value) {
+			std::copy(mHw2BioMapAsVector.begin(), mHw2BioMapAsVector.end(),
+			          std::inserter(mHw2BioMap, mHw2BioMap.end()));
+			std::copy(mBio2HwMapAsVector.begin(), mBio2HwMapAsVector.end(),
+			          std::inserter(mBio2HwMap, mBio2HwMap.end()));
+			std::copy(mBio2DenmemMapAsVector.begin(), mBio2DenmemMapAsVector.end(),
+			          std::inserter(mBio2DenmemMap, mBio2DenmemMap.end()));
+		}
+	}
 };
 
 } // namespace placement
