@@ -93,6 +93,12 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 
 	// loop over all populations wrapped as graph vertex type
 	for (auto const& vertex : make_iterable(boost::vertices(graph))) {
+
+		// sources have no denmem counter part
+		if(is_source(vertex, graph)) {
+			continue;
+		}
+
 		auto const& population = *popmap[vertex];
 		auto const& mapping = placement.get(vertex);
 
