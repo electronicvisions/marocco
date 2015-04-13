@@ -39,8 +39,6 @@ private:
 
 	// map to keep track of already inserted populations
 	VertexMap mVertexMapping;
-
-	void debug();
 };
 
 } // namespace marocco

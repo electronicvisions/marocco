@@ -6,7 +6,6 @@
 #include "marocco/GraphBuilder.h"
 #include "marocco/util.h"
 #include "marocco/Logger.h"
-#include "marocco/partition/Metis.h"
 
 #include <boost/graph/graphviz.hpp>
 
@@ -90,40 +89,6 @@ void GraphBuilder::build(ObjectStore const& os)
 	{
 		build_on_master(os);
 	}
-
-
-	// distributing the graph
-	size_t const n_process = mComm.Get_size();
-	if (n_process > 1)
-	{
-		std::vector<int> rank_vec(boost::num_vertices(mrg));
-		typedef boost::iterator_property_map<
-			std::vector<int>::iterator,
-			typename boost::property_map<graph_t, boost::vertex_index_t>::type
-		> ext_rank_map_t;
-		// create external property map holding ranks
-		ext_rank_map_t to_processor_map(rank_vec.begin(), get(boost::vertex_index, mrg));
-
-		if (is_master())
-		{
-			Accessor<graph_t, population_t, size_t (Population::*)() const> vac(mrg, &Population::size);
-			Accessor<graph_t, projection_t, size_t (ProjectionView::*)() const> eac(mrg, &ProjectionView::size);
-
-			// partiioning
-			partition::Metis<graph_t> metis(mrg, vac, eac);
-			std::vector<idx_t> partitioning(metis.run(n_process));
-
-			for (auto const& v : make_iterable(vertices(mrg)))
-			{
-				put(to_processor_map, v, partitioning[v]);
-			}
-		}
-
-		// redistribute & synchronize graph
-		//mrg.redistribute(to_processor_map);
-	}
-
-	debug();
 }
 
 GraphBuilder::VertexMap const& GraphBuilder::vertex_mapping() const
@@ -140,26 +105,6 @@ void GraphBuilder::write_bio_graph(std::string const& filename) const {
 	}
 
 	write_graphviz(file, mrg, population_label_writer(mrg), projection_label_writer(mrg));
-}
-
-void GraphBuilder::debug()
-{
-	size_t external_edge_cnt = 0;
-	size_t internal_edge_cnt = 0;
-
-	for (auto const& edge : make_iterable(edges(mrg)))
-	{
-		++internal_edge_cnt;
-		//if (source(edge, mrg).owner == target(edge, mrg).owner)
-			//++internal_edge_cnt;
-		//else
-			//++external_edge_cnt;
-	}
-
-	info(this)
-		<< "vertices: " << num_vertices(mrg)
-		<< ", internal edges: " << internal_edge_cnt
-		<< ", external edges: " << external_edge_cnt;
 }
 
 } // namespace marocco
