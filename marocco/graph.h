@@ -52,47 +52,6 @@ bool is_physical(graph_t::vertex_descriptor const& v, graph_t const& graph);
 bool is_local_edge(graph_t::edge_descriptor const& e, graph_t const& graph);
 bool is_spikeinput_edge(graph_t::edge_descriptor const& e, graph_t const& graph);
 
-template <typename Graph, typename Property, typename T1>
-struct Accessor {};
-
-template <typename Graph, typename Property, typename Class, typename T>
-struct Accessor<Graph, Property, T (Class::*)() const> {
-	typedef T (Class::*FctPtr)() const;
-	typedef typename boost::property_map<Graph, Property>::const_type map_type;
-	typedef T type;
-
-	Accessor(graph_t const& graph, FctPtr ptr)
-	    : mPtr(ptr), data(boost::get(Property(), graph)) {}
-
-	template <typename Index>
-	inline T operator[](Index ii) const {
-		return (boost::get(data, ii).*mPtr)();
-	}
-
-private:
-	FctPtr const mPtr;
-	map_type const data;
-};
-
-template <typename Graph, typename Property, typename T>
-struct Accessor<Graph, Property, T (Population::*)() const> {
-	typedef T (Population::*FctPtr)() const;
-	typedef typename boost::property_map<Graph, Property>::const_type map_type;
-	typedef T type;
-
-	Accessor(graph_t const& graph, FctPtr ptr)
-	    : mPtr(ptr), data(boost::get(Property(), graph)) {}
-
-	template <typename Index>
-	inline T operator[](Index ii) const {
-		return ((*boost::get(data, ii)).*mPtr)();
-	}
-
-private:
-	FctPtr const mPtr;
-	map_type const data;
-};
-
 } // namespace marocco
 
 
