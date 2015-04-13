@@ -24,7 +24,6 @@ def depends(ctx):
     ctx('calibtic', 'HMF')
     ctx('calibtic', 'backends')
     ctx('lib-boost-patches')
-    ctx('marocco', 'metis/current')
     ctx('marocco', 'nanoflann')
     ctx('marocco', 'pymarocco')
     ctx('marocco', 'tools/roqt')
@@ -113,7 +112,6 @@ def build(bld):
             'logger_obj',
             'ZTL',
             'rant',
-            'metis',
             'euter',
             'mpiconfig', # adds MPI includes, linkflags, ...
             'halbe',
