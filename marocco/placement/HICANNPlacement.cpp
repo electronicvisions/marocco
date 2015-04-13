@@ -1,10 +1,11 @@
 #include "marocco/placement/HICANNPlacement.h"
+
+#include <boost/assert.hpp>
 #include <unordered_map>
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
 #include "marocco/util.h"
-#include "marocco/partition/Metis.h"
 #include "pymarocco/Placement.h"
 
 using namespace HMF::Coordinate;
@@ -50,14 +51,12 @@ HICANNPlacement::HICANNPlacement(
 
 void HICANNPlacement::run(NeuronPlacementResult& res)
 {
-	// TODO: this should in priciple be provided by redman.
-	size_t const num_wafers = mHW.size();
-	if (num_wafers==0) {
-		throw std::runtime_error("no wafers in the system");
-	} else if (num_wafers>1) {
-		MAROCCO_WARN("experimental multi-wafer placement");
-	}
+	auto const wafers = mMgr.wafers();
+	BOOST_ASSERT_MSG(wafers.size() == 1,
+	                 "only single-wafer use is supported");
 
+	std::map<size_t, TerminalList> neuron_blocks;
+	set_pop populations;
 
 	for (auto const& hicann : mMgr.present()) {
 		auto const& defects = mMgr.get(hicann);
@@ -69,48 +68,13 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 			auto const nrn = it->toNeuronOnNeuronBlock();
 			neuron_placement[nb].add_defect(nrn);
 		}
-	}
 
-
-	std::unordered_map<HMF::Coordinate::Wafer, std::map<size_t, TerminalList>> hset;
-	std::unordered_map<HMF::Coordinate::Wafer, set_pop> pset;
-	std::vector<HMF::Coordinate::Wafer> wafers;
-
-	// collect all available HICANNs in a set, where they are ordered in a
-	// spiral from inner HICANNs to other ones.
-	for (auto const& hicann : mMgr.present())
-	{
-		auto const& wafer = hicann.toWafer();
 		for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 		{
 			size_t const avail = res[hicann].available(nb);
-			hset[wafer][avail].insert(NeuronBlockGlobal(nb, hicann));
-		}
-
-		auto it = pset.find(wafer);
-		if (it==pset.end()) {
-			wafers.push_back(wafer);
-			pset.insert(std::make_pair(wafer, set_pop()));
+			neuron_blocks[avail].insert(NeuronBlockGlobal(nb, hicann));
 		}
 	}
-
-	if (hset.empty() || pset.empty()) {
-		throw std::runtime_error("no available wafer");
-	}
-
-
-	// now partition the network
-	std::vector<int> partitioning(num_vertices(mGraph), 0);
-	if (num_wafers>1) {
-		// run metis only, if there is really more than 1 wafer
-		Accessor<graph_t, population_t, size_t (Population::*)() const> vac(mGraph, &Population::size);
-		Accessor<graph_t, projection_t, size_t (ProjectionView::*)() const> eac(mGraph, &ProjectionView::size);
-
-		//// partiioning
-		partition::Metis<graph_t> metis(mGraph, vac, eac);
-		partitioning = metis.run(num_wafers);
-	}
-
 
 	// now collect all populations and sort dem in a descending order
 	auto const& popmap = boost::get(population_t(), mGraph);
@@ -150,7 +114,7 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 				// the neurons.
 				MAROCCO_INFO("1 Population size: " << pop.size() << " " <<  hw_size);
 				NeuronPlacement const assign{assignment::PopulationSlice{v, pop}, hw_size};
-				pset[wafers.at(partitioning.at(v))].push_back(assign);
+				populations.push_back(assign);
 			}
 		}
 		else
@@ -159,15 +123,12 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 			                                   << mPyPlacement.getDefaultNeuronSize());
 			NeuronPlacement const assign{assignment::PopulationSlice{v, pop},
 			                             mPyPlacement.getDefaultNeuronSize()};
-			pset[wafers.at(partitioning.at(v))].push_back(assign);
+			populations.push_back(assign);
 		}
 	}
 
-	for (auto const& wafer : wafers)
-	{
-		// do the actual placement
-		place2(hset.at(wafer), pset.at(wafer), res);
-	}
+	// do the actual placement
+	place2(neuron_blocks, populations, res);
 }
 
 void HICANNPlacement::place2(
