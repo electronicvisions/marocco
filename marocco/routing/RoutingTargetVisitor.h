@@ -52,7 +52,7 @@ public:
 	typedef HMF::Coordinate::HICANNGlobal target_t;
 	typedef routing_graph::vertex_descriptor vertex_t;
 	typedef std::unordered_map<target_t, vertex_t> last_mile_t;
-	typedef WaferRouting::Usage usage_t;
+	typedef BusUsage usage_t;
 
 	RoutingTargetVisitor(
 		std::vector<int> const& predecessor,
@@ -64,13 +64,6 @@ public:
 	void finish_vertex(Vertex const v, Graph const& g);
 
 protected:
-	size_t index(int busid) const {
-		if (busid>=128) {
-			return 8+(busid/4)%8;
-		}
-		return (busid/4)%8;
-	}
-
 	/// keeps track of the vertical bus usage. There are only 14 reachable
 	/// syndriver per class of vertical busses, but 16 candidates. So skip is
 	/// bus is overused.
@@ -112,9 +105,14 @@ void RoutingTargetVisitor::finish_vertex(Vertex const v, Graph const& g)
 			throw std::runtime_error("entry for target exists already");
 		}
 
-		// see first whether we are already overused
-		int const busid = bus.getBusId();
-		if (mUsage[hicann.toHICANNOnWafer().id()][index(busid)]>=14) {
+		// Groups of 16 VLineOnHICANNs share the same 14 SynapseDriverOnHICANN,
+		// thus no one-to-one assignment is possible and we may have to refrain
+		// from using this bus, if it is already overused.
+		constexpr size_t num_reachable_syndrv = std::tuple_size<decltype(
+			HMF::Coordinate::VLineOnHICANN().toSynapseDriverOnHICANN(
+				HMF::Coordinate::left))>::value;
+		assert(num_reachable_syndrv == 14);
+		if (mUsage.get(hicann.toHICANNOnWafer(), bus) >= num_reachable_syndrv) {
 			return;
 		}
 
@@ -154,7 +152,7 @@ void RoutingTargetVisitor::finish_vertex(Vertex const v, Graph const& g)
 
 		mLastMile[hicann] = v;
 		mTargets.erase(it);
-		mUsage[hicann.toHICANNOnWafer().id()][index(busid)]+=1;
+		mUsage.increment(hicann.toHICANNOnWafer(), bus);
 
 		if (mTargets.empty()) {
 			throw RoutingEarlyAbort("found all targets");

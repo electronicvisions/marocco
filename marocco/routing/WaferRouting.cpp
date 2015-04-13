@@ -18,6 +18,26 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace routing {
 
+
+size_t bus_index(L1Bus const& bus)
+{
+	assert(bus.getDirection() == L1Bus::Vertical);
+	// EM: "This looks like the calcuation of the 'horizontal bus'
+	// which connects to this VLine." (gerrit #205)
+	size_t const id = bus.getBusId();
+	return (id / 4) % 8 + (bus.side() == HMF::Coordinate::right ? 8 : 0);
+}
+
+void BusUsage::increment(HMF::Coordinate::HICANNOnWafer const& hicann, L1Bus const& bus)
+{
+	++mData[hicann.id()][bus_index(bus)];
+}
+
+size_t BusUsage::get(HMF::Coordinate::HICANNOnWafer const& hicann, L1Bus const& bus) const
+{
+	return mData[hicann.id()][bus_index(bus)];
+}
+
 WaferRouting::~WaferRouting()
 {}
 

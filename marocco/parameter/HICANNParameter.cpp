@@ -435,10 +435,7 @@ void HICANNTransformator::background_generators(uint32_t isi)
 {
 	// configure ALL BackgroundGenerators for Repeater & SynapseDriver locking.
 	// They are NOT use for production neuron stimulation.
-	for (size_t bga=0; bga<8; ++bga)
-	{
-		BackgroundGeneratorOnHICANN const addr(bga);
-
+	for (auto const addr : iter_all<BackgroundGeneratorOnHICANN>()) {
 		HMF::HICANN::BackgroundGenerator bg;
 		bg.enable(true);
 		bg.seed(0);

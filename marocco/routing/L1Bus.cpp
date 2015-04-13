@@ -53,8 +53,7 @@ L1Bus::hicann() const
 
 Side L1Bus::side() const
 {
-	// inserted left or right?
-	return (getBusId() < 128) ? geometry::left : geometry::right;
+	return VLineOnHICANN(mBusId).toSideHorizontal();
 }
 
 bool L1Bus::operator== (L1Bus const& rhs) const

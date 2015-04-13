@@ -16,12 +16,26 @@
 namespace marocco {
 namespace routing {
 
+/// Tracks usage of VLinesOnHICANN as insertion point.
+class BusUsage
+{
+	typedef std::array<std::array<size_t, HMF::Coordinate::SynapseSwitchOnHICANN::v_period>,
+	                   HMF::Coordinate::HICANNOnWafer::enum_type::size> array_type;
+
+public:
+	void increment(HMF::Coordinate::HICANNOnWafer const& hicann, L1Bus const& bus);
+
+	size_t get(HMF::Coordinate::HICANNOnWafer const& hicann, L1Bus const& bus) const;
+
+private:
+	array_type mData;
+};
+
+
 struct WaferRouting :
 	public Algorithm
 {
 public:
-	typedef std::array<std::array<size_t, 16>, 384> Usage;
-
 	template<typename ... Args>
 	WaferRouting(HMF::Coordinate::Wafer const& wafer,
 	             boost::shared_ptr<SynapseLoss> const& sl,
@@ -89,8 +103,7 @@ private:
 	boost::shared_ptr<SynapseLoss> const mSynapseLoss;
 
 protected:
-	// usage of VLinesOnHICANN as insertion point.
-	Usage mUsage;
+	BusUsage mUsage;
 	placement::OutputMappingResult const* mOutbMapping;
 };
 

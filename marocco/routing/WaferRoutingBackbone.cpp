@@ -53,14 +53,6 @@ struct SortByY
 	}
 };
 
-
-size_t index(int busid) {
-	if (busid>=128) {
-		return 8+(busid/4)%8;
-	}
-	return (busid/4)%8;
-}
-
 class BackBoner
 {
 public:
@@ -72,15 +64,15 @@ public:
 		Route::BusSegment const source,
 		std::unordered_set<HICANNGlobal>& targets,
 		std::vector<int>& predecessor,
-		WaferRoutingBackbone::Usage const& usage,
-		OutputMappingResult const& outbm) :
-			mSource(source),
-			mAllTargets(targets),
-			mTargets(),
-			mPredecessor(predecessor),
-			mGraph(rgraph),
-			mUsage(usage),
-			mOutbufMapping(outbm)
+		BusUsage const& usage,
+		OutputMappingResult const& outbm)
+		: mSource(source),
+		  mAllTargets(targets),
+		  mTargets(),
+		  mPredecessor(predecessor),
+		  mGraph(rgraph),
+		  mUsage(usage),
+		  mOutbufMapping(outbm)
 	{
 		for (auto const& trg : mAllTargets) {
 			mTargets.insert(trg);
@@ -500,8 +492,24 @@ private:
 		}
 	}
 
+	/*
+	  Sebastian Jeltsch:
+	  A Scalable Workflow for a Configurable Neuromorphic Platform
 
+	  http://archiv.ub.uni-heidelberg.de/volltextserver/17190/
 
+	  When a target chip is encountered the score is increment by two,
+	  if less than 12 other routes are already competing for the same set of
+	  synapse drivers, otherwise by one. The scoring is useful to reduce the
+	  number of competing routes because up to 16 vertical buses share 14
+	  synapse drivers, see Section 1.5.3.
+
+	  Comment: The implemented score is greater by 1 w.r.t. the
+	  description in the thesis.
+	*/
+	size_t scoreVerticalCount(size_t vertical_bus_usage) const {
+		return vertical_bus_usage < 12 ? 3 : 2;
+	}
 
 	size_t walkVerticalCount(
 		std::set<HICANNGlobal, SortByY> const& targets,
@@ -512,11 +520,7 @@ private:
 
 		size_t cnt=0;
 		if (targets.find(cur) != targets.end()) {
-			if (mUsage[cur.toHICANNOnWafer().id()][index(bus.getBusId())]<12) {
-				cnt += 3;
-			} else {
-				cnt += 2;
-			}
+			cnt += scoreVerticalCount(mUsage.get(cur.toHICANNOnWafer(), bus));
 		}
 
 		size_t topMost = targets.begin()->y();
@@ -553,11 +557,7 @@ private:
 
 		size_t cnt=0;
 		if (targets.find(cur) != targets.end()) {
-			if (mUsage[cur.toHICANNOnWafer().id()][index(bus.getBusId())]<12) {
-				cnt += 3;
-			} else {
-				cnt += 2;
-			}
+			cnt += scoreVerticalCount(mUsage.get(cur.toHICANNOnWafer(), bus));
 		}
 
 		// find next vertical bus in `dir` direction
@@ -655,13 +655,11 @@ private:
 		{
 			L1Bus const& adjBus = mGraph[*it];
 			if (right) {
-				if (adjBus.getDirection()==L1Bus::Vertical && adjBus.getBusId() < 128)
-				{
+				if (adjBus.getDirection() == L1Bus::Vertical && adjBus.side() == left) {
 					candidates.push_back(*it);
 				}
 			} else {
-				if (adjBus.getDirection()==L1Bus::Vertical && adjBus.getBusId() >= 128)
-				{
+				if (adjBus.getDirection() == L1Bus::Vertical && adjBus.side() == right) {
 					candidates.push_back(*it);
 				}
 			}
@@ -693,7 +691,7 @@ private:
 	std::vector<int>& mPredecessor;
 	routing_graph const& mGraph;
 
-	WaferRoutingBackbone::Usage const& mUsage;
+	BusUsage const& mUsage;
 	OutputMappingResult const& mOutbufMapping;
 };
 
@@ -744,7 +742,7 @@ WaferRoutingBackbone::allocateRoute(
 		Route::BusSegment cur = target.second;
 
 		L1Bus const& targetBus =  routing_graph[cur];
-		mUsage[targetBus.hicann().toHICANNOnWafer().id()][index(targetBus.getBusId())] += 1;
+		mUsage.increment(targetBus.hicann().toHICANNOnWafer(), targetBus);
 
 
 		// insert all L1 segments into predecessor list
