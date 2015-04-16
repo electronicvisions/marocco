@@ -2,6 +2,37 @@
 
 using namespace HMF::Coordinate;
 
+namespace {
+
+static void check(std::bitset<10> enable)
+{
+	// check if only a single source is attached
+	bool flag = false;
+	for (size_t ii = 0; ii < 10; ++ii)
+	{
+		if (flag && enable[ii])
+			throw std::runtime_error("error in analog output configuration");
+		flag = enable[ii];
+	}
+}
+
+static bool is_bottom(HMF::Coordinate::NeuronOnHICANN const& nrn)
+{
+	return nrn.y() == 1;
+}
+
+static bool is_top(HMF::Coordinate::NeuronOnHICANN const& nrn)
+{
+	return !is_bottom(nrn);
+}
+
+static bool is_even(HMF::Coordinate::NeuronOnHICANN const& nrn)
+{
+	return (nrn.id() % 2 == 0);
+}
+
+} // namespace
+
 namespace marocco {
 namespace parameter {
 

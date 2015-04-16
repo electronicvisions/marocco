@@ -55,34 +55,6 @@ struct AnalogVisitor
 		HMF::Coordinate::NeuronOnHICANN const& nrn,
 		chip_t& chip);
 
-
-	void check(std::bitset<10> enable) const
-	{
-		// check if only a single source is attached
-		bool flag = false;
-		for (size_t ii = 0; ii < 10; ++ii)
-		{
-			if (flag && enable[ii])
-				throw std::runtime_error("error in analog output configuration");
-			flag = enable[ii];
-		}
-	}
-
-	bool is_top(HMF::Coordinate::NeuronOnHICANN const& nrn) const
-	{
-		return !is_bottom(nrn);
-	}
-
-	bool is_bottom(HMF::Coordinate::NeuronOnHICANN const& nrn) const
-	{
-		return nrn.y() == 1;
-	}
-
-	bool is_even(HMF::Coordinate::NeuronOnHICANN const& nrn) const
-	{
-		return (nrn.id()%2 == 0);
-	}
-
 	size_t countActiveAouts() const
 	{
 		size_t cnt = 0;
