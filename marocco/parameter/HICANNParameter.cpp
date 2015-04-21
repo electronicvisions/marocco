@@ -671,7 +671,6 @@ HICANNTransformator::getCalibrationData()
 
 	case PyMarocco::Backend::ESS: {
 
-		calib->setESS(true);
 		calib->setDefaults();
 
 		break;
