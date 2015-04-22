@@ -13,6 +13,7 @@
 #include "marocco/parameter/HICANNParameter.h"
 #include "marocco/partition/CakePartitioner.h"
 #include "marocco/HardwareUsage.h"
+#include "marocco/Result.h"
 
 using namespace pymarocco;
 
@@ -90,7 +91,7 @@ void Mapper::run(ObjectStore const& pynn)
 	std::unique_ptr<placement::Placement> placer(
 		new placement::DefaultPlacement(*mPyMarocco, mGraph, mHW, mMgr, getComm()));
 	auto placement = placer->run();
-	mLookupTable = placer->getLookupTable();
+	mLookupTable = result_cast<placement::Result>(*placement).reverse_mapping;
 
 	// 2.  R O U T I N G
 	std::unique_ptr<routing::Routing> router(

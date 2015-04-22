@@ -29,12 +29,6 @@ public:
 
 	// placement start interface
 	virtual std::unique_ptr<result_type> run() = 0;
-
-	// reverse mapping for result data (only neuron address translation for now)
-	std::shared_ptr<LookupTable> getLookupTable() const;
-
-protected:
-	std::shared_ptr<LookupTable> mLookupTable;
 };
 
 class DefaultPlacement :

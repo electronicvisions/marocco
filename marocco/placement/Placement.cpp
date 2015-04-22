@@ -12,13 +12,6 @@ using HMF::HICANN::L1Address;
 namespace marocco {
 namespace placement {
 
-std::shared_ptr<LookupTable> Placement::getLookupTable() const
-{
-	if (!mLookupTable)
-		throw std::runtime_error("reverse mapping not initialized");
-	return mLookupTable;
-}
-
 DefaultPlacement::~DefaultPlacement()
 {}
 
@@ -42,7 +35,7 @@ DefaultPlacement::run()
 	input_placement.run(result->neuron_placement, result->output_mapping);
 
 	// create reverse mapping
-	mLookupTable = std::make_shared<LookupTable>(
+	result->reverse_mapping = std::make_shared<LookupTable>(
 		*result, getManager(), getGraph());
 
 	return { std::move(result) };

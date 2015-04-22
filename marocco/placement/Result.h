@@ -11,6 +11,8 @@
 namespace marocco {
 namespace placement {
 
+class LookupTable;
+
 /** defines the hardware system type
  * and the result type for the neuron placement
  */
@@ -51,6 +53,8 @@ typedef OutputMappingResult output_mapping_t;
 struct Result : public BaseResult {
 	NeuronPlacementResult neuron_placement;
 	OutputMappingResult output_mapping;
+	// reverse mapping for result data (only neuron address translation for now)
+	std::shared_ptr<LookupTable> reverse_mapping;
 
 	PlacementMap const& placement() const { return neuron_placement.placement(); }
 	PlacementMap& placement() { return neuron_placement.placement(); }
