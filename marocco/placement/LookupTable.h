@@ -102,6 +102,12 @@ namespace placement {
 class LookupTable
 {
 public:
+
+	typedef std::unordered_map< hw_id, bio_id > hw_to_bio_map_type;
+	typedef std::unordered_map< bio_id, std::vector< hw_id > > bio_to_hw_map_type;
+	typedef std::unordered_map< bio_id, std::vector< HMF::Coordinate::NeuronGlobal > >
+	    bio_to_denmem_map_type;
+
 	LookupTable() = default;
 	LookupTable(LookupTable const&) = default;
 	LookupTable(LookupTable&&) = default;
@@ -117,14 +123,19 @@ public:
 	std::vector< hw_id > &at(bio_id const &key);
 	std::vector< hw_id > const &at(bio_id const &key) const;
 
+	const hw_to_bio_map_type& getHwToBioMap() const;
+	hw_to_bio_map_type&       getHwToBioMap();
+
+	const bio_to_hw_map_type& getBioToHwMap() const;
+	bio_to_hw_map_type&       getBioToHwMap();
+
+	const bio_to_denmem_map_type& getBioToDenmemMap() const;
+	bio_to_denmem_map_type&       getBioToDenmemMap();
+
 	size_t size() const;
 	bool empty() const;
 
 private:
-	typedef std::unordered_map< hw_id, bio_id > hw_to_bio_map_type;
-	typedef std::unordered_map< bio_id, std::vector< hw_id > > bio_to_hw_map_type;
-	typedef std::unordered_map< bio_id, std::vector< HMF::Coordinate::NeuronGlobal > >
-	    bio_to_denmem_map_type;
 
 	hw_to_bio_map_type mHw2BioMap;
 	bio_to_hw_map_type mBio2HwMap;

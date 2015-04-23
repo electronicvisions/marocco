@@ -192,6 +192,30 @@ const& LookupTable::at(bio_id const& key) const
 	return mBio2HwMap.at(key);
 }
 
+const LookupTable::hw_to_bio_map_type& LookupTable::getHwToBioMap() const {
+	return mHw2BioMap;
+}
+
+LookupTable::hw_to_bio_map_type& LookupTable::getHwToBioMap() {
+	return mHw2BioMap;
+}
+
+const LookupTable::bio_to_hw_map_type& LookupTable::getBioToHwMap() const {
+	return mBio2HwMap;
+}
+
+LookupTable::bio_to_hw_map_type& LookupTable::getBioToHwMap() {
+	return mBio2HwMap;
+}
+
+const LookupTable::bio_to_denmem_map_type& LookupTable::getBioToDenmemMap() const {
+	return mBio2DenmemMap;
+}
+
+LookupTable::bio_to_denmem_map_type& LookupTable::getBioToDenmemMap() {
+	return mBio2DenmemMap;
+}
+
 } // namespace placement
 } // namespace marocco
 
