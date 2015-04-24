@@ -51,7 +51,7 @@ void ReadResults::run(ObjectStore& objectstore, LookupTable const& table) const
 		popMap[(*it)->id()] = it;
 	}
 
-
+	size_t unassociated_spikes = 0;
 
 	// TODO: this iteration also includes chips where only routing resources are
 	// used.
@@ -91,13 +91,30 @@ void ReadResults::run(ObjectStore& objectstore, LookupTable const& table) const
 					// => we need to evaluate the merger tree config to get the
 					// matching OutputBufferOnHICANN from the GbitLinkOnHICANN.
 					hw_id const key{hicann, OutputBufferOnHICANN(glink), spike.addr};
-					bio_id const val = table.at(key);
 
-					auto it = popMap[val.pop];
-					(*it)->getSpikes(val.neuron).push_back(translate(spike.time));
+					try {
+
+						bio_id const val = table.at(key);
+
+						auto it = popMap[val.pop];
+						(*it)->getSpikes(val.neuron).push_back(translate(spike.time));
+
+					} catch (const std::out_of_range& e) {
+
+						MAROCCO_WARN("no bio id found for: "
+						             << hicann << " " << OutputBufferOnHICANN(glink)
+						             << " " << spike.addr << std::endl);
+						++unassociated_spikes;
+
+					}
 				}
 			}
 		}
+
+		if(unassociated_spikes) {
+			MAROCCO_WARN(unassociated_spikes << " spike(s) could not be associated to a bio neuron");
+		}
+
 	}
 
 	// insert random spikes, just for testing purposes
