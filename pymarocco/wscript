@@ -38,36 +38,15 @@ def build(bld):
 
     flags = { "cxxflags"  : [ '-Wall', '-Wextra', '-Wno-long-long', '-Wno-deprecated',
                              '-Wno-format', '-fPIC', '-std=c++0x' ],
-            # ECM: Not possible anymore, see explanation below.
-            # "linkflags" :['-Wl,-z,defs']
+              "linkflags" :['-Wl,-z,defs'],
             }
 
     # ECM: FIXME
-    # The build of target "marocco" currently depends on pymarocco (=> stuff
-    # from pymarocco namespace is used in marocco).
-    # On the other hand, "pymarocco_lib" (now) depends on "marocco" (we need
-    # linkage to things which are not in the headers).
-    # => This has to be fixed. My proposal: We should make pymarocco a pure
-    # python-wrapper (and move all non-python-wrapping-specific stuff into
-    # marocco).
-
-
-    bld(target          = 'pymarocco_inc',
-        export_includes = '..')
-
-    bld(target          = 'pymarocco_lib',
-        source          =  bld.path.ant_glob('*.cpp'),
-        features        = 'cxx cxxshlib',
-        defines         = 'PYBINDINGS',
-        use             =  [
-            'BOOST4PYMAROCCO',
-            'pymarocco_inc',
-            'euter_inc',
-            'redman',
-            'halbe_coordinate',
-            ],
-        install_path    = 'lib',
-        **flags)
+    # marocco depends on stuff from pymarocco -- that's a bit "unconventional".
+    # We should think about this and maybe move stuff around.
+    # My recommendation:
+    # Make pymarocco a "pure" wrapper of marocco functionality and move all
+    # pymarocco parts into marocco which are needed in marocco.
 
     bld(target          = '_pymarocco',
         features        = 'cxx cxxshlib pypp pyembed pyext post_task',
@@ -77,7 +56,7 @@ def build(bld):
         headers         = 'bindings.h',
         use             =  [
             'BOOST4PYMAROCCO',
-            'pymarocco_lib',
+            'marocco',
             'euter_inc',
             'redman_inc',
             'halbe_coordinate',

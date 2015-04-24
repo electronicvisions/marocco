@@ -99,7 +99,8 @@ def build(bld):
         source          =
             bld.path.ant_glob('marocco/**/*.cpp') +
             bld.path.ant_glob('control/**/*.cpp') +
-            bld.path.ant_glob('experiment/**/*.cpp'),
+            bld.path.ant_glob('experiment/**/*.cpp') +
+            bld.path.ant_glob('pymarocco/*.cpp'),
         install_path    = 'lib',
         use             = [
             'USE4MAROCCO',
@@ -107,7 +108,6 @@ def build(bld):
             'LOG4CXXMAROCCO',
             'TBB4MAROCCO',
             'marocco_inc',
-            'pymarocco_lib', # will be fixed in succeeding commit
             'pyroqt_obj',
             'logger_obj',
             'ZTL',
