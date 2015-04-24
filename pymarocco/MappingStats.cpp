@@ -1,6 +1,7 @@
 #include "pymarocco/MappingStats.h"
 #include "euter/projection.h"
 #include <ostream>
+#include "marocco/placement/LookupTable.h"
 
 namespace pymarocco {
 
@@ -103,6 +104,25 @@ void MappingStats::setSynapseUsage(double v)
 double MappingStats::getSynapseUsage() const
 {
 	return mSynapseUsage;
+}
+
+marocco::placement::bio_id
+MappingStats::getBioId(marocco::placement::hw_id const id) {
+	if (!mLookupTable)
+		throw std::runtime_error("Reverse mapping/lookup table not available");
+	return mLookupTable->at(id);
+}
+
+std::vector<marocco::placement::hw_id>
+MappingStats::getHwId(marocco::placement::bio_id const id) {
+	if (!mLookupTable)
+		throw std::runtime_error("Reverse mapping/lookup table not available");
+	return mLookupTable->at(id);
+}
+
+void MappingStats::setLookupTable(std::shared_ptr<class marocco::placement::LookupTable> lut)
+{
+	mLookupTable = lut;
 }
 
 std::ostream& MappingStats::operator<< (std::ostream& os) const

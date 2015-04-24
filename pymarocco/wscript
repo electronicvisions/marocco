@@ -38,7 +38,19 @@ def build(bld):
 
     flags = { "cxxflags"  : [ '-Wall', '-Wextra', '-Wno-long-long', '-Wno-deprecated',
                              '-Wno-format', '-fPIC', '-std=c++0x' ],
-              "linkflags" : [ '-Wl,-z,defs' ] }
+            # ECM: Not possible anymore, see explanation below.
+            # "linkflags" :['-Wl,-z,defs']
+            }
+
+    # ECM: FIXME
+    # The build of target "marocco" currently depends on pymarocco (=> stuff
+    # from pymarocco namespace is used in marocco).
+    # On the other hand, "pymarocco_lib" (now) depends on "marocco" (we need
+    # linkage to things which are not in the headers).
+    # => This has to be fixed. My proposal: We should make pymarocco a pure
+    # python-wrapper (and move all non-python-wrapping-specific stuff into
+    # marocco).
+
 
     bld(target          = 'pymarocco_inc',
         export_includes = '..')

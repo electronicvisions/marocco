@@ -32,6 +32,8 @@ classes = [
     'MappingStats',
     'Placement',
     'Defects',
+    'hw_id',
+    'bio_id'
     ]
 for cls in classes:
     c = mb.class_(cls)

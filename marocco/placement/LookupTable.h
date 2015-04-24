@@ -15,84 +15,20 @@
 #include <iosfwd>
 #include <set>
 
-#include "marocco/config.h"
 #include "marocco/graph.h"
 #include "marocco/resource/HICANNManager.h"
+#include "marocco/placement/LookupTableData.h"
 
-#include "pywrap/compat/hash.hpp"
 
+// fwd decls
 namespace marocco {
-namespace placement {
+namespace resource {
+class HICANNManager;
+}
+typedef marocco::resource::HICANNManager resource_manager_t;
 
+namespace placement {
 class Result; // fwd dcl
-
-
-/**
- * @brief representation of global L1 Address
- **/
-struct hw_id
-{
-	HMF::Coordinate::HICANNGlobal hicann;
-	HMF::Coordinate::OutputBufferOnHICANN outb;
-	HMF::HICANN::L1Address addr;
-
-	bool operator== (hw_id const& k) const;
-	bool operator!= (hw_id const& k) const;
-	std::ostream& operator<< (std::ostream& os) const;
-
-	template < typename Archive >
-	void serialize(Archive& ar, unsigned int const /*version*/)
-	{
-		using boost::serialization::make_nvp;
-		ar & make_nvp("hicann", hicann)
-		   & make_nvp("outb", outb)
-		   & make_nvp("addr", addr);
-	}
-};
-
-/**
- * @brief representation of global pynn neuron
- **/
-struct bio_id
-{
-	size_t pop;    //<! population id
-	size_t neuron; //<! relative neuron address
-
-	bool operator== (bio_id const& v) const;
-	bool operator!= (bio_id const& v) const;
-	std::ostream& operator<< (std::ostream& os) const;
-
-	template < typename Archive >
-	void serialize(Archive& ar, unsigned int const /*version*/)
-	{
-		using boost::serialization::make_nvp;
-		ar & make_nvp("pop", pop)
-		   & make_nvp("neuron", neuron);
-	}
-};
-
-} // namespace placement
-} // namespace marocco
-
-namespace std {
-template<>
-struct hash<marocco::placement::hw_id>
-{
-	typedef marocco::placement::hw_id type;
-	size_t operator()(type const & t) const;
-};
-
-template<>
-struct hash<marocco::placement::bio_id>
-{
-	typedef marocco::placement::bio_id type;
-	size_t operator()(type const & t) const;
-};
-} // std
-
-
-namespace marocco {
-namespace placement {
 
 /**
  * @class LookupTable

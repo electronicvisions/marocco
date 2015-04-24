@@ -107,7 +107,7 @@ def build(bld):
             'LOG4CXXMAROCCO',
             'TBB4MAROCCO',
             'marocco_inc',
-            'pymarocco_lib',
+            'pymarocco_lib', # will be fixed in succeeding commit
             'pyroqt_obj',
             'logger_obj',
             'ZTL',

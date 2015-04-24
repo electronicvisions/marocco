@@ -10,11 +10,12 @@ using namespace HMF::Coordinate;
 namespace marocco {
 
 HardwareUsage::HardwareUsage(Hardware const& hw,
-							 Resource const& r,
-							 BaseResult const& pl) :
+                             Resource const& r,
+                             BaseResult const& pl) :
 	mHW(hw),
 	mResource(r),
-	mPlacement(result_cast<placement::Result>(pl).neuron_placement)
+	mPlacement(result_cast<placement::Result>(pl).neuron_placement),
+	mLookupTable(result_cast<placement::Result>(pl).reverse_mapping)
 {}
 
 double HardwareUsage::overallNeuronUsage() const
@@ -130,6 +131,7 @@ void HardwareUsage::fill(pymarocco::MappingStats& stats) const
 {
 	stats.setNeuronUsage(overallNeuronUsage());
 	stats.setSynapseUsage(overallSynapseUsage());
+	stats.setLookupTable(mLookupTable);
 }
 
 sthal::HICANN const& HardwareUsage::getChip(Index const& hicann) const

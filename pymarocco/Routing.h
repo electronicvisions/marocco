@@ -60,6 +60,8 @@ public:
 	size_t weight_StraightVertical;
 	size_t weight_CongestionFactor;
 
+	bool _is_default;
+
 	/// choose between merger tree merging strategies
 	/// one of [minSPL1, maxSPL1]
 	/// default: minSPL1
@@ -88,8 +90,6 @@ private:
 		   & make_nvp("merger_tree_strategy", merger_tree_strategy);
 
 	}
-
-	bool _is_default;
 };
 
 } // pymarocco
