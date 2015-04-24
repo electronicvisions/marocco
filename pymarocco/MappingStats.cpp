@@ -109,7 +109,9 @@ std::ostream& MappingStats::operator<< (std::ostream& os) const
 {
 	os << "MappingStats {"
 		<< "\n\tsynapse_loss: " << getSynapseLoss()
-			<< " (" << double(getSynapseLoss())/getSynapses()*100 << "%)"
+		<< " (" << ((getSynapseLoss() == 0)
+			? 0
+			: double(getSynapseLoss())/getSynapses()*100) << "%)"
 		<< "\n\tsynapses: " << getSynapses()
 		<< "\n\tsynapses set: " << getSynapsesSet()
 		<< "\n\tsynapses lost: " << getSynapseLoss()
