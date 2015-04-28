@@ -42,10 +42,12 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 					                              << " " << outb << " " << address);
 
 					// bio represents one biological neuron
-					bio_id const bio {pop.id(), neuron_index + offset};
+					bio_id const bio{pop.id(), neuron_index + offset};
 
 					// hw represents the corresponding hardware (+ the bio neuron itself)
-					hw_id const hw {h, outb, address};
+					hw_id const hw{h, outb, address}; // ECM: the mapping seems to use this for
+					                                  // target and source addresses,
+					                                  // cf. HICANNTransformator::spike_input()
 
 					// one denmem circuit ("hardware neuron") belongs
 					// to one PyNN neuron, but one PyNN neuron belongs

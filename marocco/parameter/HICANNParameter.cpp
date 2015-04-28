@@ -131,7 +131,7 @@ HICANNTransformator::HICANNTransformator(
 HICANNTransformator::~HICANNTransformator()
 {
 	// finally, we need to give sthal the spikes. Note, that we don't have to
-	// sort them before hand, because they have to be reoardered at the sthal
+	// sort them before hand, because they have to be reordered at the sthal
 	// level anyway. This is also why it makes no sense to move (by-rvalue) the
 	// spikes to sthal.
 	for (auto const& merger : iter_all<dnc_merger_coord>())
@@ -463,6 +463,7 @@ void HICANNTransformator::spike_input(
 	for (auto const& outb : iter_all<OutputBufferOnHICANN>())
 	{
 		if (output_mapping.getMode(outb) == placement::OutputBufferMapping::OUTPUT) {
+			// i.e. dnc merger is not receiving
 			continue;
 		}
 		SpikeInputVisitor visitor(mPyMarocco, mSpikes[outb], int(outb)*209823 /*seed*/);
@@ -470,13 +471,13 @@ void HICANNTransformator::spike_input(
 		for (assignment::AddressMapping const& am: output_mapping.at(outb))
 		{
 			assignment::PopulationSlice const& bio = am.bio();
-			if (!is_source(bio.population(), getGraph())) {
-				throw std::runtime_error("real neurons assigned to input OutputBuffers");
-			}
+			if (!is_source(bio.population(), getGraph()))
+				throw std::runtime_error(
+				    "real neurons (i.e. it's not a source!) assigned to input OutputBuffers");
 
 			Population const& pop = *get(*populations, bio.population());
 
-			// for all inputs
+			// for all inputs (== input population size)
 			for (size_t n=0; n<bio.size(); ++n)
 			{
 				HMF::HICANN::L1Address const& l1 = am.addresses().at(n);

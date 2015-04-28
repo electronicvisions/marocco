@@ -47,9 +47,9 @@ SpikeInputVisitor::operator() (
 	auto const& param = v.parameters()[neuron_id];
 
 	for (double const time : param.spike_times)
-	{
+		// use euter's spike_times (cell parameter), transform and attach to
+		// this' SpikeList -> used by HICANNTransformator
 		mSpikes.emplace_back(l1, time_offset+time/speedup/1000.);
-	}
 }
 
 // Spike Source Poisson Transformation
