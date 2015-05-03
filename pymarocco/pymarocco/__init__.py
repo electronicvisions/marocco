@@ -38,6 +38,7 @@ def _patch_Placement():
             if isinstance(args[0], pyhalbe.Coordinate.HICANNGlobal):
                 raise RuntimeError('Populations with size()<=256 can be placed manually ')
         return _add(self, p.euter_id(), *args)
+    add.__doc__ = _add.__doc__
 
     Placement.add = add
 

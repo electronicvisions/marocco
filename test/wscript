@@ -38,6 +38,7 @@ def build(bld):
         **flags)
 
     bld(
+        target = 'pytests-marocco',
         tests=bld.path.ant_glob('python/test*.py'),
         features='pytest',
         use=['pyhmf', 'marocco', 'pymarocco'],

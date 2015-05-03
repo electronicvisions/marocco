@@ -3,7 +3,7 @@ import sys,os, logging
 logging.basicConfig(level=logging.INFO)
 
 from pywrap.wrapper import Wrapper
-from pywrap import namespaces, containers, matchers
+from pywrap import namespaces, containers, matchers, classes
 from pyplusplus.module_builder import call_policies
 
 def add_numpy_construtor_to_strong_typedefs(ns):
@@ -21,23 +21,30 @@ wrap = Wrapper()
 module_name = wrap.module_name()
 mb = wrap.mb
 
-classes = ['PyMarocco']
-for cls in classes:
+
+my_classes = ['PyMarocco']
+for cls in my_classes:
     c = mb.class_(cls)
     c.include()
     createFactory = c.mem_funs('create')
     c.add_fake_constructors( createFactory )
 
-classes = [
+my_classes = [
     'MappingStats',
     'Placement',
     'Defects',
     'hw_id',
     'bio_id'
     ]
-for cls in classes:
+for cls in my_classes:
     c = mb.class_(cls)
     c.include()
+
+my_classes = [
+    '::pymarocco::Placement::List'
+    ]
+for td in my_classes:
+    classes.add_from_pyiterable_converter_to(mb.typedef(td).target_decl)
 
 # Exclude boost::serialization and boost::archive
 ns_boost = mb.global_ns.namespace('boost')
