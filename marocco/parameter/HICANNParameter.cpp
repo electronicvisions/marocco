@@ -263,7 +263,13 @@ void HICANNTransformator::neurons(
 	 * For each group of neurons that share analog values we have to agree
 	 * on common values.  This has to happen prior to the configuration of
 	 * individual neuron parameters as these depend on the shared values.
+	 *
+	 * BV: commented out the following, as the extraction of shared neuron
+	 *     parameters is buggy (FIXME #1693).
+	 *     Instead we pass a single target hardware v_reset value to the
+	 *     neuron transformation.
 	 */
+	/*
 	NeuronSharedParameterRequirements shared_parameter_visitor;
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 	{
@@ -287,9 +293,10 @@ void HICANNTransformator::neurons(
 			}
 		}
 	}
+	*/
 
-	// INDIVIDUAL Neuron Paramets
-	TransformNeurons visitor{shared_parameter_visitor};
+	// INDIVIDUAL Neuron Parameters
+	TransformNeurons visitor{HMF::NeuronCalibration::HW_V_reset};
 
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 	{

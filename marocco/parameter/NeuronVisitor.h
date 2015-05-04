@@ -18,6 +18,16 @@
 namespace marocco {
 namespace parameter {
 
+// FIXME(#1693): the extraction of shared neuron parameters is buggy,
+// as the mean v_reset is calculated per Neuron FG-Block.
+// However, the mapping of the hardware V_reset is not FG-Block wise:
+// Instead it is as follows:
+// For each HICANN half, the left V_reset value is connected to all even
+// numbered denmems, and the right V_reset to the odd numbered.
+// see halbe/hal/HICANN/FGBlock.h
+//
+// In any way, it has to be discussed, whether this class is still needed.
+// See #1693 and #1591.
 struct NeuronSharedParameterRequirements
 {
 	typedef void return_type;
@@ -65,8 +75,8 @@ struct TransformNeurons
 	template <CellType N>
 		using cell_t = TypedCellParameterVector<N>;
 
-	TransformNeurons(NeuronSharedParameterRequirements const& s)
-		: shared_parameters(s) {}
+	TransformNeurons(double target_V_reset)
+		: mTargetVReset(target_V_reset){}
 
 	template <CellType N>
 	return_type operator() (
@@ -98,7 +108,7 @@ struct TransformNeurons
 		chip_t& chip) const;
 
 private:
-	NeuronSharedParameterRequirements const& shared_parameters;
+	double mTargetVReset; ///< target hardware V_reset in Volt
 };
 
 

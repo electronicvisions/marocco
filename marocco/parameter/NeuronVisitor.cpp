@@ -35,15 +35,17 @@ fg_clip voltage2fg(double voltage_in_mV)
 
 HMF::NeuronCalibrationParameters calibration_parameters_for_neuron(
 	chip_type<hardware_system_t>::type const& chip,
-	NeuronSharedParameterRequirements const& shared_parameters,
+	double const bio_v_reset, ///< pyNN v_reset in mV
+	double const target_v_reset, ///< target HW v_reset in Volt
 	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id)
 {
 	HMF::NeuronCalibrationParameters params;
 
 	params.bigcap = chip.neurons.config.bigcap[neuron_hw_id.y()];
-	params.mean_vreset = shared_parameters.get_mean_v_reset(
-		neuron_hw_id.toSharedFGBlockOnHICANN());
 	params.hw_neuron_size = 1; // always use neuron size = 1, cf. #1559
+	// compute shiftV so that v_reset is transformed to target_v_reset (#1693)
+	static const double mV_to_V = 0.001;
+	params.shiftV = target_v_reset - bio_v_reset*mV_to_V*params.alphaV;
 
 	return params;
 }
@@ -82,7 +84,7 @@ TransformNeurons::operator() (
 	auto const& cellparams = v.parameters()[neuron_bio_id];
 
 	auto const params = calibration_parameters_for_neuron(
-		chip, shared_parameters, neuron_hw_id);
+		chip, cellparams.v_reset, mTargetVReset, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(
 		cellparams, neuron_hw_id.id(), params);
@@ -105,7 +107,7 @@ TransformNeurons::operator() (
 	auto const& cellparams = v.parameters()[neuron_bio_id];
 
 	auto const params = calibration_parameters_for_neuron(
-		chip, shared_parameters, neuron_hw_id);
+		chip, cellparams.v_reset, mTargetVReset, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(
 		cellparams, neuron_hw_id.id(), params);
