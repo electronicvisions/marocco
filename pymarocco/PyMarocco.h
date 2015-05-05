@@ -43,7 +43,8 @@ public:
 
 	PYPP_CLASS_ENUM(CalibBackend) {
 		DB,
-		XML
+		XML,
+		Default
 	};
 
 	PYPP_CLASS_ENUM(HICANNCfg) {
@@ -63,7 +64,8 @@ public:
 	Backend backend;
 
 	/// choose backend for calibration data
-	/// one of [DB, XML]
+	/// one of [DB, XML, Default]
+	/// default: Default
 	CalibBackend calib_backend;
 
 	/// path to directory containing calibration data as xml-files

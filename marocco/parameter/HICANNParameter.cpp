@@ -675,29 +675,14 @@ HICANNTransformator::getCalibrationData()
 
 	boost::shared_ptr<calib_t> calib(new calib_t);
 
-	switch(mPyMarocco.backend) {
+	if (mPyMarocco.backend == PyMarocco::Backend::ESS &&
+	    mPyMarocco.calib_backend != PyMarocco::CalibBackend::Default)
+		throw std::runtime_error(
+		    "Using the ESS with calib_backend != CalibBackend::Default is currently not supported");
 
-	case PyMarocco::Backend::ESS: {
-
-		calib->setDefaults();
-
-		break;
-
-	} // case ESS
-
-	case PyMarocco::Backend::None: {
-
-		calib->setDefaults();
-		break;
-
-	} // case None
-
-	case PyMarocco::Backend::Hardware: {
-
-		switch(mPyMarocco.calib_backend) {
+	switch(mPyMarocco.calib_backend) {
 
 		case PyMarocco::CalibBackend::DB: {
-
 			try {
 				calibtic::MetaData md;
 				auto backend = getCalibticBackend();
@@ -708,11 +693,9 @@ HICANNTransformator::getCalibrationData()
 			}
 
 			break;
-
 		}
 
 		case PyMarocco::CalibBackend::XML: {
-
 			calibtic::MetaData md;
 			auto backend = getCalibticBackend();
 
@@ -726,24 +709,18 @@ HICANNTransformator::getCalibrationData()
 			backend->load(calib_file_string, md, *calib);
 
 			break;
+		}
 
+		case PyMarocco::CalibBackend::Default: {
+			calib->setDefaults();
+			break;
 		}
 
 		default:
-
 			throw std::runtime_error("unknown calibration backend type");
 
-		} // switch calib backend for real hardware
+	} // switch calib backend
 
-		break;
-
-	} // case real hardware
-
-	default:
-
-		throw std::runtime_error("unknown hardware backend type");
-
-	} // switch hardware backend
 
 	if(calib->getPLLFrequency() != mPyMarocco.pll_freq) {
 		MAROCCO_WARN("PLL stored in HICANNCollection "

@@ -25,7 +25,7 @@ PyMarocco::name() const
 
 PyMarocco::PyMarocco() :
 	backend(Backend::None),
-	calib_backend(CalibBackend::DB),
+	calib_backend(CalibBackend::Default),
 	calib_path(""),
 	bkg_gen_isi(500),
 	only_bkg_visible(false),
