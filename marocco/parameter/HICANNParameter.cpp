@@ -200,8 +200,13 @@ HICANNTransformator::run(
 			if(local_routes) {
 				// transform synapses
 				auto synapse_row_calib = calib->atSynapseRowCollection();
-				// FIXME: remove next line when synapse calibration exists for real hardware (#1584)
-				synapse_row_calib->setDefaults();
+
+				// FIXME: remove next lines when synapse calibration exists for real hardware (#1584)
+				if ( mPyMarocco.param_trafo.use_ess_synapse_trafo )
+					synapse_row_calib->setEssDefaults();
+				else
+					synapse_row_calib->setDefaults();
+
 				auto const & synapse_mapping = routing.synapse_row_routing.at(chip().index());
 				synapses(*synapse_row_calib, synapse_mapping, neuron_placement);
 			}

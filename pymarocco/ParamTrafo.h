@@ -30,6 +30,14 @@ public:
 	/// @warn: not used yet
 	double shift_v;
 
+	/// Choose whether the special synapse trafo for the ESS shall be used.
+	/// default: false (use default synapse trafo)
+	/// If true, a synapse trafo with a much higher weight range than the
+	/// default trafo is used, logarithmitically spanning over 3 orders of
+	/// magnitude.
+	/// @note: both choices are supported by the ESS.
+	bool use_ess_synapse_trafo;
+
 private:
 
 	friend class boost::serialization::access;
@@ -39,7 +47,8 @@ private:
 		using boost::serialization::make_nvp;
 		ar& make_nvp("use_big_capacitors", use_big_capacitors)
 		  & make_nvp("alpha_v", alpha_v)
-		  & make_nvp("shift_v", shift_v);
+		  & make_nvp("shift_v", shift_v)
+		  & make_nvp("use_ess_synapse_trafo", use_ess_synapse_trafo);
 	}
 };
 
