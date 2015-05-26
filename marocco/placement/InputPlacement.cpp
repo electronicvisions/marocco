@@ -14,6 +14,8 @@
 #include "pymarocco/MappingStats.h"
 #include "pymarocco/Placement.h"
 
+#include "marocco/placement/FiringRateVisitor.h"
+
 using namespace HMF::Coordinate;
 using marocco::assignment::PopulationSlice;
 
@@ -107,6 +109,9 @@ std::vector<OutputBufferOnHICANN> const OUTBUFFERS = {
 
 } // namespace
 
+const InputPlacement::rate_type InputPlacement::max_rate_HICANN = 1.78e7; // Hz
+const InputPlacement::rate_type InputPlacement::max_rate_FPGA = 1.25e8; // Hz
+
 InputPlacement::InputPlacement(
 	pymarocco::PyMarocco& pymarocco,
 	graph_t const& graph,
@@ -115,8 +120,21 @@ InputPlacement::InputPlacement(
 		mGraph(graph),
 		mHW(hw),
 		mMgr(mgr),
+		mPopMap(get(population_t(), mGraph)),
 		mPyMarocco(pymarocco)
-{}
+{
+	// when considering bandwidth limitations, check utilization value
+	if ( mPyMarocco.input_placement.consider_rate ) {
+		double const& util = mPyMarocco.input_placement.bandwidth_utilization;
+		if ( util > 0. ) {
+			if (util > 1.)
+				MAROCCO_WARN("bandwidth_utilization > 1. Some Input spikes will"
+						" definitely be lost");
+		} else {
+			throw std::runtime_error("bandwidth_utilization must be positive");
+		}
+	}
+}
 
 void InputPlacement::run(
 	NeuronPlacementResult const& neuron_mapping,
@@ -163,7 +181,6 @@ void InputPlacement::run(
 	// check first if input is manually placed and assign it, then
 	// collect all the inputs, get their number of target HICANNs and find the
 	// optimal insertion point, given as the mean over all target HICANNs.
-	auto popmap = get(population_t(), mGraph);
 	auto const& plmap = neuron_mapping.placement();
 
 	typedef std::map<size_t, std::vector<std::pair<Point, PopulationSlice>>,
@@ -176,7 +193,7 @@ void InputPlacement::run(
 			continue;
 		}
 
-		Population const& pop = *popmap[vertex];
+		Population const& pop = *mPopMap[vertex];
 		PopulationSlice bio = PopulationSlice{vertex, pop};
 
 		// if a manual placement exists, assign it
@@ -302,6 +319,8 @@ void InputPlacement::run(
 
 					// TODO: if HICANN has no free output buffers left.
 					// remove it from point cloud and rebuild index.
+					// BV: Check whether this todo is still true when run
+					// rate-dependent mode.
 
 					if (!bio.size()) {
 						break;
@@ -361,18 +380,41 @@ void InputPlacement::insertInput(HMF::Coordinate::HICANNGlobal const& target_hic
 					debug(this) << " found insertion point with space: " << left_space << " on: "
 								<< target_hicann << " " << outb;
 
+					// this is the most we get, because available resources are
+					// sorted by size already.
+					size_t n = std::min(bio.size(), left_space);
+
+					rate_type used_rate;
+
+					if ( mPyMarocco.input_placement.consider_rate ) {
+
+						rate_type available_rate = availableRate(target_hicann);
+
+						std::tie(n, used_rate) =
+							neuronsFittingIntoAvailableRate(
+								bio, n, available_rate);
+
+						if (n == 0) {
+							debug(this) << " cannot place input on this Hicann"
+								<< " would exceed bandwidth limit.\n"
+								<< "available: " << available_rate << " Hz,"
+								<< " HICANN: " << target_hicann;
+							break;
+						}
+					}
+
 					// make sure to tag HICANN as used
 					if (mMgr.available(target_hicann)) {
 						mMgr.allocate(target_hicann);
 					}
 
-					// this is the most we get, because available resources are
-					// sorted by size already.
-					size_t const n = std::min(bio.size(), left_space);
-
 					// we found and empty slot,  insert the assignment
 					auto addresses = om.popAddresses(outb, n, mPyMarocco.l1_address_assignment);
 					om.insert(outb, assignment::AddressMapping(bio.slice_back(n), addresses));
+
+					// mark rate as used
+					if ( mPyMarocco.input_placement.consider_rate )
+						allocateRate(target_hicann, used_rate);
 
 					if (!bio.size()) {
 						break;
@@ -438,6 +480,63 @@ void InputPlacement::configureGbitLinks(
 		}
 	}
 
+}
+
+
+InputPlacement::rate_type InputPlacement::availableRate(
+		HMF::Coordinate::HICANNGlobal const& h
+		)
+{
+	double const& util = mPyMarocco.input_placement.bandwidth_utilization;
+	rate_type avail_HICANN = util*max_rate_HICANN - mUsedRateHICANN[h];
+	rate_type avail_FPGA = util*max_rate_FPGA - mUsedRateFPGA[h.toFPGAGlobal()];
+	rate_type avail = std::min( avail_HICANN, avail_FPGA );
+	assert( avail >= 0 ); // already too much rate allocated
+	return avail;
+}
+
+
+void InputPlacement::allocateRate(
+		HMF::Coordinate::HICANNGlobal const& hicann,
+		rate_type rate)
+{
+	mUsedRateHICANN[hicann] += rate;
+	mUsedRateFPGA[hicann.toFPGAGlobal()] += rate;
+}
+
+
+std::pair< size_t, InputPlacement::rate_type >
+InputPlacement::neuronsFittingIntoAvailableRate(
+		marocco::assignment::PopulationSlice const& bio,
+		size_t max_neurons,
+		rate_type available_rate
+		) const
+{
+	Population const& pop = *mPopMap[bio.population()];
+
+	auto const& params = pop.parameters();
+
+	FiringRateVisitor fr_visitor(mPyMarocco);
+
+	debug(this) << " available_rate: " <<  available_rate;
+	rate_type summed_rate = 0;
+	size_t i = 0;
+	for (; i < max_neurons; ++i) {
+		// neurons are checked from the back
+		size_t id_in_slice = bio.size() - i - 1;
+		rate_type rate = visitCellParameterVector(
+			params,
+			fr_visitor,
+			bio.offset() + id_in_slice
+			);
+		debug(this) << " exptected rate for " << id_in_slice
+			<< " (ID in slice): " << rate;
+		if (rate + summed_rate < available_rate)
+			summed_rate += rate;
+		else
+			break;
+	}
+	return std::make_pair(i,summed_rate);
 }
 
 } // namespace placement

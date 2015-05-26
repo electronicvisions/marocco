@@ -7,6 +7,7 @@
 
 #include "pymarocco/MappingStats.h"
 #include "pymarocco/Placement.h"
+#include "pymarocco/InputPlacement.h"
 #include "pymarocco/Defects.h"
 #include "pymarocco/Routing.h"
 #include "pymarocco/RoutingPriority.h"
@@ -88,6 +89,9 @@ public:
 
 	/// parameters and constraints for placement algorithm (manual placement, ...)
 	Placement placement;
+
+	/// parameters  for input placement algorithm (e.g. consider bandwidth limits)
+	InputPlacement input_placement;
 
 	/// defect information
 	Defects defects;
@@ -180,6 +184,7 @@ private:
 		   & make_nvp("calib_path", calib_path)
 		   & make_nvp("stats", stats)
 		   & make_nvp("placement", placement)
+		   & make_nvp("input_placement", input_placement)
 		   & make_nvp("defects", defects)
 		   & make_nvp("routing_priority", routing_priority)
 		   & make_nvp("routing", routing)
