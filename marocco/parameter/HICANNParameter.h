@@ -31,10 +31,13 @@ public:
 
 	virtual ~HICANNParameter() {}
 	template<typename ... Args>
-	HICANNParameter(pymarocco::PyMarocco& pym, CurrentSourceMap const& csm, Args&& ... args) :
+	HICANNParameter(pymarocco::PyMarocco& pym, CurrentSourceMap const& csm,
+			double duration, //!< PyNN experiment duration in ms
+			Args&& ... args) :
 		ParameterTransformation(std::forward<Args>(args)...),
 		mCurrentSourceMap(csm),
-		mPyMarocco(pym)
+		mPyMarocco(pym),
+		mDuration(duration)
 	{}
 
 	virtual std::unique_ptr<result_type> run(
@@ -44,6 +47,7 @@ public:
 private:
 	CurrentSourceMap const& mCurrentSourceMap;
 	pymarocco::PyMarocco& mPyMarocco;
+	double const mDuration; //!< PyNN experiment duration in ms
 };
 
 
@@ -61,7 +65,9 @@ public:
 	typedef std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
 		boost::shared_ptr<StepCurrentSource const>> CurrentSources;
 
-	HICANNTransformator(graph_t const& graph, chip_type& chip, pymarocco::PyMarocco& pym);
+	HICANNTransformator(graph_t const& graph, chip_type& chip, pymarocco::PyMarocco& pym,
+			double duration //!< PyNN experiment duration in ms
+			);
 	~HICANNTransformator();
 
 	virtual std::unique_ptr<result_type> run(
@@ -128,6 +134,7 @@ private:
 	std::array<SpikeList, dnc_merger_coord::end> mSpikes;
 
 	pymarocco::PyMarocco& mPyMarocco;
+	double const mDuration; //!< PyNN experiment duration in ms
 };
 
 } // namespace parameter

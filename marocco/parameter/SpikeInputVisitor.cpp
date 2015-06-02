@@ -27,10 +27,11 @@ void transform_input_spikes(
 
 SpikeInputVisitor::SpikeInputVisitor(
 			pymarocco::PyMarocco const& pymarocco,
-			SpikeList& spikes, int seed) :
+			SpikeList& spikes, int seed, double exp_dur) :
 	mPyMarocco(pymarocco),
 	mSpikes(spikes),
-	mRNG(seed)
+	mRNG(seed),
+	mExperimentDuration(exp_dur)
 {}
 
 typename SpikeInputVisitor::return_type
@@ -65,8 +66,7 @@ SpikeInputVisitor::operator() (
 	const double time_offset = mPyMarocco.experiment_time_offset;
 
 	auto const& param = v.parameters()[neuron_id];
-	// FIXME: duration from pyNN is far to long
-	//double const duration = param.duration;
+
 	double const duration = param.duration;
 	double const start = param.start;
 	double const rate = param.rate;
@@ -74,13 +74,17 @@ SpikeInputVisitor::operator() (
    std::mt19937 gen(mRNG());
    std::uniform_real_distribution<> dis(0, 1);
 	static double const dt = 0.1;
-	double time = 0;
-	while (time<duration)
+
+	double time = start;
+	// spike train stops either at start+duration or at end of pynn experiment
+	double const stop = std::min(start + duration, mExperimentDuration);
+
+	while ( time < stop )
 	{
 		// time is given in ms => factor of 1000.
 		if (rate * dt / 1000. >= dis(gen)) {
 		//if (rate * dt >= mRNG()) {
-			auto const t = time_offset+(start+time)/speedup/1000.;
+			auto const t = time_offset+time/speedup/1000.;
 			mSpikes.emplace_back(l1, t);
 		}
 		time+=dt;

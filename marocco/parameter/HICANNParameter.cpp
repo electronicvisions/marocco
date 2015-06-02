@@ -104,7 +104,7 @@ HICANNParameter::run(
 	std::for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			chip_type& chip = getHardware()[hicann];
-			HICANNTransformator trafo(getGraph(), chip, mPyMarocco);
+			HICANNTransformator trafo(getGraph(), chip, mPyMarocco, mDuration);
 			trafo.run(current_source_map[hicann], placement, routing);
 		});
 	auto end = std::chrono::system_clock::now();
@@ -122,10 +122,13 @@ HICANNParameter::run(
 HICANNTransformator::HICANNTransformator(
 		graph_t const& graph,
 		chip_type& chip,
-		pymarocco::PyMarocco& pym) :
+		pymarocco::PyMarocco& pym,
+		double duration
+		) :
 	mChip(chip),
 	mGraph(graph),
-	mPyMarocco(pym)
+	mPyMarocco(pym),
+	mDuration(duration)
 {}
 
 HICANNTransformator::~HICANNTransformator()
@@ -478,7 +481,8 @@ void HICANNTransformator::spike_input(
 			// i.e. dnc merger is not receiving
 			continue;
 		}
-		SpikeInputVisitor visitor(mPyMarocco, mSpikes[outb], int(outb)*209823 /*seed*/);
+		SpikeInputVisitor visitor(mPyMarocco, mSpikes[outb],
+				int(outb)*209823 /*seed*/, mDuration);
 
 		for (assignment::AddressMapping const& am: output_mapping.at(outb))
 		{

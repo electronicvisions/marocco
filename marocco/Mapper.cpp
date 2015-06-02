@@ -126,7 +126,8 @@ void Mapper::run(ObjectStore const& pynn)
 	MAROCCO_DEBUG("mSources.size(): " << mSources.size());
 
 	std::unique_ptr<parameter::HICANNParameter> transformator(
-		new parameter::HICANNParameter(*mPyMarocco, mSources, mGraph, mHW, mMgr, getComm()));
+		new parameter::HICANNParameter(*mPyMarocco, mSources,
+			pynn.getDuration(), mGraph, mHW, mMgr, getComm()));
 	auto parameter = transformator->run(*placement, *routing);
 
 

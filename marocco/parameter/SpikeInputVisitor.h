@@ -27,7 +27,9 @@ struct SpikeInputVisitor
 
 	SpikeInputVisitor(
 			pymarocco::PyMarocco const& pymarocco,
-			SpikeList& spikes, int seed=42);
+			SpikeList& spikes, int seed,
+			double experiment_duration //!< PyNN experiment duration in ms
+			);
 
 	template <CellType N>
 	return_type operator() (
@@ -58,6 +60,7 @@ struct SpikeInputVisitor
 	pymarocco::PyMarocco const& mPyMarocco;
 	SpikeList& mSpikes;
 	RNG mRNG;
+	double const mExperimentDuration; //!< PyNN experiment duration in ms
 };
 
 
