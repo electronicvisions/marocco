@@ -16,6 +16,9 @@ public:
 	typedef std::list<Index> List;
 	typedef std::size_t size_type;
 
+	static size_type const defaultNeuronSize;
+	static size_type const maxNeuronSize;
+
 	PYPP_INSTANTIATE(List);
 
 private:
@@ -27,10 +30,10 @@ public:
 	// place population somewhere, initially we only want to support manually
 	// the whole population to keep things simple.
 	void add(PopulationId pop, Index const& first);
-	void add(PopulationId pop, Index const& first, size_t size);
+	void add(PopulationId pop, Index const& first, size_type size);
 	void add(PopulationId pop, List list);
-	void add(PopulationId pop, List list, size_t size);
-	void add(PopulationId pop, size_t size);
+	void add(PopulationId pop, List list, size_type size);
+	void add(PopulationId pop, size_type size);
 
 	mapping_type::iterator        begin();
 	mapping_type::const_iterator  begin() const;
@@ -56,6 +59,11 @@ public:
 	// (See comments in InputPlacement.cpp)
 
 private:
+	/// checks if neuron size is a multiple of 4 and not larger than 64.
+	/// throws runtime_error otherwise.
+	/// TODO: change to multiples of 2 once #1565 is fixed.
+	void checkNeuronSize(size_type size);
+
 	mapping_type mPlacement;
 	size_type mDefaultNeuronSize;
 

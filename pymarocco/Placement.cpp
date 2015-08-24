@@ -4,11 +4,13 @@
 
 namespace pymarocco {
 
+Placement::size_type const Placement::defaultNeuronSize = 4;
+Placement::size_type const Placement::maxNeuronSize = HMF::Coordinate::NeuronOnNeuronBlock::enum_type::size;
 
 Placement::Placement() :
 	minSPL1(true),
 	use_output_buffer7_for_dnc_input_and_bg_hack(false),
-	mDefaultNeuronSize(2)
+	mDefaultNeuronSize(defaultNeuronSize)
 {}
 
 void Placement::add(PopulationId const pop, Index const& first)
@@ -16,7 +18,7 @@ void Placement::add(PopulationId const pop, Index const& first)
 	add(pop, std::list<Index>{first}, mDefaultNeuronSize);
 }
 
-void Placement::add(PopulationId const pop, Index const& first, size_t size)
+void Placement::add(PopulationId const pop, Index const& first, size_type size)
 {
 	add(pop, std::list<Index>{first}, size);
 }
@@ -26,21 +28,15 @@ void Placement::add(PopulationId pop, std::list<Index> list)
 	add(pop, list, mDefaultNeuronSize);
 }
 
-void Placement::add(PopulationId pop, std::list<Index> list, size_t size)
+void Placement::add(PopulationId pop, std::list<Index> list, size_type size)
 {
-	if (size==0 || size%2!=0) {
-		throw std::runtime_error("only neuron sizes which are multiples of two are allowed");
-	}
-
+	checkNeuronSize(size);
 	mPlacement[pop] = std::make_pair(list, size);
 }
 
-void Placement::add(PopulationId const pop, size_t size)
+void Placement::add(PopulationId const pop, size_type size)
 {
-	if (size==0 || size%2!=0) {
-		throw std::runtime_error("only neuron sizes which are multiples of two are allowed");
-	}
-
+	checkNeuronSize(size);
 	mPlacement[pop] = std::make_pair(List{}, size);
 }
 
@@ -86,6 +82,7 @@ Placement::iter() const
 
 void Placement::setDefaultNeuronSize(size_type s)
 {
+	checkNeuronSize(s);
 	mDefaultNeuronSize = s;
 }
 
@@ -93,6 +90,14 @@ Placement::size_type
 Placement::getDefaultNeuronSize() const
 {
 	return mDefaultNeuronSize;
+}
+
+void Placement::checkNeuronSize(size_type size)
+{
+	if ((size == 0) || ((size % 4) != 0) || (size > maxNeuronSize)) {
+		throw std::runtime_error("only neuron sizes which are multiples of 4"
+		                         " and not larger than 64 are allowed");
+	}
 }
 
 } // pymarocco
