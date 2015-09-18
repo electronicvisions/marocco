@@ -28,7 +28,7 @@ def depends(ctx):
     ctx('marocco', 'pymarocco')
     ctx('marocco', 'tools/roqt')
     ctx('marocco', 'test')
-    ctx('symap2ic', 'src/logging')
+    ctx('logger')
 
 
 def options(opt):

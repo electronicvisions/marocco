@@ -18,7 +18,7 @@ def load_waf_modules(ctx):
 def depends(dep):
     dep('pyhmf')
     dep('halbe', 'pyhalbe')
-    dep('symap2ic', 'src/pylogging')
+    dep('logger', 'pylogging')
     dep('redman')
     dep('redman', 'pyredman')
 
