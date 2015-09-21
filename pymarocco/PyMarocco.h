@@ -126,6 +126,11 @@ public:
 	/// also the hicann enum and analog recorder enum have to be adjusted manually
 	std::string membrane;
 
+	/// true: translate the recorded membrane to biological domain (mV, ms)
+	/// false: keep the data as returned from the ADC (V, s)
+	/// default: true
+	bool membrane_translate_to_bio;
+
 	/// global enum id of hicann on which membrane is recorded
 	size_t hicann_enum;
 
@@ -194,6 +199,7 @@ private:
 		   & make_nvp("bio_graph", bio_graph)
 		   & make_nvp("wafer_cfg", wafer_cfg)
 		   & make_nvp("membrane", membrane)
+		   & make_nvp("membrane_translate_to_bio", membrane_translate_to_bio)
 		   & make_nvp("hicann_enum", hicann_enum)
 		   & make_nvp("analog_enum", analog_enum)
 		   & make_nvp("bkg_gen_isi", bkg_gen_isi)

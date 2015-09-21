@@ -192,18 +192,34 @@ void Control::runExperimentAndRecordMembrane(std::unique_ptr<sthal::ExperimentRu
 
 	runExperiment(runner);
 
-	const std::vector<float> trace =  recorder.trace();
-	const std::vector<float> times =  recorder.getTimestamps();
+	auto const trace = recorder.trace();
+	auto const times = recorder.getTimestamps();
 
-	static double const seconds_to_ms = 1000.;
+	static sthal::AnalogRecorder::time_type const seconds_to_ms = 1000.;
+	static sthal::AnalogRecorder::voltage_type const V_to_mV = 1000.;
 
 	std::ofstream file(mPyMarocco.membrane.c_str());
 	for (size_t ii=0; ii<trace.size(); ++ii) {
-		const float hw_time_in_s = times[ii];
-		const float t_in_bio_ms = (hw_time_in_s - mPyMarocco.experiment_time_offset ) * mPyMarocco.speedup * seconds_to_ms;
-		file << t_in_bio_ms << " " << trace[ii] << std::endl;
-	}
 
+		auto const hw_time_in_s = times[ii];
+		auto const hw_trace_in_V = trace[ii];
+
+		if (mPyMarocco.membrane_translate_to_bio) {
+
+			// using explicit types to make clear that we will write that type to disk
+			sthal::AnalogRecorder::time_type const t_in_bio_ms =
+			    (hw_time_in_s - mPyMarocco.experiment_time_offset) * mPyMarocco.speedup *
+			    seconds_to_ms;
+			sthal::AnalogRecorder::voltage_type const membrane_in_bio_mV =
+			    (hw_trace_in_V * V_to_mV - mPyMarocco.param_trafo.shift_v) /
+			    mPyMarocco.param_trafo.alpha_v;
+
+			file << t_in_bio_ms << " " << membrane_in_bio_mV << std::endl;
+
+		} else {
+			file << hw_time_in_s << " " << hw_trace_in_V << std::endl;
+		}
+	}
 }
 
 } // config

@@ -27,6 +27,7 @@ PyMarocco::PyMarocco() :
 	backend(Backend::None),
 	calib_backend(CalibBackend::Default),
 	calib_path(""),
+	membrane_translate_to_bio(true),
 	bkg_gen_isi(500),
 	only_bkg_visible(false),
 	pll_freq(100e6),
