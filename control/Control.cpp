@@ -4,6 +4,7 @@
 
 #include "sthal/MagicHardwareDatabase.h"
 #include "sthal/HICANNConfigurator.h"
+#include "sthal/HICANNv4Configurator.h"
 #include "sthal/DontProgramFloatingGatesHICANNConfigurator.h"
 #include "sthal/ExperimentRunner.h"
 #include "sthal/ESSHardwareDatabase.h"
@@ -146,6 +147,10 @@ sthal::HICANNConfigurator* Control::pickHICANNConfigurator() const {
 
 	case HICANNCfg::HICANNConfigurator:
 		return new sthal::HICANNConfigurator();
+		break;
+
+	case HICANNCfg::HICANNv4Configurator:
+		return new sthal::HICANNv4Configurator();
 		break;
 
 	case HICANNCfg::DontProgramFloatingGatesHICANNConfigurator:

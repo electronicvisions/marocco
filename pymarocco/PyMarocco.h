@@ -50,6 +50,7 @@ public:
 
 	PYPP_CLASS_ENUM(HICANNCfg) {
 		HICANNConfigurator,
+		HICANNv4Configurator,
 		DontProgramFloatingGatesHICANNConfigurator
 	};
 
