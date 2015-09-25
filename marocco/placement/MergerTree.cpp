@@ -101,6 +101,7 @@ MergerTreeRouter::MergerTreeRouter(HMF::Coordinate::HICANNGlobal const& hicann,
 		for (auto it=res->begin_disabled(); it!=res->end_disabled(); ++it) \
 		{ \
 			clear_vertex(vertex_for_merger(tier, it->value()), mMergerGraph); \
+			MAROCCO_INFO("Marked " << *it << " on " << hicann << " as defect/disabled"); \
 		} \
 	}
 
@@ -115,6 +116,7 @@ MergerTreeRouter::MergerTreeRouter(HMF::Coordinate::HICANNGlobal const& hicann,
 	for (auto it=res->begin_disabled(); it!=res->end_disabled(); ++it)
 	{
 		clear_vertex(vertex_for_dnc_merger(it->value()), mMergerGraph);
+		MAROCCO_INFO("Marked " << *it << " on " << hicann << " as defect/disabled"); \
 	}
 
 #undef HANDLE_DEFECTS

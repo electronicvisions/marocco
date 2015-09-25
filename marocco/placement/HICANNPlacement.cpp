@@ -67,6 +67,7 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 			auto const nb = it->toNeuronBlockOnHICANN();
 			auto const nrn = it->toNeuronOnNeuronBlock();
 			neuron_placement[nb].add_defect(nrn);
+			MAROCCO_INFO("Marked " << *it << " on " << hicann << " as defect/disabled");
 		}
 
 		for (auto const& nb : iter_all<NeuronBlockOnHICANN>())

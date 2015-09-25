@@ -117,12 +117,14 @@ WaferGraph::WaferGraph(
 		for (auto it=hbuses->begin_disabled(); it!=hbuses->end_disabled(); ++it)
 		{
 			clear_vertex(hicann[*it], getRoutingGraph());
+			MAROCCO_INFO("Marked " << *it << " on " << h << " as defect/disabled");
 		}
 
 		auto const& vbuses = defects->vbuses();
 		for (auto it=vbuses->begin_disabled(); it!=vbuses->end_disabled(); ++it)
 		{
 			clear_vertex(hicann[*it], getRoutingGraph());
+			MAROCCO_INFO("Marked " << *it << " on " << h << " as defect/disabled");
 		}
 	}
 }

@@ -616,6 +616,7 @@ void SynapseRouting::run(placement::Result const& placement,
 		for (auto it=drvs->begin_disabled(); it!=drvs->end_disabled(); ++it)
 		{
 			defect_list.push_back(*it);
+			MAROCCO_INFO("Marked " << *it << " on " << hicann() << " as defect/disabled");
 		}
 
 		Fieres fieres(list, side, chain_length, defect_list);
@@ -1033,6 +1034,7 @@ void SynapseRouting::tagDefectSynapses()
 	{
 		auto proxy = chip.synapses[*it];
 		proxy.weight = SynapseWeight(1);
+		MAROCCO_INFO("Marked " << *it << " on " << hicann() << " as defect/disabled");
 	}
 }
 
