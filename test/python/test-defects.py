@@ -98,5 +98,26 @@ class TestNeuronDefects(TrivialNetworkFixture):
         with self.assertRaisesRegexp(RuntimeError, '(no terminals left)'):
             sim.run(10)
 
+merger_resources = {
+    'dncmergers': DNCMergerOnHICANN,
+    'mergers0': Merger0OnHICANN,
+    'mergers1': Merger1OnHICANN,
+    'mergers2': Merger2OnHICANN,
+    'mergers3': Merger3OnHICANN,
+}
+
+class TestMergerDefects(TrivialNetworkFixture):
+    """
+    Tests that the mapping failes, if all merger are marked as defect.
+    """
+    @utils.parametrize(merger_resources.keys())
+    def test_disable_all(self, name):
+        self.inject_disabled_component(
+            name, iter_all(merger_resources[name]))
+
+        with self.assertRaisesRegexp(RuntimeError,
+                                     '(unroutable mergers)'):
+            sim.run(10)
+
 if __name__ == '__main__':
     unittest.main()
