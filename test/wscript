@@ -27,7 +27,7 @@ def build(bld):
         }
 
     bld(target          = 'test-marocco',
-        features        = 'cxx cxxprogram gtest',
+        features        = 'pyembed cxx cxxprogram gtest',
         test_main       = 'main.cpp',
         source          = bld.path.ant_glob('**/test-*.cpp'),
         install_path    = os.path.join('bin', 'tests'),
