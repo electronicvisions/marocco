@@ -1,26 +1,14 @@
 #include "HICANNGraph.h"
+
 #include "hal/HICANN/Crossbar.h"
+#include "hal/Coordinate/iter_all.h"
+
 #include "marocco/Logger.h"
 
 using namespace HMF::Coordinate;
 
 namespace marocco {
 namespace routing {
-
-namespace {
-HICANNGraph::switches_t initSwitches()
-{
-	using HMF::HICANN::Crossbar;
-	HICANNGraph::switches_t sw;
-	for (size_t xx = 0; xx < VLineOnHICANN::end; ++xx) {
-		for (size_t yy = 0; yy < HLineOnHICANN::end; ++yy) {
-			sw.at(xx).at(yy) = Crossbar::exists(VLineOnHICANN(xx), HLineOnHICANN(yy));
-		}
-	}
-
-	return sw;
-}
-} // namespace
 
 HICANNGraph::HICANNGraph(
 	HMF::Coordinate::HICANNGlobal const& hicann,
@@ -32,14 +20,14 @@ HICANNGraph::HICANNGraph(
 		mSwitches(pymarocco.routing.crossbar)
 {
 	// insert horizontal busses
-	for (size_t ii = 0; ii < mHorizontal.size(); ++ii) {
-		vertex_t v =  add_vertex(mGraph);
+	for (auto ii : iter_all<HLineOnHICANN>()) {
+		vertex_t v = add_vertex(mGraph);
 		mHorizontal[ii] = v;
 		mGraph[v] = L1Bus(L1Bus::Horizontal, ii, mCoord);
 	}
 
 	// insert vertical busses
-	for (size_t ii = 0; ii < mVertical.size(); ++ii) {
+	for (auto ii : iter_all<VLineOnHICANN>()) {
 		vertex_t v = add_vertex(mGraph);
 		mVertical[ii] = v;
 		mGraph[v] = L1Bus(L1Bus::Vertical, ii, mCoord);
@@ -52,23 +40,22 @@ HICANNGraph::HICANNGraph(
 	std::vector<std::pair<vertex_t, vertex_t>> switches;
 	if (defect_rate == 0.0) {
 		// insert edges
-		for (size_t yy = 0; yy < mHorizontal.size(); ++yy) {
-			for (size_t xx = 0; xx < mVertical.size(); ++xx) {
-				if (exists(VLineOnHICANN(xx), HLineOnHICANN(yy))) {
+		for (auto yy : iter_all<HLineOnHICANN>()) {
+			for (auto xx : iter_all<VLineOnHICANN>()) {
+				if (exists(xx, yy)) {
 					switches.push_back(std::make_pair(mHorizontal[yy], mVertical[xx]));
 				}
 			}
 		}
-
 	} else {
 		warn(this) << "L1 defect rate " << defect_rate;
 
 		std::uniform_real_distribution<> dis(0, 1);
 
-		for (size_t yy = 0; yy < mHorizontal.size(); ++yy) {
-			for (size_t xx = 0; xx < mVertical.size(); ++xx) {
-				if (exists(VLineOnHICANN(xx), HLineOnHICANN(yy))) {
-					if (dis(gen)>defect_rate) {
+		for (auto yy : iter_all<HLineOnHICANN>()) {
+			for (auto xx : iter_all<VLineOnHICANN>()) {
+				if (exists(xx, yy)) {
+					if (dis(gen) > defect_rate) {
 						switches.push_back(std::make_pair(mHorizontal[yy], mVertical[xx]));
 					}
 				}

@@ -1,34 +1,28 @@
 #include "pymarocco/Routing.h"
 
+#include "hal/HICANN/Crossbar.h"
+#include "hal/Coordinate/iter_all.h"
+
 using namespace HMF::Coordinate;
 
 namespace pymarocco {
 
 namespace {
 
-// taken from HALBe
-bool exists(VLineOnHICANN x, HLineOnHICANN y)
-{
-	size_t y_, x_mod = x%32;
-
-	y_ = y - y%2;
-	y_ /= 2;
-
-	return x<128 ? (31-y_)==x_mod : y_==x_mod;
-}
-
 Routing::switches_t initSwitches()
 {
+	using HMF::HICANN::Crossbar;
+
 	Routing::switches_t sw;
-	for (size_t yy = 0; yy < HLineOnHICANN::end; ++yy) {
-		for (size_t xx = 0; xx < VLineOnHICANN::end; ++xx) {
-			sw.at(xx).at(yy) = exists(VLineOnHICANN(xx), HLineOnHICANN(yy));
+	for (auto yy : iter_all<HLineOnHICANN>()) {
+		for (auto xx : iter_all<VLineOnHICANN>()) {
+			sw[xx][yy] = Crossbar::exists(xx, yy);
 		}
 	}
 	return sw;
 }
-} // anonymous
 
+} // namespace
 
 Routing::Routing() :
 	shuffle_crossbar_switches(true),
@@ -56,21 +50,21 @@ bool Routing::is_default() const
 
 bool Routing::cb_get(VLineOnHICANN const& x, HLineOnHICANN const& y) const
 {
-	return crossbar.at(x).at(y);
+	return crossbar[x][y];
 }
 
 void Routing::cb_set(VLineOnHICANN const& x, HLineOnHICANN const& y, bool b)
 {
 	_is_default = false;
-	crossbar.at(x).at(y) = b;
+	crossbar[x][y] = b;
 }
 
 void Routing::cb_clear()
 {
 	_is_default = false;
-	for (size_t xx = 0; xx < VLineOnHICANN::end; ++xx) {
-		for (size_t yy = 0; yy < HLineOnHICANN::end; ++yy) {
-			crossbar.at(xx).at(yy) = 0;
+	for (auto yy : iter_all<HLineOnHICANN>()) {
+		for (auto xx : iter_all<VLineOnHICANN>()) {
+			crossbar[xx][yy] = 0;
 		}
 	}
 }

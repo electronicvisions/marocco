@@ -1,6 +1,10 @@
 #pragma once
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "hal/Coordinate/L1.h"
+#ifndef PYPLUSPLUS
+#include "hal/Coordinate/typed_array.h"
+#endif // !PYPLUSPLUS
+
 #include "pywrap/compat/array.hpp"
 #include <boost/serialization/nvp.hpp>
 
@@ -12,8 +16,11 @@ public:
 	typedef HMF::Coordinate::HLineOnHICANN HLineOnHICANN;
 	typedef HMF::Coordinate::VLineOnHICANN VLineOnHICANN;
 
-	typedef std::array<bool, HLineOnHICANN::end> switch_line_t;
-	typedef std::array<switch_line_t, VLineOnHICANN::end> switches_t;
+#ifndef PYPLUSPLUS
+	template <typename V, typename K>
+	using typed_array = HMF::Coordinate::typed_array<V, K>;
+	typedef typed_array<typed_array<bool, HLineOnHICANN>, VLineOnHICANN> switches_t;
+#endif // !PYPLUSPLUS
 
 	PYPP_CLASS_ENUM(MergerTreeStrategy) {
 		minSPL1,
@@ -37,7 +44,9 @@ public:
 	//non-existant switches set.
 	bool is_default() const;
 
+#ifndef PYPLUSPLUS
 	switches_t crossbar;
+#endif // !PYPLUSPLUS
 
 	// FIXME: add some crossbar interfaces, because python wrapping is not
 	// really nice nor functional for arrays of arrays.
@@ -68,6 +77,7 @@ public:
 	MergerTreeStrategy merger_tree_strategy;
 
 private:
+#ifndef PYPLUSPLUS
 	friend class boost::serialization::access;
 	template<typename Archive>
 	void serialize(Archive& ar, unsigned int const)
@@ -88,8 +98,8 @@ private:
 		   & make_nvp("w_congest", weight_CongestionFactor)
 		   & make_nvp("shuffle_crossbar_switches", shuffle_crossbar_switches)
 		   & make_nvp("merger_tree_strategy", merger_tree_strategy);
-
 	}
+#endif // !PYPLUSPLUS
 };
 
 } // pymarocco

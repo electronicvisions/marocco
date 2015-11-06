@@ -1,5 +1,8 @@
 #pragma once
-#include <array>
+
+#include "hal/Coordinate/HICANN.h"
+#include "hal/Coordinate/L1.h"
+#include "hal/Coordinate/typed_array.h"
 
 #include "marocco/routing/routing_graph.h"
 #include "pymarocco/PyMarocco.h"
@@ -9,15 +12,16 @@ namespace routing {
 
 class HICANNGraph
 {
-public:
+	template <typename V, typename K>
+	using typed_array = HMF::Coordinate::typed_array<V, K>;
 	typedef HMF::Coordinate::VLineOnHICANN VLineOnHICANN;
 	typedef HMF::Coordinate::HLineOnHICANN HLineOnHICANN;
 
+public:
 	typedef routing_graph::vertex_descriptor vertex_t;
-	typedef std::array<vertex_t, HLineOnHICANN::end> horizontal_busses_t;
-	typedef std::array<vertex_t, VLineOnHICANN::end> vertical_bussses_t;
-	typedef std::array<std::array<bool, HLineOnHICANN::end>,
-			VLineOnHICANN::end> switches_t;
+	typedef typed_array<vertex_t, HLineOnHICANN> horizontal_busses_t;
+	typedef typed_array<vertex_t, VLineOnHICANN> vertical_bussses_t;
+	typedef typed_array<typed_array<bool, HLineOnHICANN>, VLineOnHICANN> switches_t;
 
 	HICANNGraph(
 		HMF::Coordinate::HICANNGlobal const& hicann,
