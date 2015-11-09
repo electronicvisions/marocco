@@ -24,21 +24,3 @@ bool is_spikeinput_edge(graph_t::edge_descriptor const& e, graph_t const& graph)
 }
 
 } // namespace marocco
-
-namespace std {
-
-//std::ostream& operator<< (std::ostream& os, marocco::graph_t::vertex_descriptor const& v)
-//{
-	//return os << "vertex(" << v.owner << ", " << v.local << ")";
-//}
-
-//std::ostream& operator<< (std::ostream& os, marocco::graph_t::edge_descriptor const& e)
-//{
-	//return os << "edge("
-		//<< e.source_processor << ", "
-		//<< e.target_processor << ", "
-		//<< e.source_owns_edge << ", "
-		//<< e.local << ")";
-//}
-
-} // namespace std

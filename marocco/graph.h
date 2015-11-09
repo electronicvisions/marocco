@@ -63,8 +63,6 @@ size_t hash_value(T const& t) {
 
 
 namespace std {
-//std::ostream& operator<< (std::ostream& os, marocco::graph_t::vertex_descriptor const& v);
-//std::ostream& operator<< (std::ostream& os, marocco::graph_t::edge_descriptor const& e);
 
 template<>
 struct hash<marocco::graph_t::edge_descriptor>
