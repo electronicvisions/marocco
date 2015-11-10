@@ -8,6 +8,16 @@
 namespace marocco {
 namespace algorithm {
 
+TEST(AlgIndexOf, WorksOnArray)
+{
+	/*                            0  1  2  3  4 */
+	std::array<size_t, 5> assign{{12, 42, 1, 0, 3}};
+	EXPECT_EQ(0, index_of(begin(assign), end(assign), 12));
+	EXPECT_EQ(1, index_of(begin(assign), end(assign), 42));
+	EXPECT_EQ(4, index_of(begin(assign), end(assign), 3));
+	EXPECT_EQ(5, index_of(begin(assign), end(assign), 123));
+}
+
 TEST(AlgCountWhile, WorksOnArray)
 {
 	/*                           0  1  2  3  4  5  6  7  8  9 10 11 */
