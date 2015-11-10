@@ -21,10 +21,9 @@ TEST(HICANNPlacement, Basic)
 	graph_t graph;
 	hardware_system_t hw;
 	resource_manager_t mgr{backend, {wafer}};
-	comm_t comm;
 
 	hw[wafer]; // hack: to allocate a wafer;
-	HICANNPlacement placement(py_placement, graph, hw, mgr, comm);
+	HICANNPlacement placement(py_placement, graph, hw, mgr);
 	NeuronPlacementResult res;
 	placement.run(res);
 }

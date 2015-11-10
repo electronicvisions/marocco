@@ -6,27 +6,6 @@
 namespace marocco {
 namespace routing {
 
-bool Route::hasLocalSource(int const localRank, graph_t const& graph) const
-{
-	//return (boost::source(mProjection, graph).owner == rank);
-	//FIXME
-	throw std::runtime_error("fixme");
-	return true;
-}
-
-bool Route::hasLocalTargets(int const localRank, graph_t const& g) const
-{
-	//for (auto const& proj : projections())
-	//{
-		//graph_t::edge_descriptor e = proj.projection();
-		//if (boost::target(e, g).owner == localRank) {
-			//return true;
-		//}
-	//}
-	throw std::runtime_error("fixme");
-	return true;
-}
-
 std::vector<typename Route::Projection>&
 Route::projections()
 {

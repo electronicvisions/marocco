@@ -27,7 +27,6 @@ public:
 				  graph_t const& nnetwork,
 				  hardware_type& hw,
 				  resource_manager_t& mgr,
-				  comm_t comm,
 				  routing_graph const& rgraph);
 	virtual ~HICANNRouting();
 

@@ -15,7 +15,7 @@ public:
 	typedef std::unordered_map<
 		Population const*, graph_t::vertex_descriptor> VertexMap;
 
-	GraphBuilder(graph_t& graph, MPI::Intracomm& comm);
+	GraphBuilder(graph_t& graph);
 	~GraphBuilder();
 
 	void build(ObjectStore const& os);
@@ -29,10 +29,6 @@ public:
 
 private:
 	graph_t& mrg;
-	MPI::Intracomm mComm;
-
-	bool is_master() const;
-	void build_on_master(ObjectStore const& os);
 
 	std::vector<std::reference_wrapper<Population const>> mPopulationList;
 	std::vector<std::reference_wrapper<Projection const>> mProjectionList;

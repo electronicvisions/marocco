@@ -44,11 +44,6 @@ public:
 	// Constructor
 	Route(BusSegment const source, std::vector<Projection> const& projections);
 
-	/// checks whether source population of route is process local
-	bool hasLocalSource(int const localRank, graph_t const& g) const;
-	/// checks whether source population of route is process local
-	bool hasLocalTargets(int const localRank, graph_t const& g) const;
-
 #ifndef PYPLUSPLUS
 	BusSegment&       source();
 #endif // PYPLUSPLUS

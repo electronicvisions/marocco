@@ -1,15 +1,11 @@
 #include <stdexcept>
 #include <unordered_map>
 
-#include "mpi/config.h"
-
 #include "marocco/GraphBuilder.h"
 #include "marocco/util.h"
 #include "marocco/Logger.h"
 
 #include <boost/graph/graphviz.hpp>
-
-using namespace MPI;
 
 namespace marocco {
 
@@ -44,17 +40,12 @@ struct projection_label_writer {
 	graph_t g;
 };
 
-GraphBuilder::GraphBuilder(graph_t& graph, Intracomm& comm) :
-	mrg(graph), mComm(comm) {}
+GraphBuilder::GraphBuilder(graph_t& graph) :
+	mrg(graph) {}
 
 GraphBuilder::~GraphBuilder() {}
 
-bool GraphBuilder::is_master() const
-{
-	return mComm.Get_rank() == MASTER_PROCESS;
-}
-
-void GraphBuilder::build_on_master(ObjectStore const& os)
+void GraphBuilder::build(ObjectStore const& os)
 {
 	// insert all populations into map
 	for(auto pop : os.populations())
@@ -80,15 +71,6 @@ void GraphBuilder::build_on_master(ObjectStore const& os)
 
 		} // for all projection_views
 	} // for all projections
-}
-
-void GraphBuilder::build(ObjectStore const& os)
-{
-	/// build graph on master node (insert projections and populations)
-	if (is_master())
-	{
-		build_on_master(os);
-	}
 }
 
 GraphBuilder::VertexMap const& GraphBuilder::vertex_mapping() const

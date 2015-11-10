@@ -37,8 +37,8 @@ for cls in classes:
     #c.add_fake_constructors( createFactory )
 
 # @#$)(! vector won't get automatically wrapped
-c = mb.class_('vector<unsigned long, std::allocator<unsigned long> >')
-c.ignore = False
+# c = mb.class_('vector<unsigned long, std::allocator<unsigned long> >')
+# c.ignore = False
 
 # Exclude boost::serialization and boost::archive
 ns_boost = mb.global_ns.namespace('boost')

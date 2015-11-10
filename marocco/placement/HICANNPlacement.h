@@ -50,8 +50,7 @@ public:
 		pymarocco::Placement const& pl,
 		graph_t const& nn,
 		hardware_system_t const& hw,
-		resource_manager_t& mgr,
-		comm_t const& comm);
+		resource_manager_t& mgr);
 
 	/**
 	 * @param res Output parameter used to store the result.
@@ -93,7 +92,6 @@ private:
 	graph_t const&            mGraph;
 	hardware_system_t const&  mHW;
 	resource_manager_t&       mMgr;
-	comm_t                    mComm;
 
 	FRIEND_TEST(HICANNPlacement, Basic);
 };

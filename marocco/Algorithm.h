@@ -13,8 +13,7 @@ public:
 
 	Algorithm(graph_t const& graph,
 			  hardware_system_t& hw,
-			  resource_manager_t& mgr,
-			  comm_t comm);
+			  resource_manager_t& mgr);
 	virtual ~Algorithm();
 
 	Algorithm(Algorithm const&) = default;
@@ -29,14 +28,10 @@ protected:
 	resource_manager_t&       getManager();
 	resource_manager_t const& getManager() const;
 
-	comm_t&       getComm();
-	comm_t const& getComm() const;
-
 private:
 	graph_t const&       mGraph;
 	hardware_system_t&   mHW;
 	resource_manager_t&  mMgr;
-	comm_t               mComm;
 };
 
 } // namespace marocco

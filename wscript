@@ -56,7 +56,7 @@ def configure(cfg):
 
 
     cfg.check_boost(lib='serialization filesystem system '
-            'thread program_options mpi graph_parallel regex',
+            'thread program_options mpi graph regex',
             uselib_store='BOOST4MAROCCO')
 
     cfg.check_cxx(lib='log4cxx', uselib_store='LOG4CXXMAROCCO', mandatory=1)

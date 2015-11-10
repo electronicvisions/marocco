@@ -19,11 +19,9 @@ namespace control {
 
 Control::Control(hardware_type& hw,
 				 resource_manager_t const& rmgr,
-				 comm_type const& comm,
 				 pymarocco::PyMarocco& pym) :
 	mHW(hw),
 	mMgr(rmgr),
-	mComm(comm),
 	mPyMarocco(pym)
 {}
 

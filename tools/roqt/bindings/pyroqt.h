@@ -52,3 +52,32 @@ private:
 	SynapseRowRouting mSynapseRowRouting;
 	Graph mRoutingGraph;
 };
+
+namespace boost {
+namespace detail {
+
+// Serialization for edge_base / endge_desc_impl is only defined in pBGL, see
+// <boost/graph/distributed/adjacency_list.hpp>.
+
+template <typename Archiver, typename Directed, typename Vertex>
+void serialize(Archiver& ar, edge_base<Directed, Vertex>& e, const unsigned int /*version*/)
+{
+	ar & e.m_source
+	   & e.m_target;
+}
+
+template <typename Archiver, typename Directed, typename Vertex>
+void serialize(Archiver& ar, edge_desc_impl<Directed, Vertex>& e, const unsigned int /*version*/)
+{
+#ifndef PYPLUSPLUS
+	// casting is necessary because e.m_eproperty is void*.
+	auto unsafe_serialize = [](void*& x) -> std::intptr_t& {
+		return reinterpret_cast<std::intptr_t&>(x);
+	};
+	ar & boost::serialization::base_object<edge_base<Directed, Vertex> >(e)
+	   & unsafe_serialize(e.m_eproperty);
+#endif // !PYPLUSPLUS
+}
+
+} // namespace detail
+} // namespace boost

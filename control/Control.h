@@ -23,7 +23,6 @@ class Control
 protected:
 	typedef marocco::hardware_system_t   hardware_type;
 	typedef marocco::resource_manager_t  resource_manager_t;
-	typedef marocco::comm_t              comm_type;
 
 	typedef pymarocco::PyMarocco::Backend Backend;
 	typedef pymarocco::PyMarocco::HICANNCfg HICANNCfg;
@@ -31,7 +30,6 @@ protected:
 public:
 	Control(hardware_type& hw,
 			resource_manager_t const& rmgr,
-			comm_type const& comm,
 			pymarocco::PyMarocco& pym);
 
 	// configuration interface
@@ -56,7 +54,6 @@ protected:
 	hardware_type& mHW;
 
 	resource_manager_t const& mMgr;
-	comm_type mComm;
 
 	pymarocco::PyMarocco& mPyMarocco;
 

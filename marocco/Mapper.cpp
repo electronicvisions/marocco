@@ -63,7 +63,7 @@ void Mapper::run(ObjectStore const& pynn)
 	auto start = std::chrono::system_clock::now();
 
 	// B U I L D ,   P A R T I T I O N   &   D I S T R I B U T E   G R A P H
-	GraphBuilder gb(mGraph, getComm());
+	GraphBuilder gb(mGraph);
 	gb.build(pynn);
 
 	// write out bio graph in graphviz format
@@ -89,13 +89,13 @@ void Mapper::run(ObjectStore const& pynn)
 
 	// 1.  P L A C E M E N T
 	std::unique_ptr<placement::Placement> placer(
-		new placement::DefaultPlacement(*mPyMarocco, mGraph, mHW, mMgr, getComm()));
+		new placement::DefaultPlacement(*mPyMarocco, mGraph, mHW, mMgr));
 	auto placement = placer->run();
 	mLookupTable = result_cast<placement::Result>(*placement).reverse_mapping;
 
 	// 2.  R O U T I N G
 	std::unique_ptr<routing::Routing> router(
-		new routing::DefaultRouting(*mPyMarocco, mGraph, mHW, mMgr, getComm()));
+		new routing::DefaultRouting(*mPyMarocco, mGraph, mHW, mMgr));
 	auto routing = router->run(*placement);
 	auto synapse_loss = router->getSynapseLoss();
 
@@ -127,7 +127,7 @@ void Mapper::run(ObjectStore const& pynn)
 
 	std::unique_ptr<parameter::HICANNParameter> transformator(
 		new parameter::HICANNParameter(*mPyMarocco, mSources,
-			pynn.getDuration(), mGraph, mHW, mMgr, getComm()));
+			pynn.getDuration(), mGraph, mHW, mMgr));
 	auto parameter = transformator->run(*placement, *routing);
 
 

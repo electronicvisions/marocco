@@ -8,15 +8,8 @@ bool is_source(graph_t::vertex_descriptor const& v, graph_t const& graph) {
 	return pop[v]->parameters().is_source();
 }
 
-// check if vertex is no source and local
 bool is_physical(graph_t::vertex_descriptor const& v, graph_t const& graph) {
-	auto pop = get(population_t(), graph);
-	return !pop[v]->parameters().is_source();
-}
-
-bool is_local_edge(graph_t::edge_descriptor const& e, graph_t const& graph) {
-	return true;
-	//return source(e, graph).owner == target(e, graph).owner;
+	return !is_source(v, graph);
 }
 
 bool is_spikeinput_edge(graph_t::edge_descriptor const& e, graph_t const& graph) {

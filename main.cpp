@@ -4,6 +4,7 @@
 #include <boost/regex.hpp>
 #include <boost/version.hpp>
 #include <boost/mpi/intercommunicator.hpp>
+#include <fstream>
 #include <iostream>
 #include <chrono>
 #include <memory>

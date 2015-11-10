@@ -37,17 +37,13 @@ namespace marocco {
 namespace placement {
 
 HICANNPlacement::HICANNPlacement(
-	pymarocco::Placement const& pl,
-	graph_t const& nn,
-	hardware_system_t const& hw,
-	resource_manager_t& mgr,
-	comm_t const& comm) :
-		mPyPlacement(pl),
-		mGraph(nn),
-		mHW(hw),
-		mMgr(mgr),
-		mComm(comm)
-{}
+    pymarocco::Placement const& pl,
+    graph_t const& nn,
+    hardware_system_t const& hw,
+    resource_manager_t& mgr)
+    : mPyPlacement(pl), mGraph(nn), mHW(hw), mMgr(mgr)
+{
+}
 
 void HICANNPlacement::run(NeuronPlacementResult& res)
 {

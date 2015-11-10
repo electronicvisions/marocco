@@ -2,10 +2,7 @@
 
 #include <iosfwd>
 
-// boost PBGL
-#include <boost/graph/use_mpi.hpp>
-#include <boost/graph/distributed/adjacency_list.hpp>
-#include <boost/graph/distributed/mpi_process_group.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
 // the PyNN stuff
 #ifndef PYPLUSPLUS
@@ -49,7 +46,6 @@ typedef boost::adjacency_list<          // the boost graph
 bool is_source(graph_t::vertex_descriptor const& v, graph_t const& graph);
 bool is_physical(graph_t::vertex_descriptor const& v, graph_t const& graph);
 
-bool is_local_edge(graph_t::edge_descriptor const& e, graph_t const& graph);
 bool is_spikeinput_edge(graph_t::edge_descriptor const& e, graph_t const& graph);
 
 } // namespace marocco

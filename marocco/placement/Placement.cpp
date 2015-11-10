@@ -23,7 +23,7 @@ DefaultPlacement::run()
 	HICANNPlacement hicannpl(
 		mPyMarocco.placement,
 		getGraph(), getHardware(),
-		getManager(), getComm());
+		getManager());
 	hicannpl.run(result->neuron_placement);
 
 	MergerRouting merger_routing(mPyMarocco, getGraph(), getHardware(), getManager());

@@ -61,9 +61,9 @@ public:
 		mGraph.reset(new marocco::graph_t());
 		mNpl.reset(new marocco::placement::NeuronPlacementResult());
 		mSynLoss.reset(new SynapseLoss(*mNpl, *mGraph));
-		mWaferRouting.reset(new WaferRoutingDijkstra(mWaferId, mSynLoss, *_pymarocco,
-		                                             mRoutingGraph, *mGraph, hw, *mMgr,
-		                                             MPI::COMM_WORLD));
+		mWaferRouting.reset(
+		    new WaferRoutingDijkstra(
+		        mWaferId, mSynLoss, *_pymarocco, mRoutingGraph, *mGraph, hw, *mMgr));
 		mWaferGraph = &mWaferRouting->mWaferGraph;
 	}
 

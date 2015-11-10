@@ -29,17 +29,17 @@ DefaultRouting::run(result_type const& placement_result)
 
 	WaferRoutingBackbone global_router(wafer, mSynapseLoss, mPyMarocco,
 		routinggraph, getGraph(), getHardware(),
-		getManager(), getComm());
+		getManager());
 
 	// WaferRoutingDijkstra global_router(wafer, mSynapseLoss, mPyMarocco,
 	// 	routinggraph, getGraph(), getHardware(),
-	// 	getManager(), getComm());
+	// 	getManager());
 
 	result->crossbar_routing = global_router.run(placement);
 
 	HICANNRouting local_router(mSynapseLoss, mPyMarocco,
 		getGraph(), getHardware(), getManager(),
-		getComm(), routinggraph);
+		routinggraph);
 	result->synapse_row_routing = local_router.run(placement, result->crossbar_routing);
 
 

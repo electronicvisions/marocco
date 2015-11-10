@@ -70,7 +70,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 
 	// C O N F I G U R E   H A R D W A R E
 	// backend None is handled gracefully within Control
-	control::Control control{hw, resources, comm, *mi};
+	control::Control control{hw, resources, *mi};
 
 	// calculate duration of hw experiment
 	const double duration_in_ms = store->getDuration();

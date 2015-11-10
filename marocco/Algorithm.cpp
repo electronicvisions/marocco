@@ -5,12 +5,10 @@ namespace marocco {
 Algorithm::Algorithm(
 	graph_t const& graph,
 	hardware_system_t& hw,
-	resource_manager_t& mgr,
-	comm_t comm) :
+	resource_manager_t& mgr) :
 		mGraph(graph),
 		mHW(hw),
-		mMgr(mgr),
-		mComm(comm)
+		mMgr(mgr)
 {}
 
 Algorithm::~Algorithm() {}
@@ -41,17 +39,6 @@ resource_manager_t const&
 Algorithm::getManager() const
 {
 	return mMgr;
-}
-
-comm_t&
-Algorithm::getComm()
-{
-	return mComm;
-}
-comm_t const&
-Algorithm::getComm() const
-{
-	return mComm;
 }
 
 } // namespace marocco
