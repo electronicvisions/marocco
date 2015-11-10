@@ -22,9 +22,9 @@ public:
 			   pymarocco::PyMarocco const& pymarocco,
 			   routing_graph& graph);
 
-	Route::BusSegment
-	getSendingL1(HMF::Coordinate::HICANNGlobal const& h,
-				 unsigned const outbuffer /*0-7*/) const;
+	Route::BusSegment getSendingL1(
+	    HMF::Coordinate::HICANNGlobal const& h,
+	    HMF::Coordinate::OutputBufferOnHICANN const& ob) const;
 
 	size_t numL1Busses() const;
 
