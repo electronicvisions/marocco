@@ -123,7 +123,7 @@ def build(bld):
         **flags)
 
     bld(target          = 'mapper',
-        features        = 'cxx cxxprogram post_task',
+        features        = 'cxx cxxprogram post_task pyembed', # KHS: quickfix, fixing pyembed could be better
         source          = ['main.cpp', 'marocco/Mapper.cpp'],
         install_path    = 'bin',
         use             = [
