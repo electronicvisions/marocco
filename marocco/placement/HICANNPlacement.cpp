@@ -5,7 +5,7 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
-#include "marocco/util.h"
+#include "marocco/util/iterable.h"
 #include "pymarocco/Placement.h"
 
 using namespace HMF::Coordinate;

@@ -3,7 +3,7 @@
 #include "marocco/routing/WaferRoutingPriorityQueue.h"
 
 #include "hal/Coordinate/iter_all.h"
-#include "marocco/util.h"
+#include "marocco/util/iterable.h"
 #include "marocco/routing/HardwareProjection.h"
 
 using namespace HMF::Coordinate;

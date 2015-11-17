@@ -6,9 +6,9 @@
 
 #include "hal/Coordinate/iter_all.h"
 
-#include "marocco/alg.h"
+#include "marocco/util/algorithm.h"
 #include "marocco/placement/InputPlacement.h"
-#include "marocco/util.h"
+#include "marocco/util/iterable.h"
 #include "marocco/Logger.h"
 
 #include "pymarocco/MappingStats.h"
@@ -263,8 +263,8 @@ void InputPlacement::run(
 				}
 #endif
 
-				float const x_mean = alg::arithmetic_mean(_x.begin(), _x.end());
-				float const y_mean = alg::arithmetic_mean(_y.begin(), _y.end());
+				float const x_mean = algorithm::arithmetic_mean(_x.begin(), _x.end());
+				float const y_mean = algorithm::arithmetic_mean(_y.begin(), _y.end());
 
 				auto_inputs[wafer][num_targets].push_back(std::make_pair(
 				    Point{x_mean, y_mean}, bio));

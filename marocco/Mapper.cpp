@@ -2,18 +2,17 @@
 #include <unordered_map>
 #include <chrono>
 
-#include "marocco/Mapper.h"
 #include "marocco/GraphBuilder.h"
-
-// algorighms
+#include "marocco/HardwareUsage.h"
 #include "marocco/Logger.h"
+#include "marocco/Mapper.h"
+#include "marocco/Result.h"
+#include "marocco/parameter/HICANNParameter.h"
+#include "marocco/partition/CakePartitioner.h"
 #include "marocco/placement/Placement.h"
 #include "marocco/routing/Routing.h"
 #include "marocco/routing/SynapseLoss.h"
-#include "marocco/parameter/HICANNParameter.h"
-#include "marocco/partition/CakePartitioner.h"
-#include "marocco/HardwareUsage.h"
-#include "marocco/Result.h"
+#include "marocco/util/iterable.h"
 
 using namespace pymarocco;
 

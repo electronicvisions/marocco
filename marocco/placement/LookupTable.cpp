@@ -3,10 +3,11 @@
 #include <ostream>
 #include <vector>
 
-#include "marocco/placement/Result.h"
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/assignment/Hardware.h"
 #include "marocco/config.h"
+#include "marocco/placement/Result.h"
+#include "marocco/util/iterable.h"
 
 namespace marocco {
 namespace placement {

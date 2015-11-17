@@ -2,7 +2,7 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
-#include "marocco/alg.h"
+#include "marocco/util/algorithm.h"
 #include "marocco/routing/Fieres.h"
 #include "marocco/routing/util.h"
 
@@ -109,9 +109,9 @@ bool Assignment::add(InboundRoute const& route) {
 
 		size_t const gap = (
 			// look below: [it, assign.end())
-			alg::count_while(it, assign.end(), unassigned_p) +
+			algorithm::count_while(it, assign.end(), unassigned_p) +
 			// look above: [assign.begin(), it) <=> (it, assign.rend())
-			alg::count_while(rit, assign.rend(), unassigned_p));
+			algorithm::count_while(rit, assign.rend(), unassigned_p));
 
 		options.emplace_back(primary, side_vertical, gap);
 

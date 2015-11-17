@@ -8,7 +8,7 @@
 #include "marocco/routing/RoutingTargetVisitor.h"
 #include "marocco/routing/WeightMap.h"
 #include "marocco/placement/SpiralHICANNOrdering.h"
-#include "marocco/routing/util.h"
+#include "marocco/util/iterable.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/Logger.h"
 #include "hal/Coordinate/iter_all.h"

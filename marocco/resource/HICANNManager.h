@@ -10,7 +10,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 
 #include "hal/Coordinate/HMFGeometry.h"
-#include "marocco/util.h"
+#include "marocco/util/iterable.h"
 #include "redman/resources/Wafer.h"
 
 namespace redman {

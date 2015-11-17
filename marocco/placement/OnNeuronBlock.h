@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "hal/Coordinate/HMFGeometry.h"
-#include "marocco/util.h"
+#include "marocco/util/iterable.h"
 #include "marocco/placement/NeuronPlacement.h"
 
 namespace marocco {
