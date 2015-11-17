@@ -44,6 +44,7 @@ echo ${PATH}
 
 ./bin/tests/test-marocco --gtest_output=xml:build/test_results/marocco/test-marocco.xml || true
 
+module load mongo
 module load pynn
 module load neurotools
 #nosetests marocco/test/test-pymarocco.py --with-xunit --xunit-file=build/test_results/marocco/test_pymarocco.xml || true
