@@ -22,6 +22,7 @@
 #include "marocco/parameter/SpikeInputVisitor.h"
 #include "marocco/parameter/CMVisitor.h"
 #include "marocco/util.h"
+#include "marocco/util/chunked.h"
 
 #include "marocco/routing/util.h"
 
@@ -279,25 +280,21 @@ void HICANNTransformator::neurons(
 	 */
 	/*
 	NeuronSharedParameterRequirements shared_parameter_visitor;
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
-	{
+	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
 		placement::OnNeuronBlock const& onb = neuron_placement[nb];
 
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
 			assignment::PopulationSlice const& bio = (*it)->population_slice();
 			Population const& pop = *get(*populations, bio.population());
 
-			size_t ii = 0;
 			size_t const hw_neuron_size = (*it)->neuron_size();
-			for (NeuronOnNeuronBlock nrn : onb.neurons(it)) {
-				size_t n = ii / hw_neuron_size;
-				auto const& params = pop.parameters();
-				visitCellParameterVector(
-					params,
-					shared_parameter_visitor,
-					bio.offset() + n,
-					nrn.toNeuronOnHICANN(nb));
-				++ii;
+			auto const& params = pop.parameters();
+			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
+				for (NeuronOnNeuronBlock nrn : neuron) {
+					visitCellParameterVector(
+						params, shared_parameter_visitor, bio.offset() + neuron.index(),
+						nrn.toNeuronOnHICANN(nb));
+				}
 			}
 		}
 	}
@@ -319,23 +316,22 @@ void HICANNTransformator::neurons(
 
 			size_t const hw_neuron_size = (*it)->neuron_size();
 
-			size_t ii = 0;
-			for (NeuronOnNeuronBlock nrn_onb : onb.neurons(it)) {
-				auto const nrn = nrn_onb.toNeuronOnHICANN(nb);
-				size_t const n = ii / hw_neuron_size;
+			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
+				for (NeuronOnNeuronBlock nrn_onb : neuron) {
+					auto const nrn = nrn_onb.toNeuronOnHICANN(nb);
 
-				MAROCCO_INFO("configuring neuron: " << nrn);
+					MAROCCO_INFO("configuring neuron: " << nrn);
 
-				// configure ANALOG neuron parameters
-				transform_analog_neuron(
-					calib, pop, bio.offset() + n,
-					nrn,
-					visitor, chip());
+					// configure ANALOG neuron parameters
+					transform_analog_neuron(
+						calib, pop, bio.offset() + neuron.index(), nrn, visitor, chip());
+				}
 
-				// As hardware neurons will be connected, DIGITAL
-				// neuron parameters are only configured for the first
-				// hardware neuron of each bio neuron.
-				if (ii % hw_neuron_size == 0) {
+				{
+					// As hardware neurons will be connected, DIGITAL
+					// neuron parameters are only configured for the first
+					// hardware neuron of each bio neuron.
+					auto const nrn = neuron.begin()->toNeuronOnHICANN(nb);
 					HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
 
 					if (first == last) {
@@ -362,7 +358,6 @@ void HICANNTransformator::neurons(
 
 					connect_denmems(nrn, hw_neuron_size);
 				}
-				++ii;
 			}
 		}
 	} // all neuron blocks
@@ -399,16 +394,10 @@ void HICANNTransformator::analog_output(
 				throw std::runtime_error("hw neuron size must be >0");
 			}
 
-			size_t ii = 0;
-			for (NeuronOnNeuronBlock nrn : onb.neurons(it)) {
-				size_t n = ii / hw_neuron_size;
-				if (ii % hw_neuron_size == 0) {
-					transform_analog_outputs(
-						calib, pop, bio.offset()+n,
-						nrn.toNeuronOnHICANN(nb),
-						visitor, chip());
-				}
-				++ii;
+			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
+				auto const nrn = neuron.begin()->toNeuronOnHICANN(nb);
+				transform_analog_outputs(
+					calib, pop, bio.offset() + neuron.index(), nrn, visitor, chip());
 			}
 		}
 	}
@@ -630,44 +619,39 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 			assignment::PopulationSlice const& bio = (*it)->population_slice();
 			Population const& pop = *get(*populations, bio.population());
 
-			size_t ii = 0;
 			double cm_bio = 0.;
 			double cm_hw = 0.;
 			size_t const hw_neuron_size = (*it)->neuron_size();
 			std::vector<NeuronOnHICANN> connected_neurons;
 			connected_neurons.reserve(hw_neuron_size);
 
+			auto const& params = pop.parameters();
+
 			// iterate over all hardware neurons of the NeuronPlacement.
-			for (NeuronOnNeuronBlock nrn : onb.neurons(it)) {
-				size_t n = ii / hw_neuron_size;
-				auto const& params = pop.parameters();
-
-				// for the first hw neuron of a bio neuron: get the bio cap
-				if (ii % hw_neuron_size == 0) {
-					cm_bio = visitCellParameterVector(
-						params,
-						cm_visitor,
-						bio.offset() + n
-						);
-				}
-				// sum up the hw cap and collect the connected denmems
-				// This can even handle different capacitor choices on the top and bottom blocks.
-				cm_hw += use_bigcap[nrn.y()] ? NeuronCalibration::big_cap : NeuronCalibration::small_cap;
-				connected_neurons.push_back(nrn.toNeuronOnHICANN(nb));
-
-				// at the last neuron: calculate the scaling factor
-				// store the factor for all connected denmems
-				// and reset the values
-				if (ii % hw_neuron_size == hw_neuron_size-1) {
-					double scale =  mPyMarocco.speedup * cm_hw/cm_bio;
-					for (auto cnrn : connected_neurons)
-						rv[cnrn] = scale;
-					connected_neurons.clear();
-					cm_bio = 0.;
-					cm_hw = 0.;
+			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
+				{
+					// for the first hw neuron of a bio neuron: get the bio cap
+					cm_bio =
+						visitCellParameterVector(params, cm_visitor, bio.offset() + neuron.index());
 				}
 
-				++ii;
+				for (NeuronOnNeuronBlock nrn : neuron) {
+					// sum up the hw cap and collect the connected denmems
+					// This can even handle different capacitor choices on the top and bottom
+					// blocks.
+					cm_hw += use_bigcap[nrn.y()] ? NeuronCalibration::big_cap
+					                             : NeuronCalibration::small_cap;
+					connected_neurons.push_back(nrn.toNeuronOnHICANN(nb));
+				}
+
+				// calculate the scaling factor store the factor for all connected denmems and
+				// reset the values
+				double scale = mPyMarocco.speedup * cm_hw / cm_bio;
+				for (auto cnrn : connected_neurons)
+					rv[cnrn] = scale;
+				connected_neurons.clear();
+				cm_bio = 0.;
+				cm_hw = 0.;
 			}
 		}
 	}

@@ -8,6 +8,7 @@
 #include "marocco/Logger.h"
 #include "marocco/placement/MergerTree.h"
 #include "marocco/util.h"
+#include "marocco/util/chunked.h"
 
 using namespace HMF::Coordinate;
 using marocco::assignment::PopulationSlice;
@@ -125,15 +126,11 @@ void MergerRouting::run(
 			local_output_mapping.insert(outb,
 				assignment::AddressMapping(bio, addresses));
 
-			size_t ii = 0;
-			for (NeuronOnNeuronBlock nrn : onb.neurons(it)) {
-				if (ii % hw_neuron_size == 0) {
-					HMF::HICANN::Neuron& neuron = chip.neurons[nrn.toNeuronOnHICANN(nb)];
-					neuron.address(addresses.at(ii / hw_neuron_size));
-					neuron.activate_firing(true);
-					neuron.enable_spl1_output(true);
-				}
-				++ii;
+			for (auto& nrn : chunked(onb.neurons(it), hw_neuron_size)) {
+				HMF::HICANN::Neuron& neuron = chip.neurons[nrn.begin()->toNeuronOnHICANN(nb)];
+				neuron.address(addresses.at(nrn.index()));
+				neuron.activate_firing(true);
+				neuron.enable_spl1_output(true);
 			}
 		}
 	} // for all mapped NeuronBlocks
