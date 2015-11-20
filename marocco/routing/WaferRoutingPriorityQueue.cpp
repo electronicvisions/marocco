@@ -13,11 +13,9 @@ namespace routing {
 
 WaferRoutingPriorityQueue::WaferRoutingPriorityQueue(
 	graph_t const& graph,
-	pymarocco::PyMarocco const& pymarocco,
-	proj_map_t projmap)
+	pymarocco::PyMarocco const& pymarocco)
 	: mGraph(graph),
 	  mPyMarocco(pymarocco),
-	  mProjectionViews(std::move(projmap)),
 	  mProjections(),
 	  mSources() {}
 
@@ -100,7 +98,7 @@ void WaferRoutingPriorityQueue::insert(
 		for (auto const& edge : make_iterable(out_edges(source.bio().population(), mGraph))) {
 			HardwareProjection hw_proj{source, edge};
 
-			ProjectionView const proj_view = mProjectionViews[edge];
+			ProjectionView const proj_view = mGraph[edge];
 			size_t proj_id = proj_view.projection()->id();
 
 			size_t priority = mPyMarocco.routing_priority.get(proj_id);

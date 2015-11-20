@@ -4,8 +4,7 @@
 namespace marocco {
 
 bool is_source(graph_t::vertex_descriptor const& v, graph_t const& graph) {
-	auto const& pop = get(population_t(), graph);
-	return pop[v]->parameters().is_source();
+	return graph[v]->parameters().is_source();
 }
 
 bool is_physical(graph_t::vertex_descriptor const& v, graph_t const& graph) {

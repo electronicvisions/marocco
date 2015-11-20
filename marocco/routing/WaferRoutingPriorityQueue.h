@@ -14,7 +14,6 @@ class HardwareProjection;
 
 class WaferRoutingPriorityQueue
 {
-	typedef boost::property_map<graph_t, projection_t>::const_type proj_map_t;
 	typedef HMF::Coordinate::HICANNGlobal HICANNGlobal;
 	typedef HMF::Coordinate::OutputBufferOnHICANN OutputBufferOnHICANN;
 	typedef std::pair<HICANNGlobal, OutputBufferOnHICANN> source_t;
@@ -22,8 +21,7 @@ class WaferRoutingPriorityQueue
 public:
 	WaferRoutingPriorityQueue(
 		graph_t const& graph,
-		pymarocco::PyMarocco const& pymarocco,
-		proj_map_t projmap);
+		pymarocco::PyMarocco const& pymarocco);
 
 	void insert(placement::OutputMappingResult const& output_mapping);
 
@@ -49,7 +47,6 @@ private:
 
 	graph_t const& mGraph;
 	pymarocco::PyMarocco const& mPyMarocco;
-	proj_map_t mProjectionViews;
 
 	std::map<source_t, std::vector<HardwareProjection>> mProjections;
 	std::deque<std::pair<size_t, source_t>> mSources;

@@ -14,9 +14,7 @@ struct population_label_writer {
 
 	template <class VertexOrEdge>
 	void operator()(std::ostream& out, const VertexOrEdge& v) const {
-		const boost::property_map<graph_t, population_t>::const_type data(
-		    boost::get(population_t(), g));
-		auto p = boost::get(data, v);
+		auto p = g[v];
 		out << "[label=\"" << p->size() << " " << getCellTypeName(p->type()) << "\"]";
 	}
 
@@ -28,9 +26,7 @@ struct projection_label_writer {
 
 	template <class VertexOrEdge>
 	void operator()(std::ostream& out, const VertexOrEdge& v) const {
-		const boost::property_map<graph_t, projection_t>::const_type data(
-		    boost::get(projection_t(), g));
-		auto p = boost::get(data, v);
+		auto p = g[v];
 
 		out << "[label=\"";
 		p.projection()->printOn(out);
@@ -48,6 +44,7 @@ GraphBuilder::~GraphBuilder() {}
 void GraphBuilder::build(ObjectStore const& os)
 {
 	// insert all populations into map
+	mrg.m_vertices.reserve(os.populations().size());
 	for(auto pop : os.populations())
 	{
 		if (mVertexMapping.find(pop.get())==mVertexMapping.end()) {

@@ -21,13 +21,12 @@ namespace marocco {
 template<typename Graph>
 size_t num_neurons(Graph const& g)
 {
-	auto const populations = get(population_t(), g);
 	size_t cnt = 0;
-	for(auto const& vd : make_iterable(vertices(g))) {
-			auto pop = get(populations, vd);
-			if (!pop->parameters().is_source()) {
-				cnt += pop->size();
-			}
+	for (auto const& vd : make_iterable(vertices(g))) {
+		auto pop = g[vd];
+		if (!pop->parameters().is_source()) {
+			cnt += pop->size();
+		}
 	}
 	return cnt;
 }

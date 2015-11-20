@@ -74,7 +74,6 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 	}
 
 	// now collect all populations and sort dem in a descending order
-	auto const& popmap = boost::get(population_t(), mGraph);
 	for (auto const& v : make_iterable(boost::vertices(mGraph)))
 	{
 		if (is_source(v, mGraph)) {
@@ -82,7 +81,7 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 			continue;
 		}
 
-		Population const& pop = *popmap[v];
+		Population const& pop = *mGraph[v];
 
 		// if a manual placement exists, use it otherwise add population to
 		// `pops` list for auto placement.
@@ -142,9 +141,8 @@ void HICANNPlacement::place2(
 		}
 	}
 
-	auto const& popmap = boost::get(population_t(), mGraph);
 	pops.sort([&](NeuronPlacement const& a, NeuronPlacement const& b) {
-		return popmap[a.population()]->id() < popmap[b.population()]->id();
+		return mGraph[a.population()]->id() < mGraph[b.population()]->id();
 	});
 
 	place2_(terminals, pops, res);

@@ -15,7 +15,6 @@ namespace placement {
 LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, graph_t const &graph)
 {
 	using namespace HMF::Coordinate;
-	auto const& popmap = boost::get(population_t(), graph);
 
 	// here the mapping between the L1 adresses and the
 	// biological Neurons is made
@@ -32,7 +31,7 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 				// get one population
 				auto const& bio = am.bio();
 
-				Population const& pop = *popmap[bio.population()];
+				Population const& pop = *graph[bio.population()];
 
 				size_t neuron_index = bio.offset();
 				size_t offset = 0;
@@ -74,7 +73,7 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 			continue;
 		}
 
-		auto const& population = *popmap[vertex];
+		auto const& population = *graph[vertex];
 		auto const& mapping = placement.get(vertex);
 
 		std::vector<assignment::Hardware> const& am = mapping.assignment();

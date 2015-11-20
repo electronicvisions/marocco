@@ -512,8 +512,6 @@ void SynapseRouting::run(placement::Result const& placement,
 {
 	placement::NeuronPlacementResult const& nrnpl = placement.neuron_placement;
 	auto const& revmap = nrnpl.placement();
-	auto const projmap = boost::get(projection_t(), mGraph);
-	auto const popmap = boost::get(population_t(), mGraph);
 	auto& chip = mHW[hicann()];
 
 	// firstly set all SynapseDecoders to 0bXX0001 addresses
@@ -732,8 +730,9 @@ void SynapseRouting::run(placement::Result const& placement,
 				// population placement.
 
 
-				boost::shared_ptr<ProjectionView> const proj_view = boost::make_shared<ProjectionView>(projmap[pynn_proj]);
-				Population const& target_pop = *popmap[target];
+				boost::shared_ptr<ProjectionView> const proj_view =
+					boost::make_shared<ProjectionView>(mGraph[pynn_proj]);
+				Population const& target_pop = *mGraph[target];
 
 
 				// calculate offsets for pre population in this view

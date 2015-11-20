@@ -15,33 +15,12 @@ struct ProjectionView {};
 
 namespace marocco {
 
-// http://www.boost.org/doc/libs/1_49_0/libs/graph/doc/using_adjacency_list.html#sec:custom-edge-properties
-
-struct population_t
-{
-	typedef boost::vertex_property_tag kind;
-};
-
-struct projection_t
-{
-	typedef boost::edge_property_tag kind;
-};
-
-struct vertex_size_t
-{
-	typedef boost::vertex_property_tag kind;
-};
-
-
-typedef boost::property<population_t, PopulationPtr> vertex_property_t;
-typedef boost::property<projection_t, ProjectionView> edge_property_t;
-
-typedef boost::adjacency_list<          // the boost graph
-	boost::vecS,                        // out edges are std::vectors
+typedef boost::adjacency_list< // the boost graph
+	boost::vecS,			   // out edges are std::vectors
 	boost::vecS,
-	boost::bidirectionalS,              // graph is directed
-	vertex_property_t,                  // vertices are populations
-	edge_property_t> graph_t;           // edges are projections
+	boost::bidirectionalS,   // graph is directed
+	PopulationPtr,			 // vertices are populations
+	ProjectionView> graph_t; // edges are projections
 
 bool is_source(graph_t::vertex_descriptor const& v, graph_t const& graph);
 bool is_physical(graph_t::vertex_descriptor const& v, graph_t const& graph);

@@ -101,8 +101,6 @@ private:
 
 	graph_t const& mGraph;
 
-	boost::property_map<graph_t, projection_t>::const_type const mProjections;
-
 	placement::NeuronPlacementResult const& mPlacement;
 	tbb::mutex mMutex;
 };

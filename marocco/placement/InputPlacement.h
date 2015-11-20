@@ -80,9 +80,6 @@ private:
 	hardware_system_t&       mHW;
 	resource_manager_t&      mMgr;
 
-	typedef boost::property_map<marocco::graph_t, marocco::population_t>::const_type distributed_population_map;
-	distributed_population_map mPopMap;
-
 	pymarocco::PyMarocco& mPyMarocco;
 
 	////////////////////////////

@@ -78,10 +78,9 @@ WaferRouting::run(placement::Result const& placement)
 	placement::NeuronPlacementResult const& neuron_mapping = placement.neuron_placement;
 	mOutbMapping = &placement.output_mapping;
 
-	auto const projmap = boost::get(projection_t(), getGraph());
 	auto const& revmap = placement.placement();
 
-	WaferRoutingPriorityQueue queue(getGraph(), mPyMarocco, projmap);
+	WaferRoutingPriorityQueue queue(getGraph(), mPyMarocco);
 	queue.insert(*mOutbMapping, hicanns);
 
 	CrossbarRoutingResult res;

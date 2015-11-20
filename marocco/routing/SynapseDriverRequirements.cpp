@@ -220,7 +220,6 @@ SynapseDriverRequirements::calc(
 	SynapseHistogram histogram;
 
 	auto const& revmap = mNeuronPlacement.placement();
-	auto const projmap = boost::get(projection_t(), graph);
 
 	for (auto const& proj : projections)
 	{
@@ -239,7 +238,7 @@ SynapseDriverRequirements::calc(
 		// now there is everything from the source, now need more info about target
 		// population placement.
 
-		ProjectionView const proj_view = boost::get(projmap, pynn_proj);
+		ProjectionView const proj_view = graph[pynn_proj];
 
 		size_t const src_neuron_offset_in_proj_view =
 			getPopulationViewOffset(src_bio_offset, proj_view.pre().mask());

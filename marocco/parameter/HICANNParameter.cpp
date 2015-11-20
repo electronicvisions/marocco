@@ -30,14 +30,6 @@
 using namespace HMF::Coordinate;
 using namespace HMF;
 
-namespace {
-
-// HOLY SHIT!1!! but (distributed_)property_maps are not reentrant.
-typedef boost::property_map<marocco::graph_t, marocco::population_t>::const_type distributed_population_map;
-std::unique_ptr<distributed_population_map const> populations;
-
-}
-
 namespace marocco {
 namespace parameter {
 
@@ -48,9 +40,6 @@ HICANNParameter::run(
 {
 	auto const& placement = result_cast<placement::Result>(_placement);
 	auto const& routing   = result_cast<routing::Result>(_routing);
-
-	populations.reset(new distributed_population_map(get(population_t(), getGraph())));
-
 
 	std::unordered_map<HICANNGlobal, std::unordered_map<NeuronOnHICANN,
 		boost::shared_ptr<StepCurrentSource const>>> current_source_map;
@@ -285,7 +274,7 @@ void HICANNTransformator::neurons(
 
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
 			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *get(*populations, bio.population());
+			Population const& pop = *(getGraph()[bio.population()]);
 
 			size_t const hw_neuron_size = (*it)->neuron_size();
 			auto const& params = pop.parameters();
@@ -309,7 +298,7 @@ void HICANNTransformator::neurons(
 
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
 			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *get(*populations, bio.population());
+			Population const& pop = *(getGraph()[bio.population()]);
 
 			It first, last;
 			std::tie(first, last) = address_map.at(bio);
@@ -385,7 +374,7 @@ void HICANNTransformator::analog_output(
 
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
 			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *get(*populations, bio.population());
+			Population const& pop = *(getGraph()[bio.population()]);
 
 			size_t const hw_neuron_size = (*it)->neuron_size();
 
@@ -480,7 +469,7 @@ void HICANNTransformator::spike_input(
 				throw std::runtime_error(
 				    "real neurons (i.e. it's not a source!) assigned to input OutputBuffers");
 
-			Population const& pop = *get(*populations, bio.population());
+			Population const& pop = *(getGraph()[bio.population()]);
 
 			// for all inputs (== input population size)
 			for (size_t n=0; n<bio.size(); ++n)
@@ -617,7 +606,7 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
 			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *get(*populations, bio.population());
+			Population const& pop = *(getGraph()[bio.population()]);
 
 			double cm_bio = 0.;
 			double cm_hw = 0.;

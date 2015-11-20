@@ -120,7 +120,6 @@ InputPlacement::InputPlacement(
 		mGraph(graph),
 		mHW(hw),
 		mMgr(mgr),
-		mPopMap(get(population_t(), mGraph)),
 		mPyMarocco(pymarocco)
 {
 	// when considering bandwidth limitations, check utilization value
@@ -193,7 +192,7 @@ void InputPlacement::run(
 			continue;
 		}
 
-		Population const& pop = *mPopMap[vertex];
+		Population const& pop = *mGraph[vertex];
 		PopulationSlice bio = PopulationSlice{vertex, pop};
 
 		// if a manual placement exists, assign it
@@ -512,7 +511,7 @@ InputPlacement::neuronsFittingIntoAvailableRate(
 		rate_type available_rate
 		) const
 {
-	Population const& pop = *mPopMap[bio.population()];
+	Population const& pop = *mGraph[bio.population()];
 
 	auto const& params = pop.parameters();
 

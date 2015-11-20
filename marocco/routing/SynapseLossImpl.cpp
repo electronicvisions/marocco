@@ -11,7 +11,6 @@ namespace routing {
 SynapseLossImpl::SynapseLossImpl(placement::NeuronPlacementResult const& pl,
 								 graph_t const& graph) :
 	mGraph(graph),
-	mProjections(boost::get(projection_t(), graph)),
 	mPlacement(pl)
 {}
 
@@ -27,7 +26,7 @@ void SynapseLossImpl::addLoss(Edge const& e,
 
 #ifndef MAROCCO_NDEBUG
 	// do we really want to check whether (i1,i2) references a finite weight > 0.
-	ProjectionView const view = boost::get(mProjections, e);
+	ProjectionView const view = mGraph[e];
 	auto const w = view.getWeights()(i1, i2);
 	if (!SynapseLossProxy::isRealWeight(w)) {
 		throw std::runtime_error("add loss for non-existant weight");
@@ -59,7 +58,7 @@ void SynapseLossImpl::addLoss(Edge const& e,
 	auto& weights = getWeights(e);
 #endif // MAROCCO_NO_SYNAPSE_TRACKING
 
-	ProjectionView const view = boost::get(mProjections, e);
+	ProjectionView const view = mGraph[e];
 
 	// calculate offsets for pre and post populations in this view
 	size_t const src_neuron_offset_in_proj_view =
@@ -136,7 +135,7 @@ void SynapseLossImpl::updateWeight(Edge const& e,
 
 #ifndef MAROCCO_NDEBUG
 	// do we really want to check whether (i1,i2) references a finite weight > 0.
-	ProjectionView const view = boost::get(mProjections, e);
+	ProjectionView const view = mGraph[e];
 	auto const w = view.getWeights()(i1, i2);
 	if (!SynapseLossProxy::isRealWeight(w)) {
 		throw std::runtime_error("add loss for non-existant weight");
@@ -178,7 +177,7 @@ SynapseLossImpl& SynapseLossImpl::operator+=(SynapseLossImpl const& rhs)
 		auto it = mWeights.find(entry.first);
 		if (it != mWeights.end()) {
 			// we need to merge
-			ProjectionView const view = boost::get(mProjections, entry.first);
+			ProjectionView const view = mGraph[entry.first];
 
 			auto const& orig = view.getWeights();
 			auto const& src  = entry.second;
@@ -246,7 +245,7 @@ size_t SynapseLossImpl::getTotalSynapses() const
 	std::tie(it, eit) = boost::edges(mGraph);
 	for (; it!=eit; ++it)
 	{
-		ProjectionView const proj = get(mProjections, *it);
+		ProjectionView const proj = mGraph[*it];
 
 		auto const& weights = proj.getWeights();
 		for (size_t i1=0; i1<weights.size1(); ++i1)
@@ -280,7 +279,7 @@ void SynapseLossImpl::fill(pymarocco::MappingStats& stats) const
 	std::tie(it, eit) = boost::edges(mGraph);
 	for (; it!=eit; ++it)
 	{
-		ProjectionView const proj_view = get(mProjections, *it);
+		ProjectionView const proj_view = mGraph[*it];
 		Projection const& proj = *proj_view.projection();
 
 		auto& weights = stats.getWeights(proj.id());
@@ -341,7 +340,7 @@ SynapseLossImpl::Matrix& SynapseLossImpl::getWeights(Edge const& e)
 {
 	auto it = mWeights.find(e);
 	if (it==mWeights.end()) {
-		ProjectionView const view = boost::get(mProjections, e);
+		ProjectionView const view = mGraph[e];
 		mMutex.lock();
 		auto res = mWeights.insert(std::make_pair(e, Matrix(view.getWeights())));
 		mMutex.unlock();
