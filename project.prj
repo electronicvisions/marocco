@@ -30,6 +30,7 @@ export CXX_PYPP=g++
 export CXX=g++
 
 module load mongo
+module load yaml-cpp/0.5.2
 
 ./waf configure --no-ester
 ./waf install --test-execnone --target=pyhmf,pyroqt,test-marocco,pymarocco
