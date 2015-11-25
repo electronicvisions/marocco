@@ -39,11 +39,8 @@ module load yaml-cpp/0.5.2
 export LD_PRELOAD=/usr/lib/openmpi/lib/libmpi.so
 
 mkdir build/test_results/marocco -p
-export "LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib" "PYTHONPATH=$PYTHONPATH:$PWD/lib"
-export PATH=$PATH:$PWD/bin
-echo ${PATH}
 
-module load mongo
+module load localdir
 
 ./bin/tests/test-marocco --gtest_output=xml:build/test_results/marocco/test-marocco.xml || true
 
