@@ -58,7 +58,7 @@ sw = SoftwareJob(
 if (PROJECT_NAME == 'marocco') {
     doc = DocumentationJob(
         htmldir     : "build/marocco/doc/html",
-        docshell    : "module load mongo\n./waf configure --disable-doxygen pdf\n./waf doc"
+        docshell    : "module load mongo\nmodule load yaml-cpp/0.5.2\n./waf configure --disable-doxygen pdf\n./waf doc"
     )
 
     cov = CoverageJob(
