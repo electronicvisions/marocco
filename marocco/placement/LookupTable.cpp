@@ -94,8 +94,8 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 			size_t bio_neurons_in_terminal = denmem_count/hw_neuron_size;
 
 			auto offset = hardware->offset(); // denmem offset of logical neuron
-			auto const neurons_x_per_neuronblock = HMF::Coordinate::NeuronOnNeuronBlock::x_type::size;
-			auto const neurons_y_per_neuronblock = HMF::Coordinate::NeuronOnNeuronBlock::y_type::size;
+			auto const neurons_x_per_neuronblock = NeuronOnNeuronBlock::x_type::size;
+			auto const neurons_y_per_neuronblock = NeuronOnNeuronBlock::y_type::size;
 
 			// iterate over all bio neurons in this terminal
 			for (size_t i = 0; i < bio_neurons_in_terminal; ++i) {
@@ -103,12 +103,12 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 
 				// iterate over the belonging denmem circuits
 				for (size_t d = 0; d < hw_neuron_size; ++d) {
-					geometry::X x{block.value() * neurons_x_per_neuronblock + offset.x() +
-					              i * hw_neuron_size / neurons_y_per_neuronblock +
-					              d / neurons_y_per_neuronblock};
-					geometry::Y y{neurons_y_per_neuronblock % 2};
-					HMF::Coordinate::NeuronOnHICANN point{x, y};
-					HMF::Coordinate::NeuronGlobal ng {point, terminal_proxy.toHICANNGlobal()};
+					X x{block.value() * neurons_x_per_neuronblock + offset.x() +
+					    i * hw_neuron_size / neurons_y_per_neuronblock +
+					    d / neurons_y_per_neuronblock};
+					Y y{neurons_y_per_neuronblock % 2};
+					NeuronOnHICANN point{x, y};
+					NeuronGlobal ng{point, terminal_proxy.toHICANNGlobal()};
 					// now save bio_id to NeuronGlobal mapping
 					mBio2DenmemMap[bio].push_back(ng);
 				}
