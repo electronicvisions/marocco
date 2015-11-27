@@ -743,13 +743,10 @@ void SynapseRouting::run(placement::Result const& placement,
 				SynapseLossProxy syn_loss_proxy =
 					mSynapseLoss->getProxy(pynn_proj, src_hicann, hicann());
 
-				// STHALPEITSCHE, NO REFERENCE!1!!
-				assignment::Mapping const target_hw_assignments = revmap.get(target);
-
-				std::vector<assignment::Hardware> const& hwassigns = target_hw_assignments.assignment();
+				std::vector<assignment::NeuronBlockSlice> const& hwassigns = revmap.at(target);
 				for (auto const& hwassign: hwassigns)
 				{
-					auto const& terminal = hwassign.get();
+					auto const& terminal = hwassign.coordinate();
 					if (terminal.toHICANNGlobal() != hicann()) {
 						// this terminal doesn't correspond to the current local
 						// hicann. so there is nothing to do.
@@ -988,11 +985,9 @@ void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
 		assignment::AddressMapping const& am = proj.source();
 		assignment::PopulationSlice const& src_bio_assign = am.bio();
 
-		assignment::Mapping const target_hw_assignments = revmap.get(target);
-		std::vector<assignment::Hardware> const& hwassigns = target_hw_assignments.assignment();
-		for (auto const& hwassign: hwassigns)
-		{
-			auto const& terminal = hwassign.get();
+		std::vector<assignment::NeuronBlockSlice> const& hwassigns = revmap.at(target);
+		for (auto const& hwassign : hwassigns) {
+			auto const& terminal = hwassign.coordinate();
 			if (terminal.toHICANNGlobal() != hicann()) {
 				// this terminal doesn't correspond to the current local
 				// hicann. so there is nothing to do.

@@ -59,13 +59,10 @@ WaferRouting::get_targets(
 			throw std::runtime_error("target population is a spike source");
 
 		// further make sure it's placed somewhere
-		if (!revmap.contains(target_pop))
+		if (revmap.find(target_pop) == revmap.end())
 			throw std::runtime_error("target population is not placed");
 
-		// note, don't ever put a reference on the type, because
-		// DistributedMap::get returns a copy, STAHLPEITSCHE!
-		std::vector<assignment::Hardware> const hw_targets =
-			revmap.get(target_pop).assignment();
+		std::vector<assignment::NeuronBlockSlice> const& hw_targets = revmap.at(target_pop);
 
 		// make sure we have some real target placed to some neuron
 		if (hw_targets.empty())
@@ -76,10 +73,9 @@ WaferRouting::get_targets(
 		}
 
 		std::transform(
-			hw_targets.begin(), hw_targets.end(),
-			std::inserter(targets, targets.begin()),
-			[](assignment::Hardware const & hwa) {
-				return hwa.get().toHICANNGlobal();
+			hw_targets.begin(), hw_targets.end(), std::inserter(targets, targets.begin()),
+			[](assignment::NeuronBlockSlice const& hwa) {
+				return hwa.coordinate().toHICANNGlobal();
 			});
 	}
 
@@ -407,23 +403,18 @@ void WaferRouting::handleSynapseLoss(
 		{
 			graph_t::vertex_descriptor target_pop = boost::target(edge, getGraph());
 
-			// note, don't ever put a reference on the type, because
-			// DistributedMap::get returns a copy, STAHLPEITSCHE!
-			std::vector<assignment::Hardware> const hw_targets =
-				revmap.get(target_pop).assignment();
+			std::vector<assignment::NeuronBlockSlice> const& hw_targets = revmap.at(target_pop);
 
-			for (auto const& target : hw_targets)
-			{
-				auto it = unreachable.find(target.get().toHICANNGlobal());
+			for (auto const& target : hw_targets) {
+				auto neuron_block = target.coordinate();
+				auto hicann = neuron_block.toHICANNGlobal();
+				auto it = unreachable.find(hicann);
 				if (it != unreachable.end()) {
 					placement::OnNeuronBlock const& onb =
-					    neuron_mapping.at(target.get().toHICANNGlobal())
-					        .at(target.get().toNeuronBlockOnHICANN());
+						neuron_mapping.at(hicann).at(neuron_block);
 					auto bio = onb[target.offset()]->population_slice();
 
-					mSynapseLoss->addLoss(edge, source_hicann,
-					                      target.get().toHICANNGlobal(), source.bio(),
-					                      bio);
+					mSynapseLoss->addLoss(edge, source_hicann, hicann, source.bio(), bio);
 				}
 			} // all hw targets
 		} // all out_edges

@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "hal/Coordinate/iter_all.h"
-#include "marocco/assignment/Hardware.h"
+#include "marocco/assignment/NeuronBlockSlice.h"
 #include "marocco/config.h"
 #include "marocco/placement/Result.h"
 #include "marocco/util/iterable.h"
@@ -24,12 +24,11 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 		for (auto const& outb : iter_all<OutputBufferOnHICANN>())
 		{
 			auto const& mappings = om.at(h).at(outb);
-			for (assignment::AddressMapping const& am : mappings)
-			{
+			for (assignment::AddressMapping const& mapping : mappings) {
 				// get a vector of L1Adresses
-				auto const& addresses = am.addresses();
+				auto const& addresses = mapping.addresses();
 				// get one population
-				auto const& bio = am.bio();
+				auto const& bio = mapping.bio();
 
 				Population const& pop = *graph[bio.population()];
 
@@ -74,26 +73,23 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 		}
 
 		auto const& population = *graph[vertex];
-		auto const& mapping = placement.get(vertex);
-
-		std::vector<assignment::Hardware> const& am = mapping.assignment();
+		auto const& mapping = placement.at(vertex);
 		// set index of first bio neuron in a population to zero
 		size_t bio_neuron_index = 0;
 
 		// each population has a vector with assigned denmem circuits
-		// wrapped in marocco/assignment/Hardware.h
-		for (std::vector<assignment::Hardware>::const_iterator hardware = am.begin(); hardware != am.end(); ++hardware) {
-			auto denmem_count = hardware->size();
-			auto const& terminal_proxy = hardware->get();
+		for (assignment::NeuronBlockSlice const& nb_slice : mapping) {
+			auto denmem_count = nb_slice.size();
+			NeuronBlockGlobal neuron_block = nb_slice.coordinate();
 			// the 256x2 array of denmem circuits on a HICANN is distributed into
 			// 8 blocks of size 32x2
-			auto block = terminal_proxy.toNeuronBlockOnHICANN();
+			auto block = neuron_block.toNeuronBlockOnHICANN();
 			// this vector points to the beginning of assigned denmem circuits
 			// in this terminal
-			auto hw_neuron_size = hardware->hw_neuron_size(); // size (# of denmems) of logical neuron
+			auto hw_neuron_size = nb_slice.neuron_size(); // size (# of denmems) of logical neuron
 			size_t bio_neurons_in_terminal = denmem_count/hw_neuron_size;
 
-			auto offset = hardware->offset(); // denmem offset of logical neuron
+			auto offset = nb_slice.offset(); // denmem offset of logical neuron
 			auto const neurons_x_per_neuronblock = NeuronOnNeuronBlock::x_type::size;
 			auto const neurons_y_per_neuronblock = NeuronOnNeuronBlock::y_type::size;
 
@@ -108,7 +104,7 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 					    d / neurons_y_per_neuronblock};
 					Y y{neurons_y_per_neuronblock % 2};
 					NeuronOnHICANN point{x, y};
-					NeuronGlobal ng{point, terminal_proxy.toHICANNGlobal()};
+					NeuronGlobal ng{point, neuron_block.toHICANNGlobal()};
 					// now save bio_id to NeuronGlobal mapping
 					mBio2DenmemMap[bio].push_back(ng);
 				}

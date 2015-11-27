@@ -51,11 +51,10 @@ HICANNParameter::run(
 		Vertex const v = entry.first;
 		size_t const nrn = entry.second.first;
 
-		auto const mapping = pm.get(v);
+		auto const mapping = pm.at(v);
 
-		for (auto const& assign : mapping.assignment())
-		{
-			auto const& terminal = assign.get();
+		for (auto const& assign : mapping) {
+			auto const& terminal = assign.coordinate();
 			auto const entry_ptr =
 			    np.at(terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()]
 			                                    [assign.offset()];
@@ -542,7 +541,7 @@ void HICANNTransformator::synapses(
 				}
 			} // all synapses of a row
 
-			// compute max weight and find best gmax configuration 
+			// compute max weight and find best gmax configuration
 			double max_weight =  * (std::max_element(scaled_weights.cbegin(), scaled_weights.cend()));
 
 			// get copy and not const ref, because findBestGmaxConfig is not const.

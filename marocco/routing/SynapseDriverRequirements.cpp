@@ -243,15 +243,12 @@ SynapseDriverRequirements::calc(
 		size_t const src_neuron_offset_in_proj_view =
 			getPopulationViewOffset(src_bio_offset, proj_view.pre().mask());
 
-		// STHALPEITSCHE, NO REFERENCE!1!!
-		assignment::Mapping const target_hw_assignments = revmap.get(target);
-
 		// FIXME: some of the following seems to have been copied
 		// verbatim from SynapseRouting.cpp
-		std::vector<assignment::Hardware> const& hwassigns = target_hw_assignments.assignment();
+		std::vector<assignment::NeuronBlockSlice> const& hwassigns = revmap.at(target);
 		for (auto const& hwassign: hwassigns)
 		{
-			auto const& terminal = hwassign.get();
+			auto const& terminal = hwassign.coordinate();
 			if (terminal.toHICANNGlobal() == hicann())
 			{
 				placement::OnNeuronBlock const& onb = mNeuronPlacement.at(

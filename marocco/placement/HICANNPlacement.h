@@ -76,7 +76,7 @@ private:
 		HMF::Coordinate::HICANNGlobal const& hicann,
 		HMF::Coordinate::NeuronBlockOnHICANN const& nb,
 		NeuronPlacement const& assign,
-		assignment::Hardware::offset_type const& offset,
+		assignment::NeuronBlockSlice::offset_type const& offset,
 		NeuronBlockMapping& hw,
 		PlacementMap& bio);
 

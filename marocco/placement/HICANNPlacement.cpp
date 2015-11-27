@@ -242,7 +242,7 @@ void HICANNPlacement::insert(
 	HICANNGlobal const& hicann,
 	NeuronBlockOnHICANN const& nb,
 	NeuronPlacement const& assign,
-	assignment::Hardware::offset_type const& offset,
+	assignment::NeuronBlockSlice::offset_type const& offset,
 	NeuronBlockMapping& hw,
 	PlacementMap& revmap)
 {
@@ -255,15 +255,9 @@ void HICANNPlacement::insert(
 	//size_t const offset = hw.insert(nb, assign);
 
 	// Bio -> HW mapping
-	assignment::Mapping mapping;
-	try {
-		// try to catch copy from property map
-		mapping = revmap.get(assign.population());
-	} catch (std::out_of_range const&) {}
-
-	mapping.assignment().push_back(assignment::Hardware(
-	    NeuronBlockGlobal(nb, hicann), offset, size, assign.neuron_size()));
-	revmap.put(assign.population(), mapping);
+	revmap[assign.population()].push_back(
+		assignment::NeuronBlockSlice(
+			NeuronBlockGlobal(nb, hicann), offset, size, assign.neuron_size()));
 }
 
 size_t HICANNPlacement::available(

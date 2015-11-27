@@ -236,10 +236,9 @@ void InputPlacement::run(
 					throw std::runtime_error("spike source connected to other spike source");
 				}
 
-				auto locations = plmap.get(target);
-				for (auto const& loc : locations.assignment())
-				{
-					auto const& terminal = loc.get();
+				auto locations = plmap.at(target);
+				for (auto const& loc : locations) {
+					auto const& terminal = loc.coordinate();
 					auto const& hicann = terminal.toHICANNGlobal();
 
 					x[hicann.toWafer()].push_back(hicann.x());
