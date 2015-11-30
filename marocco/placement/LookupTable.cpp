@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "hal/Coordinate/iter_all.h"
+#include "marocco/Logger.h"
 #include "marocco/assignment/NeuronBlockSlice.h"
 #include "marocco/config.h"
 #include "marocco/placement/Result.h"

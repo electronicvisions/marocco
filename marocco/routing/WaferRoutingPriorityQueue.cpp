@@ -1,10 +1,11 @@
-#include <algorithm>
-
 #include "marocco/routing/WaferRoutingPriorityQueue.h"
 
+#include <algorithm>
+
 #include "hal/Coordinate/iter_all.h"
-#include "marocco/util/iterable.h"
+#include "marocco/Logger.h"
 #include "marocco/routing/HardwareProjection.h"
+#include "marocco/util/iterable.h"
 
 using namespace HMF::Coordinate;
 
@@ -91,7 +92,7 @@ void WaferRoutingPriorityQueue::insert(
 	{
 		// skip if the source population has no outgoing connections
 		if (out_degree(source.bio().population(), mGraph) == 0) {
-			info(this) << "terminal population without outgoing connections";
+			MAROCCO_INFO("terminal population without outgoing connections");
 			continue;
 		}
 
