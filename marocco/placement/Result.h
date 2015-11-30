@@ -2,7 +2,7 @@
 
 #include "marocco/config.h"
 #include "marocco/Result.h"
-#include "marocco/PartialResult.h"
+#include "marocco/AssociativeResult.h"
 #include "marocco/placement/NeuronBlockMapping.h"
 #include "marocco/placement/OutputBufferMapping.h"
 #include "marocco/placement/PlacementMap.h"
@@ -13,19 +13,10 @@ namespace placement {
 
 class LookupTable;
 
-/** defines the hardware system type
- * and the result type for the neuron placement
- */
-struct NeuronPlacementTypes
-{
-	typedef hardware_system_t hardware_type;
-	typedef NeuronBlockMapping result_type;
-};
-
 /** class holding all neuron placements
  */
-class NeuronPlacementResult :
-	public PartialResult<NeuronPlacementTypes, HMF::Coordinate::HICANNGlobal, 0>
+class NeuronPlacementResult
+	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, NeuronBlockMapping>
 {
 public:
 	PlacementMap const& placement() const { return mPlacement; }
@@ -44,8 +35,8 @@ struct OutputMappingTypes
 	typedef OutputBufferMapping result_type;
 };
 
-class OutputMappingResult :
-	public PartialResult<OutputMappingTypes, HMF::Coordinate::HICANNGlobal, 1>
+class OutputMappingResult
+	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, OutputBufferMapping>
 {};
 
 typedef OutputMappingResult output_mapping_t;

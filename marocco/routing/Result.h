@@ -8,7 +8,7 @@
 
 #include "marocco/config.h"
 #include "marocco/Result.h"
-#include "marocco/PartialResult.h"
+#include "marocco/AssociativeResult.h"
 #include "marocco/routing/LocalRoute.h"
 #include "marocco/routing/SynapseRowSource.h"
 #include "marocco/routing/DriverAssignment.h"
@@ -22,15 +22,8 @@ namespace routing {
 // merger tree needs to be traversable from post to pre to e.g. look up analog
 // parameters for synapse driver etc.
 
-
-struct CrossbarRoutingTypes
-{
-	typedef hardware_system_t hardware_type;
-	typedef std::vector<LocalRoute> result_type;
-};
-
-class CrossbarRoutingResult :
-	public PartialResult<CrossbarRoutingTypes, HMF::Coordinate::HICANNGlobal, 0>
+class CrossbarRoutingResult
+	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, std::vector<LocalRoute> >
 {};
 
 typedef CrossbarRoutingResult route_mapping_t;
@@ -51,20 +44,12 @@ struct DriverResultAndSynapseTargetMapping
 	void serialize(Archiver& ar, unsigned int const /*version*/);
 };
 
-struct SynapseRoutingTypes
-{
-	typedef hardware_system_t hardware_type;
-
-	// this type maps a synapse driver to a single route and some addresses
-	typedef DriverResultAndSynapseTargetMapping result_type;
-};
-
 /// class storing the synapse routing results for all HICANNs
 class SynapseRoutingResult
-	: public PartialResult<SynapseRoutingTypes, HMF::Coordinate::HICANNGlobal, 1>
+	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, DriverResultAndSynapseTargetMapping>
 {
 public:
-	std::ostream& operator<< (std::ostream& o) const;
+	std::ostream& operator<<(std::ostream& o) const;
 };
 
 typedef SynapseRoutingResult synapse_driver_mapping_t;
