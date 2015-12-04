@@ -255,7 +255,8 @@ void HICANNTransformator::neurons(
 			auto const& addr = am.addresses();
 			auto const& bio = am.bio();
 			auto res = address_map.emplace(bio,
-				std::make_pair(addr.cbegin(), addr.cend()));
+				std::make_pair(addr.cbegin(), addr.cend())); // FIXME: unused
+			static_cast<void>(res);
 		}
 	}
 
@@ -490,7 +491,6 @@ void HICANNTransformator::shared_parameters(
 	shared_calib_t const& calib)
 {
 	using namespace HMF;
-	typedef HICANN::shared_parameter sp;
 
 	for (size_t ii=0; ii<HMF::Coordinate::FGBlockOnHICANN::enum_type::size; ++ii)
 	{

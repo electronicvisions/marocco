@@ -78,6 +78,7 @@ def build(bld):
                 '-g', '-O0', '-std=c++0x',
                 '-pedantic', '-Wall', '-Wextra',
                 '-Wno-c++0x-compat',
+                '-Wno-literal-suffix', # squelch warnings from openMPI's mpi.h
                 '-DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE',
                 '-DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING',
             ],

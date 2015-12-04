@@ -43,12 +43,12 @@ private:
 	template<typename Archiver>
 	void serialize(Archiver& ar, unsigned int const /*version*/);
 
-	/// source neuron in projection view;
-    size_t mSrc;
-	/// target neuron in projection view;
-    size_t mTgt;
 	/// projection view
-	projection_view_type  mProjView;
+	projection_view_type mProjView;
+	/// source neuron in projection view;
+	size_t mSrc;
+	/// target neuron in projection view;
+	size_t mTgt;
 };
 
 /// stores the configuration of the sources mapped to a synapse row

@@ -219,7 +219,7 @@ SynapseManager::get(HMF::Coordinate::VLineOnHICANN const& vline) const
 	return mAllocation.at(vline);
 }
 
-void SynapseManager::check(size_t chain_length)
+void SynapseManager::check(size_t /*chain_length*/)
 {
 	for (auto const& entry : mAllocation) {
 		Assignment const& assign = entry.second;

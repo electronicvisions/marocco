@@ -169,7 +169,7 @@ Assignment::result_t Assignment::result() const {
 			QuadrantOnHICANN quadrant{side_vertical, mSide};
 			as.primary = interval->primary.toSynapseDriverOnHICANN(quadrant);
 
-			for (size_t ii = interval->begin; ii < interval->end; ++ii) {
+			for (std::ptrdiff_t ii = interval->begin; ii < interval->end; ++ii) {
 				as.drivers.insert(
 				    SynapseDriverOnQuadrant(ii).toSynapseDriverOnHICANN(quadrant));
 			}
@@ -322,7 +322,7 @@ Fieres::Fieres(IntervalList const& _list,
 				for (auto it=too_few.begin(); it!=too_few.end() && assigned<driver_available; ++it)
 				{
 					fieres::InboundRoute& val = *(it->second);
-					if (val.assigned<val.drivers) {
+					if (static_cast<int>(val.assigned) < val.drivers) {
 						val.assigned++;
 						assigned++;
 						change = true;

@@ -4,6 +4,8 @@ using namespace HMF::Coordinate;
 
 namespace {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void check(std::bitset<10> enable)
 {
 	// check if only a single source is attached
@@ -15,6 +17,7 @@ static void check(std::bitset<10> enable)
 		flag = enable[ii];
 	}
 }
+#pragma GCC diagnostic pop
 
 static bool is_bottom(HMF::Coordinate::NeuronOnHICANN const& nrn)
 {
@@ -56,7 +59,7 @@ void transform_analog_outputs(
 
 void AnalogVisitor::set_analog(
 	chip_t& chip,
-	calib_t const& calib,
+	calib_t const& /*calib*/,
 	HMF::Coordinate::AnalogOnHICANN const& aout,
 	HMF::Coordinate::NeuronOnHICANN const& nrn) const
 {

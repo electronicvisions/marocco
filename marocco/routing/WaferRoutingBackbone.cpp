@@ -63,7 +63,7 @@ public:
 		routing_graph const& rgraph,
 		Route::BusSegment const source,
 		std::unordered_set<HICANNGlobal>& targets,
-		std::vector<int>& predecessor,
+		std::vector<routing_graph::vertex_descriptor>& predecessor,
 		BusUsage const& usage,
 		OutputMappingResult const& outbm)
 		: mSource(source),
@@ -87,8 +87,8 @@ public:
 
 
 		// now group them in pairs
-		HICANNGlobal const src = mGraph[mSource].hicann();
-		int last = -42;
+		//HICANNGlobal const src = mGraph[mSource].hicann();
+		//int last = -42;
 		//for (int const x : xcoords)
 		//{
 			//if (last==x-1 && last!=int(src.x()) && x-1!=int(src.x())) {
@@ -655,11 +655,11 @@ private:
 		{
 			L1Bus const& adjBus = mGraph[*it];
 			if (right) {
-				if (adjBus.getDirection() == L1Bus::Vertical && adjBus.side() == left) {
+				if (adjBus.getDirection() == L1Bus::Vertical && adjBus.side() == HMF::Coordinate::left) {
 					candidates.push_back(*it);
 				}
 			} else {
-				if (adjBus.getDirection() == L1Bus::Vertical && adjBus.side() == right) {
+				if (adjBus.getDirection() == L1Bus::Vertical && adjBus.side() == HMF::Coordinate::right) {
 					candidates.push_back(*it);
 				}
 			}
@@ -688,7 +688,7 @@ private:
 	std::unordered_map<size_t /*x*/, std::set<HICANNGlobal, SortByY>> mX;
 	//std::unordered_map<size_t [>x*/, size_t /*other x<]> mOption;
 	LastMile mLastMile;
-	std::vector<int>& mPredecessor;
+	std::vector<routing_graph::vertex_descriptor>& mPredecessor;
 	routing_graph const& mGraph;
 
 	BusUsage const& mUsage;
@@ -721,7 +721,7 @@ WaferRoutingBackbone::allocateRoute(
 	// lot of memory, num_vertices can be a rather large number.
 	std::vector<int> distance(boost::num_vertices(routing_graph),
 							  std::numeric_limits<int>::max());
-	std::vector<int> predecessor(boost::num_vertices(routing_graph));
+	std::vector<routing_graph::vertex_descriptor> predecessor(boost::num_vertices(routing_graph));
 
 	BackBoner boner(routing_graph, source, targets, predecessor, mUsage, *mOutbMapping);
 	boner.find_path();
@@ -755,7 +755,7 @@ WaferRoutingBackbone::allocateRoute(
 			_predecessor.push_back(cur);
 			//MAROCCO_INFO("cur: " << cur << " " << int(routing_graph[cur].getDirection() == L1Bus::Horizontal));
 #if !defined(MAROCCO_NDEBUG)
-			if (cur==predecessor.at(cur)) {
+			if (cur == predecessor.at(cur)) {
 				throw std::runtime_error("cycle");
 			}
 			if (_predecessor.size() > 5000) {

@@ -229,7 +229,7 @@ void MergerTreeRouter::run()
 std::pair<std::set<NeuronBlockOnHICANN>, std::vector<int> >
 MergerTreeRouter::mergeable(
     NeuronBlockOnHICANN const& nb,
-    std::set<NeuronBlockOnHICANN> const& pending) const
+    std::set<NeuronBlockOnHICANN> const& /*pending*/) const
 {
 	std::vector<size_t> distance(num_vertices(mMergerGraph), 0);
 	std::vector<int> predecessor(num_vertices(mMergerGraph));

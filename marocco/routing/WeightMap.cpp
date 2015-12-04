@@ -31,7 +31,6 @@ WeightMap::WeightMap(pymarocco::Routing const& param, routing_graph const& rg,
 
 WeightMap::reference WeightMap::operator[] (key_type const& k) const
 {
-	auto const& source = g[boost::source(k, g)];
 	auto const& target = g[boost::target(k, g)];
 
 	size_t const id = target.hicann().toHICANNOnWafer().id();

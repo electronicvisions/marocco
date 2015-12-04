@@ -37,6 +37,7 @@ def build(bld):
     recurse(bld)
 
     flags = { "cxxflags"  : [ '-Wall', '-Wextra', '-Wno-long-long', '-Wno-deprecated',
+                             '-Wno-literal-suffix', # squelch warnings from openMPI's mpi.h
                              '-Wno-format', '-fPIC', '-std=c++0x' ],
               "linkflags" :['-Wl,-z,defs'],
             }
