@@ -42,14 +42,14 @@ public:
 	value_type const& population() const;
 
 	/** Split off a slice of bio neurons at the front.
-	 *  @return \c PopulationSlice of the \c n first bio neurons.
-	 *  @note The current slice will contain the remaining neurons.
+	 *  @return \c PopulationSlice of the \c n first bio neurons (at most).
+	 *  @note The current slice will contain the remaining neurons (if any).
 	 */
 	PopulationSlice slice_front(size_t n);
 
 	/** Split off a slice of bio neurons at the back.
-	 *  @return \c PopulationSlice of the \c n last bio neurons.
-	 *  @note The current slice will contain the remaining neurons.
+	 *  @return \c PopulationSlice of the \c n last bio neurons (at most).
+	 *  @note The current slice will contain the remaining neurons (if any).
 	 */
 	PopulationSlice slice_back(size_t n);
 

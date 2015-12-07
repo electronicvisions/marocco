@@ -31,11 +31,7 @@ auto PopulationSlice::population() const -> value_type const& {
 }
 
 PopulationSlice PopulationSlice::slice_front(size_t n) {
-	if (n > mSize) {
-		throw std::out_of_range(
-			"not enough neurons to slice population");
-	}
-
+	n = std::min(n, mSize);
 	PopulationSlice first(mValue, mOffset, n);
 	mOffset += n;
 	mSize -= n;
@@ -43,11 +39,7 @@ PopulationSlice PopulationSlice::slice_front(size_t n) {
 }
 
 PopulationSlice PopulationSlice::slice_back(size_t n) {
-	if (n > mSize) {
-		throw std::out_of_range(
-			"not enough neurons to slice population");
-	}
-
+	n = std::min(n, mSize);
 	mSize -= n;
 	return {mValue, mOffset + mSize, n};
 }

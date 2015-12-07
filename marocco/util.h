@@ -14,6 +14,7 @@ namespace marocco {
 
 NEW_EXCEPTION_TYPE(Error, std::runtime_error)
 NEW_EXCEPTION_TYPE(ResourceInUseError, Error)
+NEW_EXCEPTION_TYPE(ResourceExhaustedError, Error)
 
 #undef NEW_EXCEPTION_TYPE
 

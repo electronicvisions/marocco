@@ -1,11 +1,14 @@
 #pragma once
 
 #include <map>
-#include <list>
-#include "marocco/placement/Placement.h"
-#include "marocco/placement/SpiralHICANNOrdering.h"
-#include "marocco/placement/DescendingPopulationOrdering.h"
-#include "marocco/util.h"
+#include <set>
+#include <utility>
+#include <vector>
+
+#include "hal/Coordinate/Neuron.h"
+#include "marocco/placement/NeuronPlacement.h"
+#include "marocco/placement/PlacePopulations.h"
+#include "marocco/placement/Result.h"
 #include "marocco/test.h"
 
 namespace pymarocco {
@@ -15,36 +18,12 @@ class Placement;
 namespace marocco {
 namespace placement {
 
-class SpiralTerminalOrdering
-{
-public:
-	typedef HMF::Coordinate::NeuronBlockGlobal Terminal;
-
-	bool operator() (Terminal const& a, Terminal const& b) const
-	{
-		static const SpiralHICANNOrdering _s;
-		if (a.toHICANNGlobal() == b.toHICANNGlobal()) {
-			return a.toNeuronBlockOnHICANN() < b.toNeuronBlockOnHICANN();
-		}
-		return _s(a.toHICANNGlobal(), b.toHICANNGlobal());
-	}
-};
-
-
 /**
  * Assign bio neurons to hardware neurons.
  * @note Takes user defined population placement into account.
  */
 class HICANNPlacement
 {
-private:
-	typedef graph_t::vertex_descriptor vertex;
-	//typedef std::set<assignment::PopulationSlice, DescendingPopulationOrdering> set_pop;
-	typedef std::list<NeuronPlacement> set_pop;
-
-	typedef HMF::Coordinate::NeuronBlockGlobal Terminal;
-	typedef std::set<Terminal, SpiralTerminalOrdering> TerminalList;
-
 public:
 	HICANNPlacement(
 		pymarocco::Placement const& pl,
@@ -58,35 +37,15 @@ public:
 	void run(NeuronPlacementResult& res);
 
 private:
-	struct NoNeuronBlockFound {};
+	void disable_defect_neurons(NeuronPlacementResult& res);
 
-	/** runs the actual placement of yet unassigned populations to slices of hardware blocks
+	/** Extract placement requests and run manual placement.
+	 *  @return Populations without manual placement information.
 	 */
-	void place2(
-		std::map<size_t, TerminalList>& tlist,
-		set_pop& pops,
-		NeuronPlacementResult& res);
+	std::vector<NeuronPlacement> manual_placement(NeuronPlacementResult& res);
 
-	void place2_(
-		std::list<Terminal>& terminals,
-		set_pop& pops,
-		NeuronPlacementResult& res);
-
-	void insert(
-		HMF::Coordinate::HICANNGlobal const& hicann,
-		HMF::Coordinate::NeuronBlockOnHICANN const& nb,
-		NeuronPlacement const& assign,
-		assignment::NeuronBlockSlice::offset_type const& offset,
-		NeuronBlockMapping& hw,
-		PlacementMap& bio);
-
-	/** Returns the number of still available hardware neurons on a neuron block
-	 */
-	size_t available(
-		NeuronPlacementResult const& res, //!< intermediate placement result
-		HMF::Coordinate::HICANNGlobal const& hicann, //!< HICANN coordinate
-		HMF::Coordinate::NeuronBlockOnHICANN const& nb //!< neuron on block coordinate
-		) const;
+	void post_process(
+		NeuronPlacementResult& res, std::vector<PlacePopulations::result_type> const& placements);
 
 	pymarocco::Placement const& mPyPlacement;
 	graph_t const&            mGraph;

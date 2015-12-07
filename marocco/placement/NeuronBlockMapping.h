@@ -39,9 +39,6 @@ public:
 	 */
 	size_t available() const;
 
-	/** Return the number of available hardware neurons on a given NeuronBlock. */
-	size_t available(index const& idx) const;
-
 	/** Return the number of mapped bio neurons on a given NeuronBlock. */
 	size_t neurons(index const& idx) const;
 

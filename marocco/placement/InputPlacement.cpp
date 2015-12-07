@@ -102,28 +102,26 @@ void InputPlacement::run(
 		PopulationSlice bio = PopulationSlice{vertex, pop};
 
 		// if a manual placement exists, assign it
-		if (mPyMarocco.placement.iter().find(pop.id()) != mPyMarocco.placement.iter().end())
-		{
+		auto it = mPyMarocco.placement.find(pop.id());
+		if (it != mPyMarocco.placement.end()) {
+			auto const& entry = it->second;
+			std::vector<HICANNGlobal> const* locations =
+				boost::get<std::vector<HICANNGlobal> >(&entry.locations);
 
-			auto const& entry = mPyMarocco.placement.iter().at(pop.id());
-
-			// FIXME: hw_size makes no sense for spike input, but we have it in the interface
-			// size_t const hw_size = entry.second;
-
-			std::list<HICANNGlobal> const& list = entry.first;
-
-			if(!list.empty()) {
-				for (auto const& target_hicann: list)
-				{
+			if (locations && !locations->empty()) {
+				for (auto const& target_hicann : *locations) {
 					OutputBufferMapping& om = output_mapping[target_hicann];
 					insertInput(target_hicann, om, bio);
 				}
 
 				if (bio.size()) {
-					throw std::runtime_error("out of resources for manually placed external inputs");
+					throw std::runtime_error(
+						"out of resources for manually placed external inputs");
 				}
-
 			} else {
+				throw std::runtime_error(
+					"manual placement of external input only implemented for"
+					"non-empty list of HICANNGlobal coordinates.");
 				// FIXME: ...
 			}
 		} else {

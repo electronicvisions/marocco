@@ -3,26 +3,62 @@
 
 #include <stdexcept>
 #include <boost/make_shared.hpp>
+#include <boost/variant.hpp>
 
 #include "redman/backend/MockBackend.h"
 #include "redman/resources/Wafer.h"
 
+using namespace HMF::Coordinate;
+
+/**
+ * @brief Used to extract coordinates of wafers used in manual placement instructions.
+ * As populations can be placed to both specific neuron blocks or HICANNs we have to use
+ * a visitor to extract the corresponding wafer coordinate from the variant.
+ * @see \c wafers_used_in()
+ */
+class LocationVisitor : public boost::static_visitor<>
+{
+	std::set<Wafer>& m_wafers;
+
+public:
+	/**
+	 * @param[out] wafers Wafers corresponding to the coordinates passed via \c operator().
+	 */
+	LocationVisitor(std::set<Wafer>& wafers) : m_wafers(wafers)
+	{
+	}
+
+	void operator()(std::vector<HICANNGlobal> hicanns)
+	{
+		for (auto const& hicann : hicanns) {
+			m_wafers.insert(hicann.toWafer());
+		}
+	}
+
+	void operator()(std::vector<NeuronBlockGlobal> blocks)
+	{
+		for (auto const& block : blocks) {
+			m_wafers.insert(block.toWafer());
+		}
+	}
+};
+
 namespace marocco {
 namespace mapping {
 
-std::set<HMF::Coordinate::Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store) {
+std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
+{
 	auto mi = store->getMetaData<pymarocco::PyMarocco>("marocco");
 
-	std::set<HMF::Coordinate::Wafer> wafers;
+	std::set<Wafer> wafers;
+	LocationVisitor vis(wafers);
 
 	for (auto const& defect : mi->defects.hicanns()) {
 		wafers.insert(defect.first.toWafer());
 	}
 
 	for (auto const& placement : mi->placement) {
-		for (auto const& hicann : placement.second.first) {
-			wafers.insert(hicann.toWafer());
-		}
+		boost::apply_visitor(vis, placement.second.locations);
 	}
 
 	return wafers;

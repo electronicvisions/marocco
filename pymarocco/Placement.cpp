@@ -1,8 +1,13 @@
 #include "pymarocco/Placement.h"
+
 #include <stdexcept>
+
 #include "euter/population_view.h"
+#include "hal/Coordinate/iter_all.h"
 
 namespace pymarocco {
+
+using namespace HMF::Coordinate;
 
 Placement::size_type const Placement::defaultNeuronSize = 4;
 Placement::size_type const Placement::maxNeuronSize = HMF::Coordinate::NeuronOnNeuronBlock::enum_type::size;
@@ -13,31 +18,21 @@ Placement::Placement() :
 	mDefaultNeuronSize(defaultNeuronSize)
 {}
 
-void Placement::add(PopulationId const pop, Index const& first)
+void Placement::add(PopulationId const pop, HICANNGlobal const& first, size_type size)
 {
-	add(pop, std::list<Index>{first}, mDefaultNeuronSize);
+	add(pop, std::list<HICANNGlobal>{first}, size);
 }
 
-void Placement::add(PopulationId const pop, Index const& first, size_type size)
-{
-	add(pop, std::list<Index>{first}, size);
-}
-
-void Placement::add(PopulationId pop, std::list<Index> list)
-{
-	add(pop, list, mDefaultNeuronSize);
-}
-
-void Placement::add(PopulationId pop, std::list<Index> list, size_type size)
+void Placement::add(PopulationId pop, std::list<HICANNGlobal> const& hicanns, size_type size)
 {
 	checkNeuronSize(size);
-	mPlacement[pop] = std::make_pair(list, size);
+	mPlacement[pop] = Location{std::vector<HICANNGlobal>(hicanns.begin(), hicanns.end()), size};
 }
 
 void Placement::add(PopulationId const pop, size_type size)
 {
 	checkNeuronSize(size);
-	mPlacement[pop] = std::make_pair(List{}, size);
+	mPlacement[pop] = Location{std::vector<HICANNGlobal>{}, size};
 }
 
 Placement::mapping_type::iterator
@@ -74,10 +69,14 @@ Placement::mapping_type::const_iterator Placement::cend() const
 	return mPlacement.end();
 }
 
-Placement::mapping_type const&
-Placement::iter() const
+auto Placement::find(mapping_type::key_type const& key) -> mapping_type::iterator
 {
-	return mPlacement;
+	return mPlacement.find(key);
+}
+
+auto Placement::find(mapping_type::key_type const& key) const -> mapping_type::const_iterator
+{
+	return mPlacement.find(key);
 }
 
 void Placement::setDefaultNeuronSize(size_type s)
@@ -94,7 +93,7 @@ Placement::getDefaultNeuronSize() const
 
 void Placement::checkNeuronSize(size_type size)
 {
-	if ((size == 0) || ((size % 2) != 0) || (size > maxNeuronSize)) {
+	if (((size % 2) != 0) || (size > maxNeuronSize)) {
 		throw std::runtime_error("only neuron sizes which are multiples of 2"
 		                         " and not larger than 64 are allowed");
 	}

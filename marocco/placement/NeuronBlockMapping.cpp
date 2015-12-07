@@ -48,11 +48,6 @@ size_t NeuronBlockMapping::neurons(index const& idx) const
 	return nrns;
 }
 
-size_t NeuronBlockMapping::available(index const& idx) const
-{
-	return mMapping[idx].available();
-}
-
 size_t NeuronBlockMapping::available() const
 {
 	size_t cnt = 0;
