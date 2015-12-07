@@ -50,9 +50,15 @@ public:
 	/// OutputBufferOnHICANN + / L1Address) and biological neuron id
 	bio_id getBioId(hw_id const id);
 
+	/// translate between NeuronGlobal and biological neuron id
+	bio_id getBioId(HMF::Coordinate::NeuronGlobal const id);
+
 	/// translate between biological and hardware spike addresses
 	std::vector<hw_id> getHwId(bio_id const id);
 
+	/// return a vector of coordinates of the denmems which comprises bio
+	/// neuron 'id'
+	std::vector<HMF::Coordinate::NeuronGlobal> getDenmems(bio_id const id);
 
 #if !defined(PYPLUSPLUS)
 	void setSynapseLoss(size_t s);

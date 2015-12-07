@@ -103,11 +103,12 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 					X x{block.value() * neurons_x_per_neuronblock + offset.x() +
 					    i * hw_neuron_size / neurons_y_per_neuronblock +
 					    d / neurons_y_per_neuronblock};
-					Y y{neurons_y_per_neuronblock % 2};
+					Y y{(i * hw_neuron_size + d) % neurons_y_per_neuronblock};
 					NeuronOnHICANN point{x, y};
 					NeuronGlobal ng{point, neuron_block.toHICANNGlobal()};
 					// now save bio_id to NeuronGlobal mapping
 					mBio2DenmemMap[bio].push_back(ng);
+					mDenmem2BioMap[ng] = bio;
 				}
 				++bio_neuron_index;
 			}
@@ -128,11 +129,30 @@ LookupTable::at(hw_id const& key)
 	return mHw2BioMap.at(key);
 }
 
-bio_id
-const& LookupTable::at(hw_id const& key) const
+bio_id const&
+LookupTable::at(hw_id const& key) const
 {
 	return mHw2BioMap.at(key);
 }
+
+bio_id&
+LookupTable::operator[] (HMF::Coordinate::NeuronGlobal const& key)
+{
+	return mDenmem2BioMap[key];
+}
+
+bio_id&
+LookupTable::at(HMF::Coordinate::NeuronGlobal const& key)
+{
+	return mDenmem2BioMap.at(key);
+}
+
+bio_id const&
+LookupTable::at(HMF::Coordinate::NeuronGlobal const& key) const
+{
+	return mDenmem2BioMap.at(key);
+}
+
 
 size_t LookupTable::size() const
 {
@@ -179,12 +199,24 @@ LookupTable::bio_to_hw_map_type& LookupTable::getBioToHwMap() {
 	return mBio2HwMap;
 }
 
-const LookupTable::bio_to_denmem_map_type& LookupTable::getBioToDenmemMap() const {
+const LookupTable::bio_to_denmem_map_type&
+LookupTable::getBioToDenmemMap() const {
 	return mBio2DenmemMap;
 }
 
-LookupTable::bio_to_denmem_map_type& LookupTable::getBioToDenmemMap() {
+LookupTable::bio_to_denmem_map_type&
+LookupTable::getBioToDenmemMap() {
 	return mBio2DenmemMap;
+}
+
+const LookupTable::denmem_to_bio_map_type&
+LookupTable::getDenmemToBioMap() const {
+	return mDenmem2BioMap;
+}
+
+LookupTable::denmem_to_bio_map_type&
+LookupTable::getDenmemToBioMap() {
+	return mDenmem2BioMap;
 }
 
 } // namespace placement

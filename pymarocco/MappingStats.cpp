@@ -113,11 +113,25 @@ MappingStats::getBioId(marocco::placement::hw_id const id) {
 	return mLookupTable->at(id);
 }
 
+marocco::placement::bio_id
+MappingStats::getBioId(HMF::Coordinate::NeuronGlobal const ng) {
+	if (!mLookupTable)
+		throw std::runtime_error("Reverse mapping/lookup table not available");
+	return mLookupTable->getDenmemToBioMap().at(ng);
+}
+
 std::vector<marocco::placement::hw_id>
 MappingStats::getHwId(marocco::placement::bio_id const id) {
 	if (!mLookupTable)
 		throw std::runtime_error("Reverse mapping/lookup table not available");
 	return mLookupTable->at(id);
+}
+
+std::vector<HMF::Coordinate::NeuronGlobal>
+MappingStats::getDenmems(marocco::placement::bio_id const id) {
+	if (!mLookupTable)
+		throw std::runtime_error("Reverse mapping/lookup table not available");
+	return mLookupTable->getBioToDenmemMap().at(id);
 }
 
 void MappingStats::setLookupTable(std::shared_ptr<class marocco::placement::LookupTable> lut)

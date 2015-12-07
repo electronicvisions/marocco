@@ -50,12 +50,77 @@ class TestLookupTable(unittest.TestCase):
         bio_id = pymarocco.MappingStats.bio_id()
         p = pop.euter_id()
         bio_id.pop = pop.euter_id()
+
+        # check mapping of L1 addresses
         for n in range(len(pop)):
             bio_id.neuron = n
             for hw_id in self.marocco.getStats().getHwId(bio_id):
                 reverse_bio_id = self.marocco.getStats().getBioId(hw_id)
                 self.assertEqual(reverse_bio_id, bio_id)
                 #print bio_id.pop, '/', bio_id.neuron, ' ----> ', hw_id.hicann, hw_id.outb, hw_id.addr
+
+        # check mapping of hardware positions, exclude SpikeSourceArray population
+        if pop.celltype is pynn.SpikeSourceArray:
+            # those are not mapped
+            return
+
+        for n in range(len(pop)):
+            bio_id.neuron = n
+            for denmem in self.marocco.getStats().getDenmems(bio_id):
+                reverse_bio_id = self.marocco.getStats().getBioId(denmem)
+                self.assertEqual(bio_id, reverse_bio_id)
+
+
+    def test_get_denmems(self):
+        pop_size = 2
+
+        for neuron_size in [4, 8, 12, 16, 32]:
+            self.marocco.placement.setDefaultNeuronSize(neuron_size)
+
+            pynn.setup(marocco=self.marocco)
+
+            target = pynn.Population(pop_size, pynn.IF_cond_exp, {})
+
+            populations = [target]
+            for i in xrange(3):
+                p1 = pynn.Population(
+                    pop_size,
+                    pynn.SpikeSourceArray,
+                    {'spike_times': [1.]})
+                p2 = pynn.Population(
+                    pop_size,
+                    pynn.IF_cond_exp,
+                    {})
+                pynn.Projection(p1, target,
+                                pynn.OneToOneConnector(weights=0.004))
+                pynn.Projection(p2, target,
+                                pynn.OneToOneConnector(weights=0.004))
+
+                populations.append(p2)
+
+            pynn.run(0)
+            pynn.end()
+
+            mapstats = self.marocco.getStats()
+
+            for pop in populations:
+                for nrn in xrange(pop_size):
+                    bio_id = pymarocco.bio_id()
+                    bio_id.pop = pop.euter_id()
+                    bio_id.neuron = nrn
+
+                    denmems = mapstats.getDenmems(bio_id)
+                    self.assertEqual(
+                        len(denmems),
+                        neuron_size,
+                        "neuron is comprised of {} denmems".format(neuron_size))
+                    self.assertEqual(
+                        len(set(denmems)),
+                        neuron_size,
+                        "neuron is comprised of {} distinct denmems".format(neuron_size))
+
+                    for denmem in denmems:
+                        self.assertIsInstance(denmem, pyhalbe.Coordinate.NeuronGlobal)
 
 
     def test_stimulated_network(self):
