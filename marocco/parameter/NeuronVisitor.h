@@ -20,16 +20,6 @@
 namespace marocco {
 namespace parameter {
 
-// FIXME(#1693): the extraction of shared neuron parameters is buggy,
-// as the mean v_reset is calculated per Neuron FG-Block.
-// However, the mapping of the hardware V_reset is not FG-Block wise:
-// Instead it is as follows:
-// For each HICANN half, the left V_reset value is connected to all even
-// numbered denmems, and the right V_reset to the odd numbered.
-// see halbe/hal/HICANN/FGBlock.h
-//
-// In any way, it has to be discussed, whether this class is still needed.
-// See #1693 and #1591.
 struct NeuronSharedParameterRequirements
 {
 	typedef void return_type;
@@ -48,22 +38,49 @@ struct NeuronSharedParameterRequirements
 		throw std::runtime_error(ss.str());
 	}
 
+	// collect all V_reset values per _shared_ FG block, i.e.
+	// for each HICANN half, the left V_reset value is connected to all even
+	// numbered denmems, and the right V_reset to the odd numbered.
 	template <CellType N>
 	typename std::enable_if<detail::has_v_reset<cell_t<N>>::value, return_type>::type
 	operator() (cell_t<N> const& v, size_t neuron_bio_id, neuron_t const& n)
 	{
 		auto const& cellparams = v.parameters()[neuron_bio_id];
+		mVResets.insert(cellparams.v_reset);
 		mVResetValues[n.toSharedFGBlockOnHICANN().id()].push_back(cellparams.v_reset);
 	}
 
+	// get the mean v_reset value per FG block
 	double get_mean_v_reset(group_t const& g) const
 	{
 		auto const& vals = mVResetValues[g.id()];
-		return std::accumulate(vals.begin(), vals.end(), 0) / vals.size();
+		return std::accumulate(vals.begin(), vals.end(), 0.0) / vals.size();
+	}
+
+	// get mean v_reset over all neurons
+	double get_mean_v_reset() const
+	{
+		double sum = 0;
+		size_t cnt = 0;
+
+		for(auto const& vals : mVResetValues) {
+			sum += std::accumulate(vals.begin(), vals.end(), 0.0);
+			cnt += vals.size();
+		}
+
+		double const mean = cnt != 0 ? sum/cnt : 0;
+
+		return mean;
+	}
+
+	// get all different v_reset values
+	std::set<double> get_v_resets() const {
+		return mVResets;
 	}
 
 private:
 	std::array<std::vector<double>, group_t::enum_type::end> mVResetValues;
+	std::set<double> mVResets;
 };
 
 struct TransformNeurons
@@ -78,8 +95,7 @@ struct TransformNeurons
 	template <CellType N>
 		using cell_t = TypedCellParameterVector<N>;
 
-	TransformNeurons(double target_V_reset)
-		: mTargetVReset(target_V_reset){}
+	TransformNeurons(double alphaV, double shiftV) : mAlphaV(alphaV), mShiftV(shiftV) {}
 
 	template <CellType N>
 	return_type operator()(
@@ -135,7 +151,9 @@ private:
 	static void
 	assert_synapse_target_mapping_is_default(synapse_targets_t::value_type const& targets);
 
-	double mTargetVReset; ///< target hardware V_reset in Volt
+	double mAlphaV; //!< unitless scaling factor
+	double mShiftV; //!< voltage shift in Volt
+
 };
 
 

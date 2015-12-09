@@ -159,15 +159,8 @@ HICANNTransformator::run(
 	// FIXME: get const calibration not possible, because we need to set speedup. see #1543
 	auto calib = getCalibrationData();
 
-	if (local_neurons || local_routes)
-	{
-		const auto& shared_calib = calib->atBlockCollection();
-
-		// trasform global analog parameters
-		// this needs to be done, for any HICANN used in any way. For
-		// example, shared parameter also control L1.
-		shared_parameters(getGraph(), *shared_calib);
-	}
+	// v reset for all FG blocks in bio mV
+	double v_reset = 0;
 
 	if (local_neurons)
 	{
@@ -188,9 +181,8 @@ HICANNTransformator::run(
 		if (has_output_mapping)
 		{
 			// 3. transform individual analog parameters
-			neurons(
-				*neuron_calib, neuron_placement, output_mapping,
-				synapse_routing.synapse_target_mapping);
+			v_reset = neurons(*neuron_calib, neuron_placement, output_mapping,
+			                  synapse_routing.synapse_target_mapping);
 
 			if(local_routes) {
 				// transform synapses
@@ -209,6 +201,24 @@ HICANNTransformator::run(
 			current_input(*neuron_calib, cs);
 
 		}
+	}
+
+	if (local_neurons || local_routes)
+	{
+		const auto& shared_calib = calib->atBlockCollection();
+
+		// transforms global analog parameters
+		// this needs to be done, for any HICANN used in any way. For
+		// example, shared parameter also control L1.
+		//
+		// v_reset is in pynn units, i.e. mV, shared_parameters takes
+		// HW units, i.e. Volts, shift_v is also given in Volts
+
+		double const mV_to_V = 1/1000.;
+
+		shared_parameters(getGraph(), *shared_calib,
+		                  v_reset * mPyMarocco.param_trafo.alpha_v * mV_to_V +
+						  mPyMarocco.param_trafo.shift_v);
 	}
 
 	return std::unique_ptr<result_type>(new Result);
@@ -230,7 +240,7 @@ void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
 	//config.fast_I_gl      = 0x0;
 }
 
-void HICANNTransformator::neurons(
+double HICANNTransformator::neurons(
 	neuron_calib_t const& calib,
 	typename placement::neuron_placement_t::result_type const& neuron_placement,
 	typename placement::output_mapping_t::result_type const& output_mapping,
@@ -265,12 +275,7 @@ void HICANNTransformator::neurons(
 	 * on common values.  This has to happen prior to the configuration of
 	 * individual neuron parameters as these depend on the shared values.
 	 *
-	 * BV: commented out the following, as the extraction of shared neuron
-	 *     parameters is buggy (FIXME #1693).
-	 *     Instead we pass a single target hardware v_reset value to the
-	 *     neuron transformation.
 	 */
-	/*
 	NeuronSharedParameterRequirements shared_parameter_visitor;
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
 		placement::OnNeuronBlock const& onb = neuron_placement[nb];
@@ -290,10 +295,9 @@ void HICANNTransformator::neurons(
 			}
 		}
 	}
-	*/
 
 	// INDIVIDUAL Neuron Parameters
-	TransformNeurons visitor{HMF::NeuronCalibration::HW_V_reset};
+	TransformNeurons visitor{mPyMarocco.param_trafo.alpha_v, mPyMarocco.param_trafo.shift_v};
 
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 	{
@@ -354,6 +358,21 @@ void HICANNTransformator::neurons(
 			}
 		}
 	} // all neuron blocks
+
+	auto const v_resets = shared_parameter_visitor.get_v_resets();
+	auto const mean_v_reset = shared_parameter_visitor.get_mean_v_reset();
+
+	if(v_resets.size() != 1) {
+		MAROCCO_WARN("more than one value for V_reset requested on " << chip());
+		MAROCCO_WARN("only the mean v_reset will be used: " << mean_v_reset << " mV");
+		for(auto v_reset : v_resets) {
+			MAROCCO_DEBUG("individual v_reset values: " << v_reset << " mV");
+		}
+
+	}
+
+	return mean_v_reset;
+
 }
 
 void HICANNTransformator::connect_denmems(
@@ -488,14 +507,15 @@ void HICANNTransformator::spike_input(
 
 void HICANNTransformator::shared_parameters(
 	graph_t const& /*graph*/,
-	shared_calib_t const& calib)
+	shared_calib_t const& calib,
+	double v_reset)
 {
 	using namespace HMF;
 
 	for (size_t ii=0; ii<HMF::Coordinate::FGBlockOnHICANN::enum_type::size; ++ii)
 	{
 		// default values for other parameters are also retrieved
-		auto hwparams = calib.applySharedCalibration(HMF::NeuronCalibration::HW_V_reset, ii);
+		auto hwparams = calib.applySharedCalibration(v_reset, ii);
 		FGBlockOnHICANN fgb{Enum{ii}};
 		auto& fg = chip().floating_gates;
 		hwparams.toHW(fgb, fg);

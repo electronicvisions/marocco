@@ -209,7 +209,7 @@ void Control::runExperimentAndRecordMembrane(std::unique_ptr<sthal::ExperimentRu
 			    (hw_time_in_s - mPyMarocco.experiment_time_offset) * mPyMarocco.speedup *
 			    seconds_to_ms;
 			sthal::AnalogRecorder::voltage_type const membrane_in_bio_mV =
-			    (hw_trace_in_V * V_to_mV - mPyMarocco.param_trafo.shift_v) /
+			    (hw_trace_in_V - mPyMarocco.param_trafo.shift_v) * V_to_mV /
 			    mPyMarocco.param_trafo.alpha_v;
 
 			file << t_in_bio_ms << " " << membrane_in_bio_mV << std::endl;

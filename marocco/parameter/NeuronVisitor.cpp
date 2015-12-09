@@ -35,17 +35,17 @@ fg_clip voltage2fg(double voltage_in_mV)
 
 HMF::NeuronCalibrationParameters calibration_parameters_for_neuron(
 	chip_type<hardware_system_t>::type const& chip,
-	double const bio_v_reset, ///< pyNN v_reset in mV
-	double const target_v_reset, ///< target HW v_reset in Volt
+	double const alphaV,
+	double const shiftV,
 	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id)
 {
 	HMF::NeuronCalibrationParameters params;
 
 	params.bigcap = chip.neurons.config.bigcap[neuron_hw_id.y()];
 	params.hw_neuron_size = 1; // always use neuron size = 1, cf. #1559
-	// compute shiftV so that v_reset is transformed to target_v_reset (#1693)
-	static const double mV_to_V = 0.001;
-	params.shiftV = target_v_reset - bio_v_reset*mV_to_V*params.alphaV;
+
+	params.shiftV = shiftV;
+	params.alphaV = alphaV;
 
 	return params;
 }
@@ -87,8 +87,8 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 
 	auto const& cellparams = v.parameters()[neuron_bio_id];
 
-	auto const params = calibration_parameters_for_neuron(
-		chip, cellparams.v_reset, mTargetVReset, neuron_hw_id);
+	auto const params =
+	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(
 		cellparams, neuron_hw_id.id(), params);
@@ -112,8 +112,8 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 
 	auto const& cellparams = v.parameters()[neuron_bio_id];
 
-	auto const params = calibration_parameters_for_neuron(
-		chip, cellparams.v_reset, mTargetVReset, neuron_hw_id);
+	auto const params =
+	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(
 		cellparams, neuron_hw_id.id(), params);
@@ -212,7 +212,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 		v.parameters()[neuron_bio_id], int(synapse_types[left]), int(synapse_types[right]));
 
 	auto const params =
-		calibration_parameters_for_neuron(chip, cellparams.v_reset, mTargetVReset, neuron_hw_id);
+	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(cellparams, neuron_hw_id.id(), params);
 
@@ -236,7 +236,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 		v.parameters()[neuron_bio_id], int(synapse_types[left]), int(synapse_types[right]));
 
 	auto const params =
-		calibration_parameters_for_neuron(chip, cellparams.v_reset, mTargetVReset, neuron_hw_id);
+	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(cellparams, neuron_hw_id.id(), params);
 

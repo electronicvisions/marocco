@@ -22,12 +22,10 @@ public:
 
 	/// voltage scaling factor for potentials.
 	/// default: 10.
-	/// @warn: not used yet
 	double alpha_v;
 
-	/// voltage shift factor for potentials in mV
-	/// default: 1200.
-	/// @warn: not used yet
+	/// voltage shift factor for potentials in V
+	/// default: 1.2.
 	double shift_v;
 
 	/// Choose whether the special synapse trafo for the ESS shall be used.

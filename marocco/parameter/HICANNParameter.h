@@ -81,7 +81,8 @@ private:
 	chip_type&       chip();
 	chip_type const& chip() const;
 
-	void neurons(
+	// returns mean v_reset in bio mV
+	double neurons(
 		neuron_calib_t const& calib,
 		typename placement::neuron_placement_t::result_type const& neuron_placement,
 		typename placement::output_mapping_t::result_type const& output_mapping,
@@ -108,7 +109,9 @@ private:
 
 	void shared_parameters(
 		graph_t const& graph,
-		shared_calib_t const& calib);
+		shared_calib_t const& calib,
+		double v_reset ///< v_reset in hardware V
+		);
 
 	void synapses(
 		synapse_row_calib_t const& calib,
