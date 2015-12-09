@@ -94,8 +94,8 @@ Placement::getDefaultNeuronSize() const
 
 void Placement::checkNeuronSize(size_type size)
 {
-	if ((size == 0) || ((size % 4) != 0) || (size > maxNeuronSize)) {
-		throw std::runtime_error("only neuron sizes which are multiples of 4"
+	if ((size == 0) || ((size % 2) != 0) || (size > maxNeuronSize)) {
+		throw std::runtime_error("only neuron sizes which are multiples of 2"
 		                         " and not larger than 64 are allowed");
 	}
 }

@@ -15,7 +15,7 @@ class PlacementNeuronSize(unittest.TestCase):
         p = marocco.placement
 
         for s in range(0,65):
-            if (s%4==0 and s>0):
+            if (s%2==0 and s>0):
                 p.setDefaultNeuronSize(s)
                 self.assertEqual(s, p.getDefaultNeuronSize())
             else:

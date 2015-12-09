@@ -59,9 +59,8 @@ public:
 	// (See comments in InputPlacement.cpp)
 
 private:
-	/// checks if neuron size is a multiple of 4 and not larger than 64.
+	/// checks if neuron size is a multiple of 2 and not larger than 64.
 	/// throws runtime_error otherwise.
-	/// TODO: change to multiples of 2 once #1565 is fixed.
 	void checkNeuronSize(size_type size);
 
 	mapping_type mPlacement;
