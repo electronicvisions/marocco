@@ -1,6 +1,10 @@
 #include "marocco/placement/OnNeuronBlock.h"
 
 #include <algorithm>
+#include <limits>
+#include <stdexcept>
+
+#include "marocco/util.h"
 
 namespace marocco {
 namespace placement {
@@ -8,12 +12,20 @@ namespace placement {
 OnNeuronBlock::OnNeuronBlock()
 	: mDefect(std::make_shared<NeuronPlacement>(assignment::PopulationSlice({}, 0, 0), 2)),
 	  mAssignment(),
-	  mAvailable(neuron_coordinate::enum_type::size) {}
+	  mSize(0),
+	  mAvailable(neuron_coordinate::enum_type::size),
+	  mCeiling(std::numeric_limits<size_t>::max())
+{
+}
 
 void OnNeuronBlock::add_defect(neuron_coordinate const& nrn) {
+	if (!empty()) {
+		throw std::runtime_error("OnNeuronBlock: add_defect() called after add().");
+	}
+
 	auto& ptr = mAssignment[nrn.x()][nrn.y()];
-	if (ptr) {
-		throw std::runtime_error("NeuronOnNeuronBlock already taken.");
+	if (assigned_p(ptr)) {
+		throw ResourceInUseError("NeuronOnNeuronBlock already taken.");
 	}
 	ptr = mDefect;
 	--mAvailable;
@@ -35,10 +47,16 @@ auto OnNeuronBlock::neurons(iterator const& it) const -> iterable<neuron_iterato
 }
 
 auto OnNeuronBlock::add(NeuronPlacement const& value) -> iterator {
-	constexpr size_t height = neuron_coordinate::y_type::size;
 	size_t const size = value.size();
 
+	if (size > available()) {
+		return end();
+	}
+
+	// This should be enforced in NeuronPlacement, so an assertion is enough here.
 	assert(size % 2 == 0);
+
+	constexpr size_t height = neuron_coordinate::y_type::size;
 
 	auto const BEGIN = mAssignment.begin()->begin();
 	auto const END = mAssignment.end()->begin();
@@ -60,7 +78,7 @@ auto OnNeuronBlock::add(NeuronPlacement const& value) -> iterator {
 			end = begin;
 			std::advance(end, size);
 			std::fill(begin, end, std::make_shared<NeuronPlacement>(value));
-			mAvailable -= size;
+			mSize += size;
 			return {begin, mAssignment.cend()->begin(), mDefect};
 		} else {
 			begin = end;
@@ -93,11 +111,25 @@ auto OnNeuronBlock::get(neuron_coordinate const& nrn) const -> iterator {
 	return {first, mAssignment.cend()->begin(), mDefect};
 }
 
-bool OnNeuronBlock::empty() const {
-	return mAvailable == neuron_coordinate::enum_type::size;
+bool OnNeuronBlock::empty() const
+{
+	return !mSize;
 }
 
-size_t OnNeuronBlock::available() const { return mAvailable; }
+size_t OnNeuronBlock::available() const
+{
+	return std::min(mAvailable, mCeiling) - mSize;
+}
+
+size_t OnNeuronBlock::restrict(size_t max)
+{
+	if (!empty()) {
+		throw std::runtime_error("OnNeuronBlock: restrict() called after add().");
+	}
+
+	mCeiling = std::min(mCeiling, max);
+	return mCeiling;
+}
 
 namespace detail {
 namespace on_neuron_block {

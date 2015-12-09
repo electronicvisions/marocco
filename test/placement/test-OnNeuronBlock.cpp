@@ -22,16 +22,78 @@ NeuronPlacement make_assignment(size_t size) {
 
 TEST_F(OnNeuronBlockTest, empty) {
 	ASSERT_TRUE(onb.empty());
-	onb.add(make_assignment(1));
+	EXPECT_NE(onb.end(), onb.add(make_assignment(1)));
 	ASSERT_FALSE(onb.empty());
 }
 
 TEST_F(OnNeuronBlockTest, available) {
 	ASSERT_EQ(64, onb.available());
-	onb.add(make_assignment(1));
+	EXPECT_NE(onb.end(), onb.add(make_assignment(1)));
 	ASSERT_EQ(62, onb.available());
-	onb.add(make_assignment(1));
+	EXPECT_NE(onb.end(), onb.add(make_assignment(1)));
 	ASSERT_EQ(60, onb.available());
+}
+
+TEST_F(OnNeuronBlockTest, restrictReducesNumberOfAvailableNeurons)
+{
+	ASSERT_EQ(64, onb.available());
+	onb.restrict(5);
+	ASSERT_EQ(5, onb.available());
+}
+
+TEST_F(OnNeuronBlockTest, restrictCanOnlyNarrowRestriction)
+{
+	ASSERT_EQ(64, onb.available());
+	ASSERT_EQ(42, onb.restrict(42));
+	ASSERT_EQ(42, onb.available());
+	ASSERT_EQ(5, onb.restrict(5));
+	ASSERT_EQ(5, onb.available());
+	ASSERT_EQ(5, onb.restrict(13));
+	ASSERT_EQ(5, onb.available());
+}
+
+TEST_F(OnNeuronBlockTest, ChecksAvailableNeurons)
+{
+	onb.restrict(6);
+	ASSERT_EQ(6, onb.available());
+	ASSERT_EQ(onb.end(), onb.add(make_assignment(10)));
+}
+
+TEST_F(OnNeuronBlockTest, addDefectReducesNumberOfAvailableNeurons)
+{
+	ASSERT_EQ(64, onb.available());
+	onb.add_defect(NeuronOnNeuronBlock(Enum(5)));
+	ASSERT_EQ(63, onb.available());
+}
+
+TEST_F(OnNeuronBlockTest, addDefectShadowsRestriction)
+{
+	ASSERT_EQ(64, onb.available());
+	onb.restrict(60);
+	ASSERT_EQ(60, onb.available());
+	for (size_t ii = 0; ii < 16; ++ii) {
+		onb.add_defect(NeuronOnNeuronBlock(X(ii), Y(0)));
+		onb.add_defect(NeuronOnNeuronBlock(X(ii), Y(1)));
+	}
+	ASSERT_EQ(32, onb.available());
+	EXPECT_NE(onb.end(), onb.add(make_assignment(1)));
+	ASSERT_EQ(30, onb.available());
+}
+
+TEST_F(OnNeuronBlockTest, restrictThrows)
+{
+	ASSERT_NO_THROW(onb.restrict(5));
+	EXPECT_NE(onb.end(), onb.add(make_assignment(1)));
+	ASSERT_ANY_THROW(onb.restrict(7));
+}
+
+TEST_F(OnNeuronBlockTest, addDefectThrows)
+{
+	onb.add_defect(NeuronOnNeuronBlock(Enum(5)));
+	ASSERT_THROW(onb.add_defect(NeuronOnNeuronBlock(Enum(5))), ResourceInUseError);
+	ASSERT_NO_THROW(onb.add_defect(NeuronOnNeuronBlock(Enum(2))));
+	EXPECT_NE(onb.end(), onb.add(make_assignment(1)));
+	ASSERT_ANY_THROW(onb.add_defect(NeuronOnNeuronBlock(Enum(3))));
 }
 
 TEST_F(OnNeuronBlockTest, IteratesAllPopulations) {
@@ -155,6 +217,7 @@ TEST_F(OnNeuronBlockTest, AllowsIterationOfPopulationNeurons) {
 
 	size_t count = 0;
 	for (auto nrn : onb.neurons(it)) {
+		static_cast<void>(nrn);
 		++count;
 	}
 

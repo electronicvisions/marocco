@@ -73,6 +73,13 @@ public:
 	 */
 	size_t available() const;
 
+	/** Artificially restrict the number of available hardware neurons.
+	 *  @note If #restrict() is called multiple times, the minimum
+	 *        value seen for max_neurons will be kept.
+	 *  @return Value of restriction that is in place.
+	 */
+	size_t restrict(size_t max_neurons);
+
 	/** Iterate over assigned populations.
 	 *  Every population will appear exactly once.
 	 *  @note Iterators can be passed in to #neurons() to iterate over
@@ -110,9 +117,18 @@ private:
 	 */
 	array_type mAssignment;
 
-    /** count of available hardware neurons, i.e. neurons that are neither marked as defect, nor assigned already.
+	/// Count of assigned hardware neurons.
+	size_t mSize;
+
+	/** Count of available (i.e. non-defect) hardware neurons, if no
+	 *  populations were assigned yet.
 	 */
 	size_t mAvailable;
+
+	/** Maximum count of hardware neurons that should receive an assignment.
+	 *  @see #restrict()
+	 */
+	size_t mCeiling;
 };
 
 namespace detail {
