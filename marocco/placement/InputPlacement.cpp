@@ -1,20 +1,21 @@
-#include <unordered_map>
-#include <chrono>
+#include "marocco/placement/InputPlacement.h"
 
+#include <cassert>
+#include <chrono>
+#include <set>
+
+#include <boost/assert.hpp>
 #include <tbb/parallel_for_each.h>
 #include <nanoflann.hpp>
 
 #include "hal/Coordinate/iter_all.h"
-
-#include "marocco/util/algorithm.h"
-#include "marocco/placement/InputPlacement.h"
-#include "marocco/util/iterable.h"
 #include "marocco/Logger.h"
-
+#include "marocco/placement/FiringRateVisitor.h"
+#include "marocco/util/algorithm.h"
+#include "marocco/util/iterable.h"
+#include "marocco/util/neighbors.h"
 #include "pymarocco/MappingStats.h"
 #include "pymarocco/Placement.h"
-
-#include "marocco/placement/FiringRateVisitor.h"
 
 using namespace HMF::Coordinate;
 using marocco::assignment::PopulationSlice;
@@ -30,70 +31,7 @@ struct Point
 
 	value_type x;
 	value_type y;
-
-	operator value_type const* () const
-	{
-		return &x;
-	}
-
-} __attribute__((packed));
-
-
-struct PointCloud
-{
-	typedef Point::value_type value_type;
-
-	void push_back(HICANNGlobal const& hicann)
-	{
-		pts.push_back(hicann);
-	}
-
-	HICANNGlobal const& at(size_t idx) const
-	{
-		return pts.at(idx);
-	}
-
-	size_t size() const
-	{
-		return pts.size();
-	}
-
-	// Must return the number of data points
-	inline size_t kdtree_get_point_count() const
-	{
-		return pts.size();
-	}
-
-	// Returns the distance between the vector "p1[0:size-1]" and the data point with index "idx_p2" stored in the class:
-	inline value_type kdtree_distance(
-		value_type const* p1, size_t const idx_p2, size_t /*unused*/) const
-	{
-		value_type const d0=p1[0]-value_type(pts[idx_p2].x());
-		value_type const d1=p1[1]-value_type(pts[idx_p2].y());
-		return d0*d0+d1*d1;
-	}
-
-	inline value_type kdtree_get_pt(size_t const idx, int const dim) const
-	{
-		if (dim==0) {
-			return value_type(pts[idx].x());
-		} else {
-			return value_type(pts[idx].y());
-		}
-	}
-
-	template <class BBOX>
-	bool kdtree_get_bbox(BBOX & /*bb*/) const
-	{
-		// nanoflan: Optional bounding-box computation: return false
-		// to default to a standard bbox computation loop.
-		return false;
-	}
-
-private:
-	std::vector<HICANNGlobal> pts;
 };
-
 
 // 7 must be first to allow for use_output_buffer7_for_dnc_input_and_bg_hack
 std::vector<OutputBufferOnHICANN> const OUTBUFFERS = {
@@ -147,32 +85,13 @@ void InputPlacement::run(
 	// SpikeSourcePoisson this is easy and for SpikeSourceArray we can
 	// calculate it.
 
+	auto const wafers = mMgr.wafers();
+	BOOST_ASSERT_MSG(wafers.size() == 1, "only single-wafer use is supported");
 
-	// prepare HICANN point clouds
-	std::unordered_map<Wafer, PointCloud> point_clouds;
-	for (auto const& hicann : mMgr.present())
-	{
-		PointCloud& pc = point_clouds[hicann.toWafer()];
-		pc.push_back(hicann);
+	Neighbors<HICANNGlobal> neighbors;
+	for (auto const& hicann : mMgr.present()) {
+		neighbors.push_back(hicann);
 	}
-
-	/// generate Kd-trees
-	typedef nanoflann::KDTreeSingleIndexAdaptor<
-		nanoflann::L2_Simple_Adaptor<Point::value_type, PointCloud> ,
-		PointCloud,
-		2 /* dim */
-		> KDTree;
-	std::unordered_map<Wafer, std::unique_ptr<KDTree>> kdtrees;
-	for (auto const& entry : point_clouds)
-	{
-		Wafer const& wafer = entry.first;
-		PointCloud const& pc = entry.second;
-
-		kdtrees[wafer].reset(new KDTree(2 /*dim*/, pc));
-		kdtrees[wafer]->buildIndex();
-	}
-
-
 
 	// NOTE, this is also not so nice to parallelize, because global resources
 	// are assigned.
@@ -182,9 +101,8 @@ void InputPlacement::run(
 	// optimal insertion point, given as the mean over all target HICANNs.
 	auto const& plmap = neuron_mapping.placement();
 
-	typedef std::map<size_t, std::vector<std::pair<Point, PopulationSlice>>,
-	                 std::greater<size_t>> inputs_type;
-	std::unordered_map<Wafer, inputs_type> auto_inputs;
+	std::map<size_t, std::vector<std::pair<Point, PopulationSlice> >, std::greater<size_t> >
+	    auto_inputs;
 
 	for (auto const& vertex : make_iterable(boost::vertices(mGraph)))
 	{
@@ -220,131 +138,75 @@ void InputPlacement::run(
 			} else {
 				// FIXME: ...
 			}
+		} else {
+			// For automatic placement we compute the mean position of all target HICANNs.
+			// We first have to gather all targets and remove duplicates, as they would
+			// shift the mean position.
 
-		} else { // for auto placement
+			std::set<HICANNGlobal> targets;
+			std::vector<float> xs, ys;
+			// FIXME: Can we make a better educated guess?
+			xs.reserve(out_degree(vertex, mGraph));
+			ys.reserve(xs.capacity());
 
-			std::unordered_map<Wafer, std::vector<float>> x;
-			std::unordered_map<Wafer, std::vector<float>> y;
-
-			// FIXME: identical target HICANNs might be considered more than once
-			// and distort the mean insert location.
-			size_t num_targets = 0;
-			for (auto const& edge : make_iterable(out_edges(vertex, mGraph)))
-			{
-				auto target =  boost::target(edge, mGraph);
+			for (auto const& edge : make_iterable(out_edges(vertex, mGraph))) {
+				auto target = boost::target(edge, mGraph);
 				if (is_source(target, mGraph)) {
 					throw std::runtime_error("spike source connected to other spike source");
 				}
 
 				auto locations = plmap.at(target);
 				for (auto const& loc : locations) {
-					auto const& terminal = loc.coordinate();
-					auto const& hicann = terminal.toHICANNGlobal();
-
-					x[hicann.toWafer()].push_back(hicann.x());
-					y[hicann.toWafer()].push_back(hicann.y());
-
-					++num_targets;
+					auto const& neuron_block = loc.coordinate();
+					auto const& hicann = neuron_block.toHICANNGlobal();
+					if (targets.insert(hicann).second) {
+						xs.push_back(hicann.x());
+						ys.push_back(hicann.y());
+					}
 				}
 			}
 
-			// calculate mean position over all wafers
-			for (auto const& entry : x)
-			{
-				Wafer const& wafer = entry.first;
-				std::vector<float> const& _x = entry.second;
-				std::vector<float> const& _y = y[wafer];
+			assert(!targets.empty());
 
-#if !defined(MAROCCO_NDEBUG)
-				if (_x.empty() || _y.empty()) {
-					throw std::runtime_error("found empty positions");
-				}
-#endif
+			float const x_mean = algorithm::arithmetic_mean(xs.begin(), xs.end());
+			float const y_mean = algorithm::arithmetic_mean(ys.begin(), ys.end());
 
-				float const x_mean = algorithm::arithmetic_mean(_x.begin(), _x.end());
-				float const y_mean = algorithm::arithmetic_mean(_y.begin(), _y.end());
-
-				auto_inputs[wafer][num_targets].push_back(std::make_pair(
-				    Point{x_mean, y_mean}, bio));
-			}
+			auto_inputs[targets.size()].emplace_back(Point{x_mean, y_mean}, bio);
 		}
 	}
 
-	/// try to place inputs for all wafers in the system
-	for (auto& _entry : auto_inputs)
-	{
-		Wafer const& wafer = _entry.first;
-		inputs_type& inputs = _entry.second;
+	// Inputs with higher bandwidth requirements are placed first (see comparator used in
+	// auto_inputs).
 
-		KDTree const& kd_tree = *kdtrees[wafer];
-		PointCloud const& point_cloud = point_clouds[wafer];
-
-		// prepare a KNN ResultSet for KDTree searches
-		const size_t num_results = point_clouds[wafer].size();
-		std::vector<size_t> index_list(num_results);
-		std::vector<Point::value_type> dist_list(num_results);
-
-
-		while (!inputs.empty())
-		{
-			auto it = inputs.begin();
-			std::vector<std::pair<Point, PopulationSlice>>& vec = it->second;
-
-			while (!vec.empty())
-			{
-				// get last entry & remove it from vector
-				auto e = vec.back();
-				vec.pop_back();
-
-				Point const& point = e.first;
-				PopulationSlice& bio = e.second;
-				if (!bio.size()) {
-					throw std::runtime_error("empty input assignment");
-				}
-
-				// do a kd search
-				nanoflann::KNNResultSet<Point::value_type> result(num_results);
-				result.init(index_list.data(), dist_list.data());
-				kd_tree.findNeighbors(result, point, nanoflann::SearchParams());
-
-				// now find a suitable insertion point
-				for (auto const idx : index_list)
-				{
-					HICANNGlobal const& target_hicann = point_cloud.at(idx);
-					OutputBufferMapping& om = output_mapping[target_hicann];
-
-					insertInput(target_hicann, om, bio);
-
-					// TODO: if HICANN has no free output buffers left.
-					// remove it from point cloud and rebuild index.
-					// BV: Check whether this todo is still true when run
-					// rate-dependent mode.
-
-					if (!bio.size()) {
-						break;
-					}
-
-				} // for neighbors
-
-				if (bio.size()) {
-					throw std::runtime_error("out of resources for external inputs");
-				}
-			} // inputs with same bandwidth requirements
-
-
-			// DEBUG
-			if (!vec.empty()) {
-				// this should never happen, because loop above is only left
-				// when `vec` is empty
-				throw std::runtime_error("lala");
+	for (auto& inputs_with_same_bandwidth_requirements : auto_inputs) {
+		for (auto& input : inputs_with_same_bandwidth_requirements.second) {
+			Point const& point = input.first;
+			PopulationSlice& bio = input.second;
+			if (!bio.size()) {
+				throw std::runtime_error("empty input assignment");
 			}
 
-			// erase `inputs` entry for this `bandwidth`. There are no more
-			// inputs left with require this amount of `bandwidth`.
-			inputs.erase(it);
+			neighbors.find_near(point.x, point.y);
+			for (auto const& target_hicann : neighbors) {
+				OutputBufferMapping& om = output_mapping[target_hicann];
 
-		} // for all inputs
-	} // for all wafers
+				insertInput(target_hicann, om, bio);
+
+				// TODO: if HICANN has no free output buffers left.
+				// remove it from point cloud and rebuild index.
+				// BV: Check whether this todo is still true when run
+				// rate-dependent mode.
+
+				if (!bio.size()) {
+					break;
+				}
+			}
+
+			if (bio.size()) {
+				throw std::runtime_error("out of resources for external inputs");
+			}
+		}
+	}
 
 	auto first = mMgr.begin_allocated();
 	auto last  = mMgr.end_allocated();
