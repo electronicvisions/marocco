@@ -1,9 +1,10 @@
 from _pymarocco import *
-
-import os
-__version__ = open(os.path.join(os.path.dirname(__file__), 'VERSION')).read().strip()
+import pymarocco_coordinates as coordinates
 
 def _patch_Version():
+    global __version__
+    import os
+    __version__ = open(os.path.join(os.path.dirname(__file__), 'VERSION')).read().strip()
     PyMarocco.__version__ = __version__
 
 _patch_Version()

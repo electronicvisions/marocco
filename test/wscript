@@ -29,13 +29,31 @@ def build(bld):
     bld(target          = 'test-marocco',
         features        = 'pyembed cxx cxxprogram gtest',
         test_main       = 'main.cpp',
-        source          = bld.path.ant_glob('**/test-*.cpp'),
+        source          = bld.path.ant_glob('**/test-*.cpp', excl=['coordinates/**/*']),
         install_path    = os.path.join('bin', 'tests'),
         use             = [
             'marocco',
             'sthal_inc',
             ],
         **flags)
+
+    bld(target='test-marocco_coordinates',
+        features='cxx cxxprogram gtest',
+        source=bld.path.ant_glob('coordinates/test-*.cpp'),
+        install_path='bin/tests',
+        use=[
+            'marocco_coordinates',
+        ],
+        **flags)
+
+    bld(target='marocco_coordinates-pytest',
+        features='pytest',
+        tests=bld.path.ant_glob('coordinates/test-*.py'),
+        install_path='bin/tests',
+        use=[
+            'pyhalbe',
+            'pymarocco_coordinates',
+        ])
 
     bld(
         target = 'pytests-marocco',
