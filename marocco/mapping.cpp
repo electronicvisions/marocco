@@ -63,7 +63,17 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 	hw[wafer]; // FIXME: hack to allocate one wafer
 
 	Mapper mapper{hw, resources, comm, mi};
-	mapper.run(*store);
+
+	// only map if no wafer cfg is injected
+	if(mi->wafer_cfg_inject.empty()) {
+		mapper.run(*store);
+	} else {
+		// load wafer from file
+		LOG4CXX_INFO(log4cxx::Logger::getLogger("marocco"),
+					 "injecting wafer configuration from: \"" <<
+					 mi->wafer_cfg_inject << "\"");
+		hw[wafer].load(mi->wafer_cfg_inject.c_str());
+	}
 
 	// pyoneer doesn't work currently
 	// auto pyoneer = objectstore->getMetaData<HMF::PyOneer>("pyoneer");

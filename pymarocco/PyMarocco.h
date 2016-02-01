@@ -121,6 +121,11 @@ public:
 	/// path to file to which wafer configuration is dumped. No output if unset
 	std::string wafer_cfg;
 
+	/** path to file from which wafer configuration is read from (instead of running the mapping).
+	 *  ignored if unset/empty string.
+	 */
+	std::string wafer_cfg_inject;
+
 	/// path to file to which recorded membrane potential is written. No output if unset
 	/// only one neuron can be recorded at a time, calling record_v()
 	/// also the hicann enum and analog recorder enum have to be adjusted manually
@@ -198,6 +203,7 @@ private:
 		   & make_nvp("roqt", roqt)
 		   & make_nvp("bio_graph", bio_graph)
 		   & make_nvp("wafer_cfg", wafer_cfg)
+		   & make_nvp("wafer_cfg_inject", wafer_cfg_inject)
 		   & make_nvp("membrane", membrane)
 		   & make_nvp("membrane_translate_to_bio", membrane_translate_to_bio)
 		   & make_nvp("hicann_enum", hicann_enum)
