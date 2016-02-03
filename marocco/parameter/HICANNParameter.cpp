@@ -252,14 +252,14 @@ double HICANNTransformator::neurons(
 	// set Neuron sending L1Addresses
 	typedef std::vector<HMF::HICANN::L1Address>::const_iterator It;
 	std::unordered_map<assignment::PopulationSlice, std::pair<It, It>> address_map;
-	for (auto const& outb : iter_all<OutputBufferOnHICANN>())
+	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
 	{
 		// skip if this is an input assignment
-		if (output_mapping.getMode(outb) != placement::OutputBufferMapping::OUTPUT) {
+		if (output_mapping.getMode(merger) != placement::OutputBufferMapping::OUTPUT) {
 			continue;
 		}
 
-		auto const& list = output_mapping.at(outb);
+		auto const& list = output_mapping.at(merger);
 		for (auto const& am : list)
 		{
 			auto const& addr = am.addresses();
@@ -473,16 +473,16 @@ void HICANNTransformator::spike_input(
 	placement::OutputBufferMapping const& output_mapping)
 {
 	// iterate over the 8 output buffer
-	for (auto const& outb : iter_all<OutputBufferOnHICANN>())
+	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
 	{
-		if (output_mapping.getMode(outb) == placement::OutputBufferMapping::OUTPUT) {
+		if (output_mapping.getMode(merger) == placement::OutputBufferMapping::OUTPUT) {
 			// i.e. dnc merger is not receiving
 			continue;
 		}
-		SpikeInputVisitor visitor(mPyMarocco, mSpikes[outb],
-				int(outb)*209823 /*seed*/, mDuration);
+		SpikeInputVisitor visitor(mPyMarocco, mSpikes[merger],
+				int(merger)*209823 /*seed*/, mDuration);
 
-		for (assignment::AddressMapping const& am: output_mapping.at(outb))
+		for (assignment::AddressMapping const& am: output_mapping.at(merger))
 		{
 			assignment::PopulationSlice const& bio = am.bio();
 			if (!is_source(bio.population(), getGraph()))

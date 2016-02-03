@@ -40,14 +40,15 @@ WeightMap::reference WeightMap::operator[] (key_type const& k) const
 		if (hrepeater.isSending()) {
 			// return highes possible weigt if SPL1 is needed for later routing
 			HICANNGlobal const& hicann = target.hicann();
-			OutputBufferOnHICANN const& outb = hrepeater.toSendingRepeaterOnHICANN().toOutputBufferOnHICANN();
+			DNCMergerOnHICANN const& merger =
+			    hrepeater.toSendingRepeaterOnHICANN().toDNCMergerOnHICANN();
 			auto it = mOutbMapping.find(hicann);
-			if (it!=mOutbMapping.end() && !mOutbMapping.at(hicann).empty(outb)) {
+			if (it != mOutbMapping.end() && !mOutbMapping.at(hicann).empty(merger)) {
 				// max() leads to overflows and therefore cycles...
-				//return std::numeric_limits<reference>::max();
+				// return std::numeric_limits<reference>::max();
 				return 100000;
 			}
-			return w_congestion_factor*horizontal[id] + w_horizontal;
+			return w_congestion_factor * horizontal[id] + w_horizontal;
 		}
 		//else if(source.getDirection() == L1Bus::Horizontal) {
 			//// favour straight connectivity

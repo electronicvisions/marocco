@@ -15,8 +15,8 @@ class HardwareProjection;
 class WaferRoutingPriorityQueue
 {
 	typedef HMF::Coordinate::HICANNGlobal HICANNGlobal;
-	typedef HMF::Coordinate::OutputBufferOnHICANN OutputBufferOnHICANN;
-	typedef std::pair<HICANNGlobal, OutputBufferOnHICANN> source_t;
+	typedef HMF::Coordinate::DNCMergerOnHICANN DNCMergerOnHICANN;
+	typedef std::pair<HICANNGlobal, DNCMergerOnHICANN> source_type;
 
 public:
 	WaferRoutingPriorityQueue(
@@ -32,7 +32,7 @@ public:
 	bool empty() const;
 	void pop();
 
-	source_t source() const;
+	source_type source() const;
 	std::vector<HardwareProjection> projections() const;
 
 private:
@@ -42,14 +42,14 @@ private:
 
 	void insert(
 		HICANNGlobal const& hicann,
-		OutputBufferOnHICANN const& ob,
+		DNCMergerOnHICANN const& merger,
 		std::vector<assignment::AddressMapping> const& sources);
 
 	graph_t const& mGraph;
 	pymarocco::PyMarocco const& mPyMarocco;
 
-	std::map<source_t, std::vector<HardwareProjection>> mProjections;
-	std::deque<std::pair<size_t, source_t>> mSources;
+	std::map<source_type, std::vector<HardwareProjection>> mProjections;
+	std::deque<std::pair<size_t, source_type>> mSources;
 };
 
 
@@ -64,7 +64,7 @@ void WaferRoutingPriorityQueue::insert(
 		insert(hicann, local_output_mapping);
 	}
 
-	using p = std::pair<size_t, source_t>;
+	using p = std::pair<size_t, source_type>;
 	std::stable_sort(mSources.begin(), mSources.end(),
 		[](p const & a, p const & b) -> bool
 		{

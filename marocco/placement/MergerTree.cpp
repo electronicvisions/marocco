@@ -124,7 +124,6 @@ MergerTreeRouter::MergerTreeRouter(HMF::Coordinate::HICANNGlobal const& hicann,
 
 void MergerTreeRouter::run()
 {
-	// prepare map, sorted by assigned neurons
 	std::set<NeuronBlockOnHICANN> pending;
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 	{
@@ -133,13 +132,13 @@ void MergerTreeRouter::run()
 		}
 	}
 
-	// megers are not all equally expensive. Merges in the center and on
-	// higher level (closer to the DNCMergers) are more expensive. If one
+	// Mergers are not all equally expensive. Those in the center and on
+	// higher levels (closer to the DNCMergers) are more expensive. If one
 	// wastes them, some neuron blocks in the center might become
 	// unroutable. So we start the routing in the center and move outwards
 	// and we collapse only adjacent neuron blocks.
 	// Therefore it should always be possible to route all neuron blocks to
-	// at least on SPL1 output at the expense of wasting L2 input bandwidth.
+	// at least one SPL1 output at the expense of wasting L2 input bandwidth.
 
 	static std::array<int, 9> const order = {{ -1, 5, 3, 1, 6, 4, 2, 7, 0 }};
 
@@ -153,7 +152,6 @@ void MergerTreeRouter::run()
 			// nothing to do here
 			continue;
 		}
-
 
 		std::set<NeuronBlockOnHICANN> merge;
 		std::vector<int> predecessor;
@@ -180,14 +178,14 @@ void MergerTreeRouter::run()
 			}
 		}
 
-		Vertex const dnc_merger = vertex_for_dnc_merger(nb);
-		OutputBufferOnHICANN const outb(nb.value());
+		DNCMergerOnHICANN const dnc_merger(nb);
+		Vertex const dnc_merger_vertex = vertex_for_dnc_merger(dnc_merger);
 
 		// establish the actual hardware merger configuration
-		for (auto& v : merge)
+		for (auto& adjacent_nb : merge)
 		{
-			Vertex cur = vertex_for_merger(0, v);
-			while (cur != dnc_merger)
+			Vertex cur = vertex_for_merger(0, adjacent_nb);
+			while (cur != dnc_merger_vertex)
 			{
 				Vertex const next = predecessor.at(cur);
 				connect_in_tree(cur, next);
@@ -198,26 +196,24 @@ void MergerTreeRouter::run()
 		Merger0OnHICANN const topmerger(nb.value());
 		mChip.layer1[topmerger].config = HMF::HICANN::Merger::MERGE;
 
-
 		// finaly, remove the allocated mergers from the merger tree and merged
 		// NeuronBlocks from the pending list.
-		for (auto& v : merge)
+		for (auto& adjacent_nb : merge)
 		{
-			Vertex cur = vertex_for_merger(0, v);
-			while (cur != dnc_merger) {
+			Vertex cur = vertex_for_merger(0, adjacent_nb);
+			while (cur != dnc_merger_vertex) {
 				clear_vertex(cur, mMergerGraph);
 				cur = predecessor.at(cur);
 			}
 
 			// erase from pending
-			pending.erase(v);
+			pending.erase(adjacent_nb);
 
 			// insert into results
-			auto it = mResult.find(v);
-			if (it != mResult.end()) {
+			auto res = mResult.emplace(adjacent_nb, dnc_merger);
+			if (!res.second) {
 				throw std::runtime_error("NeuronBlock has already been inserted");
 			}
-			mResult[v] = outb;
 		}
 
 		if (pending.empty()) {
@@ -228,25 +224,27 @@ void MergerTreeRouter::run()
 
 std::pair<std::set<NeuronBlockOnHICANN>, std::vector<int> >
 MergerTreeRouter::mergeable(
-    NeuronBlockOnHICANN const& nb,
+    NeuronBlockOnHICANN const& main_nb,
     std::set<NeuronBlockOnHICANN> const& /*pending*/) const
 {
 	std::vector<size_t> distance(num_vertices(mMergerGraph), 0);
 	std::vector<int> predecessor(num_vertices(mMergerGraph));
 
-	Vertex const dnc_merger = vertex_for_dnc_merger(nb);
-	OutputBufferOnHICANN const outb(nb.value());
+	// We try to merge as much adjacent neuron blocks as possible into
+	// the DNC merger which would correspond to `main_nb` in a 1-to-1
+	// configuration (directly “below” `main_nb`).
+	Vertex const dnc_merger_vertex = vertex_for_dnc_merger(main_nb);
 
 	boost::breadth_first_search(
-		mMergerGraph, dnc_merger,
+		mMergerGraph, dnc_merger_vertex,
 		boost::visitor(boost::make_bfs_visitor(std::make_pair(
 			boost::record_distances(distance.data(), boost::on_tree_edge()),
 			boost::record_predecessors(predecessor.data(),
 			                           boost::on_tree_edge())))));
 
-	// first make sure, we can establish a MergerTree routing between
-	// main neuronblock and `dnc_merger` at all.
-	if (distance[vertex_for_merger(0, nb)] == 0) {
+	// Make sure we can establish a MergerTree routing between the
+	// main neuron block and `dnc_merger_vertex` at all.
+	if (distance[vertex_for_merger(0, main_nb)] == 0) {
 		throw UnroutableNeuronBlock{};
 	}
 
@@ -255,8 +253,8 @@ MergerTreeRouter::mergeable(
 	// We do not allow merging of nonadjacent blocks to prevent
 	// "muting" the block in between.
 
-	size_t n = neurons(nb);
-	std::set<NeuronBlockOnHICANN> mergeable{nb};
+	size_t n = neurons(main_nb);
+	std::set<NeuronBlockOnHICANN> mergeable{main_nb};
 
 	auto merge = [distance, this, &mergeable](NeuronBlockOnHICANN nn) -> bool {
 		if (distance[vertex_for_merger(0, nn)] > 0) {
@@ -268,7 +266,7 @@ MergerTreeRouter::mergeable(
 	};
 
 	// to the LEFT
-	for (size_t pos = nb.value(); pos--;) {
+	for (size_t pos = main_nb.value(); pos--;) {
 		NeuronBlockOnHICANN const l(pos);
 		if (n + neurons(l) <= OutputBufferMapping::CAPACITY && merge(l)) {
 			n += neurons(l);
@@ -278,7 +276,7 @@ MergerTreeRouter::mergeable(
 	}
 
 	// to the RIGHT
-	for (size_t pos = nb.value() + 1; pos < NeuronBlockOnHICANN::end; ++pos) {
+	for (size_t pos = main_nb.value() + 1; pos < NeuronBlockOnHICANN::end; ++pos) {
 		NeuronBlockOnHICANN const r(pos);
 		if (n + neurons(r) <= OutputBufferMapping::CAPACITY && merge(r)) {
 			n += neurons(r);

@@ -673,9 +673,10 @@ private:
 		if (hrepeater.isSending())
 		{
 			HICANNGlobal const& hicann = bus.hicann();
-			OutputBufferOnHICANN const& outb = hrepeater.toSendingRepeaterOnHICANN().toOutputBufferOnHICANN();
+			DNCMergerOnHICANN const& merger =
+			    hrepeater.toSendingRepeaterOnHICANN().toDNCMergerOnHICANN();
 			auto it = mOutbufMapping.find(hicann);
-			if (it!=mOutbufMapping.end() && !mOutbufMapping.at(hicann).empty(outb)) {
+			if (it != mOutbufMapping.end() && !mOutbufMapping.at(hicann).empty(merger)) {
 				return true;
 			}
 		}

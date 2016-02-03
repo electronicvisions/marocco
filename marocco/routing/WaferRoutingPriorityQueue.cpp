@@ -25,7 +25,7 @@ bool WaferRoutingPriorityQueue::empty() const
 	return mSources.empty();
 }
 
-WaferRoutingPriorityQueue::source_t
+WaferRoutingPriorityQueue::source_type
 WaferRoutingPriorityQueue::source() const
 {
 	if (mSources.empty())
@@ -62,7 +62,7 @@ void WaferRoutingPriorityQueue::insert(
 		insert(hicann, local_output_mapping);
 	}
 
-	using p = std::pair<size_t, source_t>;
+	using p = std::pair<size_t, source_type>;
 	std::stable_sort(mSources.begin(), mSources.end(),
 		[](p const & a, p const & b) -> bool
 		{
@@ -74,18 +74,18 @@ void WaferRoutingPriorityQueue::insert(
 	HICANNGlobal const& hicann,
 	placement::OutputBufferMapping const& local_output_mapping)
 {
-	for (auto const& ob : iter_all<OutputBufferOnHICANN>())
+	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
 	{
 		std::vector<assignment::AddressMapping> const& sources =
-			local_output_mapping.at(ob);
+			local_output_mapping.at(merger);
 
-		insert(hicann, ob, sources);
+		insert(hicann, merger, sources);
 	}
 }
 
 void WaferRoutingPriorityQueue::insert(
 	HICANNGlobal const& hicann,
-	OutputBufferOnHICANN const& ob,
+	DNCMergerOnHICANN const& merger,
 	std::vector<assignment::AddressMapping> const& sources)
 {
 	for (auto const& source : sources)
@@ -103,7 +103,7 @@ void WaferRoutingPriorityQueue::insert(
 			size_t proj_id = proj_view.projection()->id();
 
 			size_t priority = mPyMarocco.routing_priority.get(proj_id);
-			auto source = std::make_pair(hicann, ob);
+			auto source = std::make_pair(hicann, merger);
 			mProjections[source].push_back(std::move(hw_proj));
 			mSources.emplace_front(std::move(priority), std::move(source));
 		}

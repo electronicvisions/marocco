@@ -18,7 +18,7 @@ namespace placement {
 class OutputBufferMapping
 {
 public:
-	typedef HMF::Coordinate::OutputBufferOnHICANN index;
+	typedef HMF::Coordinate::DNCMergerOnHICANN index;
 	typedef assignment::AddressMapping            assign;
 	typedef std::vector<assign>                   list;
 

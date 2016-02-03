@@ -130,10 +130,10 @@ WaferGraph::WaferGraph(
 }
 
 Route::BusSegment WaferGraph::getSendingL1(
-    HICANNGlobal const& h, HMF::Coordinate::OutputBufferOnHICANN const& ob) const
+    HICANNGlobal const& h, HMF::Coordinate::DNCMergerOnHICANN const& m) const
 {
 	HICANNGraph const& hg = mHICANN.at(h);
-	return hg.getSendingL1(ob);
+	return hg.getSendingL1(m);
 }
 
 size_t WaferGraph::numL1Busses() const

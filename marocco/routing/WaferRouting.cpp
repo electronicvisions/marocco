@@ -104,7 +104,7 @@ WaferRouting::run(placement::Result const& placement)
 	{
 		auto const source = queue.source();
 		HICANNGlobal const& hicann = source.first;
-		OutputBufferOnHICANN const& ob = source.second;
+		DNCMergerOnHICANN const& dnc = source.second;
 		std::vector<HardwareProjection> const projections = queue.projections();
 		auto targets = get_targets(revmap, projections);
 
@@ -133,7 +133,7 @@ WaferRouting::run(placement::Result const& placement)
 		}
 
 		routing_graph::vertex_descriptor source_segment =
-			mWaferGraph.getSendingL1(hicann, ob);
+			mWaferGraph.getSendingL1(hicann, dnc);
 
 		// do the actual maze routing
 		std::unordered_set<HICANNGlobal> unreachable;
@@ -150,7 +150,7 @@ WaferRouting::run(placement::Result const& placement)
 		// count synapse loss
 		static bool const count_synapse_loss = true;
 		if (!unreachable.empty() && count_synapse_loss) {
-			auto const& sources = mOutbMapping->at(hicann).at(ob);
+			auto const& sources = mOutbMapping->at(hicann).at(dnc);
 			// we are hitting routing resource limits
 			handleSynapseLoss(hicann, sources, unreachable, neuron_mapping, revmap);
 		}

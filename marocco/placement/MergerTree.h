@@ -56,7 +56,7 @@ public:
 
 	typedef std::unordered_map<
 			HMF::Coordinate::NeuronBlockOnHICANN,
-			HMF::Coordinate::OutputBufferOnHICANN
+			HMF::Coordinate::DNCMergerOnHICANN
 		> Result;
 
 	MergerTreeRouter(HMF::Coordinate::HICANNGlobal const& hicann,

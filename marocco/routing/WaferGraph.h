@@ -24,7 +24,7 @@ public:
 
 	Route::BusSegment getSendingL1(
 	    HMF::Coordinate::HICANNGlobal const& h,
-	    HMF::Coordinate::OutputBufferOnHICANN const& ob) const;
+	    HMF::Coordinate::DNCMergerOnHICANN const& m) const;
 
 	size_t numL1Busses() const;
 

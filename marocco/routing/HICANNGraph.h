@@ -28,7 +28,7 @@ public:
 		pymarocco::PyMarocco const& pymarocco,
 		routing_graph& graph);
 
-	vertex_t getSendingL1(HMF::Coordinate::OutputBufferOnHICANN const& ob) const;
+	vertex_t getSendingL1(HMF::Coordinate::DNCMergerOnHICANN const& m) const;
 
 	vertex_t operator[] (HLineOnHICANN const& h) const;
 	vertex_t operator[] (VLineOnHICANN const& v) const;

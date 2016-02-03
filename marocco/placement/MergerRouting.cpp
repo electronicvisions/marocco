@@ -87,13 +87,13 @@ void MergerRouting::run(
 
 	case pymarocco::Routing::MergerTreeStrategy::maxSPL1: {
 
-		merger_mapping[HMF::Coordinate::NeuronBlockOnHICANN(HMF::Coordinate::Enum(0))] = HMF::Coordinate::OutputBufferOnHICANN(HMF::Coordinate::Enum(0));
-		merger_mapping[HMF::Coordinate::NeuronBlockOnHICANN(HMF::Coordinate::Enum(1))] = HMF::Coordinate::OutputBufferOnHICANN(HMF::Coordinate::Enum(1));
-		merger_mapping[HMF::Coordinate::NeuronBlockOnHICANN(HMF::Coordinate::Enum(2))] = HMF::Coordinate::OutputBufferOnHICANN(HMF::Coordinate::Enum(2));
-		merger_mapping[HMF::Coordinate::NeuronBlockOnHICANN(HMF::Coordinate::Enum(3))] = HMF::Coordinate::OutputBufferOnHICANN(HMF::Coordinate::Enum(3));
-		merger_mapping[HMF::Coordinate::NeuronBlockOnHICANN(HMF::Coordinate::Enum(4))] = HMF::Coordinate::OutputBufferOnHICANN(HMF::Coordinate::Enum(4));
-		merger_mapping[HMF::Coordinate::NeuronBlockOnHICANN(HMF::Coordinate::Enum(5))] = HMF::Coordinate::OutputBufferOnHICANN(HMF::Coordinate::Enum(5));
-		merger_mapping[HMF::Coordinate::NeuronBlockOnHICANN(HMF::Coordinate::Enum(6))] = HMF::Coordinate::OutputBufferOnHICANN(HMF::Coordinate::Enum(6));
+		merger_mapping[NeuronBlockOnHICANN(0)] = DNCMergerOnHICANN(0);
+		merger_mapping[NeuronBlockOnHICANN(1)] = DNCMergerOnHICANN(1);
+		merger_mapping[NeuronBlockOnHICANN(2)] = DNCMergerOnHICANN(2);
+		merger_mapping[NeuronBlockOnHICANN(3)] = DNCMergerOnHICANN(3);
+		merger_mapping[NeuronBlockOnHICANN(4)] = DNCMergerOnHICANN(4);
+		merger_mapping[NeuronBlockOnHICANN(5)] = DNCMergerOnHICANN(5);
+		merger_mapping[NeuronBlockOnHICANN(6)] = DNCMergerOnHICANN(6);
 		// FIXME: only number 7 left for fpga input, change to using only buffers that really have neurons
 
 		break;
@@ -109,10 +109,10 @@ void MergerRouting::run(
 	for (auto const& it : merger_mapping)
 	{
 		NeuronBlockOnHICANN const& nb = it.first;
-		OutputBufferOnHICANN const& outb = it.second;
+		DNCMergerOnHICANN const& dnc = it.second;
 
 		// set this SPL1 merger to output
-		local_output_mapping.setMode(outb, OutputBufferMapping::OUTPUT);
+		local_output_mapping.setMode(dnc, OutputBufferMapping::OUTPUT);
 
 		OnNeuronBlock const& onb = nbmap.at(nb);
 		// Iterate over populations assigned to this neuron block
@@ -121,9 +121,9 @@ void MergerRouting::run(
 			auto const& bio = assign->population_slice();
 			size_t const num_neurons = bio.size();
 			size_t const hw_neuron_size = assign->neuron_size();
-			auto addresses = local_output_mapping.popAddresses(outb, num_neurons, mPyMarocco.l1_address_assignment);
+			auto addresses = local_output_mapping.popAddresses(dnc, num_neurons, mPyMarocco.l1_address_assignment);
 
-			local_output_mapping.insert(outb,
+			local_output_mapping.insert(dnc,
 				assignment::AddressMapping(bio, addresses));
 
 			for (auto& nrn : chunked(onb.neurons(it), hw_neuron_size)) {

@@ -102,8 +102,8 @@ TEST_F(MergerTreeTest, DISABLED_LineSkipEdgeCase1)
 
 	auto const& result = merger_routing.result();
 	ASSERT_EQ(2, result.size());
-	ASSERT_EQ(OutputBufferOnHICANN{3}, result.at(NeuronBlockOnHICANN{3}));
-	ASSERT_EQ(OutputBufferOnHICANN{3}, result.at(NeuronBlockOnHICANN{4}));
+	ASSERT_EQ(DNCMergerOnHICANN{3}, result.at(NeuronBlockOnHICANN{3}));
+	ASSERT_EQ(DNCMergerOnHICANN{3}, result.at(NeuronBlockOnHICANN{4}));
 
 	auto flag = hicann.layer1[m1].config.to_ulong();
 	ASSERT_TRUE(flag == Merger::LEFT_ONLY || flag == Merger::MERGE) << "post: 1/2 uses line 4";
@@ -131,9 +131,9 @@ TEST_F(MergerTreeTest, DISABLED_LineSkipEdgeCase2)
 
 	auto const& result = merger_routing.result();
 	ASSERT_EQ(3, result.size());
-	ASSERT_EQ(OutputBufferOnHICANN{3}, result.at(NeuronBlockOnHICANN{3}));
-	ASSERT_EQ(OutputBufferOnHICANN{5}, result.at(NeuronBlockOnHICANN{4}));
-	ASSERT_EQ(OutputBufferOnHICANN{5}, result.at(NeuronBlockOnHICANN{5}));
+	ASSERT_EQ(DNCMergerOnHICANN{3}, result.at(NeuronBlockOnHICANN{3}));
+	ASSERT_EQ(DNCMergerOnHICANN{5}, result.at(NeuronBlockOnHICANN{4}));
+	ASSERT_EQ(DNCMergerOnHICANN{5}, result.at(NeuronBlockOnHICANN{5}));
 
 	ASSERT_EQ(Merger::LEFT_ONLY, hicann.layer1[m3].config.to_ulong()) << "post: 3/0 left";
 	ASSERT_EQ(Merger::MERGE, hicann.layer1[m1].config.to_ulong()) << "post: 1/2 right";
@@ -154,9 +154,9 @@ TEST_F(MergerTreeTest, DoesNotOverdoIt)
 	ASSERT_EQ(8, result.size())
 	    << "All neuron blocks should have an output buffer.";
 
-	std::unordered_set<OutputBufferOnHICANN> obs;
+	std::unordered_set<DNCMergerOnHICANN> mergers;
 	for (auto const& pair : result) {
-		ASSERT_TRUE(obs.insert(pair.second).second)
+		ASSERT_TRUE(mergers.insert(pair.second).second)
 		    << "Each block should have a different output buffer";
 	}
 

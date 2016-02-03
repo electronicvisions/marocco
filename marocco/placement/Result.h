@@ -28,13 +28,6 @@ private:
 
 typedef NeuronPlacementResult neuron_placement_t;
 
-
-struct OutputMappingTypes
-{
-	typedef hardware_system_t hardware_type;
-	typedef OutputBufferMapping result_type;
-};
-
 class OutputMappingResult
 	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, OutputBufferMapping>
 {};

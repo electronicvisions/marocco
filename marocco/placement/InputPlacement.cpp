@@ -33,18 +33,6 @@ struct Point
 	value_type y;
 };
 
-// 7 must be first to allow for use_output_buffer7_for_dnc_input_and_bg_hack
-std::vector<OutputBufferOnHICANN> const OUTBUFFERS = {
-	OutputBufferOnHICANN(7),
-	OutputBufferOnHICANN(6),
-	OutputBufferOnHICANN(5),
-	OutputBufferOnHICANN(4),
-	OutputBufferOnHICANN(3),
-	OutputBufferOnHICANN(2),
-	OutputBufferOnHICANN(1),
-	OutputBufferOnHICANN(0)
-};
-
 } // namespace
 
 const InputPlacement::rate_type InputPlacement::max_rate_HICANN = 1.78e7; // Hz
@@ -227,18 +215,20 @@ void InputPlacement::insertInput(HMF::Coordinate::HICANNGlobal const& target_hic
 								 OutputBufferMapping& om,
 								 PopulationSlice& bio)
 {
-
-	for (auto const& outb : OUTBUFFERS)
+	// 7 must be first to allow for use_output_buffer7_for_dnc_input_and_bg_hack
+	for (auto const& dnc :
+	     {DNCMergerOnHICANN(7), DNCMergerOnHICANN(6), DNCMergerOnHICANN(5), DNCMergerOnHICANN(4),
+	      DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)})
 		{
-			if (om.getMode(outb)==OutputBufferMapping::INPUT)
+			if (om.getMode(dnc) == OutputBufferMapping::INPUT)
 				{
-					size_t const left_space = om.available(outb);
+					size_t const left_space = om.available(dnc);
 					if (!left_space) {
 						continue;
 					}
 
 					debug(this) << " found insertion point with space: " << left_space << " on: "
-								<< target_hicann << " " << outb;
+								<< target_hicann << " " << dnc;
 
 					// this is the most we get, because available resources are
 					// sorted by size already.
@@ -259,7 +249,7 @@ void InputPlacement::insertInput(HMF::Coordinate::HICANNGlobal const& target_hic
 								<< " would exceed bandwidth limit.\n"
 								<< "available: " << available_rate << " Hz,"
 								<< " HICANN: " << target_hicann;
-							break;
+							return;
 						}
 					}
 
@@ -269,19 +259,18 @@ void InputPlacement::insertInput(HMF::Coordinate::HICANNGlobal const& target_hic
 					}
 
 					// we found and empty slot,  insert the assignment
-					auto addresses = om.popAddresses(outb, n, mPyMarocco.l1_address_assignment);
-					om.insert(outb, assignment::AddressMapping(bio.slice_back(n), addresses));
+					auto addresses = om.popAddresses(dnc, n, mPyMarocco.l1_address_assignment);
+					om.insert(dnc, assignment::AddressMapping(bio.slice_back(n), addresses));
 
 					// mark rate as used
 					if ( mPyMarocco.input_placement.consider_rate )
 						allocateRate(target_hicann, used_rate);
 
 					if (!bio.size()) {
-						break;
+						return;
 					}
 				}
 		} // for all output buffer
-
 }
 
 
@@ -290,28 +279,26 @@ void InputPlacement::configureGbitLinks(
 	OutputBufferMapping const& output_mapping)
 {
 	auto& chip = mHW[hicann];
-	for (auto const& outb : iter_all<OutputBufferOnHICANN>())
+	for (auto const dnc : iter_all<DNCMergerOnHICANN>())
 	{
-		GbitLinkOnHICANN const c(outb);
-		DNCMergerOnHICANN const dnc(outb);
+		GbitLinkOnHICANN const gbit_link(dnc);
 
 		// slow only works if merger is set to MERGE
 		chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
 		chip.layer1[dnc].slow = true;
 
-		if (output_mapping.getMode(outb)==OutputBufferMapping::Mode::OUTPUT) {
+		if (output_mapping.getMode(dnc) == OutputBufferMapping::Mode::OUTPUT) {
 			// output spikes for recording
-			chip.layer1[c]   = HMF::HICANN::GbitLink::Direction::TO_DNC;
-
-		} else if(output_mapping.getMode(outb)==OutputBufferMapping::Mode::INPUT) {
+			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_DNC;
+		} else if (output_mapping.getMode(dnc) == OutputBufferMapping::Mode::INPUT) {
 			// input from external FPGAs
-			chip.layer1[c]   = HMF::HICANN::GbitLink::Direction::TO_HICANN;
+			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_HICANN;
 
 			// If OutputBuffer is unused (represented by Mode==INPUT and empty()==true):
 			// don't use MERGE and slow, if there are no sources mapped to output buffer
 			// this avoids buggy configurations in the ESS (cf. #1400)
 			// but has no influence on the real hardware.
-			if ( output_mapping.empty(outb) ) {
+			if (output_mapping.empty(dnc)) {
 				chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
 				chip.layer1[dnc].slow = false;
 			}
@@ -320,26 +307,22 @@ void InputPlacement::configureGbitLinks(
 			// and synapse drivers. In principle those events could be provided
 			// through the DNC input; But as this sets in too late and/or is too
 			// short, the current approach is to use the background generator
-			// connected to this output buffer.
+			// connected to this output buffer (which is forwarded 1-to-1 to
+			// DNC merger 7).
 			bool const hack = mPyMarocco.placement.use_output_buffer7_for_dnc_input_and_bg_hack;
 
 			if (hack && dnc == DNCMergerOnHICANN(7)) {
-
 				Merger0OnHICANN const m(dnc.value());
 				// Select (only) background generator, necessitating a hack in
 				// HICANNPlacement.cpp that prevents placing neurons there.
 				chip.layer1[m] = HMF::HICANN::Merger::LEFT_ONLY;
 
 				MAROCCO_WARN("Neurons from right most block won't work");
-			} else {
-				// DNCMerger always set to MERGE to allow for slow
-				//chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
 			}
 		} else {
 			throw std::runtime_error("unknown mode");
 		}
 	}
-
 }
 
 

@@ -22,9 +22,9 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 	auto const& om = result.output_mapping;
 	for (auto const& h : mgr.allocated())
 	{
-		for (auto const& outb : iter_all<OutputBufferOnHICANN>())
+		for (auto const& dnc : iter_all<DNCMergerOnHICANN>())
 		{
-			auto const& mappings = om.at(h).at(outb);
+			auto const& mappings = om.at(h).at(dnc);
 			for (assignment::AddressMapping const& mapping : mappings) {
 				// get a vector of L1Adresses
 				auto const& addresses = mapping.addresses();
@@ -39,15 +39,19 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 
 					MAROCCO_TRACE("RevVal: pop: " << pop.id() << " neuron: " << neuron_index
 					                              << " offset: " << offset << ", RevKey: " << h
-					                              << " " << outb << " " << address);
+					                              << " " << dnc << " " << address);
 
 					// bio represents one biological neuron
 					bio_id const bio{pop.id(), neuron_index + offset};
 
+					// FIXME: This assumes 1-to-1 merger tree configuration
+					NeuronBlockOnHICANN neuron_block(dnc);
+
+
 					// hw represents the corresponding hardware (+ the bio neuron itself)
-					hw_id const hw{h, outb, address}; // ECM: the mapping seems to use this for
-					                                  // target and source addresses,
-					                                  // cf. HICANNTransformator::spike_input()
+					// ECM: the mapping seems to use this for target and source addresses,
+					// cf. HICANNTransformator::spike_input()
+					hw_id const hw{h, neuron_block, address};
 
 					// one denmem circuit ("hardware neuron") belongs
 					// to one PyNN neuron, but one PyNN neuron belongs

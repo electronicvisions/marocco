@@ -8,7 +8,7 @@ namespace placement {
 
 bool hw_id::operator==(hw_id const &k) const
 {
-	return hicann == k.hicann && outb == k.outb && addr == k.addr;
+	return hicann == k.hicann && neuron_block == k.neuron_block && addr == k.addr;
 }
 
 bool hw_id::operator!=(hw_id const &k) const
@@ -18,7 +18,7 @@ bool hw_id::operator!=(hw_id const &k) const
 
 std::ostream& hw_id::operator<< (std::ostream& os) const
 {
-	return os << hicann << " " << outb << " " << addr;
+	return os << hicann << " " << neuron_block << " " << addr;
 }
 
 bool bio_id::operator==(bio_id const &v) const
@@ -44,7 +44,7 @@ namespace std {
 size_t hash<marocco::placement::hw_id>::operator()(marocco::placement::hw_id const & t) const
 {
 	size_t hash = hash_value(t.hicann);
-	boost::hash_combine(hash, hash_value(t.outb));
+	boost::hash_combine(hash, hash_value(t.neuron_block));
 	boost::hash_combine(hash, hash_value(t.addr));
 	return hash;
 }
