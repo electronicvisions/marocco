@@ -31,11 +31,9 @@ def configure(cfg):
 def build(bld):
     recurse(bld)
 
-    flags = { "cxxflags"  : [ '-Wall', '-Wextra', '-Wno-long-long', '-Wno-deprecated',
-                             '-Wno-literal-suffix', # squelch warnings from openMPI's mpi.h
-                             '-Wno-format', '-fPIC', '-std=c++0x' ],
-              "linkflags" : [ '-Wl,-z,defs' ]
-            }
+    cxxflags = [
+        '-Wno-literal-suffix',  # squelch warnings from openMPI's mpi.h
+    ]
 
     bld(target          = 'pyroqt_inc',
         use             = 'marocco_inc halbe_coordinate_inc realtime_inc',
@@ -46,7 +44,7 @@ def build(bld):
         features        = 'cxx',
         source          =  bld.path.ant_glob('*.cpp'),
         use             =  ['pyroqt_inc', 'mpiconfig'],
-        **flags)
+        cxxflags=cxxflags + ['-fPIC'])
 
     bld(target         = 'pyroqt',
         features       = 'cxx cxxshlib pypp pyext pyembed',
@@ -56,4 +54,4 @@ def build(bld):
         gen_defines     = 'PYPLUSPLUS __STRICT_ANSI__',
         headers         = 'bindings.h',
         install_path   = 'lib',
-        **flags)
+        cxxflags=cxxflags)

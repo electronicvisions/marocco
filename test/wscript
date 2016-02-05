@@ -19,12 +19,6 @@ def configure(cfg):
 
 
 def build(bld):
-    flags = { "cxxflags" : [
-                '-g', '-O0', '-std=c++0x',
-                '-pedantic', '-Wall', '-Wextra',
-                '-Wno-c++0x-compat',
-            ]
-        }
 
     bld(target          = 'test-marocco',
         features        = 'pyembed cxx cxxprogram gtest',
@@ -34,8 +28,8 @@ def build(bld):
         use             = [
             'marocco',
             'sthal_inc',
-            ],
-        **flags)
+            ]
+        )
 
     bld(target='test-marocco_coordinates',
         features='cxx cxxprogram gtest',
@@ -43,8 +37,8 @@ def build(bld):
         install_path='bin/tests',
         use=[
             'marocco_coordinates',
-        ],
-        **flags)
+        ]
+    )
 
     bld(target='marocco_coordinates-pytest',
         features='pytest',

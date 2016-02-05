@@ -47,7 +47,6 @@ def configure(cfg):
         msg      = "Checking compiler version",
         errmsg   = compiler_version_error,
         type     = "cxx",
-        cxxflags = '-std=c++11',
         execute  = False,
         fragment = """#if __cplusplus != 201103L
                           #error %(MSG)s
@@ -73,17 +72,9 @@ def configure(cfg):
 
 
 def build(bld):
-    flags = {
-            "cxxflags" : [
-                '-g', '-O0', '-std=c++0x',
-                '-pedantic', '-Wall', '-Wextra',
-                '-Wno-c++0x-compat',
-                '-Wno-literal-suffix', # squelch warnings from openMPI's mpi.h
-                '-DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE',
-                '-DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING',
-            ],
-            "linkflags" : []
-        }
+    cxxflags = [
+        '-Wno-literal-suffix',  # squelch warnings from openMPI's mpi.h
+    ]
 
     bld(target          = 'marocco_inc',
         use             = [
@@ -122,7 +113,7 @@ def build(bld):
             'redman',
             'marocco_coordinates',
             ],
-        **flags)
+        cxxflags=cxxflags)
 
     bld(target='marocco_coordinates_inc',
         export_includes='.')
@@ -135,7 +126,7 @@ def build(bld):
             'marocco_coordinates_inc',
             'halbe',
         ],
-        **flags)
+        cxxflags=cxxflags)
 
     bld(target          = 'mapper',
         features        = 'cxx cxxprogram post_task pyembed', # KHS: quickfix, fixing pyembed could be better
@@ -151,7 +142,7 @@ def build(bld):
             'pyroqt',
             'pyredman',
             ],
-        **flags)
+        cxxflags=cxxflags)
 
     bld.install_files(
         '${PREFIX}/bin/tools',
