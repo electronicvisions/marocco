@@ -107,11 +107,16 @@ auto OnNeuronBlock::get(neuron_coordinate const& nrn) const -> iterator {
 	auto it = mAssignment[nrn.x()].begin();
 	std::advance(it, nrn.y());
 
+	if (*it == defect_marker()) {
+		return end();
+	}
+
 	auto first = it;
 	for (--it; it >= BEGIN; --it) {
-		if (*it == *first) {
-			first = it;
+		if (*it != *first) {
+			break;
 		}
+		first = it;
 	}
 
 	return {first, mAssignment.cend()->begin(), defect_marker()};
