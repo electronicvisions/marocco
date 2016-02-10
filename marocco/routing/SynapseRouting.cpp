@@ -342,10 +342,8 @@ void SynapseRouting::run(placement::Result const& placement,
 				SynapseLossProxy syn_loss_proxy =
 					mSynapseLoss->getProxy(pynn_proj, src_hicann, hicann());
 
-				std::vector<assignment::NeuronBlockSlice> const& hwassigns = revmap.at(target);
-				for (auto const& hwassign: hwassigns)
-				{
-					auto const& terminal = hwassign.coordinate();
+				for (auto const& primary_neuron : revmap.at(target)) {
+					auto const terminal = primary_neuron.toNeuronBlockGlobal();
 					if (terminal.toHICANNGlobal() != hicann()) {
 						// this terminal doesn't correspond to the current local
 						// hicann. so there is nothing to do.
@@ -354,16 +352,16 @@ void SynapseRouting::run(placement::Result const& placement,
 
 					placement::OnNeuronBlock const& onb = nrnpl.at(
 					    terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()];
-					auto const it = onb.get(hwassign.offset());
+					auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 					assert(it != onb.end());
 
 					{
 						// FIXME: Confirm and remove this:
 						NeuronOnNeuronBlock first = *onb.neurons(it).begin();
-						assert(first == hwassign.offset());
+						assert(first == primary_neuron.toNeuronOnNeuronBlock());
 					}
 
-					NeuronOnNeuronBlock const& first = hwassign.offset();
+					NeuronOnNeuronBlock const& first = primary_neuron.toNeuronOnNeuronBlock();
 					std::shared_ptr<placement::NeuronPlacement> const& trg_assign = *it;
 					assignment::PopulationSlice const& trg_bio_assign = trg_assign->population_slice();
 
@@ -559,9 +557,8 @@ void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
 		assignment::AddressMapping const& am = proj.source();
 		assignment::PopulationSlice const& src_bio_assign = am.bio();
 
-		std::vector<assignment::NeuronBlockSlice> const& hwassigns = revmap.at(target);
-		for (auto const& hwassign : hwassigns) {
-			auto const& terminal = hwassign.coordinate();
+		for (auto const& primary_neuron : revmap.at(target)) {
+			auto const terminal = primary_neuron.toNeuronBlockGlobal();
 			if (terminal.toHICANNGlobal() != hicann()) {
 				// this terminal doesn't correspond to the current local
 				// hicann. so there is nothing to do.
@@ -570,7 +567,7 @@ void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
 
 			placement::OnNeuronBlock const& onb =
 			    nrnpl.at(terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()];
-			auto trg_bio_assign = onb[hwassign.offset()]->population_slice();
+			auto trg_bio_assign = onb[primary_neuron.toNeuronOnNeuronBlock()]->population_slice();
 
 			mSynapseLoss->addLoss(pynn_proj, src_hicann, terminal.toHICANNGlobal(),
 								  src_bio_assign, trg_bio_assign);

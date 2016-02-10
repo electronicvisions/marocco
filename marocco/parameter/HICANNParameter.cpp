@@ -53,11 +53,11 @@ HICANNParameter::run(
 
 		auto const mapping = pm.at(v);
 
-		for (auto const& assign : mapping) {
-			auto const& terminal = assign.coordinate();
+		for (auto const& primary_neuron : mapping) {
+			auto const terminal = primary_neuron.toNeuronBlockGlobal();
 			auto const entry_ptr =
 			    np.at(terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()]
-			                                    [assign.offset()];
+				[primary_neuron.toNeuronOnNeuronBlock()];
 			if (!entry_ptr) {
 				continue;
 			}
@@ -72,7 +72,7 @@ HICANNParameter::run(
 					MAROCCO_WARN("unsupported current type");
 				} else {
 					MAROCCO_DEBUG("insert source");
-					auto n = assign.offset().toNeuronOnHICANN(
+					auto n = primary_neuron.toNeuronOnNeuronBlock().toNeuronOnHICANN(
 					    terminal.toNeuronBlockOnHICANN());
 					current_source_map[terminal.toHICANNGlobal()][n] = ptr;
 				}

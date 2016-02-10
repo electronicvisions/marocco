@@ -5,9 +5,9 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
-#include "marocco/assignment/NeuronBlockSlice.h"
 #include "marocco/config.h"
 #include "marocco/placement/Result.h"
+#include "marocco/util/chunked.h"
 #include "marocco/util/iterable.h"
 
 namespace marocco {
@@ -66,8 +66,8 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 
 	// here the mapping between the addresses of the denmem circuits
 	// and the biological neurons is made
-	auto const& onm = result.neuron_placement; // get output neuron mapping result
-	auto const& placement = onm.placement(); // get the distributed placement map
+	auto const& onm = result.neuron_placement;
+	auto const& placement = onm.placement();
 
 	// loop over all populations wrapped as graph vertex type
 	for (auto const& vertex : make_iterable(boost::vertices(graph))) {
@@ -83,37 +83,24 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 		size_t bio_neuron_index = 0;
 
 		// each population has a vector with assigned denmem circuits
-		for (assignment::NeuronBlockSlice const& nb_slice : mapping) {
-			auto denmem_count = nb_slice.size();
-			NeuronBlockGlobal neuron_block = nb_slice.coordinate();
-			// the 256x2 array of denmem circuits on a HICANN is distributed into
-			// 8 blocks of size 32x2
-			auto block = neuron_block.toNeuronBlockOnHICANN();
-			// this vector points to the beginning of assigned denmem circuits
-			// in this terminal
-			auto hw_neuron_size = nb_slice.neuron_size(); // size (# of denmems) of logical neuron
-			size_t bio_neurons_in_terminal = denmem_count/hw_neuron_size;
+		for (NeuronGlobal const& primary_neuron : mapping) {
+			NeuronBlockGlobal neuron_block = primary_neuron.toNeuronBlockGlobal();
+			placement::OnNeuronBlock const& onb =
+			    onm.at(primary_neuron.toHICANNGlobal())[neuron_block.toNeuronBlockOnHICANN()];
 
-			auto offset = nb_slice.offset(); // denmem offset of logical neuron
-			auto const neurons_x_per_neuronblock = NeuronOnNeuronBlock::x_type::size;
-			auto const neurons_y_per_neuronblock = NeuronOnNeuronBlock::y_type::size;
+			auto it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
+			assert(it != onb.end());
 
-			// iterate over all bio neurons in this terminal
-			for (size_t i = 0; i < bio_neurons_in_terminal; ++i) {
+	 		size_t const hw_neuron_size = (*it)->neuron_size();
+			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
 				bio_id bio {population.id(), bio_neuron_index};
 
-				// iterate over the belonging denmem circuits
-				for (size_t d = 0; d < hw_neuron_size; ++d) {
-					X x{block.value() * neurons_x_per_neuronblock + offset.x() +
-					    i * hw_neuron_size / neurons_y_per_neuronblock +
-					    d / neurons_y_per_neuronblock};
-					Y y{(i * hw_neuron_size + d) % neurons_y_per_neuronblock};
-					NeuronOnHICANN point{x, y};
-					NeuronGlobal ng{point, neuron_block.toHICANNGlobal()};
-					// now save bio_id to NeuronGlobal mapping
+				for (NeuronOnNeuronBlock nrn : neuron) {
+					auto ng = nrn.toNeuronGlobal(neuron_block);
 					mBio2DenmemMap[bio].push_back(ng);
 					mDenmem2BioMap[ng] = bio;
 				}
+
 				++bio_neuron_index;
 			}
 		}

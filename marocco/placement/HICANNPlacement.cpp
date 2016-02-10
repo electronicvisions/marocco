@@ -224,9 +224,7 @@ void HICANNPlacement::post_process(
 		auto placement = entry.chunk;
 
 		// Fill reverse lookup.
-		res.placement()[placement.population()].emplace_back(
-			nrn.toNeuronBlockGlobal(), nrn.toNeuronOnNeuronBlock(), placement.size(),
-			placement.neuron_size());
+		res.placement()[placement.population()].push_back(nrn);
 
 		// Tag HICANN as 'in use' in the resource manager.
 		auto hicann = nrn.toHICANNGlobal();

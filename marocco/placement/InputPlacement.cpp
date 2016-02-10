@@ -142,9 +142,8 @@ void InputPlacement::run(
 				}
 
 				auto locations = plmap.at(target);
-				for (auto const& loc : locations) {
-					auto const& neuron_block = loc.coordinate();
-					auto const& hicann = neuron_block.toHICANNGlobal();
+				for (auto const& primary_neuron : locations) {
+					auto const& hicann = primary_neuron.toHICANNGlobal();
 					if (targets.insert(hicann).second) {
 						xs.push_back(hicann.x());
 						ys.push_back(hicann.y());

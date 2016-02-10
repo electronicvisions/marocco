@@ -566,16 +566,14 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 
 		// FIXME: some of the following seems to have been copied
 		// verbatim from SynapseRouting.cpp
-		std::vector<assignment::NeuronBlockSlice> const& hwassigns = revmap.at(target);
-		for (auto const& hwassign: hwassigns)
-		{
-			auto const& terminal = hwassign.coordinate();
+		for (auto const& primary_neuron : revmap.at(target)) {
+			auto const terminal = primary_neuron.toNeuronBlockGlobal();
 			if (terminal.toHICANNGlobal() == hicann())
 			{
 				placement::OnNeuronBlock const& onb = mNeuronPlacement.at(
 				    terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()];
 
-				auto const it = onb.get(hwassign.offset());
+				auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 				assert(it != onb.end());
 
 				std::shared_ptr<placement::NeuronPlacement> const& trg_assign = *it;
@@ -586,10 +584,10 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 				{
 					// FIXME: Confirm and remove this:
 					NeuronOnNeuronBlock first = *onb.neurons(it).begin();
-					assert(first == hwassign.offset());
+					assert(first == primary_neuron.toNeuronOnNeuronBlock());
 				}
 
-				NeuronOnNeuronBlock const& first = hwassign.offset();
+				NeuronOnNeuronBlock const& first = primary_neuron.toNeuronOnNeuronBlock();
 
 				size_t const hw_neuron_width = trg_assign->neuron_width();
 
