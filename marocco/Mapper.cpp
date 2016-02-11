@@ -8,7 +8,6 @@
 #include "marocco/Mapper.h"
 #include "marocco/Result.h"
 #include "marocco/parameter/HICANNParameter.h"
-#include "marocco/partition/CakePartitioner.h"
 #include "marocco/placement/Placement.h"
 #include "marocco/routing/Routing.h"
 #include "marocco/routing/SynapseLoss.h"
@@ -60,7 +59,7 @@ void Mapper::run(ObjectStore const& pynn)
 
 	auto start = std::chrono::system_clock::now();
 
-	// B U I L D ,   P A R T I T I O N   &   D I S T R I B U T E   G R A P H
+	// B U I L D   G R A P H
 	GraphBuilder gb(mGraph);
 	gb.build(pynn);
 
@@ -70,18 +69,14 @@ void Mapper::run(ObjectStore const& pynn)
 		gb.write_bio_graph(mPyMarocco->bio_graph);
 	}
 
-	size_t num_local_neurons = num_neurons(mGraph);
-	info() << num_local_neurons << " neurons in "
-		<< boost::num_vertices(mGraph) << " populations";
-
-	// P A R T I T I O N   H A R D W A R E
-	partition::CakePartitioner cake(mMgr, mComm.Get_size(), mComm.Get_rank());
-	info() << mMgr.count_present() << " available HICANNs";
+	size_t neuron_count = num_neurons(mGraph);
+	MAROCCO_INFO(
+	    neuron_count << " neurons in " << boost::num_vertices(mGraph) << " populations");
 
 	// rough capacity check; in case we can stop mapping already here
-	if (num_local_neurons > mHW.capacity())
+	if (neuron_count > mHW.capacity()) {
 		throw std::runtime_error("hardware capacity too low");
-
+	}
 
 	// The 3 1/2-steps to complete happiness
 
@@ -137,7 +132,7 @@ void Mapper::run(ObjectStore const& pynn)
 	// update stats
 	getStats().setNumPopulations(pynn.populations().size());
 	getStats().setNumProjections(pynn.projections().size());
-	getStats().setNumNeurons(num_local_neurons);
+	getStats().setNumNeurons(neuron_count);
 
 	if (synapse_loss) {
 		synapse_loss->fill(getStats());
