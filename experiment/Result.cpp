@@ -26,8 +26,7 @@ ReadResults::ReadResults(
 
 double ReadResults::translate(double hw_time_in_s) const
 {
-	static double const seconds_to_ms = 1000.;
-	return (hw_time_in_s - mPyMarocco.experiment_time_offset ) * mPyMarocco.speedup * seconds_to_ms;
+	return (hw_time_in_s - mPyMarocco.experiment_time_offset ) * mPyMarocco.speedup;
 }
 
 void ReadResults::insertRandomSpikes(ObjectStore& objectstore) const

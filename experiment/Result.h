@@ -22,8 +22,10 @@ public:
 	void run(ObjectStore& objectstore, marocco::placement::LookupTable const& rev) const;
 
 private:
-	/// translate hardware spike times in seconds back to the biological time domain in ms.
-	double translate(double hw_cycle) const;
+	/// translate hardware spike times back to the biological time domain.
+	/// @param hw_time_in_s time of hardware spike in seconds
+	/// @returns bio spike time in seconds
+	double translate(double hw_time_in_s) const;
 	void insertRandomSpikes(ObjectStore& objectstore) const;
 
 	pymarocco::PyMarocco const& mPyMarocco;
