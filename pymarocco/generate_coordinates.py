@@ -4,7 +4,7 @@ import textwrap
 import logging
 
 from pywrap.wrapper import Wrapper
-from pywrap import namespaces, containers, classes
+from pywrap import namespaces, containers, classes, functions
 
 wrap = Wrapper()
 mb = wrap.mb
@@ -35,6 +35,12 @@ for cl in ns_marocco.classes(allow_empty=True):
     classes.add_pickle_suite(cl)
     classes.add_comparison_operators(cl)
     # classes.expose_std_hash(cl)
+
+# Convert vector<T&> return type to copies.
+for cl in ns_marocco.classes(allow_empty=True):
+    for fun in cl.mem_funs(allow_empty=True):
+        if not functions.convert_vector_of_references_return_type(fun):
+            continue
 
 # Register to-python converters for boost::variant objects.
 for td in ns_marocco.typedefs(allow_empty=True):
