@@ -1,4 +1,5 @@
 #include "marocco/coordinates/L1Route.h"
+#include "marocco/coordinates/printers.h"
 
 #include <boost/variant/static_visitor.hpp>
 #include <sstream>
@@ -488,6 +489,11 @@ L1Route::find_invalid(
 		*store_last_hicann = visitor.current_hicann();
 	}
 	return it;
+}
+
+std::ostream& operator<<(std::ostream& os, L1Route const& route)
+{
+	return os << pretty_printed(route);
 }
 
 } // namespace marocco

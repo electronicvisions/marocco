@@ -1,9 +1,10 @@
 #pragma once
 
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 #include <boost/operators.hpp>
 #include <boost/variant.hpp>
-#include <vector>
-#include <stdexcept>
 
 #include "hal/Coordinate/External.h"
 #include "hal/Coordinate/L1.h"
@@ -153,5 +154,7 @@ private:
 	HMF::Coordinate::HICANNOnWafer m_last_hicann;
 	sequence_type m_segments;
 }; // L1Route
+
+std::ostream& operator<<(std::ostream& os, L1Route const& route);
 
 } // namespace marocco

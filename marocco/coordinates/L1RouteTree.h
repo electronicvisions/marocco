@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <boost/operators.hpp>
 #include <boost/ref.hpp>
 #ifndef PYPLUSPLUS
@@ -70,5 +71,7 @@ private:
 	std::set<tail_type, TailCompare> m_tails;
 #endif // !PYPLUSPLUS
 };     // L1RouteTree
+
+std::ostream& operator<<(std::ostream& os, L1RouteTree const& tree);
 
 } // namespace marocco

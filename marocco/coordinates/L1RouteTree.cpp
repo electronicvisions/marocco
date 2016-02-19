@@ -1,4 +1,5 @@
 #include "marocco/coordinates/L1RouteTree.h"
+#include "marocco/coordinates/printers.h"
 
 #include <boost/iterator/indirect_iterator.hpp>
 
@@ -153,6 +154,11 @@ bool L1RouteTree::TailCompare::operator()(tail_type const& lhs, tail_type const&
 		return left_segments[1] < right_segments[1];
 	}
 	return left_segments[0] < right_segments[0];
+}
+
+std::ostream& operator<<(std::ostream& os, L1RouteTree const& tree)
+{
+	return os << pretty_printed(tree);
 }
 
 } // namespace marocco
