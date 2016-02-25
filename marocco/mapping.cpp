@@ -64,15 +64,14 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 
 	Mapper mapper{hw, resources, comm, mi};
 
-	// only map if no wafer cfg is injected
-	if(mi->wafer_cfg_inject.empty()) {
-		mapper.run(*store);
-	} else {
-		// load wafer from file
-		LOG4CXX_INFO(log4cxx::Logger::getLogger("marocco"),
-					 "injecting wafer configuration from: \"" <<
-					 mi->wafer_cfg_inject << "\"");
-		hw[wafer].load(mi->wafer_cfg_inject.c_str());
+	mapper.run(*store);
+
+	if(!mi->wafer_cfg_inject.empty()) {
+	  // load wafer from file
+	  LOG4CXX_INFO(log4cxx::Logger::getLogger("marocco"),
+		       "injecting wafer configuration from: \"" <<
+		       mi->wafer_cfg_inject << "\"");
+	  hw[wafer].load(mi->wafer_cfg_inject.c_str());
 	}
 
 	// pyoneer doesn't work currently
