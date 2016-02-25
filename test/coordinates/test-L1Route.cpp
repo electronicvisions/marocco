@@ -1,4 +1,4 @@
-#include "test/common.h"
+#include <gtest/gtest.h>
 
 #include "marocco/coordinates/L1Route.h"
 
