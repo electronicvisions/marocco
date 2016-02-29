@@ -3,6 +3,8 @@
 #include <array>
 #include <unordered_map>
 #include <tuple>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/export.hpp>
 
 #include "hal/Coordinate/HMFGeometry.h"
 #include "hal/HICANN/L1Address.h"
@@ -98,6 +100,11 @@ public:
 private:
 	/// map from hardware neuron coordinate to property counts
 	mapped_type mCounts;
+
+	/// serialization
+	friend class boost::serialization::access;
+	template<typename Archiver>
+	void serialize(Archiver& ar, unsigned int const);
 };
 
 
@@ -508,7 +515,11 @@ private:
 	FRIEND_TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputAdvanced);
 	FRIEND_TEST(SynapseDriverRequirements, _calc);
 	FRIEND_TEST(SynapseDriverRequirements, count_synapses_per_hardware_property);
+	FRIEND_TEST(SynapseDriverRequirements, Issue2115);
+	FRIEND_TEST(SynapseDriverRequirements, Issue2115_minimal);
 };
 
 } // namespace routing
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_KEY(::marocco::routing::SynapseCounts)

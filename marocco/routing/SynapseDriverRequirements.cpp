@@ -4,6 +4,9 @@
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/routing/util.h"
 #include "marocco/util/chunked.h"
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/tuple.h>
+#include <boost/serialization/unordered_map.h>
 
 using namespace HMF::Coordinate;
 using HMF::HICANN::L1Address;
@@ -762,6 +765,17 @@ SynapseDriverRequirements::count_synapses_per_hardware_property(
 	return syn_count;
 }
 
+template<typename Archiver>
+void SynapseCounts::serialize(Archiver& ar, const unsigned int)
+{
+	using namespace boost::serialization;
+	ar & make_nvp("counts", mCounts);
+}
 
 } // namespace routing
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_IMPLEMENT(::marocco::routing::SynapseCounts)
+
+#include "boost/serialization/serialization_helper.tcc"
+EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::marocco::routing::SynapseCounts)

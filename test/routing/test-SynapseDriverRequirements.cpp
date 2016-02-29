@@ -2,6 +2,10 @@
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "hal/Coordinate/iter_all.h"
 
+#include <fstream>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/unordered_map.h>
+
 using namespace HMF::Coordinate;
 using HMF::HICANN::DriverDecoder;
 using HMF::HICANN::L1Address;
@@ -454,6 +458,165 @@ TEST(SynapseDriverRequirements, count_synapses_per_hardware_property)
 			half_rows_assigned_per_parity, assigned_side_parity);
 }
 
+// helper for next tests
+template <typename Key, typename T>
+struct map_acc
+{
+	T operator()(T const& lhs, std::pair<Key, T> const& rhs)
+	{
+		return lhs + rhs.second;
+	}
+};
+
+// helper function to count number of required driver from synrow_histogram
+// procedure taken from SynapseManager.init().
+// needed for next tests
+size_t count_drivers_from_synrow_histogram(
+		std::map<Side_Parity_Decoder_STP, size_t> const& synrow_histogram
+		)
+{
+	typedef std::map<STPMode,
+					 std::map<Side, std::map<Parity, std::map<DriverDecoder, size_t> > > >
+		PerDecoderMap;
+
+	PerDecoderMap half_rows;
+
+	for (auto const& item : synrow_histogram) {
+		Side side;
+		Parity parity;
+		DriverDecoder decoder;
+		STPMode stp;
+		std::tie(side, parity, decoder, stp) = item.first;
+		size_t const half_row_count = item.second;
+
+		half_rows[stp][side][parity][decoder] = half_row_count;
+	}
+
+	// calc requirements
+	size_t r_drivers = 0; // number of required drivers
+	for (auto const& stp_item : half_rows) {
+		size_t req_rows_per_stp = 0;
+		for (auto const& side_item : stp_item.second) {
+			// The number of required rows per side is maximum of half rows per parity;
+			size_t req_rows_per_side = 0;
+			for (auto const& parity_item : side_item.second) {
+				size_t req_half_rows = std::accumulate(
+					parity_item.second.begin(), parity_item.second.end(), 0,
+					map_acc<DriverDecoder, size_t>());
+				if (req_half_rows > req_rows_per_side)
+					req_rows_per_side = req_half_rows;
+			}
+			req_rows_per_stp += req_rows_per_side;
+		}
+		size_t const req_drivers_per_stp =
+			size_t(std::ceil(0.5 * req_rows_per_stp)); // 2 rows per driver
+		r_drivers += req_drivers_per_stp;
+	}
+	return r_drivers;
+}
+
+/// Test reproducing #2115
+/// uses serialized synapse counts and target synapses extracted from original
+/// PyNN experiment
+TEST(SynapseDriverRequirements, Issue2115)
+{
+	const std::string input_data_path = "routing/input_data/issue2115";
+	const size_t num_error_cases = 10;
+
+	for (size_t i_ec = 0; i_ec < num_error_cases; ++i_ec) {
+
+		SynapseCounts sc;
+		{
+			std::stringstream fn;
+			fn << input_data_path << "/" << "synapse_counts" << i_ec << ".txt";
+			std::ifstream ifs(fn.str());
+			boost::archive::text_iarchive ia(ifs);
+			ia >> sc;
+		}
+
+		std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+			SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
+				target_synapses_per_synaptic_input_granularity;
+
+		{
+			std::stringstream fn;
+			fn << input_data_path << "/" << "target_synapses" << i_ec << ".txt";
+			std::ifstream ifs(fn.str());
+			boost::archive::text_iarchive ia(ifs);
+			ia >> target_synapses_per_synaptic_input_granularity;
+		}
+
+		size_t num_drivers, num_synapses;
+		std::map<Side_Parity_Decoder_STP, size_t> synapse_histogram;
+		std::map<Side_Parity_Decoder_STP, size_t> synrow_histogram;
+		std::tie(num_drivers, num_synapses) = SynapseDriverRequirements::_calc(
+			sc, target_synapses_per_synaptic_input_granularity,
+			synapse_histogram, synrow_histogram);
+
+		// count number of requested drivers from synrow histogram
+		size_t r_drivers = count_drivers_from_synrow_histogram(synrow_histogram);
+
+		EXPECT_EQ(num_drivers, r_drivers);
+	}
+}
+
+/// Minimal example reproducing #2115 with only 2 neurons
+/// Setup: neuron size 4 and default synapse target mapping
+///
+/// Synapses:
+/// 1st neuron has 3 synapes from DriverDecoder(0)
+/// 2nd neuron has 1 synapse from DriverDecoder(1)
+///
+/// 1 Driver is sufficient to implement all synapses, which is correctly
+/// calcultated by _calc().
+/// However, the assignment for bio synapses to hardware half synapse rows
+/// fails, because for both neurons we start with even half rows, so that at
+/// the end 3 even and 1 odd half row are requested, which implies 2
+/// requested drivers (and not 1).
+TEST(SynapseDriverRequirements, Issue2115_minimal)
+{
+	SynapseDriverRequirements::NeuronWidth neuron_width;
+	SynapseTargetMapping syn_target_mapping;
+
+	for (auto nrn : iter_all<NeuronOnHICANN>()) {
+		syn_target_mapping[nrn][geometry::left] = SynapseType::excitatory;
+		syn_target_mapping[nrn][geometry::right] = SynapseType::inhibitory;
+	}
+	//  NeuronSize = 4 -> neuron_width = 2, 1 row = 2 inputs.
+	for (size_t xx = 0; xx < NeuronOnHICANN::x_type::end; xx += 2) {
+		neuron_width[NeuronOnHICANN(X(xx), Y(0))] = 2;
+	}
+
+	std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+		SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
+			target_synapses_per_synaptic_input_granularity =
+			SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
+					neuron_width, syn_target_mapping);
+
+	SynapseCounts sc;
+	// neuron 0: 3 half rows -> 3 synapses
+	sc.add(NeuronOnHICANN(Enum(0)), L1Address(1), SynapseType::excitatory, STPMode::off);
+	sc.add(NeuronOnHICANN(Enum(0)), L1Address(2), SynapseType::excitatory, STPMode::off);
+	sc.add(NeuronOnHICANN(Enum(0)), L1Address(3), SynapseType::excitatory, STPMode::off);
+
+	// neuron 1: 1 half row -> 1 synapse
+	sc.add(NeuronOnHICANN(Enum(2)), L1Address(16), SynapseType::excitatory, STPMode::off);
+
+	size_t num_drivers, num_synapses;
+	std::map<Side_Parity_Decoder_STP, size_t> synapse_histogram;
+	std::map<Side_Parity_Decoder_STP, size_t> synrow_histogram;
+	std::tie(num_drivers, num_synapses) = SynapseDriverRequirements::_calc(
+		sc, target_synapses_per_synaptic_input_granularity, synapse_histogram,
+		synrow_histogram);
+
+	ASSERT_EQ(1, num_drivers);
+	ASSERT_EQ(4, num_synapses);
+
+	// count number of requested drivers from synrow histogram
+	size_t r_drivers = count_drivers_from_synrow_histogram(synrow_histogram);
+
+	EXPECT_EQ(num_drivers, r_drivers);
+}
 
 } // namespace routing
 } // namespace marocco
