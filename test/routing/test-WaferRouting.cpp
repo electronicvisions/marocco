@@ -96,20 +96,6 @@ public:
 	HMF::Coordinate::Wafer mWaferId;
 };
 
-TEST_F(WaferRoutingTest, HICANNCoordinate)
-{
-	ASSERT_EQ(HICANNGlobal(Enum(0)), HICANNGlobal(Enum(0)));
-	ASSERT_LT(HICANNGlobal(Enum(0), mWaferId),
-			  HICANNGlobal(Enum(0), Wafer(mWaferId+1)));
-
-	HICANNGlobal hicann(Enum(0), mWaferId);
-	ASSERT_EQ(mWaferId, hicann.toWafer()) << mWaferId;
-
-	for (size_t ii = 1; ii<384; ++ii) {
-		ASSERT_FALSE(HICANNGlobal(Enum(ii)) == HICANNGlobal(Enum(0)));
-	}
-}
-
 TEST_F(WaferRoutingTest, WaferGraphDimensions)
 {
 	size_t const numHICANNs = 384;
@@ -262,60 +248,6 @@ TEST_F(WaferRoutingTest, DISABLED_MazeRouting)
 		EXPECT_LT(0, route.length()) << " iteration: " << ii;
 		EXPECT_LT(0, route.getSegments().size()) << " iteration: " << ii;
 	}
-}
-
-TEST(RoutingGraph, Traversal)
-{
-	typedef routing_graph::vertex_descriptor vertex_t;
-	typedef routing_graph::edge_descriptor edge_t;
-
-	routing_graph rg;
-
-	std::vector<vertex_t>v = { boost::add_vertex(rg), boost::add_vertex(rg)};
-
-	edge_t e;
-	bool inserted;
-	std::tie(e, inserted) = boost::add_edge(v[0], v[1], rg);
-	ASSERT_TRUE(inserted);
-
-	// NOTE: edge(0, 1) and edge(1, 0) are equal in an undirected graph (ug).
-	// Which means, if we insert edge(0, 1) and use out_edges on vertex 1 we get
-	// edge(0, 1), which in turn means if we call target(*out_edges(1, ug).first, ug)
-	// the result is vertex 1 and not 0 as we would have expected. However,
-	// there can be multiple edges between two vertices. For example, there can
-	// be both edge(0, 1) and edge(0, 1) present at the same time.
-	ASSERT_EQ(edge_t(0, 1, nullptr), edge_t(1, 0, nullptr));
-
-	// make sure we reach vertex(1) from vertex(0)
-	{
-		routing_graph::out_edge_iterator it, itend;
-		std::tie(it, itend) = boost::out_edges(v[0], rg);
-		ASSERT_NE(it, itend);
-		size_t cnt = 0;
-		for(; it != itend; ++it)
-		{
-			ASSERT_EQ(*(it), e);
-			vertex_t trg = boost::target(*(it), rg);
-			ASSERT_EQ(v[1], trg);
-			++cnt;
-		}
-		ASSERT_EQ(1, cnt);
-	}
-
-	// check targets from vertex(1), note that we are using boost::source rather
-	// than boost::target. See NOTE above for explenation.
-	{
-		auto it = boost::out_edges(v[1], rg);
-		ASSERT_NE(it.first, it.second);
-		ASSERT_EQ(*(it.first), e);
-		vertex_t src = boost::source(e, rg);
-		ASSERT_EQ(v[0], src);
-	}
-
-	std::tie(e, inserted) = boost::add_edge(v[0], v[1], rg);
-	ASSERT_TRUE(inserted);
-	// there should no be edge(0, 1) and edge(1, 0) both be present in the graph
-	ASSERT_EQ(2, boost::num_edges(rg));
 }
 
 } // routing

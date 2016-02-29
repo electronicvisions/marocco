@@ -7,7 +7,6 @@
 #include "marocco/Algorithm.h"
 #include "marocco/placement/Result.h"
 #include "marocco/routing/Result.h"
-#include "marocco/routing/SystemGraph.h"
 #include "marocco/routing/WaferGraph.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/WeightMap.h"
