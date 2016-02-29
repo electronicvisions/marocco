@@ -71,6 +71,8 @@ public:
 
 	/// path to directory containing calibration data as xml-files
 	/// The calibration is looked up in xml files named w0-h84.xml, w0-h276.xml, etc.
+	/// Throws if the environment variable MAROCCO_CALIB_PATH is set
+	/// and this string is non-empty.
 	std::string calib_path;
 
 #if !defined(PYPLUSPLUS)

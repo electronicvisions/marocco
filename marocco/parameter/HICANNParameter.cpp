@@ -6,6 +6,7 @@
 #include <chrono>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 
 #include "calibtic/backend/Library.h"
 #include "HMF/NeuronCalibration.h"
@@ -735,7 +736,16 @@ HICANNTransformator::getCalibticBackend()
 			throw std::runtime_error("unable to load xml backend");
 		}
 
-		backend->config("path", mPyMarocco.calib_path); // search in calib_path for calibration xml files
+		std::string calib_path = mPyMarocco.calib_path;
+		if (std::getenv("MAROCCO_CALIB_PATH") != nullptr) {
+			if (!calib_path.empty())
+				// we break hard, if the user specified via both ways...
+				throw std::runtime_error(
+					"colliding settings: environment variable and pymarocco.calib_path both set");
+			calib_path = std::string(std::getenv("MAROCCO_CALIB_PATH"));
+		}
+
+		backend->config("path", calib_path); // search in calib_path for calibration xml files
 		backend->init();
 		return backend;
 	}
