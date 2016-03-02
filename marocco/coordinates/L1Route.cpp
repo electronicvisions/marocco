@@ -322,7 +322,28 @@ void L1Route::append(HICANNOnWafer const& hicann, segment_type const& segment)
 	m_segments.push_back(segment);
 }
 
-void L1Route::extend(L1Route const& other)
+void L1Route::append(L1Route const& other, extend_mode mode)
+{
+	switch (mode) {
+		case extend_mode::extend:
+			extend_impl(other);
+			break;
+		case extend_mode::merge_common_endpoints:
+			merge_impl(other);
+			break;
+		default:
+			break;
+	}
+}
+
+void L1Route::prepend(L1Route const& other, extend_mode mode)
+{
+	L1Route route(other);
+	route.append(*this, mode);
+	*this = route;
+}
+
+void L1Route::extend_impl(L1Route const& other)
 {
 	if (empty()) {
 		*this = other;
@@ -355,7 +376,7 @@ void L1Route::extend(L1Route const& other)
 	m_last_hicann = other.target_hicann();
 }
 
-void L1Route::merge(L1Route const& other)
+void L1Route::merge_impl(L1Route const& other)
 {
 	if (empty()) {
 		*this = other;

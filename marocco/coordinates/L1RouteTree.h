@@ -57,6 +57,13 @@ public:
 	 */
 	void add(L1Route const& route);
 
+	/**
+	 * @brief Prepends an \c L1Route to the common head of the tree.
+	 * @param mode Whether to call \c L1Route::extend() or \c L1Route::merge()
+	 * @throw InvalidRouteError When this operation would lead to an invalid route.
+	 */
+	void prepend(L1Route const& other, L1Route::extend_mode mode);
+
 	bool operator==(L1RouteTree const& other) const;
 
 private:

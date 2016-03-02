@@ -142,6 +142,11 @@ void L1RouteTree::add(L1Route const& route)
 	}
 }
 
+void L1RouteTree::prepend(L1Route const& other, L1Route::extend_mode mode)
+{
+	m_head.prepend(other, mode);
+}
+
 bool L1RouteTree::TailCompare::operator()(tail_type const& lhs, tail_type const& rhs) const
 {
 	assert(lhs != nullptr && rhs != nullptr);

@@ -44,6 +44,30 @@ TEST(L1RouteTree, canHaveTails)
 	ASSERT_TRUE(tree.has_tails());
 }
 
+TEST(L1RouteTree, canHaveRoutesPrependedToIt)
+{
+	L1RouteTree reference(
+	    L1Route{HICANNOnWafer(X(5), Y(5)), HLineOnHICANN(48), VLineOnHICANN(39),
+	            HLineOnHICANN(49)});
+	L1Route route{HICANNOnWafer(X(5), Y(5)), VLineOnHICANN(39), HLineOnHICANN(49)};
+	{
+		L1RouteTree tree(route);
+		ASSERT_NO_THROW(
+			tree.prepend(
+				L1Route{HICANNOnWafer(X(5), Y(5)), HLineOnHICANN(48)},
+				L1Route::extend_mode::extend));
+		EXPECT_EQ(reference, tree);
+	}
+	{
+		L1RouteTree tree(route);
+		ASSERT_NO_THROW(
+			tree.prepend(
+				L1Route{HICANNOnWafer(X(5), Y(5)), HLineOnHICANN(48), VLineOnHICANN(39)},
+				L1Route::extend_mode::merge_common_endpoints));
+		EXPECT_EQ(reference, tree);
+	}
+}
+
 TEST(L1RouteTree, hasEmptyTailWhenTargetIsReachedEnPassant)
 {
 	L1Route route{HICANNOnWafer(X(5), Y(5)), Merger0OnHICANN(2), DNCMergerOnHICANN(2),

@@ -13,6 +13,7 @@
 #include "hal/Coordinate/Merger2OnHICANN.h"
 #include "hal/Coordinate/Merger3OnHICANN.h"
 #include "hal/Coordinate/Synapse.h"
+#include "pywrap/compat/macros.hpp"
 #include "marocco/test.h"
 
 namespace marocco {
@@ -45,6 +46,12 @@ public:
 
 	struct no_verify_tag
 	{
+	};
+
+	PYPP_CLASS_ENUM(extend_mode)
+	{
+		extend,
+		merge_common_endpoints
 	};
 
 	L1Route();
@@ -116,21 +123,21 @@ public:
 	void append(HMF::Coordinate::HICANNOnWafer const& hicann, segment_type const& segment);
 
 	/**
-	 * @brief Extends this route by the segments contained in another route.
+	 * @brief Extends this route by appending the segments contained in another route.
 	 * @throw InvalidRouteError When the other route is not a valid extension of this route.
-	 * @note This handles the case \c [ABC]+[DE]=[ABCDE], thus requiring validation of the
-	 *       succession \c C→D.
+	 * @param mode When \c extend_mode::extend is supplied, this handles the case
+	 *             \c [ABC]+[DE]=[ABCDE], thus requiring validation of the succession \c C→D.
+	 *             When \c extend_mode::merge_common_endpoints is supplied, this handles
+	 *             the case \c [ABC]+[CDE]=[ABCDE], thus requiring fewer checks compared
+	 *             to \c extend_mode::extend.
 	 */
-	void extend(L1Route const& other);
+	void append(L1Route const& other, extend_mode mode);
 
 	/**
-	 * @brief Merges another route with common endpoint into this route.
-	 * @throw InvalidRouteError When either route is empty or the other route does not start
-	 *        at the last segment of the current route.
-	 * @note This only handles the case \c [ABC]+[CDE]=[ABCDE], thus requiring fewer
-	 *       checks compared to \c extend().
+	 * @brief Extends this route by prepending the segments contained in another route.
+	 * @see \c append() for parameters and possible exceptions.
 	 */
-	void merge(L1Route const& other);
+	void prepend(L1Route const& other, extend_mode mode);
 
 #ifndef PYPLUSPLUS
 	/**
@@ -145,6 +152,9 @@ public:
 private:
 	void verify();
 	void update_target_hicann();
+
+	void extend_impl(L1Route const& other);
+	void merge_impl(L1Route const& other);
 
 	FRIEND_TEST(L1Route, findInvalid);
 

@@ -66,15 +66,26 @@ TEST(L1Route, appendAfterBulk)
 TEST(L1Route, extendEmptyWithEmpty)
 {
 	L1Route empty_route;
-	empty_route.extend(empty_route);
+	empty_route.append(empty_route, L1Route::extend_mode::extend);
+	ASSERT_TRUE(empty_route.empty());
+	empty_route.prepend(empty_route, L1Route::extend_mode::extend);
 	ASSERT_TRUE(empty_route.empty());
 }
 
 TEST(L1Route, extendWorksAcrossHICANNBoundaries)
 {
-	L1Route route{HICANNOnWafer(X(5), Y(5)), HLineOnHICANN(46)};
-	L1Route other{HICANNOnWafer(X(6), Y(5)), HLineOnHICANN(48), VLineOnHICANN(39)};
-	ASSERT_NO_THROW(route.extend(other));
+	L1Route first{HICANNOnWafer(X(5), Y(5)), HLineOnHICANN(46)};
+	L1Route second{HICANNOnWafer(X(6), Y(5)), HLineOnHICANN(48), VLineOnHICANN(39)};
+
+	{
+		L1Route copy = first;
+		ASSERT_NO_THROW(copy.append(second, L1Route::extend_mode::extend));
+	}
+
+	{
+		L1Route copy = second;
+		ASSERT_NO_THROW(copy.prepend(first, L1Route::extend_mode::extend));
+	}
 }
 
 TEST_F(ASimpleL1Route, extend)
@@ -82,17 +93,62 @@ TEST_F(ASimpleL1Route, extend)
 	HICANNOnWafer hicann1(X(5), Y(5));
 	HICANNOnWafer hicann2(X(6), Y(5));
 	L1Route other{hicann1, Merger0OnHICANN(2)};
-	ASSERT_ANY_THROW(other.extend(L1Route{hicann1, HLineOnHICANN(42)}));
-	ASSERT_ANY_THROW(other.extend(L1Route{hicann2, HLineOnHICANN(48)}));
-	ASSERT_NO_THROW(other.extend(L1Route{hicann1, DNCMergerOnHICANN(2)}));
-	ASSERT_NO_THROW(other.extend(L1Route{hicann1, HLineOnHICANN(46)}));
-	ASSERT_ANY_THROW(other.extend(L1Route{hicann1, HLineOnHICANN(42)}));
-	ASSERT_ANY_THROW(other.extend(L1Route{hicann1, VLineOnHICANN(39)}));
-	ASSERT_ANY_THROW(other.extend(L1Route{hicann2, HLineOnHICANN(42)}));
-	ASSERT_NO_THROW(other.extend(L1Route{hicann2, HLineOnHICANN(48)}));
-	ASSERT_NO_THROW(other.extend(L1Route{hicann2, VLineOnHICANN(39)}));
-	ASSERT_NO_THROW(other.extend(L1Route{hicann2, SynapseDriverOnHICANN(left, Y(99))}));
-	ASSERT_NO_THROW(other.extend(L1Route{hicann2, SynapseOnHICANN(SynapseColumnOnHICANN(5), SynapseRowOnHICANN(0))}));
+	ASSERT_ANY_THROW(
+		other.append(L1Route{hicann1, HLineOnHICANN(42)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.append(L1Route{hicann2, HLineOnHICANN(48)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.append(L1Route{hicann1, DNCMergerOnHICANN(2)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.append(L1Route{hicann1, HLineOnHICANN(46)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.append(L1Route{hicann1, HLineOnHICANN(42)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.append(L1Route{hicann1, VLineOnHICANN(39)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.append(L1Route{hicann2, HLineOnHICANN(42)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.append(L1Route{hicann2, HLineOnHICANN(48)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.append(L1Route{hicann2, VLineOnHICANN(39)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.append(
+			L1Route{hicann2, SynapseDriverOnHICANN(left, Y(99))}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.append(
+			L1Route{hicann2, SynapseOnHICANN(SynapseColumnOnHICANN(5), SynapseRowOnHICANN(0))},
+			L1Route::extend_mode::extend));
+	ASSERT_EQ(route, other);
+}
+
+TEST_F(ASimpleL1Route, extendPre)
+{
+	HICANNOnWafer hicann1(X(5), Y(5));
+	HICANNOnWafer hicann2(X(6), Y(5));
+	L1Route other{hicann2, SynapseOnHICANN(SynapseColumnOnHICANN(5), SynapseRowOnHICANN(0))};
+	ASSERT_ANY_THROW(
+		other.prepend(L1Route{hicann2, HLineOnHICANN(42)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.prepend(L1Route{hicann1, HLineOnHICANN(42)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.prepend(
+			L1Route{hicann2, SynapseDriverOnHICANN(left, Y(99))}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.prepend(L1Route{hicann2, VLineOnHICANN(39)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.prepend(L1Route{hicann2, HLineOnHICANN(48)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.prepend(L1Route{hicann2, HLineOnHICANN(42)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.prepend(L1Route{hicann1, VLineOnHICANN(39)}, L1Route::extend_mode::extend));
+	ASSERT_ANY_THROW(
+		other.prepend(L1Route{hicann1, HLineOnHICANN(42)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.prepend(L1Route{hicann1, HLineOnHICANN(46)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.prepend(L1Route{hicann1, DNCMergerOnHICANN(2)}, L1Route::extend_mode::extend));
+	ASSERT_NO_THROW(
+		other.prepend(L1Route{hicann1, Merger0OnHICANN(2)}, L1Route::extend_mode::extend));
 	ASSERT_EQ(route, other);
 }
 
@@ -108,10 +164,34 @@ TEST_F(ASimpleL1Route, merge)
 	               VLineOnHICANN(39),
 	               SynapseDriverOnHICANN(left, Y(99)),
 	               SynapseOnHICANN(SynapseColumnOnHICANN(5), SynapseRowOnHICANN(0))};
-	ASSERT_ANY_THROW(first.merge(L1Route{hicann1, HLineOnHICANN(42)}));
-	ASSERT_ANY_THROW(first.merge(L1Route{hicann2, HLineOnHICANN(46)}));
-	ASSERT_NO_THROW(first.merge(second));
+	ASSERT_ANY_THROW(
+	    first.append(
+	        L1Route{hicann1, HLineOnHICANN(42)}, L1Route::extend_mode::merge_common_endpoints));
+	ASSERT_ANY_THROW(
+	    first.append(
+	        L1Route{hicann2, HLineOnHICANN(46)}, L1Route::extend_mode::merge_common_endpoints));
+	ASSERT_NO_THROW(first.append(second, L1Route::extend_mode::merge_common_endpoints));
 	ASSERT_EQ(route, first);
+}
+
+TEST_F(ASimpleL1Route, mergePre)
+{
+	HICANNOnWafer hicann1(X(5), Y(5));
+	HICANNOnWafer hicann2(X(6), Y(5));
+	L1Route first{hicann1, Merger0OnHICANN(2), DNCMergerOnHICANN(2), HLineOnHICANN(46)};
+	L1Route second{hicann1,
+	               HLineOnHICANN(46),
+	               hicann2,
+	               HLineOnHICANN(48),
+	               VLineOnHICANN(39),
+	               SynapseDriverOnHICANN(left, Y(99)),
+	               SynapseOnHICANN(SynapseColumnOnHICANN(5), SynapseRowOnHICANN(0))};
+	L1Route route1{hicann1, HLineOnHICANN(42)};
+	ASSERT_ANY_THROW(route1.prepend(first, L1Route::extend_mode::merge_common_endpoints));
+	L1Route route2{hicann2, HLineOnHICANN(46)};
+	ASSERT_ANY_THROW(route2.prepend(first, L1Route::extend_mode::merge_common_endpoints));
+	ASSERT_NO_THROW(second.prepend(first, L1Route::extend_mode::merge_common_endpoints));
+	ASSERT_EQ(route, second);
 }
 
 TEST(L1Route, findInvalid)
@@ -185,7 +265,7 @@ TEST_F(ASimpleL1Route, doesNotChangeWhenExtendedWithEmptyRoute)
 {
 	L1Route empty_route;
 	L1Route original = route;
-	route.extend(empty_route);
+	route.append(empty_route, L1Route::extend_mode::extend);
 	ASSERT_EQ(original, route);
 }
 
@@ -193,21 +273,21 @@ TEST_F(ASimpleL1Route, doesNotChangeWhenMergedWithEmptyRoute)
 {
 	L1Route empty_route;
 	L1Route original = route;
-	route.merge(empty_route);
+	route.append(empty_route, L1Route::extend_mode::merge_common_endpoints);
 	ASSERT_EQ(original, route);
 }
 
 TEST_F(ASimpleL1Route, canBeUsedToExtendAnEmptyRoute)
 {
 	L1Route empty_route;
-	empty_route.extend(route);
+	empty_route.append(route, L1Route::extend_mode::extend);
 	ASSERT_EQ(route, empty_route);
 }
 
 TEST_F(ASimpleL1Route, canBeMergedToAnEmptyRoute)
 {
 	L1Route empty_route;
-	empty_route.merge(route);
+	empty_route.append(route, L1Route::extend_mode::merge_common_endpoints);
 	ASSERT_EQ(route, empty_route);
 }
 
