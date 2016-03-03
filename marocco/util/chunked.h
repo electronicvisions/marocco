@@ -149,6 +149,10 @@ public:
 
 namespace adl_kludge {
 
+// To find out the type of begin(cont) and fall back to std::begin() we have to introduce
+// a using declaration.  As we do not want to do this in the regular namespace, we have to
+// introduce this "adl_kludge" namespace.
+
 using std::begin;
 template <typename T>
 auto begin_(T&& x) -> decltype(begin(std::declval<T>()))
@@ -179,7 +183,9 @@ template <typename Container>
 auto chunked(Container&& cont, size_t chunk_size)
 	-> detail::chunked<typename detail::iterator_of<Container>::type>
 {
-	return {cont.begin(), cont.end(), chunk_size};
+	using std::begin;
+	using std::end;
+	return {begin(cont), end(cont), chunk_size};
 }
 
 } // namespace marocco
