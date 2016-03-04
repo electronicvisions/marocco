@@ -1,7 +1,8 @@
 #pragma once
 
-#include <unordered_map>
+#include <boost/functional/hash.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <unordered_map>
 
 #include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/L1.h"
@@ -90,3 +91,19 @@ private:
 
 } // namespace routing
 } // namespace marocco
+
+namespace std {
+
+template<>
+struct hash<marocco::routing::L1RoutingGraph::edge_descriptor>
+{
+	size_t operator()(marocco::routing::L1RoutingGraph::edge_descriptor const& e) const
+	{
+		size_t hash = 0;
+		boost::hash_combine(hash, e.m_source);
+		boost::hash_combine(hash, e.m_target);
+		return hash;
+	}
+};
+
+} // namespace std
