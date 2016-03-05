@@ -1,8 +1,10 @@
 #pragma once
 
+#include <boost/serialization/concurrent_unordered_map.h>
+#include <tbb/concurrent_unordered_map.h>
 #include <tbb/mutex.h>
+
 #include "marocco/graph.h"
-#include "marocco/tbb.h"
 #include "marocco/placement/Result.h"
 #include "marocco/routing/SynapseLossProxy.h"
 
@@ -90,14 +92,14 @@ private:
 	Matrix& getWeights(Edge const& e);
 
 	/// tracks synapse changes on a per ProjectionView basis.
-	tbb::concurrent_unordered_map<Edge, Matrix> mWeights;
+	tbb::concurrent_unordered_map<Edge, Matrix, std::hash<Edge> > mWeights;
 #endif // MAROCCO_NO_SYNAPSE_TRACKING
 
 	/// tracks number synapse of lost synapses on a HICANN basis.
-	tbb::concurrent_unordered_map<Index, size_t> mChipPre;
-	tbb::concurrent_unordered_map<Index, size_t> mChipPost;
+	tbb::concurrent_unordered_map<Index, size_t, std::hash<Index> > mChipPre;
+	tbb::concurrent_unordered_map<Index, size_t, std::hash<Index> > mChipPost;
 
-	tbb::concurrent_unordered_map<Index, size_t> mChipSet;
+	tbb::concurrent_unordered_map<Index, size_t, std::hash<Index> > mChipSet;
 
 	graph_t const& mGraph;
 

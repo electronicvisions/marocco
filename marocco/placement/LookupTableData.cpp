@@ -43,16 +43,18 @@ std::ostream& bio_id::operator<< (std::ostream& os) const
 namespace std {
 size_t hash<marocco::placement::hw_id>::operator()(marocco::placement::hw_id const & t) const
 {
-	size_t hash = hash_value(t.hicann);
-	boost::hash_combine(hash, hash_value(t.neuron_block));
-	boost::hash_combine(hash, hash_value(t.addr));
+	size_t hash = 0;
+	boost::hash_combine(hash, t.hicann.id());
+	boost::hash_combine(hash, t.neuron_block);
+	boost::hash_combine(hash, t.addr);
 	return hash;
 }
 
 size_t hash<marocco::placement::bio_id>::operator()(marocco::placement::bio_id const & t) const
 {
-	size_t hash = hash_value(t.pop);
-	boost::hash_combine(hash, hash_value(t.neuron));
+	size_t hash = 0;
+	boost::hash_combine(hash, t.pop);
+	boost::hash_combine(hash, t.neuron);
 	return hash;
 }
 } // namespace std

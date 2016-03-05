@@ -89,7 +89,9 @@ namespace std {
 template <>
 struct hash<marocco::assignment::PopulationSlice> {
 	size_t operator()(marocco::assignment::PopulationSlice const& b) const {
-		size_t hash = hash_value(b.population());
+
+		size_t hash = 0;
+		boost::hash_combine(hash, b.population());
 		boost::hash_combine(hash, b.size());
 		boost::hash_combine(hash, b.offset());
 		return hash;

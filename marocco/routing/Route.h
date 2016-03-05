@@ -7,8 +7,7 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 
-//#include <marocco/tbb.h>
-#include <marocco/config.h>
+#include "marocco/config.h"
 
 #include "marocco/routing/HardwareProjection.h"
 #include "marocco/routing/routing_graph.h"

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <boost/serialization/concurrent_unordered_map.h>
 #include <boost/serialization/nvp.hpp>
-
-#include "marocco/tbb.h"
+#include <tbb/concurrent_unordered_map.h>
 
 namespace marocco {
 
@@ -12,7 +12,7 @@ class AssociativeResult
 public:
 	typedef Key key_type;
 	typedef T result_type;
-	typedef tbb::concurrent_unordered_map<key_type, result_type> container_type;
+	typedef tbb::concurrent_unordered_map<key_type, result_type, std::hash<key_type> > container_type;
 
 	result_type const& at(key_type const& key) const
 	{
