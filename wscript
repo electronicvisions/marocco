@@ -26,6 +26,7 @@ def depends(ctx):
     ctx('lib-boost-patches')
     ctx('marocco', 'nanoflann')
     ctx('marocco', 'pymarocco')
+    ctx('marocco', 'tools')
     ctx('marocco', 'tools/roqt')
     ctx('marocco', 'test')
     ctx('logger')

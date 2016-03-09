@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+
+def depends(dep):
+    dep('marocco')
+
+
+def options(opt):
+    opt.load('compiler_cxx')
+
+
+def configure(cfg):
+    cfg.load('compiler_cxx')
+
+
+def build(bld):
+    bld(target="pyalone",
+        features='cxx cxxshlib pypp pyembed pyext post_task',
+        script='generate.py',
+        gen_defines='PYPLUSPLUS __STRICT_ANSI__',
+        defines='PYBINDINGS',
+        headers='alone.h',
+        source='alone.cpp',
+        install_path='lib',
+        use=[
+            'marocco',
+            'sthal_inc'
+        ],
+        post_task='pyhalbe pysthal pymarocco_coordinates')
+
+    bld(target='pyalone-test',
+        features='pytest',
+        tests='test-pyalone.py',
+        install_path='bin/tests',
+        use='pyalone')
+
+    bld.install_as(
+        '${PREFIX}/bin/marocco_find_route', 'find_route.py', chmod=0755)
+
+    from waflib.extras.gtest import summary
+    bld.add_post_fun(summary)
