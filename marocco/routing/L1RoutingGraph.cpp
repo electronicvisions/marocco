@@ -2,6 +2,7 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "hal/HICANN/Crossbar.h"
+#include "marocco/routing/PathBundle.h"
 
 namespace marocco {
 namespace routing {
@@ -123,6 +124,69 @@ void L1RoutingGraph::add(HICANNOnWafer const& hicann)
 	connect(hicann, &HICANNOnWafer::east, &HLineOnHICANN::east);
 	connect(hicann, &HICANNOnWafer::south, &VLineOnHICANN::south);
 	connect(hicann, &HICANNOnWafer::west, &HLineOnHICANN::west);
+}
+
+void L1RoutingGraph::remove(PathBundle const& bundle)
+{
+	// To keep the vertex descriptors intact we only use clear_vertex() to remove all
+	// edges connecting to a vertex instead of completely removing it from the graph.
+	for (auto const& path : bundle.paths()) {
+		for (vertex_descriptor const vertex : path) {
+			clear_vertex(vertex, m_graph);
+		}
+	}
+}
+
+void L1RoutingGraph::remove(
+    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::HLineOnHICANN const& hline)
+{
+	// See note on clear_vertex above.
+	clear_vertex(operator[](hicann)[hline], m_graph);
+}
+
+void L1RoutingGraph::remove(
+    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VLineOnHICANN const& vline)
+{
+	// See note on clear_vertex above.
+	clear_vertex(operator[](hicann)[vline], m_graph);
+}
+
+void L1RoutingGraph::remove(
+    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::HRepeaterOnHICANN const& hrep)
+{
+	auto hline = hrep.toHLineOnHICANN();
+	auto side = hrep.toSideHorizontal();
+	auto other_hicann = side == right ? hicann.east() : hicann.west();
+	auto other_hline = side == right ? hline.east() : hline.west();
+
+	auto vertex = operator[](hicann)[hline];
+
+	auto it = m_hicanns.find(other_hicann);
+	if (it == m_hicanns.end()) {
+		return;
+	}
+
+	auto other_vertex = it->second[other_hline];
+	remove_edge(vertex, other_vertex, m_graph);
+}
+
+void L1RoutingGraph::remove(
+    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VRepeaterOnHICANN const& vrep)
+{
+	auto vline = vrep.toVLineOnHICANN();
+	auto side = vrep.toSideVertical();
+	auto other_hicann = side == top ? hicann.north() : hicann.south();
+	auto other_vline = side == top ? vline.north() : vline.south();
+
+	auto vertex = operator[](hicann)[vline];
+
+	auto it = m_hicanns.find(other_hicann);
+	if (it == m_hicanns.end()) {
+		return;
+	}
+
+	auto other_vertex = it->second[other_vline];
+	remove_edge(vertex, other_vertex, m_graph);
 }
 
 } // namespace routing

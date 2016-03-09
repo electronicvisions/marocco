@@ -12,6 +12,8 @@
 namespace marocco {
 namespace routing {
 
+class PathBundle;
+
 /**
  * @brief Representation of the layer 1 routing of a single wafer.
  */
@@ -43,6 +45,19 @@ public:
 	graph_type const& graph() const;
 
 	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
+	void remove(PathBundle const& bundle);
+	void remove(
+		HMF::Coordinate::HICANNOnWafer const& hicann,
+		HMF::Coordinate::HLineOnHICANN const& hline);
+	void remove(
+	    HMF::Coordinate::HICANNOnWafer const& hicann,
+	    HMF::Coordinate::VLineOnHICANN const& vline);
+	void remove(
+		HMF::Coordinate::HICANNOnWafer const& hicann,
+		HMF::Coordinate::HRepeaterOnHICANN const& hrep);
+	void remove(
+		HMF::Coordinate::HICANNOnWafer const& hicann,
+		HMF::Coordinate::VRepeaterOnHICANN const& vrep);
 
 	/**
 	 * @throw ResourceNotPresentError when HICANN has not been added yet.

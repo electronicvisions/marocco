@@ -4,6 +4,7 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/routing/L1RoutingGraph.h"
+#include "marocco/routing/PathBundle.h"
 #include "marocco/util/iterable.h"
 
 using namespace HMF::Coordinate;
@@ -181,19 +182,85 @@ TEST(L1RoutingGraph, usesTheRightL1BusOnWaferVariants)
 	EXPECT_EQ(VLineOnHICANN::size, vlines.size());
 }
 
-// TODO: respect hardware defects by removing edges (repeaters) or vertices (buses).
-/*
-TEST(L1RoutingGraph, allowsDisablingOfDefectResources)
+TEST(L1RoutingGraph, allowsRemovalOfRealizedPath)
 {
 	L1RoutingGraph rgraph;
 	HICANNOnWafer hicann;
 	rgraph.add(hicann);
-	// Option (a)
-	rgraph.remove(hicann, HLineOnHICANN(39));
-	// Option (b)
-	rgraph[hicann].remove(HLineOnHICANN(39));
+	HLineOnHICANN hline(48);
+	VLineOnHICANN vline(39);
+	PathBundle bundle(PathBundle::path_type{rgraph[hicann][hline], rgraph[hicann][vline]});
+	rgraph.remove(bundle);
+	auto const hline_vertex = rgraph[hicann][hline];
+	EXPECT_EQ(0, out_degree(hline_vertex, rgraph.graph()));
+	auto const vline_vertex = rgraph[hicann][vline];
+	EXPECT_EQ(0, out_degree(vline_vertex, rgraph.graph()));
 }
-*/
+
+TEST(L1RoutingGraph, allowsDisablingOfDefectHLines)
+{
+	L1RoutingGraph rgraph;
+	HICANNOnWafer hicann;
+	rgraph.add(hicann);
+	HLineOnHICANN hline(39);
+	rgraph.remove(hicann, hline);
+	auto const vertex = rgraph[hicann][hline];
+	EXPECT_EQ(0, out_degree(vertex, rgraph.graph()));
+}
+
+TEST(L1RoutingGraph, allowsDisablingOfDefectVLines)
+{
+	L1RoutingGraph rgraph;
+	HICANNOnWafer hicann;
+	rgraph.add(hicann);
+	VLineOnHICANN vline(39);
+	rgraph.remove(hicann, vline);
+	auto const vertex = rgraph[hicann][vline];
+	EXPECT_EQ(0, out_degree(vertex, rgraph.graph()));
+}
+
+TEST(L1RoutingGraph, allowsDisablingOfDefectHRepeaters)
+{
+	L1RoutingGraph rgraph;
+	HICANNOnWafer hicann_left(X(5), Y(5));
+	HICANNOnWafer hicann_right(X(6), Y(5));
+	rgraph.add(hicann_left);
+	rgraph.add(hicann_right);
+	HRepeaterOnHICANN hrep(Enum(12));
+	EXPECT_TRUE(hrep.isLeft());
+	rgraph.remove(hicann_right, hrep);
+	auto hline_right = hrep.toHLineOnHICANN();
+	auto hline_left = hline_right.west();
+	auto const vertex_left = rgraph[hicann_left][hline_left];
+	auto const vertex_right = rgraph[hicann_right][hline_right];
+	auto its = adjacent_vertices(vertex_right, rgraph.graph());
+	bool edge_present = std::any_of(
+	    its.first, its.second,
+	    [&vertex_left](L1RoutingGraph::vertex_descriptor vertex) { return vertex == vertex_left; });
+	ASSERT_FALSE(edge_present);
+}
+
+TEST(L1RoutingGraph, allowsDisablingOfDefectVRepeaters)
+{
+	L1RoutingGraph rgraph;
+	HICANNOnWafer hicann_top(X(5), Y(5));
+	HICANNOnWafer hicann_bottom(X(5), Y(6));
+	rgraph.add(hicann_top);
+	rgraph.add(hicann_bottom);
+	VRepeaterOnHICANN vrep(Enum(130));
+	EXPECT_TRUE(vrep.isBottom());
+	rgraph.remove(hicann_top, vrep);
+	auto vline_top = vrep.toVLineOnHICANN();
+	auto vline_bottom = vline_top.south();
+	auto const vertex_top = rgraph[hicann_top][vline_top];
+	auto const vertex_bottom = rgraph[hicann_bottom][vline_bottom];
+	auto its = adjacent_vertices(vertex_top, rgraph.graph());
+	bool edge_present = std::any_of(
+	    its.first, its.second, [&vertex_bottom](L1RoutingGraph::vertex_descriptor vertex) {
+		    return vertex == vertex_bottom;
+		});
+	ASSERT_FALSE(edge_present);
+}
 
 } // namespace routing
 } // namespace marocco
