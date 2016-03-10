@@ -57,8 +57,8 @@ private:
 	OnNeuronBlock& on_neuron_block(HMF::Coordinate::NeuronBlockGlobal const& nb);
 
 	NeuronPlacementResult& m_state;
-	std::vector<HMF::Coordinate::NeuronBlockGlobal> m_neuron_blocks;
-	std::vector<NeuronPlacement> m_queue;
+	std::vector<HMF::Coordinate::NeuronBlockGlobal>& m_neuron_blocks;
+	std::vector<NeuronPlacement>& m_queue;
 	std::vector<result_type> m_result;
 }; // PlacePopulations
 
