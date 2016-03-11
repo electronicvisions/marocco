@@ -1,5 +1,7 @@
 #pragma once
 
+#include <random>
+
 #include <boost/functional/hash.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <unordered_map>
@@ -30,7 +32,8 @@ public:
 	class HICANN
 	{
 	public:
-		HICANN(graph_type& graph, HMF::Coordinate::HICANNOnWafer const& hicann);
+		HICANN(graph_type& graph, HMF::Coordinate::HICANNOnWafer const& hicann,
+		       bool shuffle_switches = false);
 
 		vertex_descriptor operator[](HMF::Coordinate::HLineOnHICANN const& hline) const;
 		vertex_descriptor operator[](HMF::Coordinate::VLineOnHICANN const& vline) const;
@@ -45,7 +48,8 @@ public:
 	graph_type& graph();
 	graph_type const& graph() const;
 
-	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
+	void add(HMF::Coordinate::HICANNOnWafer const& hicann, bool shuffle_switches = false);
+
 	void remove(PathBundle const& bundle);
 	void remove(
 		HMF::Coordinate::HICANNOnWafer const& hicann,

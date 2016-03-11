@@ -10,7 +10,8 @@ namespace routing {
 
 using namespace HMF::Coordinate;
 
-L1RoutingGraph::HICANN::HICANN(graph_type& graph, HICANNOnWafer const& hicann)
+L1RoutingGraph::HICANN::HICANN(graph_type& graph, HICANNOnWafer const& hicann,
+                               bool const shuffle_switches)
 {
 	for (auto hline : iter_all<HLineOnHICANN>()) {
 		vertex_descriptor vertex = add_vertex(graph);
@@ -24,12 +25,24 @@ L1RoutingGraph::HICANN::HICANN(graph_type& graph, HICANNOnWafer const& hicann)
 		graph[vertex] = L1BusOnWafer(hicann, vline);
 	}
 
+	std::vector<std::pair<vertex_descriptor, vertex_descriptor>> switches;
+	switches.reserve(
+	    HMF::HICANN::Crossbar::periods * HMF::HICANN::Crossbar::period_length *
+	    HLineOnHICANN::size);
 	for (auto hline : iter_all<HLineOnHICANN>()) {
 		for (auto vline : iter_all<VLineOnHICANN>()) {
 			if (HMF::HICANN::Crossbar::exists(vline, hline)) {
-				add_edge(m_horizontal[hline], m_vertical[vline], graph);
+				switches.push_back(std::make_pair(m_horizontal[hline], m_vertical[vline]));
 			}
 		}
+	}
+
+	if (shuffle_switches) {
+		std::shuffle(switches.begin(), switches.end(), std::minstd_rand(hicann.id()));
+	}
+
+	for (auto const& sw : switches) {
+		add_edge(sw.first, sw.second, graph);
 	}
 }
 
@@ -110,12 +123,12 @@ bool L1RoutingGraph::connect(
 	return false;
 }
 
-void L1RoutingGraph::add(HICANNOnWafer const& hicann)
+void L1RoutingGraph::add(HICANNOnWafer const& hicann, bool const shuffle_switches)
 {
 	{
 		bool success;
 		std::tie(std::ignore, success) =
-		    m_hicanns.insert(std::make_pair(hicann, HICANN(m_graph, hicann)));
+		    m_hicanns.insert(std::make_pair(hicann, HICANN(m_graph, hicann, shuffle_switches)));
 		if (!success) {
 			throw std::runtime_error("HICANN already present in graph");
 		}

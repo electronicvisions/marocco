@@ -70,12 +70,16 @@ public:
 	 */
 	PriorityAccumulationMeasure priority_accumulation_measure() const;
 
+	void shuffle_switches(bool enable);
+	bool shuffle_switches() const;
+
 private:
 	Algorithm m_algorithm;
 #ifndef PYPLUSPLUS
 	std::unordered_map<projection_type, priority_type> m_priorities;
 #endif // !PYPLUSPLUS
 	PriorityAccumulationMeasure m_priority_accumulation_measure;
+	bool m_shuffle_switches;
 
 	friend class boost::serialization::access;
 	template <typename Archive>
