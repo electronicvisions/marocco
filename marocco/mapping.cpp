@@ -10,13 +10,15 @@
 
 using namespace HMF::Coordinate;
 
+namespace {
+
 /**
  * @brief Used to extract coordinates of wafers used in manual placement instructions.
  * As populations can be placed to both specific neuron blocks or HICANNs we have to use
  * a visitor to extract the corresponding wafer coordinate from the variant.
  * @see \c wafers_used_in()
  */
-class LocationVisitor : public boost::static_visitor<>
+class WaferLocationVisitor : public boost::static_visitor<>
 {
 	std::set<Wafer>& m_wafers;
 
@@ -24,7 +26,7 @@ public:
 	/**
 	 * @param[out] wafers Wafers corresponding to the coordinates passed via \c operator().
 	 */
-	LocationVisitor(std::set<Wafer>& wafers) : m_wafers(wafers)
+	WaferLocationVisitor(std::set<Wafer>& wafers) : m_wafers(wafers)
 	{
 	}
 
@@ -43,6 +45,8 @@ public:
 	}
 };
 
+} // anonymous
+
 namespace marocco {
 namespace mapping {
 
@@ -51,7 +55,7 @@ std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
 	auto mi = store->getMetaData<pymarocco::PyMarocco>("marocco");
 
 	std::set<Wafer> wafers;
-	LocationVisitor vis(wafers);
+	WaferLocationVisitor vis(wafers);
 
 	for (auto const& defect : mi->defects.hicanns()) {
 		wafers.insert(defect.first.toWafer());

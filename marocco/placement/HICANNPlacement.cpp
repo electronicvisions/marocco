@@ -13,19 +13,22 @@
 
 using namespace HMF::Coordinate;
 
+namespace {
+
 /**
  * @brief Used to extract coordinates of neuron blocks used in manual placement instructions.
  * As populations can be placed to both specific neuron blocks or HICANNs we use a visitor
  * to convert both instructions to the more specific case of a list of neuron blocks.
  */
-class LocationVisitor : public boost::static_visitor<>
+class NeuronBlockLocationVisitor : public boost::static_visitor<>
 {
 public:
 	/**
 	 * @param[out] neuron_blocks Neuron blocks corresponding to the coordinates passed
 	 *                           via \c operator().
 	 */
-	LocationVisitor(std::vector<NeuronBlockGlobal>& neuron_blocks) : m_neuron_blocks(neuron_blocks)
+	NeuronBlockLocationVisitor(std::vector<NeuronBlockGlobal>& neuron_blocks) :
+		m_neuron_blocks(neuron_blocks)
 	{
 	}
 	std::vector<NeuronBlockGlobal>& m_neuron_blocks;
@@ -45,6 +48,8 @@ public:
 		m_neuron_blocks = blocks;
 	}
 };
+
+} // anonymous
 
 namespace marocco {
 namespace placement {
@@ -157,7 +162,7 @@ std::vector<NeuronPlacement> HICANNPlacement::manual_placement(NeuronPlacementRe
 			                                                         : default_hw_neuron_size};
 			std::vector<NeuronBlockGlobal> neuron_blocks;
 			{
-				LocationVisitor vis(neuron_blocks);
+				NeuronBlockLocationVisitor vis(neuron_blocks);
 				boost::apply_visitor(vis, entry.locations);
 			}
 			std::vector<NeuronPlacement> queue{placement};
