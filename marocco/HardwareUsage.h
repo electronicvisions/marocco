@@ -12,7 +12,7 @@ class HardwareUsage
 public:
 	typedef hardware_system_t Hardware;
 	typedef resource_manager_t Resource;
-	typedef HMF::Coordinate::HICANNGlobal const& Index;
+	typedef HMF::Coordinate::HICANNGlobal Index;
 	typedef placement::NeuronPlacementResult Placement;
 
 	HardwareUsage(Hardware const& hw,
