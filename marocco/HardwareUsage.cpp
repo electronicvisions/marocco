@@ -23,7 +23,7 @@ double HardwareUsage::overallNeuronUsage() const
 	size_t cnt=0, num_hicanns=0;
 	for (auto const& hicann: mResource.allocated())
 	{
-		if (mPlacement.exists(hicann) && mPlacement.at(hicann).any()) {
+		if (mPlacement.exists(hicann)) {
 			size_t c=0;
 			for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 			{
@@ -44,7 +44,7 @@ double HardwareUsage::overallSynapseUsage() const
 	size_t cnt=0, num_hicanns=0;
 	for (auto const& hicann: mResource.allocated())
 	{
-		if (mPlacement.exists(hicann) && mPlacement.at(hicann).any()) {
+		if (mPlacement.exists(hicann)) {
 			cnt += numSynapsesUsed(hicann);
 			num_hicanns++;
 		}

@@ -12,7 +12,9 @@
 #include "marocco/routing/LocalRoute.h"
 #include "marocco/routing/SynapseRowSource.h"
 #include "marocco/routing/DriverAssignment.h"
+#ifndef PYPLUSPLUS
 #include "marocco/routing/SynapseTargetMapping.h"
+#endif // !PYPLUSPLUS
 
 namespace marocco {
 namespace routing {
@@ -36,8 +38,10 @@ struct DriverResultAndSynapseTargetMapping
 	// this type maps a synapse driver to a single route and some addresses
 	std::vector<DriverResult> driver_result;
 
+#ifndef PYPLUSPLUS
 	// this type maps a the biological synapse targets to the synaptic input of hardwar neurons
 	SynapseTargetMapping synapse_target_mapping;
+#endif // !PYPLUSPLUS
 
 	friend class boost::serialization::access;
 	template <typename Archiver>
@@ -60,8 +64,6 @@ struct Result : public BaseResult {
 	CrossbarRoutingResult crossbar_routing;
 	SynapseRoutingResult synapse_routing;
 };
-#endif // PYPLUSPLUS
-
 
 template <typename Archiver>
 void DriverResultAndSynapseTargetMapping::serialize(Archiver& ar, unsigned int const /*version*/)
@@ -70,6 +72,7 @@ void DriverResultAndSynapseTargetMapping::serialize(Archiver& ar, unsigned int c
 	ar & make_nvp("driver_result", driver_result)
 	   & make_nvp("synapse_target_mapping", synapse_target_mapping);
 }
+#endif // !PYPLUSPLUS
 
 } // namespace routing
 } // namespace marocco

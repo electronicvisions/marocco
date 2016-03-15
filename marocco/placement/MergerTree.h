@@ -10,6 +10,7 @@
 
 #include "hal/Coordinate/HMFGeometry.h"
 #include "hal/Coordinate/iter_all.h"
+#include "hal/Coordinate/typed_array.h"
 #include "hal/HICANN/Merger.h"
 #include "marocco/config.h"
 #include "marocco/placement/NeuronBlockMapping.h"
@@ -85,7 +86,7 @@ private:
 	void connect_in_tree(Vertex src, Vertex dest);
 
 	/// number of placed neurons for each NeuronBlock
-	std::array<size_t, 8> mNeurons;
+	HMF::Coordinate::typed_array<size_t, HMF::Coordinate::NeuronBlockOnHICANN> mNeurons;
 
 	/// The actual boost graph representing the merge topology and the still
 	/// available mergers during the process.

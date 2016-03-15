@@ -1,10 +1,11 @@
 #pragma once
 
 #include <array>
-#include <unordered_map>
 #include <tuple>
-#include <boost/serialization/serialization.hpp>
+#include <unordered_map>
 #include <boost/serialization/export.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/tuple.h>
 
 #include "hal/Coordinate/HMFGeometry.h"
 #include "hal/HICANN/L1Address.h"

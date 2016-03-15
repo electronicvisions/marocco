@@ -3,6 +3,7 @@
 #include <array>
 #include "hal/HICANN/RowConfig.h"
 #include "marocco/parameter/NeuronOnHICANNPropertyArray.h"
+#include "marocco/placement/NeuronBlockMapping.h"
 #include "marocco/graph.h"
 #include "marocco/routing/SynapseType.h"
 
@@ -10,14 +11,6 @@
 #include <boost/serialization/nvp.hpp>
 
 #include "pywrap/compat/array.hpp"
-
-
-// fwd declarations
-namespace marocco {
-namespace placement {
-class NeuronBlockMapping;
-} // namespace marocco
-} // namespace placement
 
 namespace marocco {
 namespace routing {

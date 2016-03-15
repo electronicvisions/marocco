@@ -40,8 +40,6 @@ public:
 		{
 			ASSERT_NE(onb.end(), onb.add(dummy)) << ii;
 		}
-
-		ASSERT_EQ(count, nb_mapping.neurons(nb));
 	}
 
 	MergerTreeRouter build()

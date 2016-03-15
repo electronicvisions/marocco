@@ -41,8 +41,12 @@ MergerTreeRouter::MergerTreeRouter(HMF::Coordinate::HICANNGlobal const& hicann,
 	mHICANN(hicann),
 	mChip(chip)
 {
+	// Count the number of mapped bio neurons for each neuron block.
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		mNeurons[nb] = nbm.neurons(nb);
+		mNeurons[nb] = 0u;
+		for (std::shared_ptr<NeuronPlacementRequest> const& pl : nbm[nb]) {
+			mNeurons[nb] += pl->population_slice().size();
+		}
 	}
 
 	for (auto& v : mTouched) {
