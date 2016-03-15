@@ -20,8 +20,9 @@ class neuron_iterator;
 } // namespace on_neuron_block
 } // namespace detail
 
-/// This class manages the assignment of populations to the hardware neurons
-/// of a neuron block.
+/**
+ * @brief Manages the assignment of populations to the denmems of a neuron block.
+ */
 class OnNeuronBlock {
 public:
 	typedef HMF::Coordinate::NeuronOnNeuronBlock neuron_coordinate;
@@ -35,66 +36,76 @@ public:
 public:
 	OnNeuronBlock();
 
-	/** Mark neuron as defect.
-	 *  @throw ResourceInUseError If neuron has already been assigned.
+	/**
+	 * @brief Mark denmem as defect.
+	 * @throw runtime_error If #add() has already been called.
+	 * @throw ResourceInUseError If denmem has already been assigned to.
 	 */
 	void add_defect(neuron_coordinate const& nrn);
 
-	/** Place population on this neuron block.
-	 *  @return Iterator pointing at the assigned population if successful
-	 *          or past-the-end iterator if not.
-	 *  @note
-	 *  - Assignments will always start at the top neuron row.
-	 *  - Only adjacent neurons will be used, in down-right order, i.e.:
-	 *    \code
-	 *    | 1 | 3 | 5   |
-	 *    | 2 | 4 | ... |
-	 *    \endcode
+	/**
+	 * @brief Place population on this neuron block.
+	 * @return Iterator pointing at the assigned population if successful
+	 *         or past-the-end iterator if not.
+	 * @note
+	 * - Assignments will always start at the top neuron row.
+	 * - Only adjacent denmems will be used, in down-right order, i.e.:
+	 *   \code
+	 *   | 1 | 3 | 5   |
+	 *   | 2 | 4 | ... |
+	 *   \endcode
 	 */
 	iterator add(NeuronPlacement const& value);
 
-	/** Return the population assigned to a hardware neuron.
+	/**
+	 * @brief Return the population assigned to a denmem.
 	 */
 	value_type operator[](neuron_coordinate const& nrn) const;
 
-	/** Return an iterator pointing at the population assigned to a
-	 *  hardware neuron.
-	 *  @note Returns a past-the-end iterator if the neuron is defect
-	 *        or does not have an assigned population.
+	/**
+	 * @brief Return an iterator pointing at the population assigned to a denmem.
+	 * @note Returns a past-the-end iterator if the denmem is defect
+	 *       or does not have an assigned population.
 	 */
 	iterator get(neuron_coordinate const& nrn) const;
 
-	/** Return true if there are neither defects nor assignments. */
+	/**
+	 * @brief Return whether there are no assignments.
+	 */
 	bool empty() const;
 
-	/** Return the number of unassigned and non-defect hardware neurons.
-	 *  @note #add() may nevertheless fail since there are constraints
-	 *  on where assignments may start.
+	/**
+	 * @brief Return the number of unassigned and non-defect denmems.
+	 * @note #add() may nevertheless fail since there are constraints on
+	 *       where assignments may start.
 	 */
 	size_t available() const;
 
-	/** Artificially restrict the number of available hardware neurons.
-	 *  @note If #restrict() is called multiple times, the minimum
-	 *        value seen for max_neurons will be kept.
-	 *  @return Value of restriction that is in place.
+	/**
+	 * @brief Artificially restrict the number of available denmems.
+	 * @note If #restrict() is called multiple times, the minimum value seen for
+	        \c max_denmems will be kept.
+	 * @return Value of restriction that is in place.
 	 */
-	size_t restrict(size_t max_neurons);
+	size_t restrict(size_t max_denmems);
 
-	/** Iterate over assigned populations.
-	 *  Every population will appear exactly once.
-	 *  @note Iterators can be passed in to #neurons() to iterate over
-	 *        the hardware neurons of a population.
+	/**
+	 * @brief Iterate over assigned populations.
+	 * Every population will appear exactly once.
+	 * @note Iterators can be passed in to #neurons() to iterate over
+	 *       the denmems of a population.
 	 */
 	iterator begin() const;
 	iterator end() const;
 
-	/** Iterate over the hardware neurons of a population.
-	 *  @note Iteration starts at the top-left neuron and follows the
-	 *        pattern of assignment described in #add():
-	 *        \code
-	 *        | 1 | 3 | 5   |
-	 *        | 2 | 4 | ... |
-	 *        \endcode
+	/**
+	 * @brief Iterate over the denmems of a population.
+	 * @note Iteration starts at the top-left neuron and follows the
+	 *       pattern of assignment described in #add():
+	 *       \code
+	 *       | 1 | 3 | 5   |
+	 *       | 2 | 4 | ... |
+	 *       \endcode
 	 */
 	iterable<neuron_iterator> neurons(iterator const& it) const;
 
@@ -102,31 +113,36 @@ private:
 	static bool unassigned_p(value_type const& val) { return !val; }
 	static bool assigned_p(value_type const& val) { return !!val; }
 
-	/** Member to mark defect hardware neurons:
-	 * Implemented via a NeuronPlacement with hardware neuron size 2 from a 
-	 * PopulationSlice of an empty Population.
-	 *
-	 * TODO: why not implemented as static member?
+	/**
+	 * @brief Returns marker used to block defect denmems from being placed to.
+	 * @note When checking a spot for a defect marker, pointer values are compared
+	 *       so the exact value stored in the shared pointer is insignificant.
 	 */
-	value_type mDefect;
+	static value_type defect_marker();
 
-	/** 2D array of NeuronPlacements to the hardware neurons of the NeuronBlock.
-	 * @note the 2D array is represented in column-first access way, in contrast
-	 *       to HALBE policy of row-first access. Hence, neurons are accessed as
-	 *       follows: mAssignment[xcoord][ycoord]
+	/**
+	 * @brief 2D array of NeuronPlacement requests that were fulfilled by using the
+	 *        respective denmems of the neuron block.
+	 * @note In contrast to the general HALbe policy of row-first access, column-first
+	 *       access is used here, as it captures the filling pattern outlined above.
 	 */
 	array_type mAssignment;
 
-	/// Count of assigned hardware neurons.
+	/**
+	 * @brief Number of assigned denmems.
+	 * @note Denmems marked as defect do not count as assigned.
+	 */
 	size_t mSize;
 
-	/** Count of available (i.e. non-defect) hardware neurons, if no
-	 *  populations were assigned yet.
+	/**
+	 * @brief Count of available (i.e. non-defect) denmems, if no populations
+	 *        were assigned yet.
 	 */
 	size_t mAvailable;
 
-	/** Maximum count of hardware neurons that should receive an assignment.
-	 *  @see #restrict()
+	/**
+	 * @brief Maximum count of denmems that should receive an assignment.
+	 * @see #restrict()
 	 */
 	size_t mCeiling;
 };
@@ -149,10 +165,11 @@ private:
 	OnNeuronBlock::value_type mDefect;
 };
 
-/** Iterates over the hardware neurons of a population.
- *  @note This assumes that the neurons of a population are assigned
- *        to consecutive hardware neurons with no interspersed defects.
- *  @note Dereferencing the iterator does not return a value but a reference!
+/**
+ * @brief Iterates over the denmems of a population.
+ * @note This assumes that the neurons of a population are assigned
+ *       to consecutive denmems with no interspersed defects.
+ * @note Dereferencing the iterator does not return a reference but a value!
  */
 class neuron_iterator
     : public boost::iterator_adaptor<neuron_iterator,

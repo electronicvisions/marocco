@@ -10,12 +10,18 @@ namespace marocco {
 namespace placement {
 
 OnNeuronBlock::OnNeuronBlock()
-	: mDefect(std::make_shared<NeuronPlacement>(assignment::PopulationSlice({}, 0, 0), 2)),
-	  mAssignment(),
+	: mAssignment(),
 	  mSize(0),
 	  mAvailable(neuron_coordinate::enum_type::size),
 	  mCeiling(std::numeric_limits<size_t>::max())
 {
+}
+
+auto OnNeuronBlock::defect_marker() -> value_type
+{
+	static value_type defect =
+	    std::make_shared<NeuronPlacement>(assignment::PopulationSlice({}, 0, 0), 2);
+	return defect;
 }
 
 void OnNeuronBlock::add_defect(neuron_coordinate const& nrn) {
@@ -27,17 +33,17 @@ void OnNeuronBlock::add_defect(neuron_coordinate const& nrn) {
 	if (assigned_p(ptr)) {
 		throw ResourceInUseError("NeuronOnNeuronBlock already taken.");
 	}
-	ptr = mDefect;
+	ptr = defect_marker();
 	--mAvailable;
 }
 
 auto OnNeuronBlock::begin() const -> iterator {
-	return {mAssignment.cbegin()->begin(), mAssignment.cend()->begin(), mDefect};
+	return {mAssignment.cbegin()->begin(), mAssignment.cend()->begin(), defect_marker()};
 }
 
 auto OnNeuronBlock::end() const -> iterator {
 	auto const& end = mAssignment.cend()->begin();
-	return {end, end, mDefect};
+	return {end, end, defect_marker()};
 }
 
 auto OnNeuronBlock::neurons(iterator const& it) const -> iterable<neuron_iterator> {
@@ -79,7 +85,7 @@ auto OnNeuronBlock::add(NeuronPlacement const& value) -> iterator {
 			std::advance(end, size);
 			std::fill(begin, end, std::make_shared<NeuronPlacement>(value));
 			mSize += size;
-			return {begin, mAssignment.cend()->begin(), mDefect};
+			return {begin, mAssignment.cend()->begin(), defect_marker()};
 		} else {
 			begin = end;
 		}
@@ -90,7 +96,7 @@ auto OnNeuronBlock::add(NeuronPlacement const& value) -> iterator {
 
 auto OnNeuronBlock::operator[](neuron_coordinate const& nrn) const -> value_type {
 	auto ptr = mAssignment[nrn.x()][nrn.y()];
-	if (ptr != mDefect) {
+	if (ptr != defect_marker()) {
 		return ptr;
 	}
 	return {};
@@ -108,7 +114,7 @@ auto OnNeuronBlock::get(neuron_coordinate const& nrn) const -> iterator {
 		}
 	}
 
-	return {first, mAssignment.cend()->begin(), mDefect};
+	return {first, mAssignment.cend()->begin(), defect_marker()};
 }
 
 bool OnNeuronBlock::empty() const
@@ -121,13 +127,13 @@ size_t OnNeuronBlock::available() const
 	return std::min(mAvailable, mCeiling) - mSize;
 }
 
-size_t OnNeuronBlock::restrict(size_t max)
+size_t OnNeuronBlock::restrict(size_t max_denmems)
 {
 	if (!empty()) {
 		throw std::runtime_error("OnNeuronBlock: restrict() called after add().");
 	}
 
-	mCeiling = std::min(mCeiling, max);
+	mCeiling = std::min(mCeiling, max_denmems);
 	return mCeiling;
 }
 
