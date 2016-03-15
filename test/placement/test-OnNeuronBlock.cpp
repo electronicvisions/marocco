@@ -16,7 +16,7 @@ protected:
 	OnNeuronBlock onb;
 };
 
-NeuronPlacement make_assignment(size_t size) {
+NeuronPlacementRequest make_assignment(size_t size) {
 	return {assignment::PopulationSlice{{}, 0 /*offset*/, size}, 2 /*hw_neuron_size*/};
 }
 

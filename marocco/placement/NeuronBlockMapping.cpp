@@ -42,7 +42,7 @@ bool NeuronBlockMapping::any() const
 size_t NeuronBlockMapping::neurons(index const& idx) const
 {
 	size_t nrns = 0;
-	for (std::shared_ptr<NeuronPlacement> const& pl : mMapping[idx]) {
+	for (std::shared_ptr<NeuronPlacementRequest> const& pl : mMapping[idx]) {
 		nrns += pl->population_slice().size();
 	}
 	return nrns;

@@ -14,9 +14,9 @@ namespace placement {
  *        divisible by two, i.e. a neuron placement vertically extends
  *        over the whole neuron block.
  */
-class NeuronPlacement {
+class NeuronPlacementRequest {
 public:
-	NeuronPlacement(assignment::PopulationSlice const& bio, size_t hw_neuron_size);
+	NeuronPlacementRequest(assignment::PopulationSlice const& bio, size_t hw_neuron_size);
 
 	typename assignment::PopulationSlice::value_type const& population() const;
 

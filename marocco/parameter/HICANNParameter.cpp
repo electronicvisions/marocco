@@ -402,7 +402,7 @@ void HICANNTransformator::analog_output(
 
 			size_t const hw_neuron_size = (*it)->neuron_size();
 
-			// FIXME: Not necessary anymore, size is checked in NeuronPlacement ctor
+			// FIXME: Not necessary anymore, size is checked in NeuronPlacementRequest ctor
 			if (hw_neuron_size == 0) {
 				throw std::runtime_error("hw neuron size must be >0");
 			}
@@ -637,7 +637,7 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 
 			auto const& params = pop.parameters();
 
-			// iterate over all hardware neurons of the NeuronPlacement.
+			// iterate over all hardware neurons of the NeuronPlacementRequest.
 			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
 				{
 					// for the first hw neuron of a bio neuron: get the bio cap

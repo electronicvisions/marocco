@@ -576,7 +576,7 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 				auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 				assert(it != onb.end());
 
-				std::shared_ptr<placement::NeuronPlacement> const& trg_assign = *it;
+				std::shared_ptr<placement::NeuronPlacementRequest> const& trg_assign = *it;
 				assignment::PopulationSlice const& trg_bio_assign = trg_assign->population_slice();
 				size_t const trg_bio_size   = trg_bio_assign.size();
 				size_t const trg_bio_offset = trg_bio_assign.offset();

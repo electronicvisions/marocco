@@ -140,9 +140,9 @@ void HICANNPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 	}
 }
 
-std::vector<NeuronPlacement> HICANNPlacement::manual_placement(NeuronPlacementResult& res)
+std::vector<NeuronPlacementRequest> HICANNPlacement::manual_placement(NeuronPlacementResult& res)
 {
-	std::vector<NeuronPlacement> auto_placements;
+	std::vector<NeuronPlacementRequest> auto_placements;
 
 	for (auto const& v : make_iterable(boost::vertices(mGraph))) {
 		if (is_source(v, mGraph)) {
@@ -157,15 +157,15 @@ std::vector<NeuronPlacement> HICANNPlacement::manual_placement(NeuronPlacementRe
 		auto it = mPyPlacement.find(pop.id());
 		if (it != mPyPlacement.end()) {
 			auto const& entry = it->second;
-			NeuronPlacement const placement{assignment::PopulationSlice{v, pop},
-			                                entry.hw_neuron_size > 0 ? entry.hw_neuron_size
-			                                                         : default_hw_neuron_size};
+			NeuronPlacementRequest const placement{
+			    assignment::PopulationSlice{v, pop},
+			    entry.hw_neuron_size > 0 ? entry.hw_neuron_size : default_hw_neuron_size};
 			std::vector<NeuronBlockGlobal> neuron_blocks;
 			{
 				NeuronBlockLocationVisitor vis(neuron_blocks);
 				boost::apply_visitor(vis, entry.locations);
 			}
-			std::vector<NeuronPlacement> queue{placement};
+			std::vector<NeuronPlacementRequest> queue{placement};
 			PlacePopulations placer(res, neuron_blocks, queue);
 			auto const& result = placer.run();
 			post_process(res, result);
@@ -180,8 +180,8 @@ std::vector<NeuronPlacement> HICANNPlacement::manual_placement(NeuronPlacementRe
 			std::copy(queue.begin(), queue.end(), std::back_inserter(auto_placements));
 #endif
 		} else {
-			NeuronPlacement const placement{assignment::PopulationSlice{v, pop},
-			                                default_hw_neuron_size};
+			NeuronPlacementRequest const placement{assignment::PopulationSlice{v, pop},
+			                                       default_hw_neuron_size};
 			auto_placements.push_back(placement);
 		}
 	}
@@ -198,9 +198,9 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 
 	auto auto_placements = manual_placement(res);
 	std::sort(
-		auto_placements.begin(), auto_placements.end(),
-		[&](NeuronPlacement const& a, NeuronPlacement const& b) -> bool {
-			return mGraph[a.population()]->id() < mGraph[b.population()]->id();
+	    auto_placements.begin(), auto_placements.end(),
+	    [&](NeuronPlacementRequest const& a, NeuronPlacementRequest const& b) -> bool {
+		    return mGraph[a.population()]->id() < mGraph[b.population()]->id();
 		});
 
 	std::vector<NeuronBlockGlobal> neuron_blocks;

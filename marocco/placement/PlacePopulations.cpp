@@ -70,7 +70,7 @@ bool PlacePopulations::place_one_population()
 	auto hicann = nb.toHICANNGlobal();
 	OnNeuronBlock& onb = on_neuron_block(nb);
 
-	NeuronPlacement& placement = m_queue.back();
+	NeuronPlacementRequest& placement = m_queue.back();
 	size_t const available = onb.available() / placement.neuron_size();
 
 	if (!available) {
@@ -81,7 +81,7 @@ bool PlacePopulations::place_one_population()
 	}
 
 	auto& population = placement.population_slice();
-	auto chunk = NeuronPlacement{population.slice_front(available), placement.neuron_size()};
+	auto chunk = NeuronPlacementRequest{population.slice_front(available), placement.neuron_size()};
 	if (population.empty()) {
 		m_queue.pop_back();
 	}
@@ -97,7 +97,7 @@ bool PlacePopulations::place_one_population()
 		// Split assignment and reinsert it.
 		auto const parts = chunk.population_slice().split();
 		for (auto const& pop : parts) {
-			m_queue.push_back(NeuronPlacement{pop, chunk.neuron_size()});
+			m_queue.push_back(NeuronPlacementRequest{pop, chunk.neuron_size()});
 		}
 	} else {
 		// If size is already 1, terminal is useless.

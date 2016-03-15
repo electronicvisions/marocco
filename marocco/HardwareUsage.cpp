@@ -28,7 +28,7 @@ double HardwareUsage::overallNeuronUsage() const
 			for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 			{
 				auto const& onb = mPlacement.at(hicann).at(nb);
-				for (std::shared_ptr<placement::NeuronPlacement> const& pl : onb) {
+				for (std::shared_ptr<placement::NeuronPlacementRequest> const& pl : onb) {
 					c += pl->size();
 				}
 			}

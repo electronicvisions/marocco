@@ -1,7 +1,7 @@
 #pragma once
 
 #include "hal/Coordinate/Neuron.h"
-#include "marocco/placement/NeuronPlacement.h"
+#include "marocco/placement/NeuronPlacementRequest.h"
 
 namespace marocco {
 namespace placement {
@@ -16,13 +16,13 @@ class PlacePopulations
 public:
 	struct result_type
 	{
-		result_type(HMF::Coordinate::NeuronGlobal neuron_, NeuronPlacement const& chunk_)
+		result_type(HMF::Coordinate::NeuronGlobal neuron_, NeuronPlacementRequest const& chunk_)
 			: neuron(std::move(neuron_)), chunk(chunk_)
 		{
 		}
 
 		HMF::Coordinate::NeuronGlobal neuron;
-		NeuronPlacement chunk;
+		NeuronPlacementRequest chunk;
 	};
 
 	/**
@@ -39,7 +39,7 @@ public:
 	PlacePopulations(
 		NeuronPlacementResult& state,
 		std::vector<HMF::Coordinate::NeuronBlockGlobal>& neuron_blocks,
-		std::vector<NeuronPlacement>& queue)
+		std::vector<NeuronPlacementRequest>& queue)
 		: m_state(state), m_neuron_blocks(neuron_blocks), m_queue(queue)
 	{
 	}
@@ -58,7 +58,7 @@ private:
 
 	NeuronPlacementResult& m_state;
 	std::vector<HMF::Coordinate::NeuronBlockGlobal>& m_neuron_blocks;
-	std::vector<NeuronPlacement>& m_queue;
+	std::vector<NeuronPlacementRequest>& m_queue;
 	std::vector<result_type> m_result;
 }; // PlacePopulations
 

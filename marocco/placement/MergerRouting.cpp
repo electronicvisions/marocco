@@ -117,7 +117,7 @@ void MergerRouting::run(
 		OnNeuronBlock const& onb = nbmap.at(nb);
 		// Iterate over populations assigned to this neuron block
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			std::shared_ptr<NeuronPlacement> const& assign = *it;
+			std::shared_ptr<NeuronPlacementRequest> const& assign = *it;
 			auto const& bio = assign->population_slice();
 			size_t const num_neurons = bio.size();
 			size_t const hw_neuron_size = assign->neuron_size();

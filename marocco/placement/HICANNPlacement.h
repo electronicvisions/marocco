@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "hal/Coordinate/Neuron.h"
-#include "marocco/placement/NeuronPlacement.h"
+#include "marocco/placement/NeuronPlacementRequest.h"
 #include "marocco/placement/PlacePopulations.h"
 #include "marocco/placement/Result.h"
 #include "marocco/test.h"
@@ -42,7 +42,7 @@ private:
 	/** Extract placement requests and run manual placement.
 	 *  @return Populations without manual placement information.
 	 */
-	std::vector<NeuronPlacement> manual_placement(NeuronPlacementResult& res);
+	std::vector<NeuronPlacementRequest> manual_placement(NeuronPlacementResult& res);
 
 	void post_process(
 		NeuronPlacementResult& res, std::vector<PlacePopulations::result_type> const& placements);

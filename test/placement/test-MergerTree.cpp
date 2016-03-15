@@ -29,8 +29,8 @@ public:
 
 	void simple_fill(NeuronBlockOnHICANN nb, size_t count)
 	{
-		NeuronPlacement dummy{assignment::PopulationSlice{{}, 0 /*offset*/, 1 /*size*/},
-		                      2 /*hw_neuron_size*/};
+		NeuronPlacementRequest dummy{assignment::PopulationSlice{{}, 0 /*offset*/, 1 /*size*/},
+		                             2 /*hw_neuron_size*/};
 
 		auto& onb = nb_mapping.at(nb);
 

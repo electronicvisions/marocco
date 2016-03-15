@@ -6,7 +6,7 @@
 
 #include "hal/Coordinate/HMFGeometry.h"
 #include "marocco/util/iterable.h"
-#include "marocco/placement/NeuronPlacement.h"
+#include "marocco/placement/NeuronPlacementRequest.h"
 
 namespace marocco {
 namespace placement {
@@ -26,7 +26,7 @@ class neuron_iterator;
 class OnNeuronBlock {
 public:
 	typedef HMF::Coordinate::NeuronOnNeuronBlock neuron_coordinate;
-	typedef std::shared_ptr<NeuronPlacement> value_type;
+	typedef std::shared_ptr<NeuronPlacementRequest> value_type;
 	typedef std::array<std::array<value_type, neuron_coordinate::y_type::size>,
 	                   neuron_coordinate::x_type::size> array_type;
 	typedef array_type::value_type::const_iterator base_iterator;
@@ -55,7 +55,7 @@ public:
 	 *   | 2 | 4 | ... |
 	 *   \endcode
 	 */
-	iterator add(NeuronPlacement const& value);
+	iterator add(NeuronPlacementRequest const& value);
 
 	/**
 	 * @brief Return the population assigned to a denmem.
@@ -121,7 +121,7 @@ private:
 	static value_type defect_marker();
 
 	/**
-	 * @brief 2D array of NeuronPlacement requests that were fulfilled by using the
+	 * @brief 2D array of NeuronPlacementRequests that were fulfilled by using the
 	 *        respective denmems of the neuron block.
 	 * @note In contrast to the general HALbe policy of row-first access, column-first
 	 *       access is used here, as it captures the filling pattern outlined above.

@@ -20,7 +20,7 @@ OnNeuronBlock::OnNeuronBlock()
 auto OnNeuronBlock::defect_marker() -> value_type
 {
 	static value_type defect =
-	    std::make_shared<NeuronPlacement>(assignment::PopulationSlice({}, 0, 0), 2);
+	    std::make_shared<NeuronPlacementRequest>(assignment::PopulationSlice({}, 0, 0), 2);
 	return defect;
 }
 
@@ -52,14 +52,14 @@ auto OnNeuronBlock::neurons(iterator const& it) const -> iterable<neuron_iterato
 	return {neuron_iterator{it.base(), beg, end}, neuron_iterator{end, beg, end}};
 }
 
-auto OnNeuronBlock::add(NeuronPlacement const& value) -> iterator {
+auto OnNeuronBlock::add(NeuronPlacementRequest const& value) -> iterator {
 	size_t const size = value.size();
 
 	if (size > available()) {
 		return end();
 	}
 
-	// This should be enforced in NeuronPlacement, so an assertion is enough here.
+	// This should be enforced in NeuronPlacementRequest, so an assertion is enough here.
 	assert(size % 2 == 0);
 
 	constexpr size_t height = neuron_coordinate::y_type::size;
@@ -83,7 +83,7 @@ auto OnNeuronBlock::add(NeuronPlacement const& value) -> iterator {
 		if (size <= available) {
 			end = begin;
 			std::advance(end, size);
-			std::fill(begin, end, std::make_shared<NeuronPlacement>(value));
+			std::fill(begin, end, std::make_shared<NeuronPlacementRequest>(value));
 			mSize += size;
 			return {begin, mAssignment.cend()->begin(), defect_marker()};
 		} else {
