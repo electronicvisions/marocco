@@ -22,25 +22,26 @@ namespace placement {
  * Assign bio neurons to hardware neurons.
  * @note Takes user defined population placement into account.
  */
-class HICANNPlacement
+class NeuronPlacement
 {
 public:
-	HICANNPlacement(
+	NeuronPlacement(
 		pymarocco::Placement const& pl,
 		graph_t const& nn,
 		hardware_system_t const& hw,
 		resource_manager_t& mgr);
 
 	/**
-	 * @param res Output parameter used to store the result.
+	 * @param[out] res Output parameter used to store the result.
 	 */
 	void run(NeuronPlacementResult& res);
 
 private:
 	void disable_defect_neurons(NeuronPlacementResult& res);
 
-	/** Extract placement requests and run manual placement.
-	 *  @return Populations without manual placement information.
+	/**
+	 * @brief Extract placement requests and run manual placement.
+	 * @return Populations without manual placement information.
 	 */
 	std::vector<NeuronPlacementRequest> manual_placement(NeuronPlacementResult& res);
 

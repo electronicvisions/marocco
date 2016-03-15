@@ -3,7 +3,7 @@
 #include "marocco/Logger.h"
 #include "marocco/placement/InputPlacement.h"
 #include "marocco/placement/MergerRouting.h"
-#include "marocco/placement/HICANNPlacement.h"
+#include "marocco/placement/NeuronPlacement.h"
 #include "marocco/placement/LookupTable.h"
 
 using namespace HMF::Coordinate;
@@ -20,7 +20,7 @@ DefaultPlacement::run()
 {
 	std::unique_ptr<Result> result(new Result);
 
-	HICANNPlacement hicannpl(
+	NeuronPlacement hicannpl(
 		mPyMarocco.placement,
 		getGraph(), getHardware(),
 		getManager());

@@ -1,4 +1,4 @@
-#include "marocco/placement/HICANNPlacement.h"
+#include "marocco/placement/NeuronPlacement.h"
 
 #include <boost/assert.hpp>
 #include <boost/variant.hpp>
@@ -54,7 +54,7 @@ public:
 namespace marocco {
 namespace placement {
 
-HICANNPlacement::HICANNPlacement(
+NeuronPlacement::NeuronPlacement(
     pymarocco::Placement const& pl,
     graph_t const& nn,
     hardware_system_t const& hw,
@@ -63,7 +63,7 @@ HICANNPlacement::HICANNPlacement(
 {
 }
 
-void HICANNPlacement::disable_defect_neurons(NeuronPlacementResult& res)
+void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 {
 	for (auto const& hicann : mMgr.present()) {
 		auto const& neurons = mMgr.get(hicann)->neurons();
@@ -140,7 +140,7 @@ void HICANNPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 	}
 }
 
-std::vector<NeuronPlacementRequest> HICANNPlacement::manual_placement(NeuronPlacementResult& res)
+std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlacementResult& res)
 {
 	std::vector<NeuronPlacementRequest> auto_placements;
 
@@ -181,7 +181,7 @@ std::vector<NeuronPlacementRequest> HICANNPlacement::manual_placement(NeuronPlac
 #endif
 		} else {
 			NeuronPlacementRequest const placement{assignment::PopulationSlice{v, pop},
-			                                       default_hw_neuron_size};
+			                                default_hw_neuron_size};
 			auto_placements.push_back(placement);
 		}
 	}
@@ -189,7 +189,7 @@ std::vector<NeuronPlacementRequest> HICANNPlacement::manual_placement(NeuronPlac
 	return auto_placements;
 }
 
-void HICANNPlacement::run(NeuronPlacementResult& res)
+void NeuronPlacement::run(NeuronPlacementResult& res)
 {
 	auto const wafers = mMgr.wafers();
 	BOOST_ASSERT_MSG(wafers.size() == 1, "only single-wafer use is supported");
@@ -198,9 +198,9 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 
 	auto auto_placements = manual_placement(res);
 	std::sort(
-	    auto_placements.begin(), auto_placements.end(),
-	    [&](NeuronPlacementRequest const& a, NeuronPlacementRequest const& b) -> bool {
-		    return mGraph[a.population()]->id() < mGraph[b.population()]->id();
+		auto_placements.begin(), auto_placements.end(),
+		[&](NeuronPlacementRequest const& a, NeuronPlacementRequest const& b) -> bool {
+			return mGraph[a.population()]->id() < mGraph[b.population()]->id();
 		});
 
 	std::vector<NeuronBlockGlobal> neuron_blocks;
@@ -221,7 +221,7 @@ void HICANNPlacement::run(NeuronPlacementResult& res)
 	}
 }
 
-void HICANNPlacement::post_process(
+void NeuronPlacement::post_process(
 	NeuronPlacementResult& res, std::vector<PlacePopulations::result_type> const& placements)
 {
 	for (auto const& entry : placements) {
