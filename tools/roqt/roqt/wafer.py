@@ -85,6 +85,7 @@ class Wafer(object):
                         # colorize switch row
                         line = hicann.synapsedriver[primary][0]
                         line.setPen(pen)
+                        line.setZValue(1)
                         line.show()
 
                         # colorize primary
@@ -107,6 +108,7 @@ class Wafer(object):
                                         Y(primary.line().value()),
                                         X(LEFT if primary.side()==RIGHT else RIGHT))]
                             line.setPen(pen)
+                            line.setZValue(1)
                             line.show()
 
                             # draw switch
@@ -134,6 +136,7 @@ class Wafer(object):
                     if last_segment and last_segment[1] != direction:
                         hicann.drawSwitch(cur, last_segment[0])
                 cur.setPen(pen)
+                cur.setZValue(1)
 
                 last_segment = (cur, direction)
 
