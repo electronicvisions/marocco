@@ -65,6 +65,14 @@ NeuronPlacement::NeuronPlacement(
 
 void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 {
+	MAROCCO_INFO("Disabling defect neurons");
+	if (mPyPlacement.use_output_buffer7_for_dnc_input_and_bg_hack) {
+		MAROCCO_INFO("Using OutputBuffer(7) hack");
+	}
+	if (mPyPlacement.minSPL1) {
+		MAROCCO_INFO("Using minSPL1 option");
+	}
+
 	for (auto const& hicann : mMgr.present()) {
 		auto const& neurons = mMgr.get(hicann)->neurons();
 
@@ -78,7 +86,6 @@ void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 		// Reserve rightmost OutputBuffer to be used for DNC input and bg events.
 		// (see comments in InputPlacement.cpp)
 		if (mPyPlacement.use_output_buffer7_for_dnc_input_and_bg_hack) {
-			MAROCCO_INFO("Using OutputBuffer(7) hack");
 			res[hicann][NeuronBlockOnHICANN(7)].restrict(0);
 		}
 
@@ -144,6 +151,7 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlac
 {
 	std::vector<NeuronPlacementRequest> auto_placements;
 
+	MAROCCO_INFO("Checking for manually placed populations");
 	for (auto const& v : make_iterable(boost::vertices(mGraph))) {
 		if (is_source(v, mGraph)) {
 			// We don't have to place external spike inputs.
@@ -219,6 +227,8 @@ void NeuronPlacement::run(NeuronPlacementResult& res)
 	if (!auto_placements.empty()) {
 		throw ResourceExhaustedError("unable to place all populations");
 	}
+
+	MAROCCO_INFO("Placement of populations finished");
 }
 
 void NeuronPlacement::post_process(

@@ -1,9 +1,10 @@
 #include "marocco/placement/PlacePopulations.h"
 
-#include "marocco/placement/OnNeuronBlock.h"
-#include "marocco/placement/SpiralHICANNOrdering.h"
+#include "marocco/Logger.h"
 #include "marocco/placement/DescendingPopulationOrdering.h"
+#include "marocco/placement/OnNeuronBlock.h"
 #include "marocco/placement/Result.h"
+#include "marocco/placement/SpiralHICANNOrdering.h"
 
 using namespace HMF::Coordinate;
 
@@ -12,6 +13,7 @@ namespace placement {
 
 auto PlacePopulations::run() -> std::vector<result_type> const&
 {
+	MAROCCO_INFO("Placing " << m_queue.size() << " population(s)");
 	m_result.reserve(m_queue.size());
 
 	while (place_one_population()) {
@@ -35,6 +37,8 @@ auto PlacePopulations::sort_and_run() -> std::vector<result_type> const&
 
 void PlacePopulations::sort_neuron_blocks()
 {
+	MAROCCO_INFO("Sorting neuron blocks");
+
 	std::unordered_map<NeuronBlockGlobal, size_t> available;
 	for (auto const& nb : m_neuron_blocks) {
 		available.emplace(nb, on_neuron_block(nb).available());
