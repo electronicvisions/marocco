@@ -191,10 +191,11 @@ void SynapseRouting::run(placement::Result const& placement,
 		std::vector<SynapseDriverOnHICANN> defect_list;
 		auto const& defects = mManager.get(hicann());
 		auto const& drvs = defects->drivers();
+		MAROCCO_INFO("Collecting defect synapse drivers");
 		for (auto it=drvs->begin_disabled(); it!=drvs->end_disabled(); ++it)
 		{
 			defect_list.push_back(*it);
-			MAROCCO_INFO("Marked " << *it << " on " << hicann() << " as defect/disabled");
+			MAROCCO_DEBUG("Marked " << *it << " on " << hicann() << " as defect/disabled");
 		}
 
 		Fieres fieres(list, side, chain_length, defect_list);
@@ -595,11 +596,12 @@ void SynapseRouting::tagDefectSynapses()
 	auto const& defects = mManager.get(hicann());
 	auto const& syns = defects->synapses();
 
+	MAROCCO_INFO("Handling defect synapses");
 	for (auto it=syns->begin_disabled(); it!=syns->end_disabled(); ++it)
 	{
 		auto proxy = chip.synapses[*it];
 		proxy.weight = SynapseWeight(1);
-		MAROCCO_INFO("Marked " << *it << " on " << hicann() << " as defect/disabled");
+		MAROCCO_DEBUG("Marked " << *it << " on " << hicann() << " as defect/disabled");
 	}
 }
 

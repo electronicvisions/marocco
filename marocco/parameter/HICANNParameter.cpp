@@ -299,6 +299,7 @@ double HICANNTransformator::neurons(
 	// INDIVIDUAL Neuron Parameters
 	TransformNeurons visitor{mPyMarocco.param_trafo.alpha_v, mPyMarocco.param_trafo.shift_v};
 
+	MAROCCO_INFO("Configuring neuron parameters");
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 	{
 		placement::OnNeuronBlock const& onb = neuron_placement[nb];
@@ -316,7 +317,7 @@ double HICANNTransformator::neurons(
 				for (NeuronOnNeuronBlock nrn_onb : neuron) {
 					auto const nrn = nrn_onb.toNeuronOnHICANN(nb);
 
-					MAROCCO_INFO("configuring neuron: " << nrn);
+					MAROCCO_DEBUG("configuring neuron: " << nrn);
 
 					// configure ANALOG neuron parameters
 					transform_analog_neuron(
@@ -341,9 +342,9 @@ double HICANNTransformator::neurons(
 						throw std::runtime_error("neuron L1Address mismatch");
 					}
 
-					MAROCCO_INFO(chip().index() << " " << nb << " " << nrn
-					                            << " has sending address "
-					                            << neuron.address());
+					MAROCCO_DEBUG(
+					    chip().index() << " " << nb << " " << nrn << " has sending address "
+					                   << neuron.address());
 
 					if (!neuron.activate_firing()) {
 						throw std::runtime_error("neuron has disabled spike mechanism");
