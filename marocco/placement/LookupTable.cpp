@@ -66,8 +66,8 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 
 	// here the mapping between the addresses of the denmem circuits
 	// and the biological neurons is made
-	auto const& onm = result.neuron_placement;
-	auto const& placement = onm.placement();
+	auto const& onm = result.neuron_placement.denmem_assignment();
+	auto const& placement = result.neuron_placement.primary_denmems_for_population();
 
 	// loop over all populations wrapped as graph vertex type
 	for (auto const& vertex : make_iterable(boost::vertices(graph))) {

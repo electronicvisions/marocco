@@ -98,7 +98,7 @@ bool PlacePopulations::place_one_population()
 	auto const it = onb.add(chunk);
 	if (it != onb.end()) {
 		NeuronOnNeuronBlock nrn = *(onb.neurons(it).begin());
-		m_result.emplace_back(nrn.toNeuronOnWafer(nb), chunk);
+		m_result.push_back(nrn.toNeuronOnWafer(nb));
 	} else if (chunk.population_slice().size() > 1) {
 		// Split assignment and reinsert it.
 		auto const parts = chunk.population_slice().split();

@@ -18,7 +18,7 @@ class NeuronPlacementRequest {
 public:
 	NeuronPlacementRequest(assignment::PopulationSlice const& bio, size_t hw_neuron_size);
 
-	typename assignment::PopulationSlice::value_type const& population() const;
+	assignment::PopulationSlice::value_type const& population() const;
 
 	assignment::PopulationSlice& population_slice();
 	assignment::PopulationSlice const& population_slice() const;

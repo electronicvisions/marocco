@@ -9,13 +9,11 @@ using namespace HMF::Coordinate;
 
 namespace marocco {
 
-HardwareUsage::HardwareUsage(Hardware const& hw,
-                             Resource const& r,
-                             BaseResult const& pl) :
-	mHW(hw),
-	mResource(r),
-	mPlacement(result_cast<placement::Result>(pl).neuron_placement),
-	mLookupTable(result_cast<placement::Result>(pl).reverse_mapping)
+HardwareUsage::HardwareUsage(Hardware const& hw, Resource const& r, BaseResult const& pl)
+	: mHW(hw),
+	  mResource(r),
+	  mPlacement(result_cast<placement::Result>(pl).neuron_placement.denmem_assignment()),
+	  mLookupTable(result_cast<placement::Result>(pl).reverse_mapping)
 {}
 
 double HardwareUsage::overallNeuronUsage() const
@@ -23,7 +21,7 @@ double HardwareUsage::overallNeuronUsage() const
 	size_t cnt=0, num_hicanns=0;
 	for (auto const& hicann: mResource.allocated())
 	{
-		if (mPlacement.exists(hicann)) {
+		if (mPlacement.find(hicann) != mPlacement.end()) {
 			size_t c=0;
 			for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
 			{
@@ -44,7 +42,7 @@ double HardwareUsage::overallSynapseUsage() const
 	size_t cnt=0, num_hicanns=0;
 	for (auto const& hicann: mResource.allocated())
 	{
-		if (mPlacement.exists(hicann)) {
+		if (mPlacement.find(hicann) != mPlacement.end()) {
 			cnt += numSynapsesUsed(hicann);
 			num_hicanns++;
 		}

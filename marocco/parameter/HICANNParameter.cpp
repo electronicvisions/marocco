@@ -44,8 +44,8 @@ HICANNParameter::run(
 
 	std::unordered_map<HICANNOnWafer, HICANNTransformator::CurrentSources> current_source_map;
 
-	auto const& pm = placement.placement();
-	auto const& np = placement.neuron_placement;
+	auto const& neuron_placement = placement.neuron_placement;
+	auto const& pm = neuron_placement.primary_denmems_for_population();
 	for (auto const& entry : mCurrentSourceMap)
 	{
 		Vertex const v = entry.first;
@@ -55,9 +55,9 @@ HICANNParameter::run(
 
 		for (auto const& primary_neuron : mapping) {
 			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
-			auto const entry_ptr =
-			    np.at(terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()]
-				[primary_neuron.toNeuronOnNeuronBlock()];
+			auto const entry_ptr = neuron_placement.denmem_assignment().at(
+			    terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()]
+			                               [primary_neuron.toNeuronOnNeuronBlock()];
 			if (!entry_ptr) {
 				continue;
 			}
@@ -167,7 +167,8 @@ HICANNTransformator::run(
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1543
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(mPyMarocco.speedup);
-		auto const& neuron_placement = placement.neuron_placement.at(chip().index());
+		auto const& neuron_placement =
+		    placement.neuron_placement.denmem_assignment().at(chip().index());
 		auto const& synapse_routing = routing.synapse_routing.at(chip().index());
 
 		// Analog output: set correct values for output buffer
@@ -241,7 +242,7 @@ void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
 
 double HICANNTransformator::neurons(
 	neuron_calib_t const& calib,
-	typename placement::neuron_placement_t::result_type const& neuron_placement,
+	typename placement::NeuronBlockMapping const& neuron_placement,
 	typename placement::output_mapping_t::result_type const& output_mapping,
 	routing::SynapseTargetMapping const& synapse_target_mapping)
 {
@@ -386,8 +387,7 @@ void HICANNTransformator::connect_denmems(
 
 
 void HICANNTransformator::analog_output(
-	neuron_calib_t const& calib,
-	typename placement::neuron_placement_t::result_type const& neuron_placement)
+	neuron_calib_t const& calib, typename placement::NeuronBlockMapping const& neuron_placement)
 {
 	AnalogVisitor visitor;
 
@@ -526,7 +526,7 @@ void HICANNTransformator::synapses(
 	synapse_row_calib_t const& calib,
 	typename routing::synapse_driver_mapping_t::result_type const&
 		synapse_routing, // TODO change this to pass std::vector<DriverResult>
-	typename placement::neuron_placement_t::result_type const& neuron_placement)
+	typename placement::NeuronBlockMapping const& neuron_placement)
 {
 	NeuronOnHICANNPropertyArray<double> const weight_scale = weight_scale_array( neuron_placement );
 
@@ -608,9 +608,8 @@ void HICANNTransformator::synapses(
 }
 
 NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
-	typename placement::neuron_placement_t::result_type const& neuron_placement
-	) const {
-
+	typename placement::NeuronBlockMapping const& neuron_placement) const
+{
 	CMVisitor const cm_visitor{};
 	NeuronOnHICANNPropertyArray<double> rv;
 

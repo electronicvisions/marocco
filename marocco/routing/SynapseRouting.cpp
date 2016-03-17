@@ -73,7 +73,7 @@ void SynapseRouting::run(placement::Result const& placement,
 						 std::vector<LocalRoute> const& route_list)
 {
 	placement::NeuronPlacementResult const& nrnpl = placement.neuron_placement;
-	auto const& revmap = nrnpl.placement();
+	auto const& revmap = nrnpl.primary_denmems_for_population();
 	auto& chip = mHW[hicann()];
 
 	// firstly set all SynapseDecoders to 0bXX0001 addresses
@@ -83,7 +83,7 @@ void SynapseRouting::run(placement::Result const& placement,
 	// mapping of synapse targets (excitatory, inhibitory) to synaptic inputs of denmems
 	SynapseTargetMapping& syn_tgt_mapping = mResult.synapse_target_mapping;
 
-	syn_tgt_mapping.simple_mapping(nrnpl.at(hicann()), mGraph);
+	syn_tgt_mapping.simple_mapping(nrnpl.denmem_assignment().at(hicann()), mGraph);
 	assert(syn_tgt_mapping.check_top_and_bottom_are_equal());
 	std::stringstream msg;
 	msg << "synapse_target_mapping:\n" << syn_tgt_mapping;
@@ -352,7 +352,7 @@ void SynapseRouting::run(placement::Result const& placement,
 						continue;
 					}
 
-					placement::OnNeuronBlock const& onb = nrnpl.at(
+					placement::OnNeuronBlock const& onb = nrnpl.denmem_assignment().at(
 						terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 					auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 					assert(it != onb.end());
@@ -544,7 +544,7 @@ SynapseRouting::Result& SynapseRouting::getResult()
 void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
 									   placement::NeuronPlacementResult const& nrnpl)
 {
-	placement::PlacementMap const& revmap = nrnpl.placement();
+	auto const& revmap = nrnpl.primary_denmems_for_population();
 
 	Route const& route = local_route.route();
 	L1Bus const& l1 = mRoutingGraph[route.source()];
@@ -567,8 +567,8 @@ void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
 				continue;
 			}
 
-			placement::OnNeuronBlock const& onb =
-			    nrnpl.at(terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
+			placement::OnNeuronBlock const& onb = nrnpl.denmem_assignment().at(
+			    terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 			auto trg_bio_assign = onb[primary_neuron.toNeuronOnNeuronBlock()]->population_slice();
 
 			HICANNGlobal trg_hicann(terminal.toHICANNOnWafer(), guess_wafer(mManager));

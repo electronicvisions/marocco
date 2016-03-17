@@ -55,7 +55,7 @@ SynapseDriverRequirements::SynapseDriverRequirements(
 	: mHICANN(hicann),
 	  mNeuronPlacement(nrnpl),
 	  mSynapseTargetMapping(syn_tgt_mapping),
-	  mNeuronWidth(extract_neuron_width(mNeuronPlacement.at(mHICANN))),
+	  mNeuronWidth(extract_neuron_width(mNeuronPlacement.denmem_assignment().at(mHICANN))),
 	  mTargetSynapsesPerSynapticInputGranularity(
 		  calc_target_synapses_per_synaptic_input_granularity(mNeuronWidth, mSynapseTargetMapping))
 {
@@ -538,7 +538,7 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 {
 	SynapseCounts sc;
 
-	auto const& revmap = mNeuronPlacement.placement();
+	auto const& revmap = mNeuronPlacement.primary_denmems_for_population();
 
 	for (auto const& proj : projections)
 	{
@@ -567,7 +567,7 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 		for (auto const& primary_neuron : revmap.at(target)) {
 			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
 			if (terminal.toHICANNOnWafer() == hicann().toHICANNOnWafer()) {
-				placement::OnNeuronBlock const& onb = mNeuronPlacement.at(
+				placement::OnNeuronBlock const& onb = mNeuronPlacement.denmem_assignment().at(
 					terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 
 				auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());

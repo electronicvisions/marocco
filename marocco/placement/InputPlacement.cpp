@@ -88,7 +88,7 @@ void InputPlacement::run(
 	// check first if input is manually placed and assign it, then
 	// collect all the inputs, get their number of target HICANNs and find the
 	// optimal insertion point, given as the mean over all target HICANNs.
-	auto const& plmap = neuron_mapping.placement();
+	auto const& plmap = neuron_mapping.primary_denmems_for_population();
 
 	std::map<size_t, std::vector<std::pair<Point, PopulationSlice> >, std::greater<size_t> >
 	    auto_inputs;

@@ -42,9 +42,8 @@ size_t BusUsage::get(HMF::Coordinate::HICANNOnWafer const& hicann, L1Bus const& 
 WaferRouting::~WaferRouting()
 {}
 
-std::unordered_set<HICANNGlobal>
-WaferRouting::get_targets(
-	placement::PlacementMap const& revmap,
+std::unordered_set<HICANNGlobal> WaferRouting::get_targets(
+	placement::NeuronPlacementResult::primary_denmems_for_population_type const& revmap,
 	std::vector<HardwareProjection> const& projections) const
 {
 	std::unordered_set<HICANNGlobal> targets;
@@ -96,7 +95,7 @@ WaferRouting::run(placement::Result const& placement)
 	placement::NeuronPlacementResult const& neuron_mapping = placement.neuron_placement;
 	mOutbMapping = &placement.output_mapping;
 
-	auto const& revmap = placement.placement();
+	auto const& revmap = neuron_mapping.primary_denmems_for_population();
 
 	WaferRoutingPriorityQueue queue(getGraph(), mPyMarocco);
 	queue.insert(*mOutbMapping, hicanns);
@@ -119,7 +118,8 @@ WaferRouting::run(placement::Result const& placement)
 			// TODO(#1594): determination whether route has synapes to target does not
 			// need to count the total number of synapses.
 			SynapseTargetMapping syn_tgt_mapping;
-			syn_tgt_mapping.simple_mapping(neuron_mapping.at(target), getGraph());
+			syn_tgt_mapping.simple_mapping(
+				neuron_mapping.denmem_assignment().at(target), getGraph());
 			SynapseDriverRequirements req(target, neuron_mapping, syn_tgt_mapping);
 			auto const num = req.calc(projections, getGraph());
 
@@ -396,7 +396,7 @@ void WaferRouting::handleSynapseLoss(
 	std::vector<assignment::AddressMapping> const& sources,
 	std::unordered_set<HICANNGlobal> const& unreachable,
 	placement::NeuronPlacementResult const& neuron_mapping,
-	placement::PlacementMap const& revmap)
+	placement::NeuronPlacementResult::primary_denmems_for_population_type const& revmap)
 {
 	std::ostringstream os;
 	for (auto const& hicann : unreachable) {
@@ -419,7 +419,7 @@ void WaferRouting::handleSynapseLoss(
 				auto it = unreachable.find(hicann);
 				if (it != unreachable.end()) {
 					placement::OnNeuronBlock const& onb =
-						neuron_mapping.at(hicann).at(neuron_block);
+						neuron_mapping.denmem_assignment().at(hicann).at(neuron_block);
 					auto bio = onb[primary_neuron.toNeuronOnNeuronBlock()]->population_slice();
 
 					mSynapseLoss->addLoss(edge, source_hicann, hicann, source.bio(), bio);

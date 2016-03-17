@@ -13,7 +13,7 @@ public:
 	typedef hardware_system_t Hardware;
 	typedef resource_manager_t Resource;
 	typedef HMF::Coordinate::HICANNGlobal Index;
-	typedef placement::NeuronPlacementResult Placement;
+	typedef placement::NeuronPlacementResult::denmem_assignment_type denmem_assignment_type;
 
 	HardwareUsage(Hardware const& hw,
 				  Resource const& r,
@@ -44,7 +44,7 @@ private:
 	/// reference to resource manager
 	Resource const& mResource;
 
-	Placement const& mPlacement;
+	denmem_assignment_type const& mPlacement;
 
 	/// (shared) pointer to the forward+reverse mapping information
 	std::shared_ptr<placement::LookupTable> mLookupTable;

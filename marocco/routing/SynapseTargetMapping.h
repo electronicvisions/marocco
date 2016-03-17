@@ -2,9 +2,9 @@
 
 #include <array>
 #include "hal/HICANN/RowConfig.h"
-#include "marocco/parameter/NeuronOnHICANNPropertyArray.h"
-#include "marocco/placement/NeuronBlockMapping.h"
 #include "marocco/graph.h"
+#include "marocco/parameter/NeuronOnHICANNPropertyArray.h"
+#include "marocco/placement/NeuronPlacementResult.h"
 #include "marocco/routing/SynapseType.h"
 
 #include <boost/serialization/serialization.hpp>

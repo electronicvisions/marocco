@@ -9,6 +9,7 @@
 #include "hal/Coordinate/typed_array.h"
 #include "marocco/Logger.h"
 #include "marocco/util.h"
+#include "marocco/util/chunked.h"
 #include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 #include "pymarocco/Placement.h"
@@ -81,14 +82,14 @@ void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 		for (auto it = neurons->begin_disabled(); it != neurons->end_disabled(); ++it) {
 			auto const nb = it->toNeuronBlockOnHICANN();
 			auto const nrn = it->toNeuronOnNeuronBlock();
-			res[hicann][nb].add_defect(nrn);
+			res.denmem_assignment()[hicann][nb].add_defect(nrn);
 			MAROCCO_DEBUG("Marked " << *it << " on " << hicann << " as defect/disabled");
 		}
 
 		// Reserve rightmost OutputBuffer to be used for DNC input and bg events.
 		// (see comments in InputPlacement.cpp)
 		if (mPyPlacement.use_output_buffer7_for_dnc_input_and_bg_hack) {
-			res[hicann][NeuronBlockOnHICANN(7)].restrict(0);
+			res.denmem_assignment()[hicann][NeuronBlockOnHICANN(7)].restrict(0);
 		}
 
 		/* Minimize number of required SPL repeaters.
@@ -143,7 +144,8 @@ void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 		if (mPyPlacement.minSPL1 && default_neuron_size <= 8) {
 			auto const& restriction = restrictions.at(default_neuron_size / 2 - 1);
 			for (auto nb : iter_all<NeuronBlockOnHICANN>()) {
-				res[hicann][nb].restrict(NeuronOnNeuronBlock::enum_type::size - restriction[nb]);
+				res.denmem_assignment()[hicann][nb].restrict(
+					NeuronOnNeuronBlock::enum_type::size - restriction[nb]);
 			}
 		}
 	}
@@ -182,7 +184,7 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlac
 			std::reverse(neuron_blocks.begin(), neuron_blocks.end());
 
 			std::vector<NeuronPlacementRequest> queue{placement};
-			PlacePopulations placer(res, neuron_blocks, queue);
+			PlacePopulations placer(res.denmem_assignment(), neuron_blocks, queue);
 			auto const& result = placer.run();
 			post_process(res, result);
 
@@ -228,7 +230,7 @@ void NeuronPlacement::run(NeuronPlacementResult& res)
 		}
 	}
 
-	PlacePopulations placer(res, neuron_blocks, auto_placements);
+	PlacePopulations placer(res.denmem_assignment(), neuron_blocks, auto_placements);
 	auto const& result = placer.sort_and_run();
 	post_process(res, result);
 
@@ -242,15 +244,39 @@ void NeuronPlacement::run(NeuronPlacementResult& res)
 void NeuronPlacement::post_process(
 	NeuronPlacementResult& res, std::vector<PlacePopulations::result_type> const& placements)
 {
-	for (auto const& entry : placements) {
-		auto nrn = entry.neuron;
-		auto placement = entry.chunk;
+	for (auto const& primary_neuron : placements) {
+		auto const& onb = res.denmem_assignment().at(
+		    primary_neuron.toHICANNOnWafer())[primary_neuron.toNeuronBlockOnHICANN()];
+		auto it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
+		assert(it != onb.end() && *it != nullptr);
+		auto const& population = (*it)->population();
 
 		// Fill reverse lookup.
-		res.placement()[placement.population()].push_back(nrn);
+		res.primary_denmems_for_population()[population].push_back(primary_neuron);
+
+		// Construct LogicalNeurons
+		auto nb = primary_neuron.toNeuronBlockOnWafer();
+		auto const& population_slice = (*it)->population_slice();
+		size_t const hw_neuron_size = (*it)->neuron_size();
+		for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
+			assert(!neuron.empty());
+			NeuronOnNeuronBlock first = *neuron.begin();
+			assert(first.y() == 0);
+			size_t size = neuron.size();
+			// Currently the placement fills from top→bottom, left→right (see
+			// `internal::OnNeuronBlock`) thus creating block-shaped neurons where the
+			// first row may contain one additional rightmost denmem (thus we round up below).
+			auto logical_neuron = LogicalNeuron::on(nb)
+				.add(NeuronOnNeuronBlock(first.x(), Y(0)), size - size / 2)
+				.add(NeuronOnNeuronBlock(first.x(), Y(1)), size / 2)
+				.done();
+			BioNeuron bio_neuron(
+			    population_slice.population(), population_slice.offset() + neuron.index());
+			res.add(bio_neuron, logical_neuron);
+		}
 
 		// Tag HICANN as 'in use' in the resource manager.
-		HICANNGlobal hicann(nrn.toHICANNOnWafer(), guess_wafer(mMgr));
+		HICANNGlobal hicann(primary_neuron.toHICANNOnWafer(), guess_wafer(mMgr));
 		if (mMgr.available(hicann)) {
 			mMgr.allocate(hicann);
 		}

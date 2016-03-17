@@ -84,7 +84,7 @@ private:
 	// returns mean v_reset in bio mV
 	double neurons(
 		neuron_calib_t const& calib,
-		typename placement::neuron_placement_t::result_type const& neuron_placement,
+		typename placement::NeuronBlockMapping const& neuron_placement,
 		typename placement::output_mapping_t::result_type const& output_mapping,
 		routing::SynapseTargetMapping const& synapse_target_mapping);
 
@@ -94,11 +94,12 @@ private:
 
 	void neuron_config(neuron_calib_t const& calib);
 
-	void analog_output(neuron_calib_t const& calib,
-		typename placement::neuron_placement_t::result_type const& neuron_placement);
+	void analog_output(
+	    neuron_calib_t const& calib,
+	    typename placement::NeuronBlockMapping const& neuron_placement);
 
 	void merger(
-		typename placement::neuron_placement_t::result_type const& neuron_placement,
+		typename placement::NeuronBlockMapping const& neuron_placement,
 		typename placement::output_mapping_t::result_type const& output_mapping);
 
 	void spike_input(placement::OutputBufferMapping const& output_mapping);
@@ -116,14 +117,13 @@ private:
 	void synapses(
 		synapse_row_calib_t const& calib,
 		typename routing::synapse_driver_mapping_t::result_type const& synapse_routing,
-		typename placement::neuron_placement_t::result_type const& neuron_placement);
+		typename placement::NeuronBlockMapping const& neuron_placement);
 
 	/// returns an array with the weight scale factor for each neuron on the hicann.
 	/// The factor to scale biological to hardware weights is calculated as: speedup * cm_hw/ cm_bio
 	/// where cm_hw is the sum of the capacitances of all interconnected hw-neurons
 	NeuronOnHICANNPropertyArray<double> weight_scale_array(
-		typename placement::neuron_placement_t::result_type const& neuron_placement
-		) const;
+		typename placement::NeuronBlockMapping const& neuron_placement) const;
 
 	boost::shared_ptr<calib_t> getCalibrationData();
 

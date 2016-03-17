@@ -61,7 +61,7 @@ void MergerRouting::run(NeuronPlacementResult const& neuronpl,
 	std::for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			OutputBufferMapping& local_output_mapping = output_mapping[hicann];
-			NeuronBlockMapping const& nbmap = neuronpl.at(hicann);
+			NeuronBlockMapping const& nbmap = neuronpl.denmem_assignment().at(hicann);
 			run(hicann, nbmap, local_output_mapping);
 		});
 	auto end = std::chrono::system_clock::now();

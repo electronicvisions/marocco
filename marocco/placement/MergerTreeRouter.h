@@ -8,7 +8,7 @@
 #include "hal/Coordinate/Neuron.h"
 #include "hal/Coordinate/typed_array.h"
 #include "marocco/placement/MergerTreeGraph.h"
-#include "marocco/placement/NeuronBlockMapping.h"
+#include "marocco/placement/NeuronPlacementResult.h"
 
 namespace marocco {
 namespace placement {

@@ -6,9 +6,10 @@
 #include <vector>
 
 #include "hal/Coordinate/Neuron.h"
+#include "marocco/config.h"
 #include "marocco/placement/NeuronPlacementRequest.h"
+#include "marocco/placement/NeuronPlacementResult.h"
 #include "marocco/placement/PlacePopulations.h"
-#include "marocco/placement/Result.h"
 #include "marocco/test.h"
 
 namespace pymarocco {
