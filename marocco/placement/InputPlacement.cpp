@@ -151,7 +151,12 @@ void InputPlacement::run(
 				}
 			}
 
-			assert(!targets.empty());
+			if (targets.empty()) {
+				// This may happen when a SpikeSourceArray is created and not connected to
+				// any other populations, for example.
+				MAROCCO_WARN("source population " << pop.id() << " does not have any targets");
+				continue;
+			}
 
 			float const x_mean = algorithm::arithmetic_mean(xs.begin(), xs.end());
 			float const y_mean = algorithm::arithmetic_mean(ys.begin(), ys.end());
