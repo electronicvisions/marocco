@@ -5,7 +5,6 @@
 
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/WeightMap.h"
-#include "marocco/placement/SpiralHICANNOrdering.h"
 #include "marocco/placement/Result.h"
 #include "marocco/routing/util.h"
 #include "marocco/routing/SynapseDriverRequirements.h"

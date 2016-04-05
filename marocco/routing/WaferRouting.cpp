@@ -7,8 +7,9 @@
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/RoutingTargetVisitor.h"
 #include "marocco/routing/WeightMap.h"
-#include "marocco/placement/SpiralHICANNOrdering.h"
 #include "marocco/util/iterable.h"
+#include "marocco/util/spiral_ordering.h"
+#include "marocco/util/wafer_ordering.h"
 #include "marocco/Logger.h"
 #include "hal/Coordinate/iter_all.h"
 
@@ -86,7 +87,7 @@ WaferRouting::run(placement::Result const& placement)
 {
 	// apart from priorization do the routing from the center to the outer parts
 	// of the wafer.
-	std::set<HICANNGlobal, placement::SpiralHICANNOrdering> hicanns;
+	std::set<HICANNGlobal, wafer_ordering<HICANNGlobal, spiral_ordering<HICANNOnWafer> > > hicanns;
 	for (auto const& hicann : getManager().allocated())
 		hicanns.insert(hicann);
 

@@ -6,7 +6,6 @@
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/RoutingTargetVisitor.h"
 #include "marocco/routing/WeightMap.h"
-#include "marocco/placement/SpiralHICANNOrdering.h"
 #include "marocco/routing/util.h"
 #include "marocco/Logger.h"
 #include "hal/Coordinate/iter_all.h"

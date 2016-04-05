@@ -4,7 +4,8 @@
 #include "marocco/placement/DescendingPopulationOrdering.h"
 #include "marocco/placement/OnNeuronBlock.h"
 #include "marocco/placement/Result.h"
-#include "marocco/placement/SpiralHICANNOrdering.h"
+#include "marocco/util/spiral_ordering.h"
+#include "marocco/util/wafer_ordering.h"
 
 using namespace HMF::Coordinate;
 
@@ -46,15 +47,15 @@ void PlacePopulations::sort_neuron_blocks()
 
 	// Because pop_back() is more efficient for vectors, neuron blocks are sorted by size
 	// in descending order but nevertheless processed small-to-big.
-	static const SpiralHICANNOrdering _s;
+	const wafer_ordering<HICANNGlobal, spiral_ordering<HICANNOnWafer> > ordering;
 	std::sort(
 		m_neuron_blocks.begin(), m_neuron_blocks.end(),
-		[&available](NeuronBlockGlobal const& a, NeuronBlockGlobal const& b) {
+		[&available,&ordering](NeuronBlockGlobal const& a, NeuronBlockGlobal const& b) {
 			return (
 				(available[a] > available[b]) ||
 				((a.toHICANNGlobal() == b.toHICANNGlobal())
 					 ? (a.toNeuronBlockOnHICANN() < b.toNeuronBlockOnHICANN())
-					 : _s(a.toHICANNGlobal(), b.toHICANNGlobal())));
+					 : ordering(a.toHICANNGlobal(), b.toHICANNGlobal())));
 		});
 }
 
