@@ -18,21 +18,21 @@ Placement::Placement() :
 	mDefaultNeuronSize(defaultNeuronSize)
 {}
 
-void Placement::add(PopulationId const pop, HICANNGlobal const& first, size_type size)
+void Placement::add(PopulationId const pop, HICANNOnWafer const& first, size_type size)
 {
-	add(pop, std::list<HICANNGlobal>{first}, size);
+	add(pop, std::list<HICANNOnWafer>{first}, size);
 }
 
-void Placement::add(PopulationId pop, std::list<HICANNGlobal> const& hicanns, size_type size)
+void Placement::add(PopulationId pop, std::list<HICANNOnWafer> const& hicanns, size_type size)
 {
 	checkNeuronSize(size);
-	mPlacement[pop] = Location{std::vector<HICANNGlobal>(hicanns.begin(), hicanns.end()), size};
+	mPlacement[pop] = Location{std::vector<HICANNOnWafer>(hicanns.begin(), hicanns.end()), size};
 }
 
 void Placement::add(PopulationId const pop, size_type size)
 {
 	checkNeuronSize(size);
-	mPlacement[pop] = Location{std::vector<HICANNGlobal>{}, size};
+	mPlacement[pop] = Location{std::vector<HICANNOnWafer>{}, size};
 }
 
 Placement::mapping_type::iterator

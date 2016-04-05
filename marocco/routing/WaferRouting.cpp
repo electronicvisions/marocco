@@ -2,16 +2,17 @@
 
 #include <sstream>
 
-#include "marocco/routing/WaferRoutingPriorityQueue.h"
+#include "hal/Coordinate/iter_all.h"
+#include "marocco/Logger.h"
+#include "marocco/routing/RoutingTargetVisitor.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/routing/SynapseLoss.h"
-#include "marocco/routing/RoutingTargetVisitor.h"
+#include "marocco/routing/WaferRoutingPriorityQueue.h"
 #include "marocco/routing/WeightMap.h"
+#include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 #include "marocco/util/spiral_ordering.h"
 #include "marocco/util/wafer_ordering.h"
-#include "marocco/Logger.h"
-#include "hal/Coordinate/iter_all.h"
 
 using namespace HMF::Coordinate;
 
@@ -72,10 +73,11 @@ WaferRouting::get_targets(
 			throw std::runtime_error("no placement of target pop");
 		}
 
+		auto const wafer = guess_wafer(getManager());
 		std::transform(
 			hw_targets.begin(), hw_targets.end(), std::inserter(targets, targets.begin()),
-			[](NeuronGlobal const& primary_neuron) {
-				return primary_neuron.toHICANNGlobal();
+			[&wafer](NeuronOnWafer const& primary_neuron) {
+				return HICANNGlobal(primary_neuron.toHICANNOnWafer(), wafer);
 			});
 	}
 
@@ -412,8 +414,8 @@ void WaferRouting::handleSynapseLoss(
 			auto const& hw_targets = revmap.at(target_pop);
 
 			for (auto const& primary_neuron : hw_targets) {
-				auto neuron_block = primary_neuron.toNeuronBlockGlobal();
-				auto hicann = neuron_block.toHICANNGlobal();
+				auto neuron_block = primary_neuron.toNeuronBlockOnWafer();
+				HICANNGlobal hicann(neuron_block.toHICANNOnWafer(), guess_wafer(getManager()));
 				auto it = unreachable.find(hicann);
 				if (it != unreachable.end()) {
 					placement::OnNeuronBlock const& onb =

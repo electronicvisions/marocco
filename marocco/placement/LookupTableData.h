@@ -39,7 +39,7 @@ struct bio_id
  **/
 struct hw_id
 {
-	HMF::Coordinate::HICANNGlobal hicann;
+	HMF::Coordinate::HICANNOnWafer hicann;
 	HMF::Coordinate::NeuronBlockOnHICANN neuron_block;
 	// FIXME: Remove addr as it should be query-able by the user.
 	HMF::HICANN::L1Address addr;

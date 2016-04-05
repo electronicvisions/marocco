@@ -23,7 +23,7 @@ public:
 		graph_t const& graph,
 		pymarocco::PyMarocco const& pymarocco);
 
-	void insert(placement::OutputMappingResult const& output_mapping);
+	// void insert(placement::OutputMappingResult const& output_mapping);
 
 	template<typename Compare>
 	void insert(placement::OutputMappingResult const& output_mapping,

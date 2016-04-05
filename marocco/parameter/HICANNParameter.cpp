@@ -41,8 +41,7 @@ HICANNParameter::run(
 	auto const& placement = result_cast<placement::Result>(_placement);
 	auto const& routing   = result_cast<routing::Result>(_routing);
 
-	std::unordered_map<HICANNGlobal, std::unordered_map<NeuronOnHICANN,
-		boost::shared_ptr<StepCurrentSource const>>> current_source_map;
+	std::unordered_map<HICANNOnWafer, HICANNTransformator::CurrentSources> current_source_map;
 
 	auto const& pm = placement.placement();
 	auto const& np = placement.neuron_placement;
@@ -54,9 +53,9 @@ HICANNParameter::run(
 		auto const mapping = pm.at(v);
 
 		for (auto const& primary_neuron : mapping) {
-			auto const terminal = primary_neuron.toNeuronBlockGlobal();
+			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
 			auto const entry_ptr =
-			    np.at(terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()]
+			    np.at(terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()]
 				[primary_neuron.toNeuronOnNeuronBlock()];
 			if (!entry_ptr) {
 				continue;
@@ -72,9 +71,8 @@ HICANNParameter::run(
 					MAROCCO_WARN("unsupported current type");
 				} else {
 					MAROCCO_DEBUG("insert source");
-					auto n = primary_neuron.toNeuronOnNeuronBlock().toNeuronOnHICANN(
-					    terminal.toNeuronBlockOnHICANN());
-					current_source_map[terminal.toHICANNGlobal()][n] = ptr;
+					current_source_map[primary_neuron.toHICANNOnWafer()]
+					                  [primary_neuron.toNeuronOnHICANN()] = ptr;
 				}
 
 				break;

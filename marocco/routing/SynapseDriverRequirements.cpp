@@ -567,11 +567,10 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 		// FIXME: some of the following seems to have been copied
 		// verbatim from SynapseRouting.cpp
 		for (auto const& primary_neuron : revmap.at(target)) {
-			auto const terminal = primary_neuron.toNeuronBlockGlobal();
-			if (terminal.toHICANNGlobal() == hicann())
-			{
+			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
+			if (terminal.toHICANNOnWafer() == hicann().toHICANNOnWafer()) {
 				placement::OnNeuronBlock const& onb = mNeuronPlacement.at(
-				    terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()];
+					terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 
 				auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 				assert(it != onb.end());

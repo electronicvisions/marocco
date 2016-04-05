@@ -40,10 +40,10 @@ class LookupTable
 public:
 
 	typedef std::unordered_map< hw_id, bio_id > hw_to_bio_map_type;
-	typedef std::unordered_map< HMF::Coordinate::NeuronGlobal, bio_id > denmem_to_bio_map_type;
+	typedef std::unordered_map<HMF::Coordinate::NeuronOnWafer, bio_id> denmem_to_bio_map_type;
 	typedef std::unordered_map< bio_id, std::vector< hw_id > > bio_to_hw_map_type;
-	typedef std::unordered_map< bio_id, std::vector< HMF::Coordinate::NeuronGlobal > >
-	    bio_to_denmem_map_type;
+	typedef std::unordered_map<bio_id, std::vector<HMF::Coordinate::NeuronOnWafer> >
+		bio_to_denmem_map_type;
 
 	LookupTable() = default;
 	LookupTable(LookupTable const&) = default;
@@ -54,9 +54,9 @@ public:
 	bio_id&       operator[] (hw_id const& key);
 	bio_id&       at(hw_id const& key);
 	bio_id const& at(hw_id const& key) const;
-	bio_id&       operator[] (HMF::Coordinate::NeuronGlobal const& key);
-	bio_id&       at(HMF::Coordinate::NeuronGlobal const& key);
-	bio_id const& at(HMF::Coordinate::NeuronGlobal const& key) const;
+	bio_id& operator[](HMF::Coordinate::NeuronOnWafer const& key);
+	bio_id& at(HMF::Coordinate::NeuronOnWafer const& key);
+	bio_id const& at(HMF::Coordinate::NeuronOnWafer const& key) const;
 
 	// bio to hw transformation
 	std::vector< hw_id > &operator[](bio_id const &key);

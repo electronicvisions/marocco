@@ -14,7 +14,7 @@ class Placement
 {
 public:
 	typedef size_t PopulationId;
-	typedef std::list<HMF::Coordinate::HICANNGlobal> List;
+	typedef std::list<HMF::Coordinate::HICANNOnWafer> List;
 	typedef std::size_t size_type;
 
 	static size_type const defaultNeuronSize;
@@ -26,8 +26,9 @@ private:
 #ifndef PYPLUSPLUS
 	struct Location
 	{
-		boost::variant<std::vector<HMF::Coordinate::HICANNGlobal>,
-		               std::vector<HMF::Coordinate::NeuronBlockGlobal> > locations;
+		boost::variant<std::vector<HMF::Coordinate::HICANNOnWafer>,
+		               std::vector<HMF::Coordinate::NeuronBlockOnWafer> >
+			locations;
 		/// Size of hardware neuron.  0 ≙ default neuron size.
 		// FIXME: this property makes no sense for spike input
 		size_type hw_neuron_size;
@@ -54,7 +55,7 @@ public:
 	 *  @note Any remaining unplaced chunks of the population will
 	 *        undergo automatic placement.
 	 */
-	void add(PopulationId pop, HMF::Coordinate::HICANNGlobal const& hicann, size_type size = 0);
+	void add(PopulationId pop, HMF::Coordinate::HICANNOnWafer const& hicann, size_type size = 0);
 	void add(PopulationId pop, List const& hicanns, size_type size = 0);
 	void add(PopulationId pop, size_type size);
 

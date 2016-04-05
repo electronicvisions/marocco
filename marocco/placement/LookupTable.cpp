@@ -83,10 +83,10 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 		size_t bio_neuron_index = 0;
 
 		// each population has a vector with assigned denmem circuits
-		for (NeuronGlobal const& primary_neuron : mapping) {
-			NeuronBlockGlobal neuron_block = primary_neuron.toNeuronBlockGlobal();
+		for (NeuronOnWafer const& primary_neuron : mapping) {
+			NeuronBlockOnWafer neuron_block = primary_neuron.toNeuronBlockOnWafer();
 			placement::OnNeuronBlock const& onb =
-			    onm.at(primary_neuron.toHICANNGlobal())[neuron_block.toNeuronBlockOnHICANN()];
+				onm.at(primary_neuron.toHICANNOnWafer())[neuron_block.toNeuronBlockOnHICANN()];
 
 			auto it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 			assert(it != onb.end());
@@ -96,7 +96,7 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 				bio_id bio {population.id(), bio_neuron_index};
 
 				for (NeuronOnNeuronBlock nrn : neuron) {
-					auto ng = nrn.toNeuronGlobal(neuron_block);
+					auto ng = nrn.toNeuronOnWafer(neuron_block);
 					mBio2DenmemMap[bio].push_back(ng);
 					mDenmem2BioMap[ng] = bio;
 				}
@@ -126,20 +126,17 @@ LookupTable::at(hw_id const& key) const
 	return mHw2BioMap.at(key);
 }
 
-bio_id&
-LookupTable::operator[] (HMF::Coordinate::NeuronGlobal const& key)
+bio_id& LookupTable::operator[](HMF::Coordinate::NeuronOnWafer const& key)
 {
 	return mDenmem2BioMap[key];
 }
 
-bio_id&
-LookupTable::at(HMF::Coordinate::NeuronGlobal const& key)
+bio_id& LookupTable::at(HMF::Coordinate::NeuronOnWafer const& key)
 {
 	return mDenmem2BioMap.at(key);
 }
 
-bio_id const&
-LookupTable::at(HMF::Coordinate::NeuronGlobal const& key) const
+bio_id const& LookupTable::at(HMF::Coordinate::NeuronOnWafer const& key) const
 {
 	return mDenmem2BioMap.at(key);
 }

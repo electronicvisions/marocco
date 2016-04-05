@@ -52,23 +52,23 @@ void WaferRoutingPriorityQueue::pop()
 	}
 }
 
-void WaferRoutingPriorityQueue::insert(
-	placement::OutputMappingResult const& output_mapping)
-{
-	for (auto const& om : output_mapping)
-	{
-		auto const& hicann = om.first;
-		auto const& local_output_mapping = om.second;
-		insert(hicann, local_output_mapping);
-	}
+// void WaferRoutingPriorityQueue::insert(
+// 	placement::OutputMappingResult const& output_mapping)
+// {
+// 	for (auto const& om : output_mapping)
+// 	{
+// 		auto const& hicann = om.first;
+// 		auto const& local_output_mapping = om.second;
+// 		insert(hicann, local_output_mapping);
+// 	}
 
-	using p = std::pair<size_t, source_type>;
-	std::stable_sort(mSources.begin(), mSources.end(),
-		[](p const & a, p const & b) -> bool
-		{
-			return a.first < b.first;
-		});
-}
+// 	using p = std::pair<size_t, source_type>;
+// 	std::stable_sort(mSources.begin(), mSources.end(),
+// 		[](p const & a, p const & b) -> bool
+// 		{
+// 			return a.first < b.first;
+// 		});
+// }
 
 void WaferRoutingPriorityQueue::insert(
 	HICANNGlobal const& hicann,

@@ -8,6 +8,7 @@
 #include "hal/Coordinate/typed_array.h"
 #include "marocco/Logger.h"
 #include "marocco/util.h"
+#include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 #include "pymarocco/Placement.h"
 
@@ -27,23 +28,23 @@ public:
 	 * @param[out] neuron_blocks Neuron blocks corresponding to the coordinates passed
 	 *                           via \c operator().
 	 */
-	NeuronBlockLocationVisitor(std::vector<NeuronBlockGlobal>& neuron_blocks) :
-		m_neuron_blocks(neuron_blocks)
+	NeuronBlockLocationVisitor(std::vector<NeuronBlockOnWafer>& neuron_blocks)
+		: m_neuron_blocks(neuron_blocks)
 	{
 	}
-	std::vector<NeuronBlockGlobal>& m_neuron_blocks;
+	std::vector<NeuronBlockOnWafer>& m_neuron_blocks;
 
-	void operator()(std::vector<HICANNGlobal> const& hicanns)
+	void operator()(std::vector<HICANNOnWafer> const& hicanns)
 	{
 		m_neuron_blocks.reserve(hicanns.size() * NeuronBlockOnHICANN::size);
 		for (auto const& h : hicanns) {
 			for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-				m_neuron_blocks.push_back(NeuronBlockGlobal(nb, h));
+				m_neuron_blocks.push_back(NeuronBlockOnWafer(nb, h));
 			}
 		}
 	}
 
-	void operator()(std::vector<NeuronBlockGlobal> const& blocks)
+	void operator()(std::vector<NeuronBlockOnWafer> const& blocks)
 	{
 		m_neuron_blocks = blocks;
 	}
@@ -168,7 +169,7 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlac
 			NeuronPlacementRequest const placement{
 			    assignment::PopulationSlice{v, pop},
 			    entry.hw_neuron_size > 0 ? entry.hw_neuron_size : default_hw_neuron_size};
-			std::vector<NeuronBlockGlobal> neuron_blocks;
+			std::vector<NeuronBlockOnWafer> neuron_blocks;
 			{
 				NeuronBlockLocationVisitor vis(neuron_blocks);
 				boost::apply_visitor(vis, entry.locations);
@@ -211,7 +212,7 @@ void NeuronPlacement::run(NeuronPlacementResult& res)
 			return mGraph[a.population()]->id() < mGraph[b.population()]->id();
 		});
 
-	std::vector<NeuronBlockGlobal> neuron_blocks;
+	std::vector<NeuronBlockOnWafer> neuron_blocks;
 	neuron_blocks.reserve(mMgr.count_available() * NeuronBlockOnHICANN::size);
 
 	for (auto const& hicann : mMgr.present()) {
@@ -242,7 +243,7 @@ void NeuronPlacement::post_process(
 		res.placement()[placement.population()].push_back(nrn);
 
 		// Tag HICANN as 'in use' in the resource manager.
-		auto hicann = nrn.toHICANNGlobal();
+		HICANNGlobal hicann(nrn.toHICANNOnWafer(), guess_wafer(mMgr));
 		if (mMgr.available(hicann)) {
 			mMgr.allocate(hicann);
 		}

@@ -16,7 +16,7 @@ class LookupTable;
 /** class holding all neuron placements
  */
 class NeuronPlacementResult
-	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, NeuronBlockMapping>
+	: public AssociativeResult<HMF::Coordinate::HICANNOnWafer, NeuronBlockMapping>
 {
 public:
 	PlacementMap const& placement() const { return mPlacement; }
@@ -29,7 +29,7 @@ private:
 typedef NeuronPlacementResult neuron_placement_t;
 
 class OutputMappingResult
-	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, OutputBufferMapping>
+	: public AssociativeResult<HMF::Coordinate::HICANNOnWafer, OutputBufferMapping>
 {};
 
 typedef OutputMappingResult output_mapping_t;

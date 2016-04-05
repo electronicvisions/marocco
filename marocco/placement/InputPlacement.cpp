@@ -12,6 +12,7 @@
 #include "marocco/Logger.h"
 #include "marocco/placement/FiringRateVisitor.h"
 #include "marocco/util/algorithm.h"
+#include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 #include "marocco/util/neighbors.h"
 #include "pymarocco/MappingStats.h"
@@ -76,7 +77,7 @@ void InputPlacement::run(
 	auto const wafers = mMgr.wafers();
 	BOOST_ASSERT_MSG(wafers.size() == 1, "only single-wafer use is supported");
 
-	Neighbors<HICANNGlobal> neighbors;
+	Neighbors<HICANNOnWafer> neighbors;
 	for (auto const& hicann : mMgr.present()) {
 		neighbors.push_back(hicann);
 	}
@@ -105,8 +106,8 @@ void InputPlacement::run(
 		auto it = mPyMarocco.placement.find(pop.id());
 		if (it != mPyMarocco.placement.end()) {
 			auto const& entry = it->second;
-			std::vector<HICANNGlobal> const* locations =
-				boost::get<std::vector<HICANNGlobal> >(&entry.locations);
+			std::vector<HICANNOnWafer> const* locations =
+				boost::get<std::vector<HICANNOnWafer> >(&entry.locations);
 
 			if (locations && !locations->empty()) {
 				for (auto const& target_hicann : *locations) {
@@ -121,7 +122,7 @@ void InputPlacement::run(
 			} else {
 				throw std::runtime_error(
 					"manual placement of external input only implemented for"
-					"non-empty list of HICANNGlobal coordinates.");
+					"non-empty list of HICANNOnWafer coordinates.");
 				// FIXME: ...
 			}
 		} else {
@@ -129,7 +130,7 @@ void InputPlacement::run(
 			// We first have to gather all targets and remove duplicates, as they would
 			// shift the mean position.
 
-			std::set<HICANNGlobal> targets;
+			std::set<HICANNOnWafer> targets;
 			std::vector<float> xs, ys;
 			// FIXME: Can we make a better educated guess?
 			xs.reserve(out_degree(vertex, mGraph));
@@ -143,7 +144,7 @@ void InputPlacement::run(
 
 				auto locations = plmap.at(target);
 				for (auto const& primary_neuron : locations) {
-					auto const& hicann = primary_neuron.toHICANNGlobal();
+					auto const& hicann = primary_neuron.toHICANNOnWafer();
 					if (targets.insert(hicann).second) {
 						xs.push_back(hicann.x());
 						ys.push_back(hicann.y());
@@ -213,9 +214,10 @@ void InputPlacement::run(
 		std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
 
-void InputPlacement::insertInput(HMF::Coordinate::HICANNGlobal const& target_hicann,
-								 OutputBufferMapping& om,
-								 PopulationSlice& bio)
+void InputPlacement::insertInput(
+	HMF::Coordinate::HICANNOnWafer const& target_hicann,
+	OutputBufferMapping& om,
+	PopulationSlice& bio)
 {
 	// 7 must be first to allow for use_output_buffer7_for_dnc_input_and_bg_hack
 	for (auto const& dnc :
@@ -256,11 +258,14 @@ void InputPlacement::insertInput(HMF::Coordinate::HICANNGlobal const& target_hic
 					}
 
 					// make sure to tag HICANN as used
-					if (mMgr.available(target_hicann)) {
-						mMgr.allocate(target_hicann);
+					{
+						HICANNGlobal hicann(target_hicann, guess_wafer(mMgr));
+						if (mMgr.available(hicann)) {
+							mMgr.allocate(hicann);
+						}
 					}
 
-					// we found and empty slot,  insert the assignment
+					// we found an empty slot, insert the assignment
 					auto addresses = om.popAddresses(dnc, n, mPyMarocco.l1_address_assignment);
 					om.insert(dnc, assignment::AddressMapping(bio.slice_back(n), addresses));
 
@@ -342,25 +347,27 @@ void InputPlacement::configureGbitLinks(
 }
 
 
-InputPlacement::rate_type InputPlacement::availableRate(
-		HMF::Coordinate::HICANNGlobal const& h
-		)
+InputPlacement::rate_type InputPlacement::availableRate(HMF::Coordinate::HICANNOnWafer const& h)
 {
+	// toFPGAOnWafer() is not available for HICANNOnWafer at the moment because wafer coordinate
+	// is used to flag old (non-kintex) lab wafers, which have multiple reticles per FPGA.
+	auto fpga = HICANNGlobal(h, guess_wafer(mMgr)).toFPGAOnWafer();
 	double const& util = mPyMarocco.input_placement.bandwidth_utilization;
 	rate_type avail_HICANN = util*max_rate_HICANN - mUsedRateHICANN[h];
-	rate_type avail_FPGA = util*max_rate_FPGA - mUsedRateFPGA[h.toFPGAGlobal()];
+	rate_type avail_FPGA = util * max_rate_FPGA - mUsedRateFPGA[fpga];
 	rate_type avail = std::min( avail_HICANN, avail_FPGA );
 	assert( avail >= 0 ); // already too much rate allocated
 	return avail;
 }
 
 
-void InputPlacement::allocateRate(
-		HMF::Coordinate::HICANNGlobal const& hicann,
-		rate_type rate)
+void InputPlacement::allocateRate(HMF::Coordinate::HICANNOnWafer const& hicann, rate_type rate)
 {
+	// toFPGAOnWafer() is not available for HICANNOnWafer at the moment because wafer coordinate
+	// is used to flag old (non-kintex) lab wafers, which have multiple reticles per FPGA.
+	auto fpga = HICANNGlobal(hicann, guess_wafer(mMgr)).toFPGAOnWafer();
 	mUsedRateHICANN[hicann] += rate;
-	mUsedRateFPGA[hicann.toFPGAGlobal()] += rate;
+	mUsedRateFPGA[fpga] += rate;
 }
 
 

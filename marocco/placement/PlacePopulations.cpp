@@ -5,7 +5,6 @@
 #include "marocco/placement/OnNeuronBlock.h"
 #include "marocco/placement/Result.h"
 #include "marocco/util/spiral_ordering.h"
-#include "marocco/util/wafer_ordering.h"
 
 using namespace HMF::Coordinate;
 
@@ -40,28 +39,28 @@ void PlacePopulations::sort_neuron_blocks()
 {
 	MAROCCO_INFO("Sorting neuron blocks");
 
-	std::unordered_map<NeuronBlockGlobal, size_t> available;
+	std::unordered_map<NeuronBlockOnWafer, size_t> available;
 	for (auto const& nb : m_neuron_blocks) {
 		available.emplace(nb, on_neuron_block(nb).available());
 	}
 
 	// Because pop_back() is more efficient for vectors, neuron blocks are sorted by size
 	// in descending order but nevertheless processed small-to-big.
-	const wafer_ordering<HICANNGlobal, spiral_ordering<HICANNOnWafer> > ordering;
+	const spiral_ordering<HICANNOnWafer> ordering;
 	std::sort(
 		m_neuron_blocks.begin(), m_neuron_blocks.end(),
-		[&available,&ordering](NeuronBlockGlobal const& a, NeuronBlockGlobal const& b) {
+		[&available, &ordering](NeuronBlockOnWafer const& a, NeuronBlockOnWafer const& b) {
 			return (
 				(available[a] > available[b]) ||
-				((a.toHICANNGlobal() == b.toHICANNGlobal())
+				((a.toHICANNOnWafer() == b.toHICANNOnWafer())
 					 ? (a.toNeuronBlockOnHICANN() < b.toNeuronBlockOnHICANN())
-					 : ordering(a.toHICANNGlobal(), b.toHICANNGlobal())));
+					 : ordering(a.toHICANNOnWafer(), b.toHICANNOnWafer())));
 		});
 }
 
-OnNeuronBlock& PlacePopulations::on_neuron_block(NeuronBlockGlobal const& nb)
+OnNeuronBlock& PlacePopulations::on_neuron_block(NeuronBlockOnWafer const& nb)
 {
-	return m_state[nb.toHICANNGlobal()][nb.toNeuronBlockOnHICANN()];
+	return m_state[nb.toHICANNOnWafer()][nb.toNeuronBlockOnHICANN()];
 }
 
 bool PlacePopulations::place_one_population()
@@ -72,7 +71,7 @@ bool PlacePopulations::place_one_population()
 
 	// We use the smallest possible neuron block, so we won't fragment the wafer too much.
 	auto nb = m_neuron_blocks.back();
-	auto hicann = nb.toHICANNGlobal();
+	auto hicann = nb.toHICANNOnWafer();
 	OnNeuronBlock& onb = on_neuron_block(nb);
 
 	NeuronPlacementRequest& placement = m_queue.back();
@@ -97,7 +96,7 @@ bool PlacePopulations::place_one_population()
 	auto const it = onb.add(chunk);
 	if (it != onb.end()) {
 		NeuronOnNeuronBlock nrn = *(onb.neurons(it).begin());
-		m_result.emplace_back(nrn.toNeuronGlobal(nb), chunk);
+		m_result.emplace_back(nrn.toNeuronOnWafer(nb), chunk);
 	} else if (chunk.population_slice().size() > 1) {
 		// Split assignment and reinsert it.
 		auto const parts = chunk.population_slice().split();

@@ -72,9 +72,10 @@ private:
 
 	/** input spikes (bio) are inserted on free output buffers on target_hicann
 	 */
-	void insertInput(HMF::Coordinate::HICANNGlobal const& target_hicann,
-					 OutputBufferMapping& om,
-					 marocco::assignment::PopulationSlice& bio);
+	void insertInput(
+		HMF::Coordinate::HICANNOnWafer const& target_hicann,
+		OutputBufferMapping& om,
+		marocco::assignment::PopulationSlice& bio);
 
 	graph_t const&           mGraph;
 	hardware_system_t&       mHW;
@@ -93,12 +94,12 @@ private:
 	/// as the PyMarocco.input_placement.bandwidth_utilization parameter.
 	/// @param hicann coordinate of HICANN
 	/// @return the available Rate in Hz
-	rate_type availableRate( HMF::Coordinate::HICANNGlobal const& hicann );
+	rate_type availableRate(HMF::Coordinate::HICANNOnWafer const& hicann);
 
 	/// allocates a firing rate as used for a HICANN and the associated FPGA.
 	/// @param hicann coordinate of HICANN
 	/// @param the rate in Hz to be allocated
-	void allocateRate( HMF::Coordinate::HICANNGlobal const& hicann, rate_type rate);
+	void allocateRate(HMF::Coordinate::HICANNOnWafer const& hicann, rate_type rate);
 
 	/// counts the number of neurons from a population size that do not exceed
 	/// the available rate.
@@ -120,10 +121,10 @@ private:
 
 
 	/// already used pulse rate in Hz per HICANN
-	std::unordered_map< HMF::Coordinate::HICANNGlobal, rate_type > mUsedRateHICANN;
+	std::unordered_map<HMF::Coordinate::HICANNOnWafer, rate_type> mUsedRateHICANN;
 
 	/// already used pulse rate in Hz per FPGA
-	std::unordered_map< HMF::Coordinate::FPGAGlobal, rate_type > mUsedRateFPGA;
+	std::unordered_map<HMF::Coordinate::FPGAOnWafer, rate_type> mUsedRateFPGA;
 
 	/// maximum pulse rate per HICANN in Hz (17.8 MHz)
 	/// assumed limitation: 1 pulse per 56 ns for slow LVDS mode

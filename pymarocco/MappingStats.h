@@ -46,19 +46,19 @@ public:
 	double getNeuronUsage() const;
 	double getSynapseUsage() const;
 
-	/// translate between hardware spike address (HICANNGlobal +
+	/// translate between hardware spike address (HICANNOnWafer +
 	/// OutputBufferOnHICANN + / L1Address) and biological neuron id
 	bio_id getBioId(hw_id const id);
 
-	/// translate between NeuronGlobal and biological neuron id
-	bio_id getBioId(HMF::Coordinate::NeuronGlobal const id);
+	/// translate between NeuronOnWafer and biological neuron id
+	bio_id getBioId(HMF::Coordinate::NeuronOnWafer const id);
 
 	/// translate between biological and hardware spike addresses
 	std::vector<hw_id> getHwId(bio_id const id);
 
 	/// return a vector of coordinates of the denmems which comprises bio
 	/// neuron 'id'
-	std::vector<HMF::Coordinate::NeuronGlobal> getDenmems(bio_id const id);
+	std::vector<HMF::Coordinate::NeuronOnWafer> getDenmems(bio_id const id);
 
 #if !defined(PYPLUSPLUS)
 	void setSynapseLoss(size_t s);

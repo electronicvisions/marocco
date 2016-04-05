@@ -71,7 +71,9 @@ class TestRateDependentInputPlacement(unittest.TestCase):
             hw_id = hw_id[0]
             hicann_str = str(hw_id.hicann)
             hicanns[hicann_str] = hicanns.get(hicann_str, 0) + 1
-            fpga_str = str(hw_id.hicann.toFPGAGlobal())
+            hicann_global = pyhalbe.Coordinate.HICANNGlobal(
+                hw_id.hicann, pyhalbe.Coordinate.Wafer())
+            fpga_str = str(hicann_global.toFPGAGlobal())
             fpgas[fpga_str] = fpgas.get(fpga_str, 0) + 1
 
         pynn.end()

@@ -113,8 +113,8 @@ MappingStats::getBioId(marocco::placement::hw_id const id) {
 	return mLookupTable->at(id);
 }
 
-marocco::placement::bio_id
-MappingStats::getBioId(HMF::Coordinate::NeuronGlobal const ng) {
+marocco::placement::bio_id MappingStats::getBioId(HMF::Coordinate::NeuronOnWafer const ng)
+{
 	if (!mLookupTable)
 		throw std::runtime_error("Reverse mapping/lookup table not available");
 	return mLookupTable->getDenmemToBioMap().at(ng);
@@ -127,8 +127,9 @@ MappingStats::getHwId(marocco::placement::bio_id const id) {
 	return mLookupTable->at(id);
 }
 
-std::vector<HMF::Coordinate::NeuronGlobal>
-MappingStats::getDenmems(marocco::placement::bio_id const id) {
+std::vector<HMF::Coordinate::NeuronOnWafer> MappingStats::getDenmems(
+	marocco::placement::bio_id const id)
+{
 	if (!mLookupTable)
 		throw std::runtime_error("Reverse mapping/lookup table not available");
 	return mLookupTable->getBioToDenmemMap().at(id);

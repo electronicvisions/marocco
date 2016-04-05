@@ -3,14 +3,15 @@
 #include <cstdlib>
 #include <stdexcept>
 
-#include "marocco/routing/SynapseDriverSA.h"
+#include "marocco/Logger.h"
 #include "marocco/routing/Fieres.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
+#include "marocco/routing/SynapseDriverSA.h"
 #include "marocco/routing/SynapseLoss.h"
-#include "marocco/routing/SynapseTargetMapping.h"
 #include "marocco/routing/SynapseManager.h"
+#include "marocco/routing/SynapseTargetMapping.h"
 #include "marocco/routing/util.h"
-#include "marocco/Logger.h"
+#include "marocco/util/guess_wafer.h"
 
 #include "hal/Coordinate/iter_all.h"
 
@@ -344,15 +345,15 @@ void SynapseRouting::run(placement::Result const& placement,
 					mSynapseLoss->getProxy(pynn_proj, src_hicann, hicann());
 
 				for (auto const& primary_neuron : revmap.at(target)) {
-					auto const terminal = primary_neuron.toNeuronBlockGlobal();
-					if (terminal.toHICANNGlobal() != hicann()) {
+					auto const terminal = primary_neuron.toNeuronBlockOnWafer();
+					if (terminal.toHICANNOnWafer() != hicann().toHICANNOnWafer()) {
 						// this terminal doesn't correspond to the current local
 						// hicann. so there is nothing to do.
 						continue;
 					}
 
 					placement::OnNeuronBlock const& onb = nrnpl.at(
-					    terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()];
+						terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 					auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 					assert(it != onb.end());
 
@@ -559,18 +560,19 @@ void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
 		assignment::PopulationSlice const& src_bio_assign = am.bio();
 
 		for (auto const& primary_neuron : revmap.at(target)) {
-			auto const terminal = primary_neuron.toNeuronBlockGlobal();
-			if (terminal.toHICANNGlobal() != hicann()) {
+			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
+			if (terminal.toHICANNOnWafer() != hicann().toHICANNOnWafer()) {
 				// this terminal doesn't correspond to the current local
 				// hicann. so there is nothing to do.
 				continue;
 			}
 
 			placement::OnNeuronBlock const& onb =
-			    nrnpl.at(terminal.toHICANNGlobal())[terminal.toNeuronBlockOnHICANN()];
+			    nrnpl.at(terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 			auto trg_bio_assign = onb[primary_neuron.toNeuronOnNeuronBlock()]->population_slice();
 
-			mSynapseLoss->addLoss(pynn_proj, src_hicann, terminal.toHICANNGlobal(),
+			HICANNGlobal trg_hicann(terminal.toHICANNOnWafer(), guess_wafer(mManager));
+			mSynapseLoss->addLoss(pynn_proj, src_hicann, trg_hicann,
 								  src_bio_assign, trg_bio_assign);
 		} // for all asssignments
 	} // for all projetions
