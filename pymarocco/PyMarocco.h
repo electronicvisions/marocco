@@ -43,7 +43,6 @@ public:
 	};
 
 	PYPP_CLASS_ENUM(CalibBackend) {
-		DB,
 		XML,
 		Default
 	};
@@ -66,7 +65,7 @@ public:
 	Backend backend;
 
 	/// choose backend for calibration data
-	/// one of [DB, XML, Default]
+	/// one of [XML, Default]
 	/// default: Default
 	CalibBackend calib_backend;
 

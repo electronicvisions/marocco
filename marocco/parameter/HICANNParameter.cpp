@@ -685,19 +685,6 @@ HICANNTransformator::getCalibrationData()
 
 	switch(mPyMarocco.calib_backend) {
 
-		case PyMarocco::CalibBackend::DB: {
-			try {
-				calibtic::MetaData md;
-				auto backend = getCalibticBackend();
-				backend->load(generateUID(chip(), 0, ""), md, *calib);
-			} catch (std::runtime_error const& e) {
-				warn(this) << e.what();
-				calib->setDefaults();
-			}
-
-			break;
-		}
-
 		case PyMarocco::CalibBackend::XML: {
 			calibtic::MetaData md;
 			auto backend = getCalibticBackend();
@@ -741,20 +728,6 @@ HICANNTransformator::getCalibticBackend()
 	using namespace calibtic::backend;
 
 	switch(mPyMarocco.calib_backend) {
-
-	case pymarocco::PyMarocco::CalibBackend::DB: {
-		auto lib = loadLibrary("libcalibtic_mongo.so");
-		auto backend = loadBackend(lib);
-
-		if (!backend) {
-			throw std::runtime_error("unable to load mongo backend");
-		}
-
-		backend->config("host", "localhost");
-		backend->config("port", 27017);
-		backend->init();
-		return backend;
-	}
 
 	case pymarocco::PyMarocco::CalibBackend::XML: {
 		auto lib = loadLibrary("libcalibtic_xml.so");

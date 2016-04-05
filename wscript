@@ -122,7 +122,6 @@ def build(bld):
             'redman',
             'marocco_coordinates',
             ],
-        post_task = bld.options.with_mongo and ['calibtic_mongo'] or [],
         **flags)
 
     bld(target='marocco_coordinates_inc',
