@@ -39,7 +39,7 @@ class TestESS(unittest.TestCase):
 
             # place source on HICANN 0
             source_hicann = self.chip(0)
-            self.marocco.placement.add(source, source_hicann)
+            self.marocco.manual_placement.on_hicann(source, source_hicann)
 
             # place targets on all HICANNs on same reticle but random neurons
             nrns = self.shuffle(255)
@@ -47,7 +47,7 @@ class TestESS(unittest.TestCase):
                 hicann = HICANNGlobal(
                             X(int(source_hicann.x())+ii%4),
                             Y(int(source_hicann.y())+ii/4))
-                self.marocco.placement.add(pop, hicann)
+                self.marocco.manual_placement.on_hicann(pop, hicann)
                 print pop, hicann
 
             connector = AllToAllConnector(

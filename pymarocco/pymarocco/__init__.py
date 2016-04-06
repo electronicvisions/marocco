@@ -25,23 +25,24 @@ def _patch_MappingStats():
 _patch_MappingStats()
 del _patch_MappingStats
 
-def _patch_Placement():
+
+def _patch_ManualPlacement():
+    import functools
+    import inspect
     import pyhmf
 
-    _add = Placement.add
+    def wrap(fun):
+        @functools.wraps(fun)
+        def wrapper(self, pop, *args):
+            if not isinstance(pop, pyhmf.Population):
+                raise TypeError('first argument has to be a pyhmf population')
+            return fun(self, pop.euter_id(), *args)
+        return wrapper
 
-    def add(self, p, *args):
-        #self.minSPL1 = False
-        if not isinstance(p, pyhmf.Population):
-            raise TypeError('not a pyhmf.Population')
-        if len(p) > 256:
-            import pyhalbe
-            if isinstance(args[0], pyhalbe.Coordinate.HICANNGlobal):
-                raise RuntimeError('Populations with size()<=256 can be placed manually ')
-        return _add(self, p.euter_id(), *args)
-    add.__doc__ = _add.__doc__
+    for (name, fun) in inspect.getmembers(ManualPlacement, inspect.ismethod):
+        if name not in ['on_hicann', 'on_neuron_block', 'with_size']:
+            continue
+        setattr(ManualPlacement, name, wrap(fun))
 
-    Placement.add = add
-
-_patch_Placement()
-del _patch_Placement
+_patch_ManualPlacement()
+del _patch_ManualPlacement

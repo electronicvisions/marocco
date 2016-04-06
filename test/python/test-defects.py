@@ -39,8 +39,8 @@ class TrivialNetworkFixture(MaroccoFixture):
         source = sim.Population(1, sim.EIF_cond_exp_isfa_ista)
 
         self.chip = HICANNGlobal(Enum(3))
-        self.marocco.placement.add(target, self.chip)
-        self.marocco.placement.add(source, self.chip)
+        self.marocco.manual_placement.on_hicann(target, self.chip)
+        self.marocco.manual_placement.on_hicann(source, self.chip)
 
         connector = sim.AllToAllConnector(
             allow_self_connections=True,

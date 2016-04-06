@@ -22,11 +22,6 @@ public:
 	typedef typed_array<typed_array<bool, HLineOnHICANN>, VLineOnHICANN> switches_t;
 #endif // !PYPLUSPLUS
 
-	PYPP_CLASS_ENUM(MergerTreeStrategy) {
-		minSPL1,
-		maxSPL1
-	};
-
 	Routing();
 
 	/// toggle shuffling of crossbar switches
@@ -71,11 +66,6 @@ public:
 
 	bool _is_default;
 
-	/// choose between merger tree merging strategies
-	/// one of [minSPL1, maxSPL1]
-	/// default: minSPL1
-	MergerTreeStrategy merger_tree_strategy;
-
 private:
 #ifndef PYPLUSPLUS
 	friend class boost::serialization::access;
@@ -96,8 +86,7 @@ private:
 		   & make_nvp("w_hstraight", weight_StraightHorizontal)
 		   & make_nvp("w_vstraiggt", weight_StraightVertical)
 		   & make_nvp("w_congest", weight_CongestionFactor)
-		   & make_nvp("shuffle_crossbar_switches", shuffle_crossbar_switches)
-		   & make_nvp("merger_tree_strategy", merger_tree_strategy);
+		   & make_nvp("shuffle_crossbar_switches", shuffle_crossbar_switches);
 	}
 #endif // !PYPLUSPLUS
 };

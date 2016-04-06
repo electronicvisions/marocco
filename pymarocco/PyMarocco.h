@@ -1,17 +1,23 @@
 #pragma once
 
 #include <string>
-#include <boost/serialization/nvp.hpp>
-#include <pywrap/compat/macros.hpp>
-#include <euter/metadata.h>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/export.hpp>
+
+#include "euter/metadata.h"
+#include "pywrap/compat/macros.hpp"
 
 #include "pymarocco/MappingStats.h"
-#include "pymarocco/Placement.h"
-#include "pymarocco/InputPlacement.h"
 #include "pymarocco/Defects.h"
 #include "pymarocco/Routing.h"
 #include "pymarocco/RoutingPriority.h"
 #include "pymarocco/ParamTrafo.h"
+
+#include "marocco/placement/parameters/InputPlacement.h"
+#include "marocco/placement/parameters/L1AddressAssignment.h"
+#include "marocco/placement/parameters/ManualPlacement.h"
+#include "marocco/placement/parameters/MergerRouting.h"
+#include "marocco/placement/parameters/NeuronPlacement.h"
 
 namespace pymarocco {
 
@@ -25,7 +31,7 @@ namespace pymarocco {
 ///  from pymarocco import PyMarocco
 ///
 ///  marocco = PyMarocco()
-///  marocco.placement.setDefaultNeuronSize(4)
+///  marocco.neuron_placement.default_neuron_size(4)
 ///  marocco.calib_backend = PyMarocco.XML # load calibration from xml files
 ///  marocco.calib_path = "/wang/data/calibration/wafer_0"
 ///
@@ -51,12 +57,6 @@ public:
 		HICANNConfigurator,
 		HICANNv4Configurator,
 		DontProgramFloatingGatesHICANNConfigurator
-	};
-
-	PYPP_CLASS_ENUM(L1AddressAssignment) {
-		HighFirst,
-		LowFirst,
-		Alternate // high, low, high, low
 	};
 
 	/// choose emulation backend
@@ -86,14 +86,14 @@ public:
 
 	static boost::shared_ptr<PyMarocco> create();
 
+	marocco::placement::parameters::InputPlacement input_placement;
+	marocco::placement::parameters::ManualPlacement manual_placement;
+	marocco::placement::parameters::MergerRouting merger_routing;
+	marocco::placement::parameters::NeuronPlacement neuron_placement;
+	marocco::placement::parameters::L1AddressAssignment l1_address_assignment;
+
 	/// python property to access mapping stats
 	MappingStats stats;
-
-	/// parameters and constraints for placement algorithm (manual placement, ...)
-	Placement placement;
-
-	/// parameters  for input placement algorithm (e.g. consider bandwidth limits)
-	InputPlacement input_placement;
 
 	/// defect information
 	Defects defects;
@@ -174,10 +174,6 @@ public:
 	/// Hence, when using the ESS as backend, a value of 5e-7 is sufficient.
 	double experiment_time_offset;
 
-	/// order in which L1 addresses are assigned
-	/// default: HighFirst
-	L1AddressAssignment l1_address_assignment;
-
 	/// specifies the directory name where all temporary files are stored during ESS simulation.
 	/// If not specified a temp directory below "/tmp" is created which will be removed at the end of the program.
 	/// Instead, a user specified directory is not deleted.
@@ -188,36 +184,9 @@ private:
 
 	friend class boost::serialization::access;
 	template<typename Archive>
-	void serialize(Archive& ar, unsigned int const)
-	{
-		using boost::serialization::make_nvp;
-		ar & make_nvp("backend", backend)
-		   & make_nvp("calib_backend", calib_backend)
-		   & make_nvp("calib_path", calib_path)
-		   & make_nvp("stats", stats)
-		   & make_nvp("placement", placement)
-		   & make_nvp("input_placement", input_placement)
-		   & make_nvp("defects", defects)
-		   & make_nvp("routing_priority", routing_priority)
-		   & make_nvp("routing", routing)
-		   & make_nvp("param_trafo", param_trafo)
-		   & make_nvp("roqt", roqt)
-		   & make_nvp("bio_graph", bio_graph)
-		   & make_nvp("wafer_cfg", wafer_cfg)
-		   & make_nvp("wafer_cfg_inject", wafer_cfg_inject)
-		   & make_nvp("membrane", membrane)
-		   & make_nvp("membrane_translate_to_bio", membrane_translate_to_bio)
-		   & make_nvp("hicann_enum", hicann_enum)
-		   & make_nvp("analog_enum", analog_enum)
-		   & make_nvp("bkg_gen_isi", bkg_gen_isi)
-		   & make_nvp("only_bkg_visible", only_bkg_visible)
-		   & make_nvp("pll_freq", pll_freq)
-		   & make_nvp("hicann_configurator", hicann_configurator)
-		   & make_nvp("speedup", speedup)
-		   & make_nvp("experiment_time_offset", experiment_time_offset)
-		   & make_nvp("l1_address_assignment", l1_address_assignment)
-		   & make_nvp("ess_temp_directory", ess_temp_directory);
-	}
+	void serialize(Archive& ar, unsigned int const /* version */);
 };
 
 } // pymarocco
+
+BOOST_CLASS_EXPORT_KEY(::pymarocco::PyMarocco)

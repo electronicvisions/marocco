@@ -1,20 +1,16 @@
 #pragma once
 
-#include <map>
 #include <set>
-#include <utility>
 #include <vector>
 
+#include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/Neuron.h"
 #include "marocco/config.h"
 #include "marocco/placement/NeuronPlacementRequest.h"
 #include "marocco/placement/NeuronPlacementResult.h"
 #include "marocco/placement/PlacePopulations.h"
-#include "marocco/test.h"
-
-namespace pymarocco {
-class Placement;
-}
+#include "marocco/placement/parameters/ManualPlacement.h"
+#include "marocco/placement/parameters/NeuronPlacement.h"
 
 namespace marocco {
 namespace placement {
@@ -27,34 +23,43 @@ class NeuronPlacement
 {
 public:
 	NeuronPlacement(
-		pymarocco::Placement const& pl,
-		graph_t const& nn,
-		hardware_system_t const& hw,
-		resource_manager_t& mgr);
+		graph_t const& graph,
+		parameters::NeuronPlacement const& parameters,
+		parameters::ManualPlacement const& manual_placement,
+		NeuronPlacementResult& result);
 
-	/**
-	 * @param[out] res Output parameter used to store the result.
-	 */
-	void run(NeuronPlacementResult& res);
+	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
+
+	void add_defect(
+	    HMF::Coordinate::HICANNOnWafer const& hicann,
+	    HMF::Coordinate::NeuronOnHICANN const& neuron);
+
+	void run();
 
 private:
-	void disable_defect_neurons(NeuronPlacementResult& res);
+	void restrict_rightmost_neuron_blocks();
+	void minimize_number_of_sending_repeaters();
 
 	/**
 	 * @brief Extract placement requests and run manual placement.
 	 * @return Populations without manual placement information.
 	 */
-	std::vector<NeuronPlacementRequest> manual_placement(NeuronPlacementResult& res);
+	std::vector<NeuronPlacementRequest> perform_manual_placement();
 
-	void post_process(
-		NeuronPlacementResult& res, std::vector<PlacePopulations::result_type> const& placements);
+	void post_process(std::vector<PlacePopulations::result_type> const& placements);
 
-	pymarocco::Placement const& mPyPlacement;
-	graph_t const&            mGraph;
-	hardware_system_t const&  mHW;
-	resource_manager_t&       mMgr;
-
-	FRIEND_TEST(HICANNPlacement, Basic);
+	graph_t const& m_graph;
+	parameters::NeuronPlacement const& m_parameters;
+	parameters::ManualPlacement const& m_manual_placement;
+	NeuronPlacementResult& m_result;
+	/**
+	 * @brief Working copy of denmem assignment.
+	 * Comared to what is written to \c m_result at the end of #run(), this version
+	 * contains all available HICANNs and their defects.  Only HICANNs that saw actual
+	 * assignments are stored in \c m_result.
+	 */
+	NeuronPlacementResult::denmem_assignment_type m_denmem_assignment;
+	std::set<HMF::Coordinate::HICANNOnWafer> m_used_hicanns;
 };
 
 } // namespace placement

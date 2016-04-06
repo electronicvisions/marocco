@@ -84,13 +84,19 @@ def build(bld):
             'euter_inc',
             'nanoflann_inc',
             'marocco_coordinates_inc',
+            'marocco_parameters_inc',
             ],
         export_includes = '.')
 
     bld(target          = 'marocco',
         features        = 'cxx cxxshlib post_task',
         source          =
-            bld.path.ant_glob('marocco/**/*.cpp', excl=['marocco/coordinates/**/*']) +
+            bld.path.ant_glob(
+                'marocco/**/*.cpp',
+                excl=[
+                    'marocco/coordinates/**/*',
+                    'marocco/**/parameters/*'
+                ]) +
             bld.path.ant_glob('control/**/*.cpp') +
             bld.path.ant_glob('experiment/**/*.cpp') +
             bld.path.ant_glob('pymarocco/*.cpp'),
@@ -112,6 +118,7 @@ def build(bld):
             'hmf_calibration',
             'redman',
             'marocco_coordinates',
+            'marocco_parameters',
             ],
         cxxflags=cxxflags)
 
@@ -124,6 +131,23 @@ def build(bld):
         install_path='lib',
         use=[
             'marocco_coordinates_inc',
+            'halbe',
+        ],
+        cxxflags=cxxflags)
+
+    bld(target='marocco_parameters_inc',
+        use=[
+            'marocco_coordinates_inc',
+        ],
+        export_includes='.')
+
+    bld(target='marocco_parameters',
+        features='cxx cxxshlib',
+        source=bld.path.ant_glob('marocco/**/parameters/*.cpp'),
+        install_path='lib',
+        use=[
+            'marocco_parameters_inc',
+            'marocco_coordinates',
             'halbe',
         ],
         cxxflags=cxxflags)

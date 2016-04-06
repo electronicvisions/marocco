@@ -5,8 +5,10 @@
 
 #include "marocco/graph.h"
 #include "marocco/placement/Result.h"
-
-#include "pymarocco/PyMarocco.h"
+#include "marocco/placement/parameters/InputPlacement.h"
+#include "marocco/placement/parameters/L1AddressAssignment.h"
+#include "marocco/placement/parameters/ManualPlacement.h"
+#include "marocco/placement/parameters/NeuronPlacement.h"
 
 namespace marocco {
 namespace placement {
@@ -16,13 +18,6 @@ namespace placement {
  * output buffers.
  * @pre Neuron placement and merger routing has been completed,
  *    see \c HICANNPlacement and \c MergerRouting.
- *
- * Used \c PyMarocco parameters:
- *  - pm.placement.iter() (guided/manual placement)
- *  - pm.placement.use_output_buffer7_for_dnc_input_and_bg_hack
- *  - pm.l1_address_assignment
- *  - pm.input_placement.consider_rate
- *  - pm.input_placement.bandwidth_utilization
  *
  * TODO: add general description of algorithm from SJ's thesis.
  *
@@ -52,10 +47,15 @@ namespace placement {
 struct InputPlacement
 {
 public:
-	InputPlacement(pymarocco::PyMarocco& pymarocco,
-				   graph_t const& graph,
-				   hardware_system_t& hw,
-				   resource_manager_t& mgr);
+	InputPlacement(
+		graph_t const& graph,
+		parameters::InputPlacement const& parameters,
+		parameters::ManualPlacement const& manual_placement,
+		parameters::NeuronPlacement const& neuron_placement_parameters,
+		parameters::L1AddressAssignment const& l1_address_assignment,
+		double speedup,
+		hardware_system_t& hw,
+		resource_manager_t& mgr);
 
 	/**
 	 * @param neuronpl Result of neuron placement step.
@@ -79,10 +79,13 @@ private:
 		marocco::assignment::PopulationSlice& bio);
 
 	graph_t const&           mGraph;
+	parameters::InputPlacement const& m_parameters;
+	parameters::ManualPlacement const& m_manual_placement;
+	parameters::NeuronPlacement const& m_neuron_placement_parameters;
+	parameters::L1AddressAssignment const& m_l1_address_assignment;
+	double const m_speedup;
 	hardware_system_t&       mHW;
 	resource_manager_t&      mMgr;
-
-	pymarocco::PyMarocco& mPyMarocco;
 
 	////////////////////////////
 	// bandwidth aware placement

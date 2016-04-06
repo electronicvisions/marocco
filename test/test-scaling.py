@@ -12,8 +12,8 @@ def generate_network_scaling(num_pops, pop_size, results):
         def setUp(self, backend=PyMarocco.None):
             self.marocco = PyMarocco()
             self.marocco.backend = backend
-            self.marocco.placement.setDefaultNeuronSize(
-                    ScalingBase.DEFAULT_NEURON_SIZE)
+            self.marocco.neuron_placement.default_neuron_size(
+                ScalingBase.DEFAULT_NEURON_SIZE)
 
         def tearDown(self):
             del self.marocco

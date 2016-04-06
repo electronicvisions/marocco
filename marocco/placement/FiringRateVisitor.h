@@ -5,8 +5,6 @@
 
 #include "euter/typedcellparametervector.h"
 
-#include "pymarocco/PyMarocco.h"
-
 namespace marocco {
 namespace placement {
 
@@ -32,9 +30,7 @@ struct FiringRateVisitor
 	template <CellType N>
 	using cell_t = TypedCellParameterVector<N>;
 
-	FiringRateVisitor(
-			pymarocco::PyMarocco const& pymarocco
-			);
+	FiringRateVisitor(double speedup);
 
 	template <CellType N>
 	return_type operator() (
@@ -56,7 +52,7 @@ struct FiringRateVisitor
 		cell_t<CellType::SpikeSourcePoisson> const& v,
 		size_t neuron_id);
 
-	pymarocco::PyMarocco const& mPyMarocco;
+	double const m_speedup;
 };
 
 } // namespace placement

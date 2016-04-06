@@ -9,7 +9,7 @@ class TestRandom(unittest.TestCase):
     def setUp(self, backend=PyMarocco.None):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
-        self.marocco.placement.setDefaultNeuronSize(4)
+        self.marocco.neuron_placement.default_neuron_size(4)
 
     def tearDown(self):
         del self.marocco

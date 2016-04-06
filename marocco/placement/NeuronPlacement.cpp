@@ -10,9 +10,7 @@
 #include "marocco/Logger.h"
 #include "marocco/util.h"
 #include "marocco/util/chunked.h"
-#include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
-#include "pymarocco/Placement.h"
 
 using namespace HMF::Coordinate;
 
@@ -58,40 +56,49 @@ namespace marocco {
 namespace placement {
 
 NeuronPlacement::NeuronPlacement(
-    pymarocco::Placement const& pl,
-    graph_t const& nn,
-    hardware_system_t const& hw,
-    resource_manager_t& mgr)
-    : mPyPlacement(pl), mGraph(nn), mHW(hw), mMgr(mgr)
+	graph_t const& graph,
+	parameters::NeuronPlacement const& parameters,
+	parameters::ManualPlacement const& manual_placement,
+	NeuronPlacementResult& result)
+	: m_graph(graph),
+	  m_parameters(parameters),
+	  m_manual_placement(manual_placement),
+	  m_result(result),
+	  m_denmem_assignment(result.denmem_assignment())
 {
 }
 
-void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
+void NeuronPlacement::add(HMF::Coordinate::HICANNOnWafer const& hicann)
 {
-	MAROCCO_INFO("Disabling defect neurons");
-	if (mPyPlacement.use_output_buffer7_for_dnc_input_and_bg_hack) {
-		MAROCCO_INFO("Using OutputBuffer(7) hack");
+	m_denmem_assignment[hicann];
+}
+
+void NeuronPlacement::add_defect(
+    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::NeuronOnHICANN const& neuron)
+{
+	MAROCCO_DEBUG("Marked " << neuron << " on " << hicann << " as defect/disabled");
+	m_denmem_assignment[hicann][neuron.toNeuronBlockOnHICANN()].add_defect(
+	    neuron.toNeuronOnNeuronBlock());
+}
+
+void NeuronPlacement::restrict_rightmost_neuron_blocks() {
+	MAROCCO_INFO("Reserving rightmost neuron blocks for bg events and DNC input");
+	for (auto& item : m_denmem_assignment) {
+		item.second[NeuronBlockOnHICANN(NeuronBlockOnHICANN::max)].restrict(0);
 	}
-	if (mPyPlacement.minSPL1) {
-		MAROCCO_INFO("Using minSPL1 option");
+}
+
+void NeuronPlacement::minimize_number_of_sending_repeaters() {
+	size_t const default_neuron_size = m_parameters.default_neuron_size();
+	assert(default_neuron_size % 2 == 0);
+	if (default_neuron_size > 8) {
+		// For even neuron sizes ≥ 10 there are at most 6 neurons per neuron block / 48
+		// neurons in total.  All blocks could thus be merged and fit on a single L1 bus.
+		return;
 	}
 
-	for (auto const& hicann : mMgr.present()) {
-		auto const& neurons = mMgr.get(hicann)->neurons();
-
-		for (auto it = neurons->begin_disabled(); it != neurons->end_disabled(); ++it) {
-			auto const nb = it->toNeuronBlockOnHICANN();
-			auto const nrn = it->toNeuronOnNeuronBlock();
-			res.denmem_assignment()[hicann][nb].add_defect(nrn);
-			MAROCCO_DEBUG("Marked " << *it << " on " << hicann << " as defect/disabled");
-		}
-
-		// Reserve rightmost OutputBuffer to be used for DNC input and bg events.
-		// (see comments in InputPlacement.cpp)
-		if (mPyPlacement.use_output_buffer7_for_dnc_input_and_bg_hack) {
-			res.denmem_assignment()[hicann][NeuronBlockOnHICANN(7)].restrict(0);
-		}
-
+	MAROCCO_INFO("Trying to minimize number of required sending repeaters");
+	for (auto& item : m_denmem_assignment) {
 		/* Minimize number of required SPL repeaters.
 		 * ,---- [ Thesis S. Jeltsch ]
 		 * | By default, the number of available hardware neuron
@@ -119,13 +126,11 @@ void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 		 *    default neuron size (8).
 		 */
 
-		size_t const default_neuron_size = mPyPlacement.getDefaultNeuronSize();
-		assert(default_neuron_size % 2 == 0);
-
 		// BV: “Note that in all cases, we could decrease the denmem counts by "neuron
 		// size - 1" for each neuron block. To allow for a higher flexibility when
 		// individual denmems are defect.”
 
+		// clang-format off
 		static std::array<typed_array<size_t, NeuronBlockOnHICANN>, 4> const restrictions = {{
 			// Neuron size 2: disable 40 denmems ≙ 20 nrns ⇒ 236 nrns remaining
 			// Will fit on four L1 buses.
@@ -140,34 +145,34 @@ void NeuronPlacement::disable_defect_neurons(NeuronPlacementResult& res)
 			// Will fit on one L1 bus when merged to DNCMergerOnHICANN 3.
 			{{0, 8, 8, 8, 0, 8, 0, 8}}
 		}};
+		// clang-format on
 
-		if (mPyPlacement.minSPL1 && default_neuron_size <= 8) {
-			auto const& restriction = restrictions.at(default_neuron_size / 2 - 1);
-			for (auto nb : iter_all<NeuronBlockOnHICANN>()) {
-				res.denmem_assignment()[hicann][nb].restrict(
-					NeuronOnNeuronBlock::enum_type::size - restriction[nb]);
-			}
+		auto const& restriction = restrictions.at(default_neuron_size / 2 - 1);
+		for (auto nb : iter_all<NeuronBlockOnHICANN>()) {
+			item.second[nb].restrict(NeuronOnNeuronBlock::enum_type::size - restriction[nb]);
 		}
 	}
 }
 
-std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlacementResult& res)
+std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 {
 	std::vector<NeuronPlacementRequest> auto_placements;
+	size_t const default_hw_neuron_size = m_parameters.default_neuron_size();
+	auto const& mapping = m_manual_placement.mapping();
 
 	MAROCCO_INFO("Checking for manually placed populations");
-	for (auto const& v : make_iterable(boost::vertices(mGraph))) {
-		if (is_source(v, mGraph)) {
+
+	for (auto const& v : make_iterable(boost::vertices(m_graph))) {
+		if (is_source(v, m_graph)) {
 			// We don't have to place external spike inputs.
 			continue;
 		}
 
-		Population const& pop = *mGraph[v];
-		size_t const default_hw_neuron_size = mPyPlacement.getDefaultNeuronSize();
+		Population const& pop = *m_graph[v];
 
 		// Check for existence of manual placement:
-		auto it = mPyPlacement.find(pop.id());
-		if (it != mPyPlacement.end()) {
+		auto it = mapping.find(pop.id());
+		if (it != mapping.end()) {
 			auto const& entry = it->second;
 			NeuronPlacementRequest const placement{
 			    assignment::PopulationSlice{v, pop},
@@ -184,9 +189,9 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlac
 			std::reverse(neuron_blocks.begin(), neuron_blocks.end());
 
 			std::vector<NeuronPlacementRequest> queue{placement};
-			PlacePopulations placer(res.denmem_assignment(), neuron_blocks, queue);
+			PlacePopulations placer(m_denmem_assignment, neuron_blocks, queue);
 			auto const& result = placer.run();
-			post_process(res, result);
+			post_process(result);
 
 			// The population (or parts of it) may not have been placed successfully.
 #if 1
@@ -207,52 +212,62 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlac
 	return auto_placements;
 }
 
-void NeuronPlacement::run(NeuronPlacementResult& res)
+void NeuronPlacement::run()
 {
-	auto const wafers = mMgr.wafers();
-	BOOST_ASSERT_MSG(wafers.size() == 1, "only single-wafer use is supported");
+	if (m_parameters.minimize_number_of_sending_repeaters()) {
+		minimize_number_of_sending_repeaters();
+	}
 
-	disable_defect_neurons(res);
+	if (m_parameters.restrict_rightmost_neuron_blocks()) {
+		restrict_rightmost_neuron_blocks();
+	}
 
-	auto auto_placements = manual_placement(res);
+	auto auto_placements = perform_manual_placement();
 	std::sort(
 		auto_placements.begin(), auto_placements.end(),
 		[&](NeuronPlacementRequest const& a, NeuronPlacementRequest const& b) -> bool {
-			return mGraph[a.population()]->id() < mGraph[b.population()]->id();
+			return m_graph[a.population()]->id() < m_graph[b.population()]->id();
 		});
 
 	std::vector<NeuronBlockOnWafer> neuron_blocks;
-	neuron_blocks.reserve(mMgr.count_available() * NeuronBlockOnHICANN::size);
+	neuron_blocks.reserve(m_denmem_assignment.size() * NeuronBlockOnHICANN::size);
 
-	for (auto const& hicann : mMgr.present()) {
+	for (auto const& item : m_denmem_assignment) {
 		for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
+			auto const& hicann = item.first;
 			neuron_blocks.emplace_back(nb, hicann);
 		}
 	}
 
-	PlacePopulations placer(res.denmem_assignment(), neuron_blocks, auto_placements);
+	PlacePopulations placer(m_denmem_assignment, neuron_blocks, auto_placements);
 	auto const& result = placer.sort_and_run();
-	post_process(res, result);
+	post_process(result);
 
 	if (!auto_placements.empty()) {
 		throw ResourceExhaustedError("unable to place all populations");
 	}
 
+	// Denmem assignment is only stored for HICANNs that saw actual assignments.
+	auto& dest = m_result.denmem_assignment();
+	for (auto const& hicann : m_used_hicanns) {
+		dest[hicann] = m_denmem_assignment[hicann];
+	}
+
 	MAROCCO_INFO("Placement of populations finished");
 }
 
-void NeuronPlacement::post_process(
-	NeuronPlacementResult& res, std::vector<PlacePopulations::result_type> const& placements)
+void NeuronPlacement::post_process(std::vector<PlacePopulations::result_type> const& placements)
 {
 	for (auto const& primary_neuron : placements) {
-		auto const& onb = res.denmem_assignment().at(
-		    primary_neuron.toHICANNOnWafer())[primary_neuron.toNeuronBlockOnHICANN()];
+		auto hicann = primary_neuron.toHICANNOnWafer();
+		m_used_hicanns.insert(hicann);
+		auto const& onb = m_denmem_assignment.at(hicann)[primary_neuron.toNeuronBlockOnHICANN()];
 		auto it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 		assert(it != onb.end() && *it != nullptr);
 		auto const& population = (*it)->population();
 
 		// Fill reverse lookup.
-		res.primary_denmems_for_population()[population].push_back(primary_neuron);
+		m_result.primary_denmems_for_population()[population].push_back(primary_neuron);
 
 		// Construct LogicalNeurons
 		auto nb = primary_neuron.toNeuronBlockOnWafer();
@@ -272,13 +287,7 @@ void NeuronPlacement::post_process(
 				.done();
 			BioNeuron bio_neuron(
 			    population_slice.population(), population_slice.offset() + neuron.index());
-			res.add(bio_neuron, logical_neuron);
-		}
-
-		// Tag HICANN as 'in use' in the resource manager.
-		HICANNGlobal hicann(primary_neuron.toHICANNOnWafer(), guess_wafer(mMgr));
-		if (mMgr.available(hicann)) {
-			mMgr.allocate(hicann);
+			m_result.add(bio_neuron, logical_neuron);
 		}
 	}
 }

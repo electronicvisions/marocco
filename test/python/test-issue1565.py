@@ -12,7 +12,7 @@ class TestIssue1565(unittest.TestCase):
 
     def test_issue1565(self):
         # although there is only 1 synapse column per neuron (of size 2), a 2nd synapse is used
-        self.marocco.placement.setDefaultNeuronSize(2)
+        self.marocco.neuron_placement.default_neuron_size(2)
         con = pynn.FixedProbabilityConnector(p_connect=1.0, weights=0.004)
 
         pynn.setup(marocco=self.marocco)

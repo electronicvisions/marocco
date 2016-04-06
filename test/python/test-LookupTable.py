@@ -11,7 +11,7 @@ class TestLookupTable(unittest.TestCase):
         self.llog = pylogging.get("test-LookupTable")
         self.marocco = pymarocco.PyMarocco()
         self.marocco.backend = backend
-        self.marocco.placement.setDefaultNeuronSize(4)
+        self.marocco.neuron_placement.default_neuron_size(4)
         self.assertTrue(hasattr(pymarocco.MappingStats, 'bio_id'))
         self.assertTrue(hasattr(pymarocco.MappingStats, 'hw_id'))
         self.assertTrue(hasattr(pymarocco.MappingStats, 'getBioId'))
@@ -75,7 +75,7 @@ class TestLookupTable(unittest.TestCase):
         pop_size = 2
 
         for neuron_size in [4, 8, 12, 16, 32]:
-            self.marocco.placement.setDefaultNeuronSize(neuron_size)
+            self.marocco.neuron_placement.default_neuron_size(neuron_size)
 
             pynn.setup(marocco=self.marocco)
 

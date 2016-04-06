@@ -14,7 +14,7 @@ class TestEmptyCrossbar(unittest.TestCase):
     def setUp(self, backend=PyMarocco.None):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
-        self.marocco.placement.setDefaultNeuronSize(2)
+        self.marocco.neuron_placement.default_neuron_size(2)
 
     def tearDown(self):
         reset() # pynn reset

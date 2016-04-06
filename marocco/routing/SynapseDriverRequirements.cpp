@@ -55,7 +55,7 @@ SynapseDriverRequirements::SynapseDriverRequirements(
 	: mHICANN(hicann),
 	  mNeuronPlacement(nrnpl),
 	  mSynapseTargetMapping(syn_tgt_mapping),
-	  mNeuronWidth(extract_neuron_width(mNeuronPlacement.denmem_assignment().at(mHICANN))),
+	  mNeuronWidth(extract_neuron_width(mNeuronPlacement, mHICANN)),
 	  mTargetSynapsesPerSynapticInputGranularity(
 		  calc_target_synapses_per_synaptic_input_granularity(mNeuronWidth, mSynapseTargetMapping))
 {
@@ -355,12 +355,17 @@ SynapseDriverRequirements::resolve_triparity(
 
 
 SynapseDriverRequirements::NeuronWidth SynapseDriverRequirements::extract_neuron_width(
-	marocco::placement::NeuronBlockMapping const& neuron_block_mapping)
+	placement::NeuronPlacementResult const& neuron_placement,
+	HICANNOnWafer const& hicann)
 {
 	NeuronWidth rv;
+	auto it = neuron_placement.denmem_assignment().find(hicann);
+	if (it == neuron_placement.denmem_assignment().end()) {
+		return rv;
+	}
 
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		placement::OnNeuronBlock const& onb = neuron_block_mapping[nb];
+		placement::OnNeuronBlock const& onb = (it->second)[nb];
 
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
 			size_t const hw_neuron_size = (*it)->neuron_size();

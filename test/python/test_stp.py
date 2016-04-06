@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 
 import unittest
 import pyhmf as pynn
@@ -20,8 +20,8 @@ class STPTest(unittest.TestCase):
         """
         marocco=pymarocco.PyMarocco()
         marocco.backend = pymarocco.PyMarocco.None
-        marocco.placement.setDefaultNeuronSize(4)
-        marocco.wafer_cfg = "wafer.xml"
+        marocco.neuron_placement.default_neuron_size(4)
+        marocco.wafer_cfg = "wafer.dump"
         used_hicann = HICANNGlobal(Enum(0))
 
         pynn.setup(marocco=marocco)
@@ -29,7 +29,7 @@ class STPTest(unittest.TestCase):
         p1 = pynn.Population(1, pynn.IF_cond_exp)
 
         # place to a certain HICANN to be able to extract config data afterwards
-        marocco.placement.add(p1,used_hicann)
+        marocco.manual_placement.on_hicann(p1, used_hicann)
 
         s1 = pynn.Population(1, pynn.SpikeSourcePoisson, {'rate':5.})
         s2 = pynn.Population(1, pynn.SpikeSourcePoisson, {'rate':5.})

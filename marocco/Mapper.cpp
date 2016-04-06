@@ -81,9 +81,8 @@ void Mapper::run(ObjectStore const& pynn)
 	// The 3 1/2-steps to complete happiness
 
 	// 1.  P L A C E M E N T
-	std::unique_ptr<placement::Placement> placer(
-		new placement::DefaultPlacement(*mPyMarocco, mGraph, mHW, mMgr));
-	auto placement = placer->run();
+	placement::Placement placer(*mPyMarocco, mGraph, mHW, mMgr);
+	auto placement = placer.run();
 	mLookupTable = result_cast<placement::Result>(*placement).reverse_mapping;
 
 	// 2.  R O U T I N G

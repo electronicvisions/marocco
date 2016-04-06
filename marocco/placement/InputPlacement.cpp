@@ -13,8 +13,6 @@
 #include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 #include "marocco/util/neighbors.h"
-#include "pymarocco/MappingStats.h"
-#include "pymarocco/Placement.h"
 
 using namespace HMF::Coordinate;
 using marocco::assignment::PopulationSlice;
@@ -38,26 +36,23 @@ const InputPlacement::rate_type InputPlacement::max_rate_HICANN = 1.78e7; // Hz
 const InputPlacement::rate_type InputPlacement::max_rate_FPGA = 1.25e8; // Hz
 
 InputPlacement::InputPlacement(
-	pymarocco::PyMarocco& pymarocco,
 	graph_t const& graph,
+	parameters::InputPlacement const& parameters,
+	parameters::ManualPlacement const& manual_placement,
+	parameters::NeuronPlacement const& neuron_placement_parameters,
+	parameters::L1AddressAssignment const& l1_address_assignment,
+	double speedup,
 	hardware_system_t& hw,
-	resource_manager_t& mgr):
-		mGraph(graph),
-		mHW(hw),
-		mMgr(mgr),
-		mPyMarocco(pymarocco)
+	resource_manager_t& mgr)
+	: mGraph(graph),
+	  m_parameters(parameters),
+	  m_manual_placement(manual_placement),
+	  m_neuron_placement_parameters(neuron_placement_parameters),
+	  m_l1_address_assignment(l1_address_assignment),
+	  m_speedup(speedup),
+	  mHW(hw),
+	  mMgr(mgr)
 {
-	// when considering bandwidth limitations, check utilization value
-	if ( mPyMarocco.input_placement.consider_rate ) {
-		double const& util = mPyMarocco.input_placement.bandwidth_utilization;
-		if ( util > 0. ) {
-			if (util > 1.)
-				MAROCCO_WARN("bandwidth_utilization > 1. Some Input spikes will"
-						" definitely be lost");
-		} else {
-			throw std::runtime_error("bandwidth_utilization must be positive");
-		}
-	}
 }
 
 void InputPlacement::run(
@@ -91,6 +86,8 @@ void InputPlacement::run(
 	std::map<size_t, std::vector<std::pair<Point, PopulationSlice> >, std::greater<size_t> >
 	    auto_inputs;
 
+	auto const& mapping = m_manual_placement.mapping();
+
 	for (auto const& vertex : make_iterable(boost::vertices(mGraph)))
 	{
 		if (!is_source(vertex, mGraph)) {
@@ -101,8 +98,8 @@ void InputPlacement::run(
 		PopulationSlice bio = PopulationSlice{vertex, pop};
 
 		// if a manual placement exists, assign it
-		auto it = mPyMarocco.placement.find(pop.id());
-		if (it != mPyMarocco.placement.end()) {
+		auto it = mapping.find(pop.id());
+		if (it != mapping.end()) {
 			auto const& entry = it->second;
 			std::vector<HICANNOnWafer> const* locations =
 				boost::get<std::vector<HICANNOnWafer> >(&entry.locations);
@@ -227,7 +224,7 @@ void InputPlacement::insertInput(
 
 					rate_type used_rate;
 
-					if ( mPyMarocco.input_placement.consider_rate ) {
+					if (m_parameters.consider_firing_rate()) {
 
 						rate_type available_rate = availableRate(target_hicann);
 
@@ -255,7 +252,7 @@ void InputPlacement::insertInput(
 					// we found an empty slot, insert the assignment
 					auto population_slice = bio.slice_back(n);
 					for (size_t ii = 0; ii < n; ++ii) {
-						auto const address = pool.pop(mPyMarocco.l1_address_assignment);
+						auto const address = pool.pop(m_l1_address_assignment.strategy());
 						size_t const neuron_index = population_slice.offset() + ii;
 						auto const logical_neuron = LogicalNeuron::external(
 							mGraph[population_slice.population()]->id(), neuron_index);
@@ -267,8 +264,9 @@ void InputPlacement::insertInput(
 					}
 
 					// mark rate as used
-					if ( mPyMarocco.input_placement.consider_rate )
+					if (m_parameters.consider_firing_rate()) {
 						allocateRate(target_hicann, used_rate);
+					}
 
 					if (!bio.size()) {
 						return;
@@ -324,9 +322,8 @@ void InputPlacement::configureGbitLinks(
 			// short, the current approach is to use the background generator
 			// connected to this output buffer (which is forwarded 1-to-1 to
 			// DNC merger 7).
-			bool const hack = mPyMarocco.placement.use_output_buffer7_for_dnc_input_and_bg_hack;
-
-			if (hack && dnc == DNCMergerOnHICANN(7)) {
+			if (m_neuron_placement_parameters.restrict_rightmost_neuron_blocks() &&
+			    dnc == DNCMergerOnHICANN(DNCMergerOnHICANN::max)) {
 				Merger0OnHICANN const m(dnc.value());
 				// Select (only) background generator, necessitating a hack in
 				// HICANNPlacement.cpp that prevents placing neurons there.
@@ -349,7 +346,7 @@ InputPlacement::rate_type InputPlacement::availableRate(HMF::Coordinate::HICANNO
 	// toFPGAOnWafer() is not available for HICANNOnWafer at the moment because wafer coordinate
 	// is used to flag old (non-kintex) lab wafers, which have multiple reticles per FPGA.
 	auto fpga = HICANNGlobal(h, guess_wafer(mMgr)).toFPGAOnWafer();
-	double const& util = mPyMarocco.input_placement.bandwidth_utilization;
+	double const& util = m_parameters.bandwidth_utilization();
 	rate_type avail_HICANN = util*max_rate_HICANN - mUsedRateHICANN[h];
 	rate_type avail_FPGA = util * max_rate_FPGA - mUsedRateFPGA[fpga];
 	rate_type avail = std::min( avail_HICANN, avail_FPGA );
@@ -379,7 +376,7 @@ InputPlacement::neuronsFittingIntoAvailableRate(
 
 	auto const& params = pop.parameters();
 
-	FiringRateVisitor fr_visitor(mPyMarocco);
+	FiringRateVisitor fr_visitor(m_speedup);
 
 	debug(this) << " available_rate: " <<  available_rate;
 	rate_type summed_rate = 0;

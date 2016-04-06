@@ -1,35 +1,29 @@
-# This test checks API properties of pymarocco::Placement::add
+# This test checks API properties of ManualPlacement::on_hicann
 
 import pyhmf as pynn
 
 import pyhalbe, pymarocco
 from pymarocco import PyMarocco
-from pyhalbe.Coordinate import HICANNGlobal, Enum
+from pyhalbe.Coordinate import HICANNOnWafer, Enum
 
 
 marocco = PyMarocco()
 
-useOne = HICANNGlobal(Enum(276))
-useTwo = HICANNGlobal(Enum(277))
+useOne = HICANNOnWafer(Enum(276))
+useTwo = HICANNOnWafer(Enum(277))
 use = [useOne, useTwo]
 use_tpl = tuple(use)
-useList = pymarocco.Placement.List(use)
 
 # place a population to a single HICANN (scalar parameter)
 pop = pynn.Population(10, pynn.IF_cond_exp, {})
-marocco.placement.add(pop, useOne)
-
-# place a population onto multiple HICANNs
-# using the pymarocco::Placement::List type
-pop = pynn.Population(10, pynn.IF_cond_exp, {})
-marocco.placement.add(pop, useList)
+marocco.manual_placement.on_hicann(pop, useOne)
 
 # place a population onto multiple HICANNs
 # using a Python list()
 pop = pynn.Population(10, pynn.IF_cond_exp, {})
-marocco.placement.add(pop, use)
+marocco.manual_placement.on_hicann(pop, use)
 
 # place a population onto multiple HICANNs
 # using a Python tuple()
 pop = pynn.Population(10, pynn.IF_cond_exp, {})
-marocco.placement.add(pop, use_tpl)
+marocco.manual_placement.on_hicann(pop, use_tpl)

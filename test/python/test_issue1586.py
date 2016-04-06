@@ -32,7 +32,7 @@ class TestIssue1586(unittest.TestCase):
         pylogging.default_config(pylogging.LogLevel.INFO)
 
         marocco = pymarocco.PyMarocco()
-        marocco.placement.setDefaultNeuronSize(8)
+        marocco.neuron_placement.default_neuron_size(8)
 
         marocco.backend = pymarocco.PyMarocco.ESS
         marocco.experiment_time_offset=5e-7

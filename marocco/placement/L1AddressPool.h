@@ -4,7 +4,7 @@
 
 #include "hal/HICANN/L1Address.h"
 
-#include "pymarocco/PyMarocco.h"
+#include "marocco/placement/parameters/L1AddressAssignment.h"
 
 namespace marocco {
 namespace placement {
@@ -50,7 +50,7 @@ public:
 	/**
 	 * @brief Removes an address according to the specified strategy.
 	 */
-	address_type pop(pymarocco::PyMarocco::L1AddressAssignment const& strategy);
+	address_type pop(parameters::L1AddressAssignment::Strategy const& strategy);
 
 
 	/**

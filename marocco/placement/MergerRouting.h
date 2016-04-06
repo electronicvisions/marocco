@@ -1,43 +1,31 @@
 #pragma once
 
-#include "marocco/graph.h"
-#include "marocco/placement/Result.h"
-#include "pymarocco/PyMarocco.h"
+#include "marocco/placement/MergerRoutingResult.h"
+#include "marocco/placement/MergerTreeGraph.h"
+#include "marocco/placement/NeuronPlacementResult.h"
+#include "marocco/placement/parameters/MergerRouting.h"
 
 namespace marocco {
 namespace placement {
 
 /**
- * Map output of neurons to SPL1 repeaters and assign addresses.
- * @pre Neuron placement is available, see \c HICANNPlacement.
+ * @brief Map output of neurons to SPL1 repeaters and assign addresses.
+ * @pre Neuron placement is available, see \c NeuronPlacement.
  */
 class MergerRouting
 {
 public:
-
 	MergerRouting(
-		pymarocco::PyMarocco& pymarocco,
-		graph_t const& graph,
-		hardware_system_t& hw,
-		resource_manager_t const& mgr);
+		parameters::MergerRouting const& parameters,
+		NeuronPlacementResult const& neuron_placement,
+		MergerRoutingResult& result);
 
-	/**
-	 * @param neuronpl Result of neuron placement step.
-	 * @param output_mapping Output parameter used to store the result.
-	 */
-	void run(NeuronPlacementResult& neuron_placement,
-			 WaferL1AddressAssignment& address_assignment);
+	void run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnWafer const& hicann);
 
 private:
-	void run(HMF::Coordinate::HICANNGlobal const& hicann,
-			 NeuronPlacementResult& neuron_placement,
-			 L1AddressAssignment& address_assignment);
-
-	graph_t const&            mGraph;
-	hardware_system_t&        mHW;
-	resource_manager_t const& mMgr;
-
-	pymarocco::PyMarocco& mPyMarocco;
+	parameters::MergerRouting const& m_parameters;
+	NeuronPlacementResult const& m_neuron_placement;
+	MergerRoutingResult& m_result;
 };
 
 } // namespace placement

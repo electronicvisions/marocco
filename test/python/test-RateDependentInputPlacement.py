@@ -14,12 +14,12 @@ pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.DEBUG)
 
 def default_marocco():
     marocco = pymarocco.PyMarocco()
-    marocco.placement.setDefaultNeuronSize(4)
+    marocco.neuron_placement.default_neuron_size(4)
     marocco.speedup = 10000.
     return marocco
 
 class TestRateDependentInputPlacement(unittest.TestCase):
-    """Test input placement with consider_rate=True for diverse settings"""
+    """Test input placement with consider_firing_rate=True for diverse settings"""
 
     hicann_bw = 17.8e6
     fpga_bw = 125.e6
@@ -46,7 +46,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
 
         # place target onto a hicann in the center of reticle and at the border of the wafer
         # such that hicanns from the same reticle are used with preference (1 reticle -> same fpga)
-        marocco.placement.add( exc_pop, pyhalbe.Coordinate.HICANNGlobal(pyhalbe.Coordinate.Enum(1)) )
+        marocco.manual_placement.on_hicann(
+            exc_pop, pyhalbe.Coordinate.HICANNOnWafer(pyhalbe.Coordinate.Enum(1)))
 
         if poisson:
             pop_stim = pynn.Population(n_stim, pynn.SpikeSourcePoisson, {'rate':rate, 'duration':sim_duration})
@@ -82,8 +83,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
     def test_hicann_limit(self):
         """total rate exceeds BW of 1 HICANN -> 2 HICANNs are used"""
         marocco = default_marocco()
-        marocco.input_placement.consider_rate =  True
-        marocco.input_placement.bandwidth_utilization = 1.0
+        marocco.input_placement.consider_firing_rate(True)
+        marocco.input_placement.bandwidth_utilization(1.0)
 
         total_rate = 1.05*self.hicann_bw / marocco.speedup
         poisson_rate = 100.
@@ -101,8 +102,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
     def test_fpga_limit(self):
         """total rate exceeds BW of 1 FPGA -> 2 FPGAs are used"""
         marocco = default_marocco()
-        marocco.input_placement.consider_rate =  True
-        marocco.input_placement.bandwidth_utilization = 1.0
+        marocco.input_placement.consider_firing_rate(True)
+        marocco.input_placement.bandwidth_utilization(1.0)
 
         poisson_rate = 100.
         total_rate = 1.05*self.fpga_bw / marocco.speedup
@@ -119,8 +120,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         """
 
         marocco = default_marocco()
-        marocco.input_placement.consider_rate =  True
-        marocco.input_placement.bandwidth_utilization = 1.0
+        marocco.input_placement.consider_firing_rate(True)
+        marocco.input_placement.bandwidth_utilization(1.0)
 
         total_rate = 1.05*self.hicann_bw / marocco.speedup
         poisson_rate = 100.
@@ -140,8 +141,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         """
 
         marocco = default_marocco()
-        marocco.input_placement.consider_rate =  True
-        marocco.input_placement.bandwidth_utilization = 0.5
+        marocco.input_placement.consider_firing_rate(True)
+        marocco.input_placement.bandwidth_utilization(0.5)
 
         total_rate = 1.05*self.hicann_bw / marocco.speedup
         poisson_rate = 100.
@@ -156,8 +157,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         """test hicann limit with spike source array.
         total rate exceeds BW of 1 HICANN -> 2 HICANNs are used"""
         marocco = default_marocco()
-        marocco.input_placement.consider_rate =  True
-        marocco.input_placement.bandwidth_utilization = 1.0
+        marocco.input_placement.consider_firing_rate(True)
+        marocco.input_placement.bandwidth_utilization(1.0)
 
         total_rate = 1.05*self.hicann_bw / marocco.speedup
         rate = 100.
@@ -176,8 +177,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         """same as test_spike_source_array, but with randomly shuffled spike
         times."""
         marocco = default_marocco()
-        marocco.input_placement.consider_rate =  True
-        marocco.input_placement.bandwidth_utilization = 1.0
+        marocco.input_placement.consider_firing_rate(True)
+        marocco.input_placement.bandwidth_utilization(1.0)
 
         total_rate = 1.05*self.hicann_bw / marocco.speedup
         rate = 100.

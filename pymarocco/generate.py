@@ -6,60 +6,36 @@ from pywrap.wrapper import Wrapper
 from pywrap import namespaces, containers, matchers, classes
 from pyplusplus.module_builder import call_policies
 
-def add_numpy_construtor_to_strong_typedefs(ns):
-    matcher = matchers.match_std_container_t("array")
-    def _filter(c):
-        return any([ matcher(base.related_class) for base in c.bases])
-
-    for c in ns.classes(_filter, allow_empty=True):
-        classes.add_numpy_construtor(c)
-        for b in c.bases:
-            b.related_class.exclude()
-
-
 wrap = Wrapper()
-module_name = wrap.module_name()
 mb = wrap.mb
 
+ns_marocco = mb.namespace('::marocco')
+ns_pymarocco = mb.namespace('::pymarocco')
 
-my_classes = ['PyMarocco']
-for cls in my_classes:
-    c = mb.class_(cls)
-    c.include()
-    createFactory = c.mem_funs('create')
-    c.add_fake_constructors( createFactory )
+for ns in [ns_pymarocco] + list(ns_marocco.namespaces('parameters')):
+    namespaces.extend_array_operators(ns)
+    ns.include()
 
-my_classes = [
-    'MappingStats',
-    'Placement',
-    'Defects',
-    'hw_id',
-    'bio_id'
-    ]
-for cls in my_classes:
-    c = mb.class_(cls)
-    c.include()
+for name in ['PyMarocco']:
+    cl = mb.class_(name)
+    createFactory = cl.mem_funs('create')
+    cl.add_fake_constructors( createFactory )
 
-my_classes = [
-    '::pymarocco::Placement::List'
-    ]
-for td in my_classes:
-    classes.add_from_pyiterable_converter_to(mb.typedef(td).target_decl)
+# Do not expose typedefs (prevent AttributeErrors on import)
+for td in mb.typedefs(allow_empty=True):
+    td.exclude()
 
-# Exclude boost::serialization and boost::archive
-ns_boost = mb.global_ns.namespace('boost')
-ns_boost.namespace('serialization').exclude()
-ns_boost.namespace('archive').exclude()
+for name in ['hw_id', 'bio_id']:
+    ns_marocco.classes(name).include()
+    ns_pymarocco.typedefs(name).include()
 
 # expose only public interfaces
 namespaces.exclude_by_access_type(mb, ['variables', 'calldefs', 'classes', 'typedefs'], 'private')
 namespaces.exclude_by_access_type(mb, ['variables', 'calldefs', 'classes', 'typedefs'], 'protected')
 
+mb.namespace('::boost::serialization').exclude()
 
-ns_pymarocco = mb.namespace('::pymarocco')
 containers.extend_std_containers(mb)
-add_numpy_construtor_to_strong_typedefs(ns_pymarocco)
-namespaces.extend_array_operators(ns_pymarocco)
 
 wrap.set_number_of_files(0)
 wrap.finish()

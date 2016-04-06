@@ -5,9 +5,9 @@
 namespace marocco {
 namespace placement {
 
-FiringRateVisitor::FiringRateVisitor(pymarocco::PyMarocco const& pymarocco):
-	mPyMarocco(pymarocco)
-{}
+FiringRateVisitor::FiringRateVisitor(double speedup) : m_speedup(speedup)
+{
+}
 
 typename FiringRateVisitor::return_type
 FiringRateVisitor::operator() (
@@ -35,7 +35,7 @@ FiringRateVisitor::operator() (
 		rate = 1.;
 	}
 
-	return rate*mPyMarocco.speedup;
+	return rate * m_speedup;
 }
 
 // Spike Source Poisson Transformation
@@ -48,7 +48,7 @@ FiringRateVisitor::operator() (
 
 	auto const& param = v.parameters()[neuron_id];
 
-	return param.rate*mPyMarocco.speedup; // PyNN rate is in Hz.
+	return param.rate * m_speedup; // PyNN rate is in Hz.
 }
 
 } // namespace placement

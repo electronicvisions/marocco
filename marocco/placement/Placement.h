@@ -1,10 +1,7 @@
 #pragma once
 
-#include <type_traits>
-#include <stdexcept>
 #include <memory>
 
-#include "marocco/Algorithm.h"
 #include "marocco/graph.h"
 #include "marocco/placement/Result.h"
 #include "pymarocco/PyMarocco.h"
@@ -12,41 +9,25 @@
 namespace marocco {
 namespace placement {
 
-class LookupTable; // fwd dcl
-
-/*! \class abstract placement interface
- */
-class Placement :
-	public Algorithm
+class Placement
 {
 public:
 	typedef BaseResult result_type;
 
-	virtual ~Placement() {}
-	template<typename ... Args>
-	Placement(Args&& ... args) :
-		Algorithm(std::forward<Args>(args)...) {}
+	Placement(
+	    pymarocco::PyMarocco& pymarocco,
+	    graph_t const& graph,
+	    hardware_system_t& hardware,
+	    resource_manager_t& resource_manager);
 
-	// placement start interface
-	virtual std::unique_ptr<result_type> run() = 0;
-};
-
-class DefaultPlacement :
-	public Placement
-{
-public:
-	virtual ~DefaultPlacement();
-	template<typename ... Args>
-	DefaultPlacement(pymarocco::PyMarocco& pymarocco, Args&& ... args) :
-		Placement(std::forward<Args>(args)...),
-		mPyMarocco(pymarocco)
-	{}
-
-	virtual std::unique_ptr<typename Placement::result_type> run();
+	std::unique_ptr<result_type> run();
 
 private:
-	pymarocco::PyMarocco& mPyMarocco;
-};
+	graph_t const& m_graph;
+	hardware_system_t& m_hardware;
+	resource_manager_t& m_resource_manager;
+	pymarocco::PyMarocco& m_pymarocco;
+}; // Placement
 
 } // namespace placement
 } // namespace marocco

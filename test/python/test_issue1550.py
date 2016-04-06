@@ -6,8 +6,7 @@ pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.TRACE)
 pylogging.set_loglevel(pylogging.get("sthal"), pylogging.LogLevel.DEBUG)
 
 marocco = PyMarocco()
-marocco.placement.setDefaultNeuronSize(4)
-marocco.wafer_cfg = "wafer.xml" 
+marocco.neuron_placement.default_neuron_size(4)
 
 pynn.setup(marocco=marocco)
 

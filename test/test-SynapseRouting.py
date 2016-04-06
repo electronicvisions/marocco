@@ -44,13 +44,13 @@ class TestSynapseRouting(unittest.TestCase):
             N = 16            # number of source populations
             NEURON_SIZE = 4   # default neuron size
 
-            self.marocco.placement.setDefaultNeuronSize(NEURON_SIZE)
+            self.marocco.neuron_placement.default_neuron_size(NEURON_SIZE)
 
             p = [ Population(1, EIF_cond_exp_isfa_ista) for i in range(N) ]
 
             # place target on HICANN 0
             target_chip = self.chip(0)
-            self.marocco.placement.add(target, target_chip)
+            self.marocco.manual_placement.on_hicann(target, target_chip)
 
             connector = AllToAllConnector(
                     allow_self_connections=True,
@@ -62,7 +62,7 @@ class TestSynapseRouting(unittest.TestCase):
 
                 # place source neuron
                 target_chip = self.chip(1)
-                self.marocco.placement.add(pop, target_chip)
+                self.marocco.manual_placement.on_hicann(pop, target_chip)
 
             # start simulation
             run(10) # in ms

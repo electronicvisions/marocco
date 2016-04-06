@@ -59,14 +59,14 @@ auto L1AddressPool::pop_alternating() -> address_type
 	}
 }
 
-auto L1AddressPool::pop(pymarocco::PyMarocco::L1AddressAssignment const& strategy) -> address_type
+auto L1AddressPool::pop(parameters::L1AddressAssignment::Strategy const& strategy) -> address_type
 {
 	switch (strategy) {
-		case pymarocco::PyMarocco::L1AddressAssignment::HighFirst:
+		case parameters::L1AddressAssignment::Strategy::high_first:
 			return pop_back();
-		case pymarocco::PyMarocco::L1AddressAssignment::LowFirst:
+		case parameters::L1AddressAssignment::Strategy::low_first:
 			return pop_front();
-		case pymarocco::PyMarocco::L1AddressAssignment::Alternate:
+		case parameters::L1AddressAssignment::Strategy::alternating:
 			return pop_alternating();
 		default:
 			throw std::runtime_error("unknown L1 address assignment strategy");

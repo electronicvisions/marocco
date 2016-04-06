@@ -225,11 +225,13 @@ private:
 	// methods
 	// We use static functions to allow an easy testing.
 
-	/// extract the neuron width for all neurons mapped to the used
-	/// @param neuron_block_mapping bio neurons mapped onto blocks of hardware
+	/// extract the neuron width for all neurons mapped to the specified HICANN
+	/// @param neuron_placement result of neuron placement
+	/// @param hicann HICANN coordinate
 	/// neurons of a HICANN
-	static NeuronWidth
-	extract_neuron_width(marocco::placement::NeuronBlockMapping const& neuron_block_mapping);
+	static NeuronWidth extract_neuron_width(
+		placement::NeuronPlacementResult const& neuron_placement,
+		HMF::Coordinate::HICANNOnWafer const& hicann);
 
 	/// calculate for all used compound hardware neurons the number of target
 	/// synapses per synaptic input granularity per biological synapse type.

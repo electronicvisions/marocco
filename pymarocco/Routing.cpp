@@ -37,8 +37,7 @@ Routing::Routing() :
 	weight_StraightHorizontal(5),
 	weight_StraightVertical(2),
 	weight_CongestionFactor(0),
-	_is_default(true),
-	merger_tree_strategy(MergerTreeStrategy::minSPL1)
+	_is_default(true)
 {}
 
 bool Routing::is_default() const
