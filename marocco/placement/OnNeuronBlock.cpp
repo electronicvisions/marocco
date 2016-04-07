@@ -144,8 +144,11 @@ iterator::iterator(OnNeuronBlock::base_iterator const& it,
                    OnNeuronBlock::base_iterator const& end,
                    OnNeuronBlock::value_type const& defect)
 	: iterator_adaptor_(it), mEnd(end), mDefect(defect) {
+	if (this->base() == mEnd) {
+		return;
+	}
 	auto const& val = *this->base();
-	if (!val || val == mDefect) {
+	if (val == nullptr || val == mDefect) {
 		increment();
 	}
 }
@@ -160,7 +163,7 @@ void iterator::increment() {
 
 	while (this->base() != mEnd) {
 		auto const& val = *this->base();
-		if (val               // not empty
+		if (val != nullptr    // not empty
 		    && val != last    // new population
 		    && val != mDefect // no defect
 		    ) {
@@ -186,7 +189,7 @@ void neuron_iterator::increment() {
 	++(this->base_reference());
 
 	auto const& val = *this->base();
-	if (!val || val != last) {
+	if (val == nullptr || val != last) {
 		this->base_reference() = mEnd;
 	}
 }

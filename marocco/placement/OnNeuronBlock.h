@@ -110,8 +110,15 @@ public:
 	iterable<neuron_iterator> neurons(iterator const& it) const;
 
 private:
-	static bool unassigned_p(value_type const& val) { return !val; }
-	static bool assigned_p(value_type const& val) { return !!val; }
+	static bool unassigned_p(value_type const& val)
+	{
+		return val == nullptr;
+	}
+
+	static bool assigned_p(value_type const& val)
+	{
+		return val != nullptr;
+	}
 
 	/**
 	 * @brief Returns marker used to block defect denmems from being placed to.
