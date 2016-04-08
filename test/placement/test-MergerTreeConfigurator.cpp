@@ -6,22 +6,6 @@
 using namespace HMF::Coordinate;
 using namespace HMF::HICANN;
 
-namespace {
-
-void check_almost_default(sthal::Layer1 const& layer1)
-{
-	sthal::Layer1 default_layer1;
-	// Layer1 config should be unchanged except for DNC mergers which will be set to
-	// RIGHT_ONLY.  Note however that in order to have slow=1 for the DNC mergers, one has
-	// to set their mode to MERGE(cf. #1369), this is handled in
-	// InputPlacement::configureGbitLinks(), however.
-	EXPECT_EQ(default_layer1.getMergerTree(), layer1.getMergerTree());
-	EXPECT_EQ(default_layer1.getBackgroundGeneratorArray(), layer1.getBackgroundGeneratorArray());
-	EXPECT_EQ(default_layer1.getGbitLink(), layer1.getGbitLink());
-}
-
-} // namespace
-
 namespace marocco {
 namespace placement {
 
@@ -114,12 +98,7 @@ TEST_F(AMergerTreeConfigurator, doesNotCollateBecauseOfLimitedCapacity)
 
 	run_configurator();
 
-	// Can be replaced by `EXPECT_EQ(default_layer1, layer1);` following once
-	// `merger_cfg != MERGE` check is introduced in MergerTreeConfigurator
-	check_almost_default(layer1);
-	for (auto merger : iter_all<DNCMergerOnHICANN>()) {
-		EXPECT_EQ(Merger::RIGHT_ONLY, layer1[merger].config.to_ulong());
-	}
+	EXPECT_EQ(sthal::Layer1(), layer1);
 }
 
 TEST_F(AMergerTreeConfigurator, producesRightConfigForMaxSPL1Case)
@@ -136,14 +115,7 @@ TEST_F(AMergerTreeConfigurator, producesRightConfigForMaxSPL1Case)
 	MergerTreeConfigurator configurator(layer1, graph, mapping);
 	configurator.run();
 
-	// Can be replaced by `EXPECT_EQ(default_layer1, layer1);` following once
-	// `merger_cfg != MERGE` check is introduced in MergerTreeConfigurator
-	check_almost_default(layer1);
-	for (auto merger : iter_all<DNCMergerOnHICANN>()) {
-		EXPECT_EQ(
-		    merger.value() != 7 ? Merger::RIGHT_ONLY : Merger::MERGE,
-		    layer1[merger].config.to_ulong());
-	}
+	EXPECT_EQ(sthal::Layer1(), layer1);
 }
 
 TEST_F(AMergerTreeConfigurator, disallowsCrossingAssignments)

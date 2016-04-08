@@ -103,10 +103,13 @@ void MergerTreeConfigurator::connect(
 	auto& merger_cfg = m_layer1[coordinate(dest_merger)].config;
 	auto& configured = m_configured[dest];
 
-	// TODO: Only set flag if `merger_cfg != MERGE`.
-	// The current code leads to RIGHT_ONLY for DNC mergers, despite the default being MERGE.
-	// In order to have slow=1 for the DNC mergers, one has to set their mode to
-	// MERGE(cf. #1369), this is currently handled in InputPlacement::configureGbitLinks().
+	// We do not touch mergers that are already configured to merge their inputs.
+	// This is needed to keep the default configuration (MERGE) for DNC mergers,
+	// see #1369 for why this is desirable.
+	if (merger_cfg == HMF::HICANN::Merger::MERGE) {
+		return;
+	}
+
 	if ((merger_cfg != flag) && configured) {
 		merger_cfg = HMF::HICANN::Merger::MERGE;
 	} else {
