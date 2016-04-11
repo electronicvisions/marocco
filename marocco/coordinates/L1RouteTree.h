@@ -77,8 +77,14 @@ private:
 	};
 	std::set<tail_type, TailCompare> m_tails;
 #endif // !PYPLUSPLUS
+
+	friend class boost::serialization::access;
+	template <typename Archiver>
+	void serialize(Archiver& ar, unsigned int const /*version*/);
 };     // L1RouteTree
 
 std::ostream& operator<<(std::ostream& os, L1RouteTree const& tree);
 
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_KEY(::marocco::L1RouteTree)

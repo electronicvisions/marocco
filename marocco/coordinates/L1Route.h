@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <boost/operators.hpp>
+#include <boost/serialization/export.hpp>
 #include <boost/variant.hpp>
 
 #include "hal/Coordinate/External.h"
@@ -15,6 +16,12 @@
 #include "hal/Coordinate/Synapse.h"
 #include "pywrap/compat/macros.hpp"
 #include "marocco/test.h"
+
+namespace boost {
+namespace serialization {
+class access;
+} // namespace serialization
+} // namespace boost
 
 namespace marocco {
 
@@ -163,8 +170,14 @@ private:
 
 	HMF::Coordinate::HICANNOnWafer m_last_hicann;
 	sequence_type m_segments;
+
+	friend class boost::serialization::access;
+	template <typename Archiver>
+	void serialize(Archiver& ar, unsigned int const /*version*/);
 }; // L1Route
 
 std::ostream& operator<<(std::ostream& os, L1Route const& route);
 
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_KEY(::marocco::L1Route)

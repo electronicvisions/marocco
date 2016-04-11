@@ -1,8 +1,11 @@
 #include "marocco/coordinates/L1Route.h"
 #include "marocco/coordinates/printers.h"
 
-#include <boost/variant/static_visitor.hpp>
 #include <sstream>
+#include <boost/variant/static_visitor.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/variant.hpp>
 
 #include "hal/HICANN/Crossbar.h"
 #include "hal/HICANN/SynapseSwitch.h"
@@ -517,4 +520,19 @@ std::ostream& operator<<(std::ostream& os, L1Route const& route)
 	return os << pretty_printed(route);
 }
 
+template <typename Archiver>
+void L1Route::serialize(Archiver& ar, unsigned int const /*version*/)
+{
+	using namespace boost::serialization;
+	// clang-format off
+	ar & make_nvp("last_hicann", m_last_hicann)
+	   & make_nvp("segments", m_segments);
+	// clang-format on
+}
+
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_IMPLEMENT(::marocco::L1Route)
+
+#include "boost/serialization/serialization_helper.tcc"
+EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::marocco::L1Route)

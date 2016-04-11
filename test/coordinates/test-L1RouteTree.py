@@ -128,6 +128,11 @@ class L1RouteTreeTest(unittest.TestCase):
         tails[0].add(route)
         self.assertEqual(copy, tree)
 
+    def test_supports_pickling(self):
+        import pickle
+        for route in self.test_permutations_have_same_result():
+            d = pickle.dumps(route)
+            self.assertEqual(route, pickle.loads(d))
 
 
 if __name__ == "__main__":

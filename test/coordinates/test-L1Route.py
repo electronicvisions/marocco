@@ -82,6 +82,12 @@ class L1RouteTest(unittest.TestCase):
         with self.assertRaises(TypeError):
             route[2] = HLineOnHICANN(Enum(5))
 
+    def test_supports_pickling(self):
+        import pickle
+        route = self.test_append()
+        d = pickle.dumps(route)
+        self.assertEqual(route, pickle.loads(d))
+
 
 if __name__ == "__main__":
     unittest.main()

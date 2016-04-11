@@ -2,6 +2,8 @@
 #include "marocco/coordinates/printers.h"
 
 #include <boost/iterator/indirect_iterator.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 
 namespace marocco {
 
@@ -166,4 +168,36 @@ std::ostream& operator<<(std::ostream& os, L1RouteTree const& tree)
 	return os << pretty_printed(tree);
 }
 
+template <typename Archiver>
+void L1RouteTree::serialize(Archiver& ar, unsigned int const /*version*/)
+{
+	using namespace boost::serialization;
+
+	// FIXME: current boost version does not support serializing std::unique_ptr
+	std::vector<L1RouteTree> tails;
+	if (Archiver::is_saving::value) {
+		tails.reserve(m_tails.size());
+		std::copy(
+			boost::make_indirect_iterator(m_tails.begin()),
+			boost::make_indirect_iterator(m_tails.end()), std::back_inserter(tails));
+	}
+
+	// clang-format off
+	ar & make_nvp("head", m_head)
+	   & make_nvp("tails", tails);
+	// clang-format on
+
+	if (Archiver::is_loading::value) {
+		m_tails.clear();
+		for (auto const& tree : tails) {
+			m_tails.insert(std::unique_ptr<L1RouteTree>(new L1RouteTree(tree)));
+		}
+	}
+}
+
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_IMPLEMENT(::marocco::L1RouteTree)
+
+#include "boost/serialization/serialization_helper.tcc"
+EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::marocco::L1RouteTree)
