@@ -8,6 +8,11 @@ from pyhalbe.Coordinate import left as LEFT, right as RIGHT, top as TOP, bottom 
 from roqt import HICANN
 
 
+def is_bus(segment):
+    return (isinstance(segment, HLineOnHICANN) or
+            isinstance(segment, VLineOnHICANN))
+
+
 class Wafer(object):
     SPACING = 20
     COLORS = [QtGui.QColor(r, g, b) for (r, g, b) in [
@@ -60,6 +65,60 @@ class Wafer(object):
                     self.colorize_route(hh, local_route.route(), routing_graph, synapserows)
 
         self.draw_connections_between_hicanns()
+
+    def draw_routes(self, routes):
+        for route in routes:
+            self.draw_route(route)
+        self.draw_connections_between_hicanns()
+
+    def draw_route(self, route):
+        brush = QtGui.QBrush(self.next_color())
+        pen = QtGui.QPen(brush, 2)
+
+        hicann = self.hicann(route.source_hicann())
+        last_segments = []
+        for segment in route:
+            if isinstance(segment, HICANNOnWafer):
+                hicann = self.hicann(segment)
+            elif is_bus(segment):
+                if isinstance(segment, HLineOnHICANN):
+                    cur = hicann.horizontalLines[segment.value()]
+                else:
+                    cur = hicann.verticalLines[segment.value()]
+                if is_bus(last_segments[-1]):
+                    if isinstance(last_segments[-1], HLineOnHICANN):
+                        prev = hicann.horizontalLines[last_segments[-1].value()]
+                    else:
+                        prev = hicann.verticalLines[last_segments[-1].value()]
+                    switch = hicann.drawSwitch(prev, cur)
+                    switch.setZValue(2)
+                cur.setPen(pen)
+                cur.setZValue(1)
+            elif isinstance(segment, SynapseDriverOnHICANN):
+                if not isinstance(last_segments[-1], SynapseDriverOnHICANN):
+                    line = hicann.synapsedriver[segment][0]
+
+                    hicann_ = hicann
+                    vline = last_segments[-1]
+                    # adjacent insertion
+                    if isinstance(last_segments[-1], HICANNOnWafer):
+                        hicann_ = last_segments[-1]
+                        vline = last_segments[-2]
+                        line = hicann_.synapseswitchLines[
+                            SynapseSwitchRowOnHICANN(
+                                Y(segment.line().value()),
+                                X(LEFT if segment.side() == RIGHT else RIGHT))]
+                    assert isinstance(vline, VLineOnHICANN)
+                    line.setPen(pen)
+                    line.setZValue(1)
+                    line.show()
+                    # draw switch
+                    xx = hicann_.verticalLines[vline.value()]
+                    switch = hicann_.drawSwitch(xx, line)
+                    switch.setZValue(2)
+                hicann.synapsedriver[segment][1].setBrush(brush)
+            last_segments.append(segment)
+            last_sgements = last_segments[-2:]
 
     def next_color(self):
         color = self._colors[1]

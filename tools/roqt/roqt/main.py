@@ -41,16 +41,26 @@ def main():
             help='write rendering to file, e.g.: *.png, *.svg')
     parser.add_argument('--switches', action='store_true',
                         help='draw switches (slows down rendering)')
+    parser.add_argument('--l1routes', action='store_true',
+                        help='load pickled vector of l1routes from file')
     args = parser.parse_args()
 
     scene = QtGui.QGraphicsScene()
 
     wafer = Wafer(scene, args.switches)
 
-    import pyroqt
-    _pyroqt = pyroqt.PyRoQt()
-    _pyroqt.load(args.file)
-    wafer.draw_from_pyroqt(_pyroqt)
+    if args.l1routes:
+        import pickle
+        with open(args.file) as f:
+            obj = pickle.load(f)
+        if not isinstance(obj, list):
+            obj = [obj]
+        wafer.draw_routes(obj)
+    else:
+        import pyroqt
+        _pyroqt = pyroqt.PyRoQt()
+        _pyroqt.load(args.file)
+        wafer.draw_from_pyroqt(_pyroqt)
 
     if args.o:
         save_figure(scene, args.o)
