@@ -33,8 +33,8 @@ class HICANN(object):
 
         # draw HICANN outline
         self.scene.addRect(off.x, off.y, self.WIDTH, self.HEIGHT,
-            QtGui.QPen(QtGui.QColor(0,0,0,0)),
-            QtGui.QBrush(QtGui.QColor(200,200,200,100)))
+            QtGui.QPen(QtGui.QColor(0, 0, 0)),
+            QtGui.QBrush(QtGui.QColor(200, 200, 200)))
 
         t = self.scene.addText(str(self.id))
         t.setPos(off.x + self.WIDTH / 2 - 100., off.y + 100.)
@@ -96,13 +96,13 @@ class HICANN(object):
     def drawSwitch(self, xx, yy):
         SWITCH_SIZE = 2.
 
-        point = self.intersect(xx, yy)
-        ellipse = self.scene.addEllipse(
-                point.x()-SWITCH_SIZE/2, point.y()-SWITCH_SIZE/2,
+        if (xx, yy) not in self.switches:
+            point = self.intersect(xx, yy)
+            self.switches[(xx, yy)] = self.scene.addEllipse(
+                point.x() - SWITCH_SIZE / 2, point.y() - SWITCH_SIZE / 2,
                 SWITCH_SIZE, SWITCH_SIZE,
-                QtGui.QPen(), QtGui.QBrush(QtGui.QColor(0,0,0,255)))
-        self.switches[(xx, yy)] = ellipse
-        return ellipse
+                QtGui.QPen(), QtGui.QBrush(QtGui.QColor(0, 0, 0)))
+        return self.switches[(xx, yy)]
 
     def drawSwitches(self):
         # draw crossbar switches

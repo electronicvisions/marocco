@@ -10,7 +10,7 @@ from roqt import HICANN
 
 class Wafer(object):
     SPACING = 20
-    COLORS = [QtGui.QColor(r, g, b, 255) for (r, g, b) in [
+    COLORS = [QtGui.QColor(r, g, b) for (r, g, b) in [
         (1, 0, 103), (213, 255, 0), (255, 0, 86), (158, 0, 142), (14, 76, 161),
         (255, 229, 2), (0, 95, 57), (0, 255, 0), (149, 0, 58), (255, 147, 126),
         (164, 36, 0), (0, 21, 68), (145, 208, 203), (98, 14, 0),
@@ -112,7 +112,7 @@ class Wafer(object):
                         if not is_adj:
                             # draw switch
                             xx = hicann.verticalLines[bus.getBusId()]
-                            hicann.drawSwitch(xx, line)
+                            switch = hicann.drawSwitch(xx, line)
                         else:
                             adj_hicann = getHICANN(dest_hicann)
                             line = adj_hicann.synapseswitchLines[
@@ -125,7 +125,8 @@ class Wafer(object):
 
                             # draw switch
                             xx = adj_hicann.verticalLines[bus.getBusId()]
-                            adj_hicann.drawSwitch(xx, line)
+                            switch = adj_hicann.drawSwitch(xx, line)
+                        switch.setZValue(2)
 
                     # we can stop here, we found the corresponding vline
                     break
@@ -142,13 +143,14 @@ class Wafer(object):
                 if direction == pyroqt.L1Bus.Vertical:
                     cur = hicann.verticalLines[busid]
                     if last_segment and last_segment[1] != direction:
-                        hicann.drawSwitch(last_segment[0], cur)
+                        switch = hicann.drawSwitch(last_segment[0], cur)
                 elif direction == pyroqt.L1Bus.Horizontal:
                     cur = hicann.horizontalLines[busid]
                     if last_segment and last_segment[1] != direction:
-                        hicann.drawSwitch(cur, last_segment[0])
+                        switch = hicann.drawSwitch(cur, last_segment[0])
                 cur.setPen(pen)
                 cur.setZValue(1)
+                switch.setZValue(2)
 
                 last_segment = (cur, direction)
 
