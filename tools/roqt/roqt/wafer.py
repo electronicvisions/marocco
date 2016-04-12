@@ -1,39 +1,52 @@
+import operator
 import random
 from PySide import QtGui
 from pyhalbe.Coordinate import HICANNOnWafer, Enum, X, Y, HICANNGlobal, \
-        HLineOnHICANN, VLineOnHICANN, SynapseSwitchRowOnHICANN
+        HLineOnHICANN, VLineOnHICANN, SynapseSwitchRowOnHICANN, SynapseDriverOnHICANN
 from pyhalbe.Coordinate import left as LEFT, right as RIGHT, top as TOP, bottom as BOTTOM
 
 from roqt import HICANN
 
+
 class Wafer(object):
     SPACING = 20
-    COLORS = [
-            QtGui.QColor(255,   0,   0, 255),
-            QtGui.QColor(  0, 255,   0, 255),
-            QtGui.QColor(  0,   0, 255, 255),
-            QtGui.QColor(  0, 255, 255, 255),
-            QtGui.QColor(255,   0, 255, 255),
-            QtGui.QColor(255, 255,   0, 255), ]
+    COLORS = [QtGui.QColor(r, g, b, 255) for (r, g, b) in [
+        (1, 0, 103), (213, 255, 0), (255, 0, 86), (158, 0, 142), (14, 76, 161),
+        (255, 229, 2), (0, 95, 57), (0, 255, 0), (149, 0, 58), (255, 147, 126),
+        (164, 36, 0), (0, 21, 68), (145, 208, 203), (98, 14, 0),
+        (107, 104, 130), (0, 0, 255), (0, 125, 181), (106, 130, 108),
+        (0, 174, 126), (194, 140, 159), (190, 153, 112), (0, 143, 156),
+        (95, 173, 78), (255, 0, 0), (255, 0, 246), (255, 2, 157), (104, 61, 59),
+        (255, 116, 163), (150, 138, 232), (152, 255, 82), (167, 87, 64),
+        (1, 255, 254), (255, 238, 232), (254, 137, 0), (189, 198, 255),
+        (1, 208, 255), (187, 136, 0), (117, 68, 177), (165, 255, 210),
+        (255, 166, 254), (119, 77, 0), (122, 71, 130), (38, 52, 0), (0, 71, 84),
+        (67, 0, 44), (181, 0, 255), (255, 177, 103), (255, 219, 102),
+        (144, 251, 146), (126, 45, 210), (189, 211, 147), (229, 111, 254),
+        (222, 255, 116), (0, 255, 120), (0, 155, 255), (0, 100, 1),
+        (0, 118, 255), (133, 169, 0), (0, 185, 23), (120, 130, 49),
+        (0, 255, 198), (255, 110, 65), (232, 94, 190),
+    ]]
 
-    def __init__(self, scene, _pyroqt, draw_switches=False):
+    def __init__(self, scene, draw_switches=False):
         self.draw_switches = draw_switches
         self.scene = scene
-        self.hicanns = {}
-        self.pyroqt = _pyroqt
+        self._hicanns = {}
+        self._colors = self.COLORS[:]
 
-    def draw_hicann(self, id):
-        self.hicanns[id] = HICANN(self.scene,
-                id.x().value()*(HICANN.WIDTH+self.SPACING),
-                id.y().value()*(HICANN.HEIGHT+self.SPACING),
-                self.draw_switches,
-                                  id)
-        return self.hicanns[id]
+    def hicann(self, coord):
+        if coord not in self._hicanns:
+            self._hicanns[coord] = HICANN(
+                self.scene,
+                coord.x().value() * (HICANN.WIDTH + self.SPACING),
+                coord.y().value() * (HICANN.HEIGHT + self.SPACING),
+                self.draw_switches, coord)
+        return self._hicanns[coord]
 
-    def draw_all_routes(self):
-        crossbars = self.pyroqt.crossbar()
-        synapserows = self.pyroqt.synapserow()
-        routing_graph = self.pyroqt
+    def draw_from_pyroqt(self, pyroqt):
+        crossbars = pyroqt.crossbar()
+        synapserows = pyroqt.synapserow()
+        routing_graph = pyroqt
         print '# HICANNs:', crossbars.size()
 
         # need to guess all possible wafers (HICANNGlobal is not iterable anymore)
@@ -46,22 +59,21 @@ class Wafer(object):
                 for local_route in crossbars.at(hh):
                     self.colorize_route(hh, local_route.route(), routing_graph, synapserows)
 
-        Wafer.connect_hicanns(self.scene, self.hicanns)
+        self.draw_connections_between_hicanns()
 
-    @staticmethod
-    def _get_color():
-        return Wafer.COLORS[random.randint(0, len(Wafer.COLORS)-1)]
+    def next_color(self):
+        color = self._colors[1]
+        self._colors = self._colors[1:]
+        self._colors.append(color)
+        return color
 
     def colorize_route(self, h, route, routing_graph, synapserows):
         import pyroqt
-        brush = QtGui.QBrush(self._get_color())
+        brush = QtGui.QBrush(self.next_color())
         pen = QtGui.QPen(brush, 2)
 
         def getHICANN(hicann_global):
-            hicann = self.hicanns.get(hicann_global.on_wafer())
-            if not hicann:
-                hicann = self.draw_hicann(hicann_global.on_wafer())
-            return hicann
+            return self.hicann(hicann_global)
 
         def getHICANNfromBus(bus):
             return getHICANN(bus.hicann())
@@ -140,46 +152,24 @@ class Wafer(object):
 
                 last_segment = (cur, direction)
 
+    def draw_connections_between_hicanns(self):
+        for coord, hicann in self._hicanns.iteritems():
+            for ctor, move, lines in [
+                    (HLineOnHICANN,
+                     operator.methodcaller("east"),
+                     operator.attrgetter("horizontalLines")),
+                    (VLineOnHICANN,
+                     operator.methodcaller("south"),
+                     operator.attrgetter("verticalLines"))]:
+                try:
+                    other = self._hicanns[move(coord)]
+                except (RuntimeError, KeyError):
+                    continue
 
-
-    @staticmethod
-    def draw_horizontal_connect(scene, hicanns, key, val):
-        try:
-            east = hicanns.get(key.east())
-        except RuntimeError:
-            east = None
-
-
-        if not east:
-            return
-        for idx, hline in enumerate(val.horizontalLines):
-            eline = east.horizontalLines[HLineOnHICANN(idx).east().value()]
-            pen = hline.pen() if hline.pen() == eline.pen() else QtGui.QPen()
-            scene.addLine(
-                    hline.line().x2(), hline.line().y2(),
-                    eline.line().x1(), eline.line().y1(),
-                    pen)
-
-    @staticmethod
-    def draw_vertical_connect(scene, hicanns, key, val):
-        try:
-            south = hicanns.get(key.south())
-        except RuntimeError:
-            south = None
-
-        if not south:
-            return
-        for idx, vline in enumerate(val.verticalLines):
-            sline = south.verticalLines[VLineOnHICANN(idx).south().value()]
-            pen = vline.pen() if vline.pen() == sline.pen() else QtGui.QPen()
-            scene.addLine(
-                    vline.line().x2(), vline.line().y2(),
-                    sline.line().x1(), sline.line().y1(),
-                    pen)
-
-    @staticmethod
-    def connect_hicanns(scene, hicanns):
-        for key, val in hicanns.iteritems():
-            for fun in ['horizontal', 'vertical']:
-                f = getattr(Wafer, 'draw_%s_connect'%fun)
-                f(scene, hicanns, key, val)
+                for idx, line in enumerate(lines(hicann)):
+                    other_line = lines(other)[move(ctor(idx)).value()]
+                    pen = line.pen() if line.pen() == other_line.pen() else QtGui.QPen()
+                    self.scene.addLine(
+                        line.line().x2(), line.line().y2(),
+                        other_line.line().x1(), other_line.line().y1(),
+                        pen)

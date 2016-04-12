@@ -1,20 +1,24 @@
-import sys, os, argparse, roqt
+import sys
+import os
+import argparse
 from PySide import QtGui, QtCore, QtUiTools, QtSvg
-from roqt import Wafer, HICANN, WaferView
+from roqt import Wafer, WaferView
 
-def loadUi(fname):
-    loader = QtUiTools.QUiLoader()
-    loader.registerCustomWidget(WaferView)
-    file = QtCore.QFile(fname)
-    file.open(QtCore.QFile.ReadOnly)
-    widget = loader.load(file, None)
-    file.close()
-    return widget
+
+class MainWindow(QtGui.QMainWindow):
+    def __init__(self, scene):
+        super(MainWindow, self).__init__()
+        self.scene = scene
+        self.view = WaferView(scene)
+        self.setCentralWidget(self.view)
+        self.setWindowTitle("Routing Qt Visualizer")
+
 
 def invoke_painter(scene, img):
     painter = QtGui.QPainter(img)
     scene.render(painter)
     painter.end()
+
 
 def save_figure(scene, fname):
     suffix = os.path.splitext(fname)[-1]
@@ -27,6 +31,7 @@ def save_figure(scene, fname):
         invoke_painter(scene, img)
         img.save(fname)
 
+
 def main():
     app = QtGui.QApplication(sys.argv)
 
@@ -35,29 +40,26 @@ def main():
     parser.add_argument('-o', type=str, default=None,
             help='write rendering to file, e.g.: *.png, *.svg')
     parser.add_argument('--switches', action='store_true',
-            help='skip drawing switches for faster rendering')
+                        help='draw switches (slows down rendering)')
     args = parser.parse_args()
 
-    main_window = loadUi('./ui/main.ui')
     scene = QtGui.QGraphicsScene()
 
-    # draw wafer scene
+    wafer = Wafer(scene, args.switches)
+
     import pyroqt
     _pyroqt = pyroqt.PyRoQt()
     _pyroqt.load(args.file)
-    wafer = Wafer(scene, _pyroqt, args.switches)
-    wafer.draw_all_routes()
+    wafer.draw_from_pyroqt(_pyroqt)
 
     if args.o:
         save_figure(scene, args.o)
     else:
-        main_window.graphicsView.setScene(scene)
-        main_window.graphicsView.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
-        main_window.graphicsView.setDragMode(
-                QtGui.QGraphicsView.ScrollHandDrag)
-        main_window.show()
+        window = MainWindow(scene)
+        window.show()
 
         sys.exit(app.exec_())
 
-if __name__== '__main__':
+
+if __name__ == '__main__':
     main()
