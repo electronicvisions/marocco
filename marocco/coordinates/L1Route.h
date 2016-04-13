@@ -104,11 +104,13 @@ public:
 	void append(segment_type const& segment);
 
 	/**
-	 * @brief Extends this route by a single segment on a different chip.
+	 * @brief Extends this route by a single segment on a (potentially) different chip.
 	 * @param hicann \c HICANNOnWafer of the following segment.
 	 * @param segment Coordinate of segment to be inserted.  Can not be of type
 	 *                \c HICANNOnWafer.
 	 * @throw InvalidRouteError When the segment can not be inserted at this position.
+	 * @note This just dispatches to the one-argument version of #append() when passing in
+	 *       the current \c HICANNOnWafer, so you may prefer to directly use that function.
 	 */
 	void append(HMF::Coordinate::HICANNOnWafer const& hicann, segment_type const& segment);
 

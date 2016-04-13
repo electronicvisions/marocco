@@ -298,7 +298,12 @@ void L1Route::append(HICANNOnWafer const& hicann, segment_type const& segment)
 	if (is_hicann(segment)) {
 		throw InvalidRouteError("can not add two consecutive HICANNOnWafers");
 	}
+
 	bool empty = m_segments.empty();
+
+	if (!empty && hicann == m_last_hicann) {
+		return append(segment);
+	}
 
 	IsValidSuccessor visitor(m_last_hicann);
 
