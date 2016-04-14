@@ -1,35 +1,75 @@
 import unittest
 
 from pyhalbe.Coordinate import *
-from pymarocco_coordinates import NodeOnFPGA, LogicalNeuron
+from pymarocco_coordinates import LogicalNeuron
 
 
 class LogicalNeuronTest(unittest.TestCase):
     def test_external_node(self):
-        src = NodeOnFPGA(15)
-        nrn = LogicalNeuron(Wafer(), src)
+        nrn = LogicalNeuron.external(15)
 
         self.assertTrue(nrn.is_external())
-        self.assertEqual(src, nrn.external_node())
-        self.assertEqual(0, len(nrn.denmems()))
-        self.assertSequenceEqual([], nrn.denmems())
+        with self.assertRaises(RuntimeError):
+            nrn.size()
+        self.assertSequenceEqual([], list(nrn))
+        with self.assertRaises(RuntimeError):
+            nrn.denmem(0)
+
+        self.assertEqual(LogicalNeuron.external(15), nrn)
+        self.assertNotEqual(LogicalNeuron.external(12), nrn)
+        self.assertEqual(15, nrn.external_identifier())
+        self.assertEqual(0, nrn.external_index())
+
+        nrn = LogicalNeuron.external(42, 2)
+        self.assertEqual(42, nrn.external_identifier())
+        self.assertEqual(2, nrn.external_index())
+
+        self.assertTrue(str(nrn).startswith('LogicalNeuron::external('))
+
+    def test_builder(self):
+        nrn = (LogicalNeuron.on(NeuronBlockOnWafer())
+               .add(NeuronOnNeuronBlock(), 5)
+               .done())
+        self.assertFalse(nrn.is_external())
+        self.assertTrue(str(nrn).startswith('LogicalNeuron::on('))
+        with self.assertRaises(RuntimeError):
+            nrn.external_identifier()
+        with self.assertRaises(RuntimeError):
+            nrn.external_index()
 
     def test_denmems(self):
-        h = HICANNGlobal()
-        a = NeuronGlobal(NeuronOnHICANN(Enum(3)), h)
-        b = NeuronGlobal(NeuronOnHICANN(Enum(42)), h)
-        nrn = LogicalNeuron(Wafer(5), [a, b])
+        # |  XXXX
+        # |   XX
+        nrn = (LogicalNeuron.on(NeuronBlockOnWafer())
+               .add(NeuronOnNeuronBlock(X(2), Y(0)), 4)
+               .add(NeuronOnNeuronBlock(X(3), Y(1)), 2)
+               .done())
+        reference_denmems = [
+            NeuronOnWafer(NeuronOnHICANN(X(2), Y(0))),
+            NeuronOnWafer(NeuronOnHICANN(X(3), Y(0))),
+            NeuronOnWafer(NeuronOnHICANN(X(4), Y(0))),
+            NeuronOnWafer(NeuronOnHICANN(X(5), Y(0))),
+            NeuronOnWafer(NeuronOnHICANN(X(3), Y(1))),
+            NeuronOnWafer(NeuronOnHICANN(X(4), Y(1))),
+        ]
 
-        self.assertEqual(Wafer(5), nrn.wafer())
         self.assertFalse(nrn.is_external())
-        with self.assertRaises(RuntimeError):
-            _ = nrn.external_node()
+        self.assertEqual(6, nrn.size())
+        self.assertEqual(reference_denmems[0], nrn.denmem(0))
+        self.assertEqual(reference_denmems[1], nrn.denmem(1))
+        self.assertEqual(reference_denmems[2], nrn.denmem(2))
+        self.assertEqual(reference_denmems[3], nrn.denmem(3))
+        self.assertEqual(reference_denmems[4], nrn.denmem(4))
+        self.assertEqual(reference_denmems[5], nrn.denmem(5))
+        with self.assertRaises(IndexError):
+            nrn.denmem(6)
+        self.assertSequenceEqual(reference_denmems, list(nrn))
+        self.assertNotEqual(LogicalNeuron.external(12), nrn)
+        self.assertEqual(nrn, nrn)
 
-        self.assertSequenceEqual([a, b], nrn.denmems())
-
-    def test_denmems_empty(self):
-        with self.assertRaises(RuntimeError):
-            nrn = LogicalNeuron(Wafer(), [])
+    def test_no_denmems(self):
+        with self.assertRaises(ValueError):
+            LogicalNeuron.on(NeuronBlockOnWafer()).done()
 
 
 if __name__ == "__main__":

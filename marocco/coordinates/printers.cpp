@@ -36,5 +36,22 @@ std::ostream& operator<<(std::ostream& os, pretty_printer<L1RouteTree> pr)
 	return os;
 }
 
+std::ostream& operator<<(std::ostream& os, pretty_printer<LogicalNeuron> pr)
+{
+	os << "LogicalNeuron";
+	if (pr.what.is_external()) {
+		os << "::external(" << pr.what.m_external_identifier
+		   << ", " << pr.what.m_external_index << ")";
+	} else {
+		os << "::on(" << pr.what.m_block << ")";
+		std::string space(pr.indent + 2, ' ');
+		for (auto const& chunk : pr.what.m_chunks) {
+			os << "\n" << space << ".add(" << chunk.first << ", " << chunk.second << ")";
+		}
+		os << "\n" << space << ".done()";
+	}
+	return os;
+}
+
 } // namespace detail
 } // namespace marocco

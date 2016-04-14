@@ -1,5 +1,6 @@
 #include "marocco/coordinates/L1Route.h"
 #include "marocco/coordinates/L1RouteTree.h"
+#include "marocco/coordinates/LogicalNeuron.h"
 
 namespace marocco {
 
@@ -24,6 +25,7 @@ namespace detail {
 
 std::ostream& operator<<(std::ostream& os, pretty_printer<L1Route> pr);
 std::ostream& operator<<(std::ostream& os, pretty_printer<L1RouteTree> pr);
+std::ostream& operator<<(std::ostream& os, pretty_printer<LogicalNeuron> pr);
 
 } // namespace detail
 
