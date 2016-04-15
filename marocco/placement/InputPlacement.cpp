@@ -285,25 +285,36 @@ void InputPlacement::configureGbitLinks(
 	{
 		GbitLinkOnHICANN const gbit_link(dnc);
 
-		// slow only works if merger is set to MERGE
-		chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
-		chip.layer1[dnc].slow = true;
+		// The sending repeaters require events from the DNC mergers to arrive
+		// with one idle clock cycle between two events for back-to-back
+		// sending of L1 events.
+		//
+		// For DNC Mergers receiving events from the neuron blocks or
+		// background generators, this is achieved by setting the DNC Merger to
+		// slow, which however only works if the merger is set to MERGE (cf.
+		// #1369).
+		//
+		// For DNC Mergers receiving input from Layer 2, nothing needs to be
+		// done, as the pulse events arrive with a minimum interval of 56 ns
+		// from the off-wafer network, which is much larger than the typical
+		// duration of 2 HICANN PLL clocks (20 ns). Hence, there is no need to
+		// set the merger to slow and MERGE.
+		// Note that setting the merger mode to MERGE in such case can lead to
+		// bad configurations of the merger tree, where events are duplicated
+		// and feed back as external events into the routing (cf. #2165)
 
 		if (output_mapping.getMode(dnc) == OutputBufferMapping::Mode::OUTPUT) {
 			// output spikes for recording
 			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_DNC;
+			// slow only works if merger is set to MERGE
+			chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
+			chip.layer1[dnc].slow = true;
+
 		} else if (output_mapping.getMode(dnc) == OutputBufferMapping::Mode::INPUT) {
 			// input from external FPGAs
 			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_HICANN;
-
-			// If OutputBuffer is unused (represented by Mode==INPUT and empty()==true):
-			// don't use MERGE and slow, if there are no sources mapped to output buffer
-			// this avoids buggy configurations in the ESS (cf. #1400)
-			// but has no influence on the real hardware.
-			if (output_mapping.empty(dnc)) {
-				chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
-				chip.layer1[dnc].slow = false;
-			}
+			chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
+			chip.layer1[dnc].slow = false;
 
 			// HACK: We need events with L1 address zero for locking repeaters
 			// and synapse drivers. In principle those events could be provided
@@ -318,6 +329,9 @@ void InputPlacement::configureGbitLinks(
 				// Select (only) background generator, necessitating a hack in
 				// HICANNPlacement.cpp that prevents placing neurons there.
 				chip.layer1[m] = HMF::HICANN::Merger::LEFT_ONLY;
+				// slow only works if merger is set to MERGE
+				chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
+				chip.layer1[dnc].slow = true;
 
 				MAROCCO_WARN("Neurons from right most block won't work");
 			}
