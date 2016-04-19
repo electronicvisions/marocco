@@ -2,7 +2,6 @@
 #include <unordered_map>
 #include <chrono>
 
-#include "marocco/GraphBuilder.h"
 #include "marocco/HardwareUsage.h"
 #include "marocco/Logger.h"
 #include "marocco/Mapper.h"
@@ -35,7 +34,7 @@ Mapper::Mapper(hardware_type& hw,
 			   resource_manager_t& mgr,
 			   comm_type const& comm,
 			   boost::shared_ptr<PyMarocco> const& pymarocco) :
-	mGraph(),
+	mBioGraph(),
 	mMgr(mgr),
 	mHW(hw),
 	mComm(comm),
@@ -61,18 +60,19 @@ void Mapper::run(ObjectStore const& pynn)
 	auto start = std::chrono::system_clock::now();
 
 	// B U I L D   G R A P H
-	GraphBuilder gb(mGraph);
-	gb.build(pynn);
+	mBioGraph.load(pynn);
 
 	// write out bio graph in graphviz format
 	if (!mPyMarocco->bio_graph.empty()) {
 		info(this) << "writing bio graph to " << mPyMarocco->bio_graph;
-		gb.write_bio_graph(mPyMarocco->bio_graph);
+		mBioGraph.write_graphviz(mPyMarocco->bio_graph);
 	}
 
-	size_t neuron_count = num_neurons(mGraph);
+	auto& graph = mBioGraph.graph();
+
+	size_t neuron_count = num_neurons(graph);
 	MAROCCO_INFO(
-	    neuron_count << " neurons in " << boost::num_vertices(mGraph) << " populations");
+	    neuron_count << " neurons in " << boost::num_vertices(graph) << " populations");
 
 	// rough capacity check; in case we can stop mapping already here
 	if (neuron_count > mHW.capacity()) {
@@ -83,13 +83,13 @@ void Mapper::run(ObjectStore const& pynn)
 	std::unique_ptr<results::Marocco> result(new results::Marocco());
 
 	// 1.  P L A C E M E N T
-	placement::Placement placer(*mPyMarocco, mGraph, mHW, mMgr);
+	placement::Placement placer(*mPyMarocco, graph, mHW, mMgr);
 	auto placement = placer.run(result->placement);
 	mLookupTable = result_cast<placement::Result>(*placement).reverse_mapping;
 
 	// 2.  R O U T I N G
 	std::unique_ptr<routing::Routing> router(
-		new routing::DefaultRouting(*mPyMarocco, mGraph, mHW, mMgr));
+		new routing::DefaultRouting(*mPyMarocco, graph, mHW, mMgr));
 	auto routing = router->run(*placement);
 	auto synapse_loss = router->getSynapseLoss();
 
@@ -98,7 +98,6 @@ void Mapper::run(ObjectStore const& pynn)
 	// collect current sources
 	typedef graph_t::vertex_descriptor Vertex;
 	auto const& current_sources = pynn.current_sources();
-	auto const& vertex_mapping = gb.vertex_mapping();
 	parameter::HICANNParameter::CurrentSourceMap mSources;
 
 	for (auto const& source : current_sources)
@@ -110,7 +109,7 @@ void Mapper::run(ObjectStore const& pynn)
 			for (size_t ii=0; ii<mask.size(); ++ii)
 			{
 				if (mask[ii]) {
-					Vertex v = vertex_mapping.at(view.population_ptr().get());
+					Vertex v = mBioGraph[view.population_ptr().get()];
 					mSources[v] = std::make_pair(ii, source);
 				}
 			}
@@ -121,7 +120,7 @@ void Mapper::run(ObjectStore const& pynn)
 
 	std::unique_ptr<parameter::HICANNParameter> transformator(
 		new parameter::HICANNParameter(*mPyMarocco, mSources,
-			pynn.getDuration(), mGraph, mHW, mMgr));
+			pynn.getDuration(), graph, mHW, mMgr));
 	auto parameter = transformator->run(*placement, *routing);
 
 
@@ -152,18 +151,6 @@ void Mapper::run(ObjectStore const& pynn)
 		MAROCCO_INFO("Saving results to " << mPyMarocco->persist);
 		result->save(mPyMarocco->persist.c_str(), true);
 	}
-}
-
-Mapper::graph_type&
-Mapper::getNeuralNetwork()
-{
-	return mGraph;
-}
-
-Mapper::graph_type const&
-Mapper::getNeuralNetwork() const
-{
-	return mGraph;
 }
 
 Mapper::comm_type&
