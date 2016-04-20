@@ -66,8 +66,6 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 
 	// here the mapping between the addresses of the denmem circuits
 	// and the biological neurons is made
-	auto const& onm = result.neuron_placement.denmem_assignment();
-	auto const& placement = result.neuron_placement.primary_denmems_for_population();
 
 	// loop over all populations wrapped as graph vertex type
 	for (auto const& vertex : make_iterable(boost::vertices(graph))) {
@@ -78,30 +76,13 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 		}
 
 		auto const& population = *graph[vertex];
-		auto const& mapping = placement.at(vertex);
-		// set index of first bio neuron in a population to zero
-		size_t bio_neuron_index = 0;
 
-		// each population has a vector with assigned denmem circuits
-		for (NeuronOnWafer const& primary_neuron : mapping) {
-			NeuronBlockOnWafer neuron_block = primary_neuron.toNeuronBlockOnWafer();
-			placement::OnNeuronBlock const& onb =
-				onm.at(primary_neuron.toHICANNOnWafer())[neuron_block.toNeuronBlockOnHICANN()];
+		for (auto const& item : result.neuron_placement.find(vertex)) {
+			bio_id bio {population.id(), item.neuron_index()};
 
-			auto it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
-			assert(it != onb.end());
-
-	 		size_t const hw_neuron_size = (*it)->neuron_size();
-			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
-				bio_id bio {population.id(), bio_neuron_index};
-
-				for (NeuronOnNeuronBlock nrn : neuron) {
-					auto ng = nrn.toNeuronOnWafer(neuron_block);
-					mBio2DenmemMap[bio].push_back(ng);
-					mDenmem2BioMap[ng] = bio;
-				}
-
-				++bio_neuron_index;
+			for (NeuronOnWafer denmem : item.logical_neuron()) {
+				mBio2DenmemMap[bio].push_back(denmem);
+				mDenmem2BioMap[denmem] = bio;
 			}
 		}
 	}

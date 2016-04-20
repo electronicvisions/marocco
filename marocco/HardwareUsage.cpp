@@ -12,42 +12,54 @@ namespace marocco {
 HardwareUsage::HardwareUsage(Hardware const& hw, Resource const& r, BaseResult const& pl)
 	: mHW(hw),
 	  mResource(r),
-	  mPlacement(result_cast<placement::Result>(pl).neuron_placement.denmem_assignment()),
+	  mNeuronPlacement(result_cast<placement::Result>(pl).neuron_placement),
 	  mLookupTable(result_cast<placement::Result>(pl).reverse_mapping)
 {}
 
 double HardwareUsage::overallNeuronUsage() const
 {
-	size_t cnt=0, num_hicanns=0;
-	for (auto const& hicann: mResource.allocated())
-	{
-		if (mPlacement.find(hicann) != mPlacement.end()) {
-			size_t c=0;
-			for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
-			{
-				auto const& onb = mPlacement.at(hicann).at(nb);
-				for (std::shared_ptr<placement::NeuronPlacementRequest> const& pl : onb) {
-					c += pl->size();
-				}
+	size_t denmems = 0;
+	size_t hicanns = 0;
+	for (auto const& hicann : mResource.allocated()) {
+		size_t denmems_on_hicann = 0;
+		for (auto block : iter_all<NeuronBlockOnHICANN>()) {
+			for (auto const& item : mNeuronPlacement.find(NeuronBlockOnWafer(block, hicann))) {
+				denmems_on_hicann += item.logical_neuron().size();
 			}
-			cnt += c;
-			num_hicanns++;
+		}
+		if (denmems_on_hicann > 0) {
+			denmems += denmems_on_hicann;
+			++hicanns;
 		}
 	}
-	return double(cnt) / double(num_hicanns*NeuronOnHICANN::enum_type::end);
+	if (hicanns > 0) {
+		return double(denmems) / double(hicanns * NeuronOnHICANN::enum_type::size);
+	}
+	return 0.;
 }
 
 double HardwareUsage::overallSynapseUsage() const
 {
-	size_t cnt=0, num_hicanns=0;
-	for (auto const& hicann: mResource.allocated())
-	{
-		if (mPlacement.find(hicann) != mPlacement.end()) {
-			cnt += numSynapsesUsed(hicann);
-			num_hicanns++;
+	size_t synapses = 0;
+	size_t hicanns = 0;
+	for (auto const& hicann : mResource.allocated()) {
+		// Check if any neurons have been placed to this HICANN.
+		bool any = false;
+		for (auto block : iter_all<NeuronBlockOnHICANN>()) {
+			if (!mNeuronPlacement.find(NeuronBlockOnWafer(block, hicann)).empty()) {
+				any = true;
+				break;
+			}
+		}
+		if (any) {
+			synapses += numSynapsesUsed(hicann);
+			++hicanns;
 		}
 	}
-	return double(cnt) / double(num_hicanns*SynapseOnHICANN::enum_type::end);
+	if (hicanns > 0) {
+		return double(synapses) / double(hicanns * SynapseOnHICANN::enum_type::size);
+	}
+	return 0.;
 }
 
 size_t HardwareUsage::numSynapsesUsed(Index const& hicann) const

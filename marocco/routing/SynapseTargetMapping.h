@@ -121,11 +121,14 @@ public:
 	 * per Population might be also provided via pymarocco.  These might e.g.
 	 * consider the fan-in per synapse type.
 	 *
-	 * @param nbm bio neurons mapped onto blocks of hardware neurons of a
-	 * HICANN
+	 * @param hicann HICANN to operate on
+	 * @param neuron_placement result of the neuron placement step
 	 * @param graph the PyNN graph of populations and projections
 	 */
-	void simple_mapping(placement::NeuronBlockMapping const& nbm, graph_t const& graph);
+	void simple_mapping(
+	    HMF::Coordinate::HICANNOnWafer const& hicann,
+	    placement::NeuronPlacementResult const& neuron_placement,
+	    graph_t const& graph);
 
 	/// returns true, if synapse target mapping is equal on top and bottom neurons.
 	bool check_top_and_bottom_are_equal() const;

@@ -45,42 +45,30 @@ HICANNParameter::run(
 	std::unordered_map<HICANNOnWafer, HICANNTransformator::CurrentSources> current_source_map;
 
 	auto const& neuron_placement = placement.neuron_placement;
-	auto const& pm = neuron_placement.primary_denmems_for_population();
 	for (auto const& entry : mCurrentSourceMap)
 	{
 		Vertex const v = entry.first;
 		size_t const nrn = entry.second.first;
 
-		auto const mapping = pm.at(v);
+		// There should be exactly one result for this lookup.
+		auto iterable = neuron_placement.find(BioNeuron(v, nrn));
+		assert(iterable.begin() != iterable.end());
+		assert(std::next(iterable.begin()) == iterable.end());
 
-		for (auto const& primary_neuron : mapping) {
-			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
-			auto const entry_ptr = neuron_placement.denmem_assignment().at(
-			    terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()]
-			                               [primary_neuron.toNeuronOnNeuronBlock()];
-			if (!entry_ptr) {
-				continue;
-			}
+		auto const& logical_neuron = iterable.begin()->logical_neuron();
+		assert(!logical_neuron.is_external());
 
-			auto const& bio = entry_ptr->population_slice();
-			if (nrn>=bio.offset() && nrn<bio.offset()+bio.size())
-			{
-				// winner
+		auto const primary_neuron = logical_neuron.front();
 
-				auto ptr = boost::dynamic_pointer_cast<StepCurrentSource const>(entry.second.second);
-				if (!ptr) {
-					MAROCCO_WARN("unsupported current type");
-				} else {
-					MAROCCO_DEBUG("insert source");
-					current_source_map[primary_neuron.toHICANNOnWafer()]
-					                  [primary_neuron.toNeuronOnHICANN()] = ptr;
-				}
-
-				break;
-			}
+		auto ptr = boost::dynamic_pointer_cast<StepCurrentSource const>(entry.second.second);
+		if (!ptr) {
+			MAROCCO_WARN("unsupported current type");
+		} else {
+			MAROCCO_DEBUG("insert source");
+			current_source_map[primary_neuron.toHICANNOnWafer()]
+			                  [primary_neuron.toNeuronOnHICANN()] = ptr;
 		}
 	}
-
 
 	auto first = getManager().begin_allocated();
 	auto last  = getManager().end_allocated();
@@ -167,8 +155,7 @@ HICANNTransformator::run(
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1543
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(mPyMarocco.speedup);
-		auto const& neuron_placement =
-		    placement.neuron_placement.denmem_assignment().at(chip().index());
+		auto const& neuron_placement = placement.neuron_placement;
 		auto const& synapse_routing = routing.synapse_routing.at(chip().index());
 
 		// Analog output: set correct values for output buffer
@@ -242,12 +229,14 @@ void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
 
 double HICANNTransformator::neurons(
 	neuron_calib_t const& calib,
-	typename placement::NeuronBlockMapping const& neuron_placement,
+	typename placement::NeuronPlacementResult const& neuron_placement,
 	typename placement::output_mapping_t::result_type const& output_mapping,
 	routing::SynapseTargetMapping const& synapse_target_mapping)
 {
 	// GLOBAL DIGITAL Neuron Paramets
 	neuron_config(calib);
+
+	auto const hicann = chip().index();
 
 	// set Neuron sending L1Addresses
 	typedef std::vector<HMF::HICANN::L1Address>::const_iterator It;
@@ -278,20 +267,11 @@ double HICANNTransformator::neurons(
 	 */
 	NeuronSharedParameterRequirements shared_parameter_visitor;
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		placement::OnNeuronBlock const& onb = neuron_placement[nb];
-
-		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *(getGraph()[bio.population()]);
-
-			size_t const hw_neuron_size = (*it)->neuron_size();
-			auto const& params = pop.parameters();
-			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
-				for (NeuronOnNeuronBlock nrn : neuron) {
-					visitCellParameterVector(
-						params, shared_parameter_visitor, bio.offset() + neuron.index(),
-						nrn.toNeuronOnHICANN(nb));
-				}
+		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
+			auto const& params = getGraph()[item.population()]->parameters();
+			for (NeuronOnHICANN nrn : item.logical_neuron()) {
+				visitCellParameterVector(
+				    params, shared_parameter_visitor, item.neuron_index(), nrn);
 			}
 		}
 	}
@@ -300,62 +280,42 @@ double HICANNTransformator::neurons(
 	TransformNeurons visitor{mPyMarocco.param_trafo.alpha_v, mPyMarocco.param_trafo.shift_v};
 
 	MAROCCO_INFO("Configuring neuron parameters");
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
-	{
-		placement::OnNeuronBlock const& onb = neuron_placement[nb];
+	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
+		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
+			auto const& pop = *(getGraph()[item.population()]);
+			auto const& logical_neuron = item.logical_neuron();
+			for (NeuronOnHICANN nrn : logical_neuron) {
+				MAROCCO_DEBUG("configuring neuron: " << nrn);
 
-		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *(getGraph()[bio.population()]);
+				// configure ANALOG neuron parameters
+				transform_analog_neuron(
+					calib, pop, item.neuron_index(), nrn, synapse_target_mapping,
+					visitor, chip());
+			}
 
-			It first, last;
-			std::tie(first, last) = address_map.at(bio);
+			{
+				// As hardware neurons will be connected, DIGITAL
+				// neuron parameters are only configured for the first
+				// hardware neuron of each bio neuron.
+				NeuronOnHICANN const nrn = logical_neuron.front();
+				HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
 
-			size_t const hw_neuron_size = (*it)->neuron_size();
+				// TODO: move setting of L1 addresses here (from MergerRouting.cpp)
 
-			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
-				for (NeuronOnNeuronBlock nrn_onb : neuron) {
-					auto const nrn = nrn_onb.toNeuronOnHICANN(nb);
+				MAROCCO_DEBUG(
+				    chip().index() << " " << nb << " " << nrn << " has sending address "
+				                   << neuron.address());
 
-					MAROCCO_DEBUG("configuring neuron: " << nrn);
-
-					// configure ANALOG neuron parameters
-					transform_analog_neuron(
-						calib, pop, bio.offset() + neuron.index(), nrn, synapse_target_mapping,
-						visitor, chip());
+				if (!neuron.activate_firing()) {
+					throw std::runtime_error("neuron has disabled spike mechanism");
 				}
 
-				{
-					// As hardware neurons will be connected, DIGITAL
-					// neuron parameters are only configured for the first
-					// hardware neuron of each bio neuron.
-					auto const nrn = neuron.begin()->toNeuronOnHICANN(nb);
-					HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
-
-					if (first == last) {
-						throw std::runtime_error("out of L1Addresses");
-					}
-
-					// set neuron l1 address
-					// FIXME: Document this assertion. see MergerRouting?
-					if (neuron.address() != *first++) {
-						throw std::runtime_error("neuron L1Address mismatch");
-					}
-
-					MAROCCO_DEBUG(
-					    chip().index() << " " << nb << " " << nrn << " has sending address "
-					                   << neuron.address());
-
-					if (!neuron.activate_firing()) {
-						throw std::runtime_error("neuron has disabled spike mechanism");
-					}
-
-					if (!neuron.enable_spl1_output()) {
-						MAROCCO_WARN(nrn << " " << neuron.address() << " is muted");
-					}
-
-					connect_denmems(nrn, hw_neuron_size);
+				if (!neuron.enable_spl1_output()) {
+					MAROCCO_WARN(nrn << " " << neuron.address() << " is muted");
 				}
+
+				assert(logical_neuron.is_rectangular());
+				connect_denmems(nrn, logical_neuron.size());
 			}
 		}
 	} // all neuron blocks
@@ -387,30 +347,16 @@ void HICANNTransformator::connect_denmems(
 
 
 void HICANNTransformator::analog_output(
-	neuron_calib_t const& calib, typename placement::NeuronBlockMapping const& neuron_placement)
+	neuron_calib_t const& calib, typename placement::NeuronPlacementResult const& neuron_placement)
 {
 	AnalogVisitor visitor;
 
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
-	{
-		placement::OnNeuronBlock const& onb = neuron_placement[nb];
-
-		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *(getGraph()[bio.population()]);
-
-			size_t const hw_neuron_size = (*it)->neuron_size();
-
-			// FIXME: Not necessary anymore, size is checked in NeuronPlacementRequest ctor
-			if (hw_neuron_size == 0) {
-				throw std::runtime_error("hw neuron size must be >0");
-			}
-
-			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
-				auto const nrn = neuron.begin()->toNeuronOnHICANN(nb);
-				transform_analog_outputs(
-					calib, pop, bio.offset() + neuron.index(), nrn, visitor, chip());
-			}
+	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
+		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, chip().index()))) {
+			auto const& pop = *(getGraph()[item.population()]);
+			NeuronOnHICANN const nrn = *(item.logical_neuron().begin());
+			transform_analog_outputs(
+				calib, pop, item.neuron_index(), nrn, visitor, chip());
 		}
 	}
 }
@@ -526,7 +472,7 @@ void HICANNTransformator::synapses(
 	synapse_row_calib_t const& calib,
 	typename routing::synapse_driver_mapping_t::result_type const&
 		synapse_routing, // TODO change this to pass std::vector<DriverResult>
-	typename placement::NeuronBlockMapping const& neuron_placement)
+	typename placement::NeuronPlacementResult const& neuron_placement)
 {
 	NeuronOnHICANNPropertyArray<double> const weight_scale = weight_scale_array( neuron_placement );
 
@@ -608,7 +554,7 @@ void HICANNTransformator::synapses(
 }
 
 NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
-	typename placement::NeuronBlockMapping const& neuron_placement) const
+	typename placement::NeuronPlacementResult const& neuron_placement) const
 {
 	CMVisitor const cm_visitor{};
 	NeuronOnHICANNPropertyArray<double> rv;
@@ -619,47 +565,29 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 
 	auto const& use_bigcap = chip().neurons.config.bigcap;
 
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>())
-	{
-		placement::OnNeuronBlock const& onb = neuron_placement[nb];
 
-		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *(getGraph()[bio.population()]);
+	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
+		// We need to calculate the scaling factor for each logical neuron.
+		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, chip().index()))) {
+			auto const& params = getGraph()[item.population()]->parameters();
+			auto const& logical_neuron = item.logical_neuron();
 
-			double cm_bio = 0.;
+			// Sum up the capacity of the connected denmems on the hardware.
 			double cm_hw = 0.;
-			size_t const hw_neuron_size = (*it)->neuron_size();
 			std::vector<NeuronOnHICANN> connected_neurons;
-			connected_neurons.reserve(hw_neuron_size);
+			connected_neurons.reserve(logical_neuron.size());
+			for (NeuronOnHICANN nrn : item.logical_neuron()) {
+				// We have to consider different capacitor choices on top / bottom neuron blocks.
+				cm_hw +=
+				    use_bigcap[nrn.y()] ? NeuronCalibration::big_cap : NeuronCalibration::small_cap;
+				connected_neurons.push_back(nrn);
+			}
 
-			auto const& params = pop.parameters();
+			double const cm_bio = visitCellParameterVector(params, cm_visitor, item.neuron_index());
+			double const scale = mPyMarocco.speedup * cm_hw / cm_bio;
 
-			// iterate over all hardware neurons of the NeuronPlacementRequest.
-			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
-				{
-					// for the first hw neuron of a bio neuron: get the bio cap
-					cm_bio =
-						visitCellParameterVector(params, cm_visitor, bio.offset() + neuron.index());
-				}
-
-				for (NeuronOnNeuronBlock nrn : neuron) {
-					// sum up the hw cap and collect the connected denmems
-					// This can even handle different capacitor choices on the top and bottom
-					// blocks.
-					cm_hw += use_bigcap[nrn.y()] ? NeuronCalibration::big_cap
-					                             : NeuronCalibration::small_cap;
-					connected_neurons.push_back(nrn.toNeuronOnHICANN(nb));
-				}
-
-				// calculate the scaling factor store the factor for all connected denmems and
-				// reset the values
-				double scale = mPyMarocco.speedup * cm_hw / cm_bio;
-				for (auto cnrn : connected_neurons)
-					rv[cnrn] = scale;
-				connected_neurons.clear();
-				cm_bio = 0.;
-				cm_hw = 0.;
+			for (auto cnrn : connected_neurons) {
+				rv[cnrn] = scale;
 			}
 		}
 	}

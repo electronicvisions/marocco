@@ -125,42 +125,39 @@ void map_targets(
 }
 
 void SynapseTargetMapping::simple_mapping(
-	placement::NeuronBlockMapping const& nbm, graph_t const& graph)
+    HMF::Coordinate::HICANNOnWafer const& hicann,
+    placement::NeuronPlacementResult const& neuron_placement,
+    graph_t const& graph)
 {
 	SynapseTargetVisitor const syn_tgt_visitor;
 
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		placement::OnNeuronBlock const& onb = nbm[nb];
+		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
+			Population const& pop = *(graph[item.population()]);
+			auto const& logical_neuron = item.logical_neuron();
+			assert(logical_neuron.is_rectangular());
 
-		/// iterate over assignments
-		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			assignment::PopulationSlice const& bio = (*it)->population_slice();
-			Population const& pop = *graph[bio.population()];
+			std::vector<SynapseType> synapse_targets = visitCellParameterVector(
+				pop.parameters(), syn_tgt_visitor, item.neuron_index());
 
-			size_t const hw_neuron_size = (*it)->neuron_size();
-			std::vector<SynapseType> synapse_targets;
-			std::vector<NeuronOnHICANN> connected_neurons;
-			connected_neurons.reserve(hw_neuron_size);
-
-			auto const& params = pop.parameters();
-
-			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
-				synapse_targets = visitCellParameterVector(
-					params, syn_tgt_visitor, bio.offset() + neuron.index());
-
-				if (synapse_targets.size() >
-					(*it)->neuron_width() * HICANN::RowConfig::num_syn_ins) {
+			{
+				assert(logical_neuron.size() % NeuronOnNeuronBlock::y_type::size == 0);
+				size_t const neuron_width =
+				    logical_neuron.size() / NeuronOnNeuronBlock::y_type::size;
+				if (synapse_targets.size() > neuron_width * HICANN::RowConfig::num_syn_ins) {
 					throw std::runtime_error(
-						"Neuron has more synaptic time constants than provided by placement. "
-						"HardwareNeuronSize should be >= # of synaptic time constants.");
+					    "Neuron has more synaptic time constants than provided by placement. "
+					    "HardwareNeuronSize should be >= # of synaptic time constants.");
 				}
-
-				for (NeuronOnNeuronBlock nrn : neuron) {
-					connected_neurons.push_back(nrn.toNeuronOnHICANN(nb));
-				}
-
-				map_targets(synapse_targets, connected_neurons, *this);
 			}
+
+			std::vector<NeuronOnHICANN> connected_neurons;
+			connected_neurons.reserve(logical_neuron.size());
+			for (NeuronOnHICANN nrn : logical_neuron) {
+				connected_neurons.push_back(nrn);
+			}
+
+			map_targets(synapse_targets, connected_neurons, *this);
 		}
 	}
 }

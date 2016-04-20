@@ -92,10 +92,10 @@ WaferRouting::run(placement::Result const& placement)
 	for (auto const& hicann : getManager().allocated())
 		hicanns.insert(hicann);
 
-	placement::NeuronPlacementResult const& neuron_mapping = placement.neuron_placement;
+	placement::NeuronPlacementResult const& neuron_placement = placement.neuron_placement;
 	mOutbMapping = &placement.output_mapping;
 
-	auto const& revmap = neuron_mapping.primary_denmems_for_population();
+	auto const& revmap = neuron_placement.primary_denmems_for_population();
 
 	WaferRoutingPriorityQueue queue(getGraph(), mPyMarocco);
 	queue.insert(*mOutbMapping, hicanns);
@@ -118,9 +118,8 @@ WaferRouting::run(placement::Result const& placement)
 			// TODO(#1594): determination whether route has synapes to target does not
 			// need to count the total number of synapses.
 			SynapseTargetMapping syn_tgt_mapping;
-			syn_tgt_mapping.simple_mapping(
-				neuron_mapping.denmem_assignment().at(target), getGraph());
-			SynapseDriverRequirements req(target, neuron_mapping, syn_tgt_mapping);
+			syn_tgt_mapping.simple_mapping(target, neuron_placement, getGraph());
+			SynapseDriverRequirements req(target, neuron_placement, syn_tgt_mapping);
 			auto const num = req.calc(projections, getGraph());
 
 			if (!num.first) {
@@ -155,7 +154,7 @@ WaferRouting::run(placement::Result const& placement)
 		if (!unreachable.empty() && count_synapse_loss) {
 			auto const& sources = mOutbMapping->at(hicann).at(dnc);
 			// we are hitting routing resource limits
-			handleSynapseLoss(hicann, sources, unreachable, neuron_mapping, revmap);
+			handleSynapseLoss(hicann, sources, unreachable, neuron_placement);
 		}
 
 		// No possible route for any of the targets of this projection found
@@ -395,8 +394,7 @@ void WaferRouting::handleSynapseLoss(
 	HICANNGlobal const& source_hicann,
 	std::vector<assignment::AddressMapping> const& sources,
 	std::unordered_set<HICANNGlobal> const& unreachable,
-	placement::NeuronPlacementResult const& neuron_mapping,
-	placement::NeuronPlacementResult::primary_denmems_for_population_type const& revmap)
+	placement::NeuronPlacementResult const& neuron_placement)
 {
 	std::ostringstream os;
 	for (auto const& hicann : unreachable) {
@@ -411,20 +409,19 @@ void WaferRouting::handleSynapseLoss(
 		{
 			graph_t::vertex_descriptor target_pop = boost::target(edge, getGraph());
 
-			auto const& hw_targets = revmap.at(target_pop);
+			for (auto const& item : neuron_placement.find(target_pop)) {
+				auto neuron_block = item.neuron_block();
+				assert(neuron_block != boost::none);
 
-			for (auto const& primary_neuron : hw_targets) {
-				auto neuron_block = primary_neuron.toNeuronBlockOnWafer();
-				HICANNGlobal hicann(neuron_block.toHICANNOnWafer(), guess_wafer(getManager()));
+				HICANNGlobal hicann(neuron_block->toHICANNOnWafer(), guess_wafer(getManager()));
 				auto it = unreachable.find(hicann);
-				if (it != unreachable.end()) {
-					placement::OnNeuronBlock const& onb =
-						neuron_mapping.denmem_assignment().at(hicann).at(neuron_block);
-					auto bio = onb[primary_neuron.toNeuronOnNeuronBlock()]->population_slice();
-
-					mSynapseLoss->addLoss(edge, source_hicann, hicann, source.bio(), bio);
+				if (it == unreachable.end()) {
+					continue;
 				}
-			} // all hw targets
+				mSynapseLoss->addLoss(
+				    edge, source_hicann, hicann, source.bio(),
+				    assignment::PopulationSlice(item.population(), item.neuron_index(), 1));
+			}
 		} // all out_edges
 	} // all sources
 }

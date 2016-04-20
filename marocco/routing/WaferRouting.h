@@ -91,8 +91,7 @@ private:
 		HICANNGlobal const& source_hicann,
 		std::vector<assignment::AddressMapping> const& sources,
 		std::unordered_set<HICANNGlobal> const& unreachable,
-		placement::NeuronPlacementResult const& neuron_mapping,
-		placement::NeuronPlacementResult::primary_denmems_for_population_type const& revmap);
+		placement::NeuronPlacementResult const& neuron_mapping);
 
 	// M E M B E R S
 	pymarocco::PyMarocco& mPyMarocco;

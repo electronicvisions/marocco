@@ -83,7 +83,7 @@ void SynapseRouting::run(placement::Result const& placement,
 	// mapping of synapse targets (excitatory, inhibitory) to synaptic inputs of denmems
 	SynapseTargetMapping& syn_tgt_mapping = mResult.synapse_target_mapping;
 
-	syn_tgt_mapping.simple_mapping(nrnpl.denmem_assignment().at(hicann()), mGraph);
+	syn_tgt_mapping.simple_mapping(hicann(), nrnpl, mGraph);
 	assert(syn_tgt_mapping.check_top_and_bottom_are_equal());
 	std::stringstream msg;
 	msg << "synapse_target_mapping:\n" << syn_tgt_mapping;
@@ -542,10 +542,8 @@ SynapseRouting::Result& SynapseRouting::getResult()
 }
 
 void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
-									   placement::NeuronPlacementResult const& nrnpl)
+									   placement::NeuronPlacementResult const& neuron_placement)
 {
-	auto const& revmap = nrnpl.primary_denmems_for_population();
-
 	Route const& route = local_route.route();
 	L1Bus const& l1 = mRoutingGraph[route.source()];
 	HICANNGlobal const& src_hicann = l1.hicann();
@@ -559,22 +557,20 @@ void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
 		assignment::AddressMapping const& am = proj.source();
 		assignment::PopulationSlice const& src_bio_assign = am.bio();
 
-		for (auto const& primary_neuron : revmap.at(target)) {
-			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
-			if (terminal.toHICANNOnWafer() != hicann().toHICANNOnWafer()) {
-				// this terminal doesn't correspond to the current local
-				// hicann. so there is nothing to do.
+		for (auto const& item : neuron_placement.find(target)) {
+			auto neuron_block = item.neuron_block();
+			assert(neuron_block != boost::none);
+			if (neuron_block->toHICANNOnWafer() != hicann().toHICANNOnWafer()) {
+				// This neuron of the target population was not placed to the current hicann,
+				// so there is nothing to do.
 				continue;
 			}
 
-			placement::OnNeuronBlock const& onb = nrnpl.denmem_assignment().at(
-			    terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
-			auto trg_bio_assign = onb[primary_neuron.toNeuronOnNeuronBlock()]->population_slice();
-
-			HICANNGlobal trg_hicann(terminal.toHICANNOnWafer(), guess_wafer(mManager));
-			mSynapseLoss->addLoss(pynn_proj, src_hicann, trg_hicann,
-								  src_bio_assign, trg_bio_assign);
-		} // for all asssignments
+			HICANNGlobal trg_hicann(neuron_block->toHICANNOnWafer(), guess_wafer(mManager));
+			mSynapseLoss->addLoss(
+			    pynn_proj, src_hicann, trg_hicann, src_bio_assign,
+			    assignment::PopulationSlice(item.population(), item.neuron_index(), 1));
+		}
 	} // for all projetions
 }
 
