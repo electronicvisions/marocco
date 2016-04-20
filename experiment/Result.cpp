@@ -86,11 +86,7 @@ void ReadResults::run(ObjectStore& objectstore, LookupTable const& table) const
 		for (size_t glink = 0; glink < GbitLinkOnHICANN::end; ++glink) {
 			for (auto const spike : spikes[glink]) {
 				if (spike.addr != L1Address(0)) {
-					// FIXME (CKl): glink is a GbitLinkOnHICANN and NOT the NeuronBlockOnHICANN!
-					// => we need to evaluate the merger tree config to get the
-					// matching NeuronBlockOnHICANN from the GbitLinkOnHICANN.
-					// (i.e. current code assumes 1-to-1 config of merger tree.)
-					hw_id const key{hicann, NeuronBlockOnHICANN(glink), spike.addr};
+					hw_id const key{hicann, DNCMergerOnHICANN(glink), spike.addr};
 
 					try {
 

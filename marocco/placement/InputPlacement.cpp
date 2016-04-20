@@ -1,11 +1,9 @@
 #include "marocco/placement/InputPlacement.h"
 
 #include <cassert>
-#include <chrono>
 #include <set>
 
 #include <boost/assert.hpp>
-#include <tbb/parallel_for_each.h>
 #include <nanoflann.hpp>
 
 #include "hal/Coordinate/iter_all.h"
@@ -63,7 +61,7 @@ InputPlacement::InputPlacement(
 }
 
 void InputPlacement::run(
-	NeuronPlacementResult const& neuron_mapping,
+	NeuronPlacementResult& neuron_placement,
 	OutputMappingResult& output_mapping)
 {
 	// Assign spike inputs to remaining output buffers.
@@ -88,7 +86,7 @@ void InputPlacement::run(
 	// check first if input is manually placed and assign it, then
 	// collect all the inputs, get their number of target HICANNs and find the
 	// optimal insertion point, given as the mean over all target HICANNs.
-	auto const& plmap = neuron_mapping.primary_denmems_for_population();
+	auto const& plmap = neuron_placement.primary_denmems_for_population();
 
 	std::map<size_t, std::vector<std::pair<Point, PopulationSlice> >, std::greater<size_t> >
 	    auto_inputs;
@@ -112,7 +110,7 @@ void InputPlacement::run(
 			if (locations && !locations->empty()) {
 				for (auto const& target_hicann : *locations) {
 					OutputBufferMapping& om = output_mapping[target_hicann];
-					insertInput(target_hicann, om, bio);
+					insertInput(target_hicann, neuron_placement, om, bio);
 				}
 
 				if (bio.size()) {
@@ -181,7 +179,7 @@ void InputPlacement::run(
 			for (auto const& target_hicann : neighbors) {
 				OutputBufferMapping& om = output_mapping[target_hicann];
 
-				insertInput(target_hicann, om, bio);
+				insertInput(target_hicann, neuron_placement, om, bio);
 
 				// TODO: if HICANN has no free output buffers left.
 				// remove it from point cloud and rebuild index.
@@ -202,20 +200,15 @@ void InputPlacement::run(
 	auto first = mMgr.begin_allocated();
 	auto last  = mMgr.end_allocated();
 
-	// configure GigabitLinks on Hardware
-	auto start = std::chrono::system_clock::now();
-	//tbb::parallel_for_each(first, last,
 	std::for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			configureGbitLinks(hicann, output_mapping.at(hicann));
 		});
-	auto end = std::chrono::system_clock::now();
-	mPyMarocco.stats.timeSpentInParallelRegion +=
-		std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
 }
 
 void InputPlacement::insertInput(
 	HMF::Coordinate::HICANNOnWafer const& target_hicann,
+	NeuronPlacementResult& neuron_placement,
 	OutputBufferMapping& om,
 	PopulationSlice& bio)
 {
@@ -266,8 +259,18 @@ void InputPlacement::insertInput(
 					}
 
 					// we found an empty slot, insert the assignment
-					auto addresses = om.popAddresses(dnc, n, mPyMarocco.l1_address_assignment);
-					om.insert(dnc, assignment::AddressMapping(bio.slice_back(n), addresses));
+					auto population_slice = bio.slice_back(n);
+					for (size_t ii = 0; ii < n; ++ii) {
+						auto const address = om.popAddress(dnc, mPyMarocco.l1_address_assignment);
+						size_t const neuron_index = population_slice.offset() + ii;
+						auto const logical_neuron = LogicalNeuron::external(
+							mGraph[population_slice.population()]->id(), neuron_index);
+						BioNeuron bio_neuron(population_slice.population(), neuron_index);
+						neuron_placement.add(bio_neuron, logical_neuron);
+						neuron_placement.set_address(
+							logical_neuron,
+							L1AddressOnWafer(DNCMergerOnWafer(dnc, target_hicann), address));
+					}
 
 					// mark rate as used
 					if ( mPyMarocco.input_placement.consider_rate )

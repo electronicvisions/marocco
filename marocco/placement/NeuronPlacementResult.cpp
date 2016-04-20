@@ -13,13 +13,22 @@ NeuronPlacementResult::item_type::item_type(
 	  m_neuron_block(
 		  logical_neuron.is_external()
 			  ? boost::none
-			  : neuron_block_type{logical_neuron.front().toNeuronBlockOnWafer()})
+			  : neuron_block_type{logical_neuron.front().toNeuronBlockOnWafer()}),
+	  m_address(boost::none)
 {
 }
 
 auto NeuronPlacementResult::item_type::neuron_block() const -> neuron_block_type const&
 {
 	return m_neuron_block;
+}
+
+auto NeuronPlacementResult::item_type::dnc_merger() const -> dnc_merger_type
+{
+	if (m_address == boost::none) {
+		return boost::none;
+	}
+	return {m_address->toDNCMergerOnWafer()};
 }
 
 auto NeuronPlacementResult::item_type::population() const -> vertex_descriptor
@@ -40,6 +49,16 @@ BioNeuron const& NeuronPlacementResult::item_type::bio_neuron() const
 LogicalNeuron const& NeuronPlacementResult::item_type::logical_neuron() const
 {
 	return m_logical_neuron;
+}
+
+auto NeuronPlacementResult::item_type::address() const -> address_type const&
+{
+	return m_address;
+}
+
+void NeuronPlacementResult::item_type::set_address(address_type const& address)
+{
+	m_address = address;
 }
 
 auto NeuronPlacementResult::denmem_assignment() const -> denmem_assignment_type const&
@@ -94,10 +113,24 @@ auto NeuronPlacementResult::find(
 	return make_iterable(get<NeuronBlockOnWafer>(m_container).equal_range(neuron_block));
 }
 
+auto NeuronPlacementResult::find(
+	boost::optional<HMF::Coordinate::DNCMergerOnWafer> const& dnc_merger) const
+	-> iterable<by_dnc_merger_type::iterator>
+{
+	return make_iterable(get<DNCMergerOnWafer>(m_container).equal_range(dnc_merger));
+}
+
 auto NeuronPlacementResult::find(NeuronBlockOnWafer const& neuron_block) const
 	-> iterable<by_neuron_block_type::iterator>
 {
 	return make_iterable(get<NeuronBlockOnWafer>(m_container).equal_range(neuron_block));
+}
+
+auto NeuronPlacementResult::find(
+	HMF::Coordinate::DNCMergerOnWafer const& dnc_merger) const
+	-> iterable<by_dnc_merger_type::iterator>
+{
+	return make_iterable(get<DNCMergerOnWafer>(m_container).equal_range(dnc_merger));
 }
 
 auto NeuronPlacementResult::begin() const -> by_population_type::iterator {
@@ -106,6 +139,19 @@ auto NeuronPlacementResult::begin() const -> by_population_type::iterator {
 
 auto NeuronPlacementResult::end() const -> by_population_type::iterator {
 	return get<vertex_descriptor>(m_container).end();
+}
+
+void NeuronPlacementResult::set_address(
+    LogicalNeuron const& logical_neuron, item_type::address_type const& address)
+{
+	auto& by_neuron = get<LogicalNeuron>(m_container);
+	auto it = by_neuron.find(logical_neuron);
+	if (it == by_neuron.end()) {
+		throw std::out_of_range("specified logical neuron not found in placement result");
+	}
+	if (!by_neuron.modify(it, [&address](item_type& item) { item.set_address(address); })) {
+		throw std::runtime_error("could not store L1 address of neuron");
+	}
 }
 
 } // namespace placement

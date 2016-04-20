@@ -89,7 +89,7 @@ private:
 
 	void handleSynapseLoss(
 		HICANNGlobal const& source_hicann,
-		std::vector<assignment::AddressMapping> const& sources,
+		HMF::Coordinate::DNCMergerOnHICANN const& source_dnc_merger,
 		std::unordered_set<HICANNGlobal> const& unreachable,
 		placement::NeuronPlacementResult const& neuron_mapping);
 

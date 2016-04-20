@@ -25,12 +25,12 @@ public:
 	 * @param neuronpl Result of neuron placement step.
 	 * @param output_mapping Output parameter used to store the result.
 	 */
-	void run(NeuronPlacementResult const& neuronpl,
+	void run(NeuronPlacementResult& neuron_placement,
 			 OutputMappingResult& output_mapping);
 
 private:
 	void run(HMF::Coordinate::HICANNGlobal const& hicann,
-			 NeuronBlockMapping const& nbmap,
+			 NeuronPlacementResult& neuron_placement,
 			 OutputBufferMapping& local_output_mapping);
 
 	graph_t const&            mGraph;

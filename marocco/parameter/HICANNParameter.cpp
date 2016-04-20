@@ -128,6 +128,7 @@ HICANNTransformator::run(
 	placement::Result const& placement,
 	routing::Result const& routing)
 {
+	auto const& neuron_placement = placement.neuron_placement;
 
 	// assuming that neurons are always read out
 	auto const& output_mapping = placement.output_mapping.at(chip().index());
@@ -136,7 +137,7 @@ HICANNTransformator::run(
 	bool const local_routes  = routing.crossbar_routing.exists(chip().index());
 
 	// spike input sources
-	spike_input(output_mapping);
+	spike_input(neuron_placement, output_mapping);
 
 	// switch on BackgroundGenerators for locking
 	background_generators(mPyMarocco.bkg_gen_isi);
@@ -155,7 +156,6 @@ HICANNTransformator::run(
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1543
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(mPyMarocco.speedup);
-		auto const& neuron_placement = placement.neuron_placement;
 		auto const& synapse_routing = routing.synapse_routing.at(chip().index());
 
 		// Analog output: set correct values for output buffer
@@ -164,12 +164,10 @@ HICANNTransformator::run(
 		// voltages.
 		analog_output(*neuron_calib, neuron_placement);
 
-		bool const has_output_mapping = output_mapping.any();
-		if (has_output_mapping)
 		{
 			// 3. transform individual analog parameters
-			v_reset = neurons(*neuron_calib, neuron_placement, output_mapping,
-			                  synapse_routing.synapse_target_mapping);
+			v_reset =
+			    neurons(*neuron_calib, neuron_placement, synapse_routing.synapse_target_mapping);
 
 			if(local_routes) {
 				// transform synapses
@@ -230,34 +228,12 @@ void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
 double HICANNTransformator::neurons(
 	neuron_calib_t const& calib,
 	typename placement::NeuronPlacementResult const& neuron_placement,
-	typename placement::output_mapping_t::result_type const& output_mapping,
 	routing::SynapseTargetMapping const& synapse_target_mapping)
 {
 	// GLOBAL DIGITAL Neuron Paramets
 	neuron_config(calib);
 
 	auto const hicann = chip().index();
-
-	// set Neuron sending L1Addresses
-	typedef std::vector<HMF::HICANN::L1Address>::const_iterator It;
-	std::unordered_map<assignment::PopulationSlice, std::pair<It, It>> address_map;
-	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
-	{
-		// skip if this is an input assignment
-		if (output_mapping.getMode(merger) != placement::OutputBufferMapping::OUTPUT) {
-			continue;
-		}
-
-		auto const& list = output_mapping.at(merger);
-		for (auto const& am : list)
-		{
-			auto const& addr = am.addresses();
-			auto const& bio = am.bio();
-			auto res = address_map.emplace(bio,
-				std::make_pair(addr.cbegin(), addr.cend())); // FIXME: unused
-			static_cast<void>(res);
-		}
-	}
 
 	/* SHARED Analog Neuron Parameteres
 	 * For each group of neurons that share analog values we have to agree
@@ -284,39 +260,33 @@ double HICANNTransformator::neurons(
 		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
 			auto const& pop = *(getGraph()[item.population()]);
 			auto const& logical_neuron = item.logical_neuron();
-			for (NeuronOnHICANN nrn : logical_neuron) {
-				MAROCCO_DEBUG("configuring neuron: " << nrn);
 
-				// configure ANALOG neuron parameters
+			// Configure ANALOG neuron parameters.
+			for (NeuronOnWafer nrn : logical_neuron) {
+				MAROCCO_DEBUG("configuring analog parameters for " << nrn);
+
 				transform_analog_neuron(
 					calib, pop, item.neuron_index(), nrn, synapse_target_mapping,
 					visitor, chip());
 			}
 
-			{
-				// As hardware neurons will be connected, DIGITAL
-				// neuron parameters are only configured for the first
-				// hardware neuron of each bio neuron.
-				NeuronOnHICANN const nrn = logical_neuron.front();
-				HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
+			// As all denmems of a logical neuron will be connected,
+			// DIGITAL neuron parameters are only configured for the first denmem.
 
-				// TODO: move setting of L1 addresses here (from MergerRouting.cpp)
+			NeuronOnHICANN const nrn = logical_neuron.front();
+			HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
 
-				MAROCCO_DEBUG(
-				    chip().index() << " " << nb << " " << nrn << " has sending address "
-				                   << neuron.address());
+			// Set L1 address
+			auto const& address = item.address();
+			assert(address != boost::none);
+			MAROCCO_DEBUG(nrn << " has sending address " << address->toL1Address());
+			neuron.address(address->toL1Address());
+			neuron.activate_firing(true);
+			neuron.enable_spl1_output(true);
 
-				if (!neuron.activate_firing()) {
-					throw std::runtime_error("neuron has disabled spike mechanism");
-				}
-
-				if (!neuron.enable_spl1_output()) {
-					MAROCCO_WARN(nrn << " " << neuron.address() << " is muted");
-				}
-
-				assert(logical_neuron.is_rectangular());
-				connect_denmems(nrn, logical_neuron.size());
-			}
+			// Connect all denmems belonging to this logical neuron.
+			assert(logical_neuron.is_rectangular());
+			connect_denmems(nrn, logical_neuron.size());
 		}
 	} // all neuron blocks
 
@@ -416,37 +386,27 @@ void HICANNTransformator::background_generators(uint32_t isi)
 }
 
 void HICANNTransformator::spike_input(
+	placement::NeuronPlacementResult const& neuron_placement,
 	placement::OutputBufferMapping const& output_mapping)
 {
-	// iterate over the 8 output buffer
-	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
-	{
-		if (output_mapping.getMode(merger) == placement::OutputBufferMapping::OUTPUT) {
-			// i.e. dnc merger is not receiving
-			continue;
-		}
-		SpikeInputVisitor visitor(mPyMarocco, mSpikes[merger],
-				int(merger)*209823 /*seed*/, mDuration);
-
-		for (assignment::AddressMapping const& am: output_mapping.at(merger))
-		{
-			assignment::PopulationSlice const& bio = am.bio();
-			if (!is_source(bio.population(), getGraph()))
-				throw std::runtime_error(
-				    "real neurons (i.e. it's not a source!) assigned to input OutputBuffers");
-
-			Population const& pop = *(getGraph()[bio.population()]);
-
-			// for all inputs (== input population size)
-			for (size_t n=0; n<bio.size(); ++n)
-			{
-				HMF::HICANN::L1Address const& l1 = am.addresses().at(n);
-
-				// configure input spike parameters
-				transform_input_spikes(
-					pop, l1, bio.offset()+n,
-					chip(), visitor);
+	HICANNOnWafer const hicann = chip().index();
+	for (auto const dnc_merger : iter_all<DNCMergerOnHICANN>()) {
+		for (auto const& item : neuron_placement.find(DNCMergerOnWafer(dnc_merger, hicann))) {
+			if (!is_source(item.population(), getGraph())) {
+				continue;
 			}
+			auto const& address = item.address();
+			assert(output_mapping.getMode(dnc_merger) == placement::OutputBufferMapping::INPUT);
+			assert(address != boost::none);
+
+			SpikeInputVisitor visitor(
+			    mPyMarocco, mSpikes[dnc_merger], int(dnc_merger) * 209823 /*seed*/, mDuration);
+
+			Population const& pop = *(getGraph()[item.population()]);
+
+			// configure input spike parameters
+			transform_input_spikes(
+			    pop, address->toL1Address(), item.neuron_index(), chip(), visitor);
 		}
 	}
 }

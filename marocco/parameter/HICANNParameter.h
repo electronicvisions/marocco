@@ -85,7 +85,6 @@ private:
 	double neurons(
 		neuron_calib_t const& calib,
 		typename placement::NeuronPlacementResult const& neuron_placement,
-		typename placement::output_mapping_t::result_type const& output_mapping,
 		routing::SynapseTargetMapping const& synapse_target_mapping);
 
 	void connect_denmems(
@@ -98,7 +97,9 @@ private:
 	    neuron_calib_t const& calib,
 	    typename placement::NeuronPlacementResult const& neuron_placement);
 
-	void spike_input(placement::OutputBufferMapping const& output_mapping);
+	void spike_input(
+		placement::NeuronPlacementResult const& neuron_placement,
+		placement::OutputBufferMapping const& output_mapping);
 
 	void current_input(neuron_calib_t const& calib, CurrentSources const& cs);
 

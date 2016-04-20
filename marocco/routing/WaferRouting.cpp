@@ -9,6 +9,7 @@
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/WaferRoutingPriorityQueue.h"
 #include "marocco/routing/WeightMap.h"
+#include "marocco/routing/util.h"
 #include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 #include "marocco/util/spiral_ordering.h"
@@ -98,7 +99,7 @@ WaferRouting::run(placement::Result const& placement)
 	auto const& revmap = neuron_placement.primary_denmems_for_population();
 
 	WaferRoutingPriorityQueue queue(getGraph(), mPyMarocco);
-	queue.insert(*mOutbMapping, hicanns);
+	queue.insert(neuron_placement, hicanns);
 
 	CrossbarRoutingResult res;
 
@@ -152,9 +153,8 @@ WaferRouting::run(placement::Result const& placement)
 		// count synapse loss
 		static bool const count_synapse_loss = true;
 		if (!unreachable.empty() && count_synapse_loss) {
-			auto const& sources = mOutbMapping->at(hicann).at(dnc);
 			// we are hitting routing resource limits
-			handleSynapseLoss(hicann, sources, unreachable, neuron_placement);
+			handleSynapseLoss(hicann, dnc, unreachable, neuron_placement);
 		}
 
 		// No possible route for any of the targets of this projection found
@@ -392,7 +392,7 @@ void WaferRouting::configureRepeater(
 
 void WaferRouting::handleSynapseLoss(
 	HICANNGlobal const& source_hicann,
-	std::vector<assignment::AddressMapping> const& sources,
+	DNCMergerOnHICANN const& source_dnc_merger,
 	std::unordered_set<HICANNGlobal> const& unreachable,
 	placement::NeuronPlacementResult const& neuron_placement)
 {
@@ -403,11 +403,14 @@ void WaferRouting::handleSynapseLoss(
 	MAROCCO_DEBUG("targets unreachable, from " << source_hicann
 		<< " to (" << os.str() << ")");
 
-	for (auto const& source : sources)
-	{
-		for (auto const& edge : make_iterable(out_edges(source.bio().population(), getGraph())))
-		{
+	for (auto const& source_item :
+	     neuron_placement.find(DNCMergerOnWafer(source_dnc_merger, source_hicann))) {
+		auto const& address = source_item.address();
+		assert(address != boost::none);
+
+		for (auto const& edge : make_iterable(out_edges(source_item.population(), getGraph()))) {
 			graph_t::vertex_descriptor target_pop = boost::target(edge, getGraph());
+			auto const proj_view = getGraph()[edge];
 
 			for (auto const& item : neuron_placement.find(target_pop)) {
 				auto neuron_block = item.neuron_block();
@@ -418,9 +421,12 @@ void WaferRouting::handleSynapseLoss(
 				if (it == unreachable.end()) {
 					continue;
 				}
+				size_t const src_neuron_in_proj_view =
+					getPopulationViewOffset(source_item.neuron_index(), proj_view.pre().mask());
+				size_t const trg_neuron_in_proj_view =
+					getPopulationViewOffset(item.neuron_index(), proj_view.post().mask());
 				mSynapseLoss->addLoss(
-				    edge, source_hicann, hicann, source.bio(),
-				    assignment::PopulationSlice(item.population(), item.neuron_index(), 1));
+					edge, source_hicann, hicann, src_neuron_in_proj_view, trg_neuron_in_proj_view);
 			}
 		} // all out_edges
 	} // all sources

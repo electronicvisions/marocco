@@ -675,7 +675,7 @@ private:
 			DNCMergerOnHICANN const& merger =
 			    hrepeater.toSendingRepeaterOnHICANN().toDNCMergerOnHICANN();
 			auto it = mOutbufMapping.find(hicann);
-			if (it != mOutbufMapping.end() && !mOutbufMapping.at(hicann).empty(merger)) {
+			if (it != mOutbufMapping.end() && mOutbufMapping.at(hicann).any(merger)) {
 				return true;
 			}
 		}

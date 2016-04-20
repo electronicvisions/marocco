@@ -52,52 +52,34 @@ void WaferRoutingPriorityQueue::pop()
 	}
 }
 
-// void WaferRoutingPriorityQueue::insert(
-// 	placement::OutputMappingResult const& output_mapping)
-// {
-// 	for (auto const& om : output_mapping)
-// 	{
-// 		auto const& hicann = om.first;
-// 		auto const& local_output_mapping = om.second;
-// 		insert(hicann, local_output_mapping);
-// 	}
-
-// 	using p = std::pair<size_t, source_type>;
-// 	std::stable_sort(mSources.begin(), mSources.end(),
-// 		[](p const & a, p const & b) -> bool
-// 		{
-// 			return a.first < b.first;
-// 		});
-// }
-
 void WaferRoutingPriorityQueue::insert(
-	HICANNGlobal const& hicann,
-	placement::OutputBufferMapping const& local_output_mapping)
+	placement::NeuronPlacementResult const& neuron_placement, HICANNGlobal const& hicann)
 {
-	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
-	{
-		std::vector<assignment::AddressMapping> const& sources =
-			local_output_mapping.at(merger);
-
-		insert(hicann, merger, sources);
+	for (auto const& merger : iter_all<DNCMergerOnHICANN>()) {
+		insert(neuron_placement, hicann, merger);
 	}
 }
 
 void WaferRoutingPriorityQueue::insert(
+	placement::NeuronPlacementResult const& neuron_placement,
 	HICANNGlobal const& hicann,
-	DNCMergerOnHICANN const& merger,
-	std::vector<assignment::AddressMapping> const& sources)
+	DNCMergerOnHICANN const& merger)
 {
-	for (auto const& source : sources)
-	{
+	for (auto const& item : neuron_placement.find(DNCMergerOnWafer(merger, hicann))) {
 		// skip if the source population has no outgoing connections
-		if (out_degree(source.bio().population(), mGraph) == 0) {
+		if (out_degree(item.population(), mGraph) == 0) {
 			MAROCCO_INFO("terminal population without outgoing connections");
 			continue;
 		}
 
-		for (auto const& edge : make_iterable(out_edges(source.bio().population(), mGraph))) {
-			HardwareProjection hw_proj{source, edge};
+		auto const& address = item.address();
+		assert(address != boost::none);
+		assignment::AddressMapping address_mapping(
+		    assignment::PopulationSlice(item.population(), item.neuron_index(), 1),
+		    {address->toL1Address()});
+
+		for (auto const& edge : make_iterable(out_edges(item.population(), mGraph))) {
+			HardwareProjection hw_proj{address_mapping, edge};
 
 			ProjectionView const proj_view = mGraph[edge];
 			size_t proj_id = proj_view.projection()->id();

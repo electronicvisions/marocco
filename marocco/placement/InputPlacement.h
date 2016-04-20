@@ -63,7 +63,7 @@ public:
 	 *    that contains the results of the \c MergerRouting step
 	 *    and is amended with the results of the input placement.
 	 */
-	void run(NeuronPlacementResult const& neuron_mapping,
+	void run(NeuronPlacementResult& neuron_placement,
 			 OutputMappingResult& output_mapping);
 
 private:
@@ -74,6 +74,7 @@ private:
 	 */
 	void insertInput(
 		HMF::Coordinate::HICANNOnWafer const& target_hicann,
+		NeuronPlacementResult& neuron_placement,
 		OutputBufferMapping& om,
 		marocco::assignment::PopulationSlice& bio);
 

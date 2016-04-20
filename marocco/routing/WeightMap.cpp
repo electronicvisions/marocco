@@ -43,7 +43,7 @@ WeightMap::reference WeightMap::operator[] (key_type const& k) const
 			DNCMergerOnHICANN const& merger =
 			    hrepeater.toSendingRepeaterOnHICANN().toDNCMergerOnHICANN();
 			auto it = mOutbMapping.find(hicann);
-			if (it != mOutbMapping.end() && !mOutbMapping.at(hicann).empty(merger)) {
+			if (it != mOutbMapping.end() && mOutbMapping.at(hicann).any(merger)) {
 				// max() leads to overflows and therefore cycles...
 				// return std::numeric_limits<reference>::max();
 				return 100000;

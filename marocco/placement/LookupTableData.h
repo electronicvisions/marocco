@@ -40,7 +40,7 @@ struct bio_id
 struct hw_id
 {
 	HMF::Coordinate::HICANNOnWafer hicann;
-	HMF::Coordinate::NeuronBlockOnHICANN neuron_block;
+	HMF::Coordinate::DNCMergerOnHICANN dnc_merger;
 	// FIXME: Remove addr as it should be query-able by the user.
 	HMF::HICANN::L1Address addr;
 
@@ -53,7 +53,7 @@ struct hw_id
 	{
 		using boost::serialization::make_nvp;
 		ar & make_nvp("hicann", hicann)
-		   & make_nvp("neuron_block", neuron_block)
+		   & make_nvp("dnc_merger", dnc_merger)
 		   & make_nvp("addr", addr);
 	}
 };

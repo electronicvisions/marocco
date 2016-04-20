@@ -1,7 +1,5 @@
 #include "marocco/placement/MergerRouting.h"
 
-#include <chrono>
-#include <tbb/parallel_for_each.h>
 #include <unordered_map>
 
 #include "hal/Coordinate/iter_all.h"
@@ -42,7 +40,7 @@ MergerRouting::MergerRouting(
 {}
 
 
-void MergerRouting::run(NeuronPlacementResult const& neuronpl,
+void MergerRouting::run(NeuronPlacementResult& neuron_placement,
 						OutputMappingResult& output_mapping)
 {
 	info(this) << "MergerRouting started";
@@ -56,23 +54,16 @@ void MergerRouting::run(NeuronPlacementResult const& neuronpl,
 	auto first = mMgr.begin_allocated();
 	auto last  = mMgr.end_allocated();
 
-	auto start = std::chrono::system_clock::now();
-	//tbb::parallel_for_each(first, last,
 	std::for_each(first, last,
 		[&](HICANNGlobal const& hicann) {
 			OutputBufferMapping& local_output_mapping = output_mapping[hicann];
-			NeuronBlockMapping const& nbmap = neuronpl.denmem_assignment().at(hicann);
-			run(hicann, nbmap, local_output_mapping);
+			run(hicann, neuron_placement, local_output_mapping);
 		});
-	auto end = std::chrono::system_clock::now();
-	mPyMarocco.stats.timeSpentInParallelRegion +=
-		std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
-
 }
 
 void MergerRouting::run(
 	HICANNGlobal const& hicann,
-	NeuronBlockMapping const& nbmap,
+	NeuronPlacementResult& neuron_placement,
 	OutputBufferMapping& local_output_mapping)
 {
 	// Assign 'real' Neurons (no spike sources) to output buffers.
@@ -96,7 +87,7 @@ void MergerRouting::run(
 			// overall use of SPL1 outputs is minimized.  Every unused SPL1 output can
 			// then be used for external input.
 
-			MergerTreeRouter router(merger_graph, nbmap);
+			MergerTreeRouter router(merger_graph, neuron_placement.denmem_assignment().at(hicann));
 			router.run();
 			merger_mapping = router.result();
 			break;
@@ -124,30 +115,17 @@ void MergerRouting::run(
 
 	for (auto const& it : merger_mapping)
 	{
-		NeuronBlockOnHICANN const& nb = it.first;
-		DNCMergerOnHICANN const& dnc = it.second;
+		NeuronBlockOnWafer const neuron_block(it.first, hicann);
+		DNCMergerOnWafer const dnc(it.second, hicann);
 
 		// set this SPL1 merger to output
 		local_output_mapping.setMode(dnc, OutputBufferMapping::OUTPUT);
 
-		OnNeuronBlock const& onb = nbmap.at(nb);
-		// Iterate over populations assigned to this neuron block
-		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			std::shared_ptr<NeuronPlacementRequest> const& assign = *it;
-			auto const& bio = assign->population_slice();
-			size_t const num_neurons = bio.size();
-			size_t const hw_neuron_size = assign->neuron_size();
-			auto addresses = local_output_mapping.popAddresses(dnc, num_neurons, mPyMarocco.l1_address_assignment);
-
-			local_output_mapping.insert(dnc,
-				assignment::AddressMapping(bio, addresses));
-
-			for (auto& nrn : chunked(onb.neurons(it), hw_neuron_size)) {
-				HMF::HICANN::Neuron& neuron = chip.neurons[nrn.begin()->toNeuronOnHICANN(nb)];
-				neuron.address(addresses.at(nrn.index()));
-				neuron.activate_firing(true);
-				neuron.enable_spl1_output(true);
-			}
+		// Assign and store L1 addresses.
+		for (auto const& item : neuron_placement.find(neuron_block)) {
+			auto address = local_output_mapping.popAddress(dnc, mPyMarocco.l1_address_assignment);
+			auto const& logical_neuron = item.logical_neuron();
+			neuron_placement.set_address(logical_neuron, L1AddressOnWafer(dnc, address));
 		}
 	} // for all mapped NeuronBlocks
 }

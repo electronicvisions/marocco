@@ -17,51 +17,20 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 {
 	using namespace HMF::Coordinate;
 
-	// here the mapping between the L1 adresses and the
-	// biological Neurons is made
-	auto const& om = result.output_mapping;
-	for (auto const& h : mgr.allocated())
-	{
-		for (auto const& dnc : iter_all<DNCMergerOnHICANN>())
-		{
-			auto const& mappings = om.at(h).at(dnc);
-			for (assignment::AddressMapping const& mapping : mappings) {
-				// get a vector of L1Adresses
-				auto const& addresses = mapping.addresses();
-				// get one population
-				auto const& bio = mapping.bio();
+	auto const& neuron_placement = result.neuron_placement;
 
-				Population const& pop = *graph[bio.population()];
-
-				size_t neuron_index = bio.offset();
-				size_t offset = 0;
-				for (auto const& address : addresses) {
-
-					MAROCCO_TRACE("RevVal: pop: " << pop.id() << " neuron: " << neuron_index
-					                              << " offset: " << offset << ", RevKey: " << h
-					                              << " " << dnc << " " << address);
-
-					// bio represents one biological neuron
-					bio_id const bio{pop.id(), neuron_index + offset};
-
-					// FIXME: This assumes 1-to-1 merger tree configuration
-					NeuronBlockOnHICANN neuron_block(dnc);
-
-
-					// hw represents the corresponding hardware (+ the bio neuron itself)
-					// ECM: the mapping seems to use this for target and source addresses,
-					// cf. HICANNTransformator::spike_input()
-					hw_id const hw{h, neuron_block, address};
-
-					// one denmem circuit ("hardware neuron") belongs
-					// to one PyNN neuron, but one PyNN neuron belongs
-					// to one or more denmem circuits
-					mHw2BioMap[hw] = bio;
-					mBio2HwMap[bio].push_back(hw);
-					++offset;
-				}
-			}
+	for (auto const& item : neuron_placement) {
+		auto const& address = item.address();
+		if (address == boost::none) {
+			continue;
 		}
+
+		bio_id const bio{graph[item.population()]->id(), item.neuron_index()};
+		hw_id const hw{address->toHICANNOnWafer(), address->toDNCMergerOnHICANN(),
+		               address->toL1Address()};
+
+		mHw2BioMap[hw] = bio;
+		mBio2HwMap[bio].push_back(hw);
 	}
 
 	// here the mapping between the addresses of the denmem circuits
@@ -77,7 +46,7 @@ LookupTable::LookupTable(Result const &result, resource_manager_t const &mgr, gr
 
 		auto const& population = *graph[vertex];
 
-		for (auto const& item : result.neuron_placement.find(vertex)) {
+		for (auto const& item : neuron_placement.find(vertex)) {
 			bio_id bio {population.id(), item.neuron_index()};
 
 			for (NeuronOnWafer denmem : item.logical_neuron()) {

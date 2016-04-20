@@ -9,8 +9,8 @@
 #include "marocco/assignment/PopulationSlice.h"
 
 // AddressMapping.h is parsed by gccxml because of roqt
-// -> cannot simply include AddressPool.h which uses c++11 features
-//#include "marocco/placement/AddressPool.h"
+// -> cannot simply include L1AddressPool.h which uses c++11 features
+//#include "marocco/placement/L1AddressPool.h"
 
 #include "hal/HICANN/L1Address.h"
 
@@ -28,7 +28,7 @@ public:
 	typedef assignment::PopulationSlice assignment_type;
 
 	// define address type and pool again, has to
-	// match definitions in AddressPool
+	// match definitions in L1AddressPool
 	typedef HMF::HICANN::L1Address address_type;
 	typedef std::deque<address_type> pool_type;
 

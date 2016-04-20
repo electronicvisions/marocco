@@ -23,11 +23,10 @@ public:
 		graph_t const& graph,
 		pymarocco::PyMarocco const& pymarocco);
 
-	// void insert(placement::OutputMappingResult const& output_mapping);
-
-	template<typename Compare>
-	void insert(placement::OutputMappingResult const& output_mapping,
-	            std::set<HICANNGlobal, Compare> const& hicanns);
+	template <typename Compare>
+	void insert(
+		placement::NeuronPlacementResult const& neuron_placement,
+		std::set<HICANNGlobal, Compare> const& hicanns);
 
 	bool empty() const;
 	void pop();
@@ -37,13 +36,13 @@ public:
 
 private:
 	void insert(
-		HICANNGlobal const& hicann,
-		placement::OutputBufferMapping const& local_output_mapping);
+		placement::NeuronPlacementResult const& neuron_placement,
+		HICANNGlobal const& hicann);
 
 	void insert(
+		placement::NeuronPlacementResult const& neuron_placement,
 		HICANNGlobal const& hicann,
-		DNCMergerOnHICANN const& merger,
-		std::vector<assignment::AddressMapping> const& sources);
+		DNCMergerOnHICANN const& merger);
 
 	graph_t const& mGraph;
 	pymarocco::PyMarocco const& mPyMarocco;
@@ -55,13 +54,11 @@ private:
 
 template<typename Compare>
 void WaferRoutingPriorityQueue::insert(
-	placement::OutputMappingResult const& output_mapping,
+	placement::NeuronPlacementResult const& neuron_placement,
 	std::set<HICANNGlobal, Compare> const& hicanns)
 {
-	for (auto const& hicann : hicanns)
-	{
-		auto const& local_output_mapping = output_mapping.at(hicann);
-		insert(hicann, local_output_mapping);
+	for (auto const& hicann : hicanns) {
+		insert(neuron_placement, hicann);
 	}
 
 	using p = std::pair<size_t, source_type>;
