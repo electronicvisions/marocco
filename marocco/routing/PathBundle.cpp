@@ -77,5 +77,27 @@ bool PathBundle::empty() const
 	return m_paths.empty();
 }
 
+PathBundle::path_type path_from_predecessors(
+	std::vector<L1RoutingGraph::vertex_descriptor> const& predecessors,
+	L1RoutingGraph::vertex_descriptor const& target)
+{
+	PathBundle::path_type path;
+
+	auto current = target;
+	while (true) {
+		path.push_back(current);
+
+		auto previous = predecessors[current];
+		if (previous == current) {
+			break;
+		}
+
+		current = previous;
+	}
+	std::reverse(path.begin(), path.end());
+
+	return path;
+}
+
 } // namespace routing
 } // namespace marocco

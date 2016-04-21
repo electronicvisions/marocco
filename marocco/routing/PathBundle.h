@@ -74,5 +74,20 @@ private:
 	std::vector<path_type> m_paths;
 }; // PathBundle
 
+/**
+ * @brief Extracts a sequence of vertices from a predecessor map.
+ * Given a target vertex and a predecessor map, extract the path to the target vector.
+ * This is implemented by iteratively looking up the preceeding vertex until the current
+ * and preceeding vertex are the same (stopping condition).
+ * @param predecessors Predecessor map, as created by graph traversal algorithms.
+ * @param target Final vertex of the path.
+ * @return Sequence of vertices, from source to target.
+ * @pre Ensure that `predecessors[source] == source` for the source vertex used in the
+ *      graph algorithm.
+ */
+PathBundle::path_type path_from_predecessors(
+	std::vector<L1RoutingGraph::vertex_descriptor> const& predecessors,
+	L1RoutingGraph::vertex_descriptor const& target);
+
 } // namespace routing
 } // namespace marocco
