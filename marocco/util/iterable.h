@@ -23,6 +23,11 @@ public:
 		return mEnd;
 	}
 
+	bool empty() const
+	{
+		return mBegin == mEnd;
+	}
+
 private:
 	Iterator const mBegin;
 	Iterator const mEnd;
