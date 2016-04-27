@@ -70,7 +70,8 @@ void Marocco::serialize(Archiver& ar, const unsigned int /* version */)
 	// clang-format off
 	ar & make_nvp("analog_outputs", analog_outputs)
 	   & make_nvp("spike_times", spike_times)
-	   & make_nvp("placement", placement);
+	   & make_nvp("placement", placement)
+	   & make_nvp("l1_routing", l1_routing);
 	// clang-format on
 }
 

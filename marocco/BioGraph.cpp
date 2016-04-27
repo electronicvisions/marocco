@@ -29,6 +29,8 @@ void BioGraph::load(ObjectStore const& os)
 			if (!edge.second) {
 				std::runtime_error("could not build tree");
 			}
+
+			m_edges.insert(edges_type::value_type(edge.first, m_edges.size()));
 		}
 	}
 }
@@ -46,6 +48,16 @@ auto BioGraph::graph() -> graph_type&
 auto BioGraph::graph() const -> graph_type const&
 {
 	return m_graph;
+}
+
+size_t BioGraph::edge_to_id(edge_descriptor const& edge) const
+{
+	return m_edges.left.at(edge);
+}
+
+auto BioGraph::edge_from_id(size_t const id) const -> edge_descriptor
+{
+	return m_edges.right.at(id);
 }
 
 void BioGraph::write_graphviz(std::string const& filename) const

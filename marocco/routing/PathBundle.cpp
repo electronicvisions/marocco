@@ -1,5 +1,7 @@
 #include "marocco/routing/PathBundle.h"
 
+#include <unordered_set>
+
 namespace marocco {
 namespace routing {
 
@@ -83,9 +85,14 @@ PathBundle::path_type path_from_predecessors(
 {
 	PathBundle::path_type path;
 
+	std::set<L1RoutingGraph::vertex_descriptor> visited_vertices;
 	auto current = target;
 	while (true) {
 		path.push_back(current);
+		if (!visited_vertices.insert(current).second) {
+			std::reverse(path.begin(), path.end());
+			return path;
+		}
 
 		auto previous = predecessors[current];
 		if (previous == current) {
@@ -94,8 +101,8 @@ PathBundle::path_type path_from_predecessors(
 
 		current = previous;
 	}
-	std::reverse(path.begin(), path.end());
 
+	std::reverse(path.begin(), path.end());
 	return path;
 }
 

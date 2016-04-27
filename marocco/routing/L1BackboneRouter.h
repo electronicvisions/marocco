@@ -57,6 +57,9 @@ public:
 
 	/**
 	 * @brief Returns the path from source to the given target.
+	 * @return Sequence of vertices, from source to target.  If no such path can be
+	 *         recovered because of a cycle in the predecessor map, the returned path will
+	 *         start at the location of the cycle.
 	 * @pre \c run() has been called.
 	 */
 	PathBundle::path_type path_to(target_type const& target) const;

@@ -128,6 +128,7 @@ def build(bld):
 
     bld(target='marocco_parameters_inc',
         use=[
+            'boost_patches',
             'marocco_coordinates_inc',
         ],
         export_includes='.')
@@ -145,6 +146,7 @@ def build(bld):
 
     bld(target='marocco_results_inc',
         use=[
+            'boost_patches',
             'marocco_coordinates_inc',
         ],
         export_includes='.')

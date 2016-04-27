@@ -18,6 +18,7 @@
 #include "marocco/placement/parameters/ManualPlacement.h"
 #include "marocco/placement/parameters/MergerRouting.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
+#include "marocco/routing/parameters/L1Routing.h"
 
 #include "sthal/ESSConfig.h"
 
@@ -93,6 +94,7 @@ public:
 	marocco::placement::parameters::MergerRouting merger_routing;
 	marocco::placement::parameters::NeuronPlacement neuron_placement;
 	marocco::placement::parameters::L1AddressAssignment l1_address_assignment;
+	marocco::routing::parameters::L1Routing l1_routing;
 
 	/// python property to access mapping stats
 	MappingStats stats;

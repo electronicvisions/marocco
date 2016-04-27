@@ -81,7 +81,9 @@ private:
  * and preceeding vertex are the same (stopping condition).
  * @param predecessors Predecessor map, as created by graph traversal algorithms.
  * @param target Final vertex of the path.
- * @return Sequence of vertices, from source to target.
+ * @return Sequence of vertices, from source to target.  If no such path can be recovered
+ *         because of a cycle in the predecessor map, the returned path will start at the
+ *         location of the cycle.
  * @pre Ensure that `predecessors[source] == source` for the source vertex used in the
  *      graph algorithm.
  */

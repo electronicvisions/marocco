@@ -4,6 +4,7 @@
 #ifndef PYPLUSPLUS
 #include <unordered_map>
 #endif // !PYPLUSPLUS
+#include <boost/bimap.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
 #ifndef PYPLUSPLUS
@@ -36,6 +37,7 @@ public:
 	typedef graph_type::edge_descriptor edge_descriptor;
 #ifndef PYPLUSPLUS
 	typedef std::unordered_map<Population const*, vertex_descriptor> vertices_type;
+	typedef boost::bimap<edge_descriptor, size_t> edges_type;
 #endif // !PYPLUSPLUS
 
 	void load(ObjectStore const& os);
@@ -49,6 +51,10 @@ public:
 	graph_type& graph();
 	graph_type const& graph() const;
 
+	size_t edge_to_id(edge_descriptor const& edge) const;
+
+	edge_descriptor edge_from_id(size_t id) const;
+
 	/**
 	 * @brief Export graph in graphviz format.
 	 * @throw std::runtime_error If the specified file could not be opened.
@@ -59,6 +65,7 @@ private:
 #ifndef PYPLUSPLUS
 	graph_type m_graph;
 	vertices_type m_vertices;
+	edges_type m_edges;
 #endif // !PYPLUSPLUS
 }; // BioGraph
 
@@ -75,6 +82,7 @@ struct hash<marocco::BioGraph::edge_descriptor>
 	size_t operator()(marocco::BioGraph::edge_descriptor const& e) const
 	{
 		size_t hash = 0;
+		// We could also just use e.m_eproperty instead.
 		boost::hash_combine(hash, e.m_source);
 		boost::hash_combine(hash, e.m_target);
 		return hash;

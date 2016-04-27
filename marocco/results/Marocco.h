@@ -5,6 +5,7 @@
 #include "marocco/parameter/results/AnalogOutputs.h"
 #include "marocco/parameter/results/SpikeTimes.h"
 #include "marocco/placement/results/Placement.h"
+#include "marocco/routing/results/L1Routing.h"
 
 namespace boost {
 namespace serialization {
@@ -46,6 +47,7 @@ public:
 	parameter::results::AnalogOutputs analog_outputs;
 	parameter::results::SpikeTimes spike_times;
 	placement::results::Placement placement;
+	routing::results::L1Routing l1_routing;
 
 private:
 	friend class boost::serialization::access;
