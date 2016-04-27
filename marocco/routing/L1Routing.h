@@ -16,5 +16,13 @@ namespace routing {
 L1Route toL1Route(PathBundle::graph_type const& graph, PathBundle::path_type const& path);
 L1RouteTree toL1RouteTree(PathBundle::graph_type const& graph, PathBundle const& bundle);
 
+/**
+ * @brief Prepend DNC merger information to route.
+ * This is required to properly configure the sending repeaters.
+ * @throw InvalidRouteError When this leads to invalid routes.
+ */
+L1Route with_dnc_merger_prefix(
+    L1Route const& route, HMF::Coordinate::DNCMergerOnWafer const& merger);
+
 } // namespace routing
 } // namespace marocco

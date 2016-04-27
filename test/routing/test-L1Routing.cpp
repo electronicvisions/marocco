@@ -52,5 +52,24 @@ TEST(L1Routing, toL1RouteTreeWorksForSimpleTestCase)
 	EXPECT_EQ(reference, tree);
 }
 
+TEST(L1Routing, with_dnc_merger_prefix)
+{
+	auto const hicann = HICANNOnWafer(X(21), Y(14));
+	auto const dnc = DNCMergerOnWafer(DNCMergerOnHICANN(3), hicann);
+	auto const hline = dnc.toSendingRepeaterOnHICANN().toHLineOnHICANN();
+	L1Route const head{hicann, hline, hicann.west(), hline.west()};
+	L1Route const reference{hicann, dnc.toDNCMergerOnHICANN(), hicann.west(), hline.west()};
+
+	// Add matching DNC merger segment.
+	EXPECT_EQ(reference, with_dnc_merger_prefix(head, dnc));
+
+	// Wrong HICANN.
+	EXPECT_ANY_THROW(
+	    with_dnc_merger_prefix(head, DNCMergerOnWafer(dnc.toDNCMergerOnHICANN(), hicann.west())));
+
+	// Wrong DNC merger.
+	EXPECT_ANY_THROW(with_dnc_merger_prefix(head, DNCMergerOnWafer(DNCMergerOnHICANN(1), hicann)));
+}
+
 } // namespace routing
 } // namespace marocco
