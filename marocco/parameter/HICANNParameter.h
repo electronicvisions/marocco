@@ -84,7 +84,7 @@ private:
 	// returns mean v_reset in bio mV
 	double neurons(
 		neuron_calib_t const& calib,
-		typename placement::NeuronPlacementResult const& neuron_placement,
+		placement::results::Placement const& neuron_placement,
 		routing::SynapseTargetMapping const& synapse_target_mapping);
 
 	void connect_denmems(
@@ -95,10 +95,10 @@ private:
 
 	void analog_output(
 	    neuron_calib_t const& calib,
-	    typename placement::NeuronPlacementResult const& neuron_placement);
+	    placement::results::Placement const& neuron_placement);
 
 	void spike_input(
-		placement::NeuronPlacementResult const& neuron_placement);
+		placement::results::Placement const& neuron_placement);
 
 	void current_input(neuron_calib_t const& calib, CurrentSources const& cs);
 
@@ -112,14 +112,14 @@ private:
 
 	void synapses(
 		synapse_row_calib_t const& calib,
-		typename routing::synapse_driver_mapping_t::result_type const& synapse_routing,
-		typename placement::NeuronPlacementResult const& neuron_placement);
+		routing::synapse_driver_mapping_t::result_type const& synapse_routing,
+		placement::results::Placement const& neuron_placement);
 
 	/// returns an array with the weight scale factor for each neuron on the hicann.
 	/// The factor to scale biological to hardware weights is calculated as: speedup * cm_hw/ cm_bio
 	/// where cm_hw is the sum of the capacitances of all interconnected hw-neurons
 	NeuronOnHICANNPropertyArray<double> weight_scale_array(
-		typename placement::NeuronPlacementResult const& neuron_placement) const;
+		placement::results::Placement const& neuron_placement) const;
 
 	boost::shared_ptr<calib_t> getCalibrationData();
 

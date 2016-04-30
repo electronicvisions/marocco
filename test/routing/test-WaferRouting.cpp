@@ -59,8 +59,8 @@ public:
 		ASSERT_EQ(384, mMgr->count_present());
 		ASSERT_EQ(mWaferId, mMgr->begin_present()->toWafer());
 		mGraph.reset(new marocco::graph_t());
-		mNpl.reset(new marocco::placement::NeuronPlacementResult());
-		mSynLoss.reset(new SynapseLoss(*mNpl, *mGraph));
+		mNpl.reset(new marocco::placement::results::Placement());
+		mSynLoss.reset(new SynapseLoss(*mGraph));
 		mWaferRouting.reset(
 		    new WaferRoutingDijkstra(
 		        mWaferId, mSynLoss, *_pymarocco, mRoutingGraph, *mGraph, hw, *mMgr));
@@ -88,7 +88,7 @@ public:
 
 	std::unique_ptr<resource::HICANNManager> mMgr;
 	std::unique_ptr<marocco::graph_t> mGraph;
-	std::unique_ptr<marocco::placement::NeuronPlacementResult> mNpl;
+	std::unique_ptr<marocco::placement::results::Placement> mNpl;
 	routing_graph mRoutingGraph;
 	WaferGraph const* mWaferGraph;
 	boost::shared_ptr<SynapseLoss> mSynLoss;

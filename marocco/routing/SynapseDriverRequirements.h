@@ -160,13 +160,13 @@ public:
 	/// granularity.
 	///
 	/// @param hicann HICANN coordinate
-	/// @param nrnpl mapping of biological neurons/populations onto hardware
+	/// @param placement_result mapping of biological neurons/populations onto hardware
 	/// neurons
 	/// @param syn_tgt_mapping  mapping of biological synapse types onto the
 	/// synaptic input circuits of the hardware neurons
 	SynapseDriverRequirements(
 		HMF::Coordinate::HICANNGlobal const& hicann,
-		marocco::placement::NeuronPlacementResult const& nrnpl,
+		marocco::placement::Result const& placement_result,
 		SynapseTargetMapping const& syn_tgt_mapping);
 
 	/// calculate the number of required synapse drivers for the connections
@@ -230,7 +230,7 @@ private:
 	/// @param hicann HICANN coordinate
 	/// neurons of a HICANN
 	static NeuronWidth extract_neuron_width(
-		placement::NeuronPlacementResult const& neuron_placement,
+		placement::internal::Result::denmem_assignment_type const& denmem_assignment,
 		HMF::Coordinate::HICANNOnWafer const& hicann);
 
 	/// calculate for all used compound hardware neurons the number of target
@@ -492,7 +492,7 @@ private:
 	HMF::Coordinate::HICANNGlobal mHICANN;
 
 	/// @mapping of biological neurons/populations onto hardware neurons
-	marocco::placement::NeuronPlacementResult const& mNeuronPlacement;
+	marocco::placement::Result const& mPlacementResult;
 
 	/// mapping of biological synapse types onto the synaptic input circuits of
 	/// the hardware neurons

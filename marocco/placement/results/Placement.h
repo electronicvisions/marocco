@@ -1,40 +1,32 @@
 #pragma once
 
-#include <unordered_map>
-#include <vector>
-#include <boost/optional.hpp>
-#include <boost/multi_index_container.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/optional.hpp>
+#include <boost/serialization/export.hpp>
 
 #include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/Neuron.h"
-#include "hal/Coordinate/typed_array.h"
+#include "pywrap/compat/macros.hpp"
 #include "marocco/coordinates/BioNeuron.h"
 #include "marocco/coordinates/L1AddressOnWafer.h"
 #include "marocco/coordinates/LogicalNeuron.h"
-#include "marocco/graph.h"
-#include "marocco/placement/internal/OnNeuronBlock.h"
 #include "marocco/util/iterable.h"
+
+namespace boost {
+namespace serialization {
+class access;
+} // namespace serialization
+} // namespace boost
 
 namespace marocco {
 namespace placement {
+namespace results {
 
-/**
- * @brief Provides an implicit mapping of populations to denmems of a HICANN by combining
- *        the OnNeuronBlock mappings of all neuron blocks.
- */
-typedef HMF::Coordinate::typed_array<internal::OnNeuronBlock, HMF::Coordinate::NeuronBlockOnHICANN>
-    NeuronBlockMapping;
-
-class NeuronPlacementResult
-{
+class Placement {
 public:
-	typedef graph_t::vertex_descriptor vertex_descriptor;
-	typedef std::unordered_map<HMF::Coordinate::HICANNOnWafer, NeuronBlockMapping>
-		denmem_assignment_type;
-	typedef std::unordered_map<vertex_descriptor, std::vector<HMF::Coordinate::NeuronOnWafer> >
-		primary_denmems_for_population_type;
+	typedef size_t vertex_descriptor;
 
 	class item_type {
 	public:
@@ -52,13 +44,18 @@ public:
 		LogicalNeuron const& logical_neuron() const;
 
 		address_type const& address() const;
-		void set_address(address_type const& address);
+		void set_address(L1AddressOnWafer const& address);
 
 	private:
-		BioNeuron const m_bio_neuron;
-		LogicalNeuron const m_logical_neuron;
-		neuron_block_type const m_neuron_block;
+		BioNeuron m_bio_neuron;
+		LogicalNeuron m_logical_neuron;
+		neuron_block_type m_neuron_block;
 		address_type m_address;
+
+		friend class boost::serialization::access;
+		item_type();
+		template <typename Archiver>
+		void serialize(Archiver& ar, const unsigned int /* version */);
 	}; // item_type
 
 	typedef boost::multi_index::multi_index_container<
@@ -94,6 +91,8 @@ public:
 	typedef container_type::index<vertex_descriptor>::type by_population_type;
 	typedef container_type::index<HMF::Coordinate::NeuronBlockOnWafer>::type by_neuron_block_type;
 	typedef container_type::index<HMF::Coordinate::DNCMergerOnWafer>::type by_dnc_merger_type;
+	typedef container_type::iterator iterator;
+	typedef container_type::iterator const_iterator;
 
 	void add(BioNeuron const& bio_neuron, LogicalNeuron const& logical_neuron);
 
@@ -119,37 +118,38 @@ public:
 	iterable<by_dnc_merger_type::iterator> find(
 	    HMF::Coordinate::DNCMergerOnWafer const& dnc_merger) const;
 
-	by_population_type::iterator begin() const;
+	bool empty() const;
 
-	by_population_type::iterator end() const;
+	size_t size() const;
+
+	iterator begin() const;
+
+	iterator end() const;
 
 	/**
 	 * @brief Set L1 address of specified logical neuron.
 	 * @throw std::out_of_range If no corresponding placement could be found.
 	 * @throw std::runtime_error If there are conflicting addresses.
 	 */
-	void set_address(LogicalNeuron const& logical_neuron, item_type::address_type const& address);
-
-	/**
-	 * @brief Internal data structure used by neuron mapping.
-	 * @deprecated Use #find() instead.
-	 */
-	denmem_assignment_type const& denmem_assignment() const;
-	denmem_assignment_type& denmem_assignment();
-
-	/**
-	 * @brief Maps population vertices onto primary denmems.
-	 * Those can be used to look up all connected denmems via OnNeuronBlock.
-	 * @deprecated Use #find() instead.
-	 */
-	primary_denmems_for_population_type const& primary_denmems_for_population() const;
-	primary_denmems_for_population_type& primary_denmems_for_population();
+	void set_address(LogicalNeuron const& logical_neuron, L1AddressOnWafer const& address);
 
 private:
-	denmem_assignment_type m_denmem_assignment;
-	primary_denmems_for_population_type m_primaries;
 	container_type m_container;
-}; // NeuronPlacementResult
 
+	friend class boost::serialization::access;
+	template <typename Archiver>
+	void serialize(Archiver& ar, const unsigned int /* version */);
+}; // Placement
+
+PYPP_INSTANTIATE(iterable<Placement::by_bio_neuron_type::iterator>)
+PYPP_INSTANTIATE(iterable<Placement::by_logical_neuron_type::iterator>)
+PYPP_INSTANTIATE(iterable<Placement::by_population_type::iterator>)
+PYPP_INSTANTIATE(iterable<Placement::by_neuron_block_type::iterator>)
+PYPP_INSTANTIATE(iterable<Placement::by_dnc_merger_type::iterator>)
+
+} // namespace results
 } // namespace placement
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_KEY(::marocco::placement::results::Placement)
+BOOST_CLASS_EXPORT_KEY(::marocco::placement::results::Placement::item_type)

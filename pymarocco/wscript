@@ -61,7 +61,14 @@ def build(bld):
             'redman_inc',
             'halbe_coordinate',
             ],
-        post_task       = 'pyhmf pyhalbe pylogging pyredman pymarocco_coordinates',
+        post_task=[
+            'pyhalbe',
+            'pyhmf',
+            'pylogging',
+            'pymarocco_coordinates',
+            'pymarocco_results',
+            'pyredman',
+        ],
         install_path    = 'lib',
         **flags)
 
@@ -84,6 +91,19 @@ def build(bld):
             'halbe_coordinate',
         ],
         post_task='pyhalbe',
+        install_path='lib',
+        **flags)
+
+    bld(target='pymarocco_results',
+        features='cxx cxxshlib pypp pyembed pyext post_task',
+        script='generate_results.py',
+        gen_defines='PYPLUSPLUS __STRICT_ANSI__',
+        defines='PYBINDINGS',
+        headers='marocco_results.h',
+        use=[
+            'marocco_results',
+        ],
+        post_task=['pyhalbe', 'pymarocco_coordinates'],
         install_path='lib',
         **flags)
 

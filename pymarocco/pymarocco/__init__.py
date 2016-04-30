@@ -1,5 +1,5 @@
 from _pymarocco import *
-import pymarocco_coordinates as coordinates
+
 
 def _patch_Version():
     global __version__

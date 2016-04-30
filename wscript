@@ -57,6 +57,7 @@ def configure(cfg):
     cfg.check_boost(lib='serialization filesystem system '
             'thread program_options mpi graph regex',
             uselib_store='BOOST4MAROCCO')
+    cfg.check_boost(lib='serialization', uselib_store='BOOST4MAROCCO_RESULTS')
 
     cfg.check_cxx(lib='log4cxx', uselib_store='LOG4CXXMAROCCO', mandatory=1)
     cfg.check_cxx(lib='tbb', uselib_store='TBB4MAROCCO', mandatory=1)
@@ -85,6 +86,7 @@ def build(bld):
             'nanoflann_inc',
             'marocco_coordinates_inc',
             'marocco_parameters_inc',
+            'marocco_results_inc',
             ],
         export_includes = '.')
 
@@ -95,7 +97,8 @@ def build(bld):
                 'marocco/**/*.cpp',
                 excl=[
                     'marocco/coordinates/**/*',
-                    'marocco/**/parameters/*'
+                    'marocco/**/parameters/*',
+                    'marocco/**/results/*',
                 ]) +
             bld.path.ant_glob('control/**/*.cpp') +
             bld.path.ant_glob('experiment/**/*.cpp') +
@@ -119,6 +122,7 @@ def build(bld):
             'redman',
             'marocco_coordinates',
             'marocco_parameters',
+            'marocco_results',
             ],
         cxxflags=cxxflags)
 
@@ -149,6 +153,24 @@ def build(bld):
             'marocco_parameters_inc',
             'marocco_coordinates',
             'halbe',
+        ],
+        cxxflags=cxxflags)
+
+    bld(target='marocco_results_inc',
+        use=[
+            'marocco_coordinates_inc',
+        ],
+        export_includes='.')
+
+    bld(target='marocco_results',
+        features='cxx cxxshlib',
+        source=bld.path.ant_glob('marocco/**/results/*.cpp'),
+        install_path='lib',
+        use=[
+            'marocco_results_inc',
+            'marocco_coordinates',
+            'halbe',
+            'BOOST4MAROCCO_RESULTS',
         ],
         cxxflags=cxxflags)
 

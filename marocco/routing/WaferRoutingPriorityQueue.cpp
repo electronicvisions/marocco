@@ -53,7 +53,7 @@ void WaferRoutingPriorityQueue::pop()
 }
 
 void WaferRoutingPriorityQueue::insert(
-	placement::NeuronPlacementResult const& neuron_placement, HICANNGlobal const& hicann)
+	placement::results::Placement const& neuron_placement, HICANNGlobal const& hicann)
 {
 	for (auto const& merger : iter_all<DNCMergerOnHICANN>()) {
 		insert(neuron_placement, hicann, merger);
@@ -61,7 +61,7 @@ void WaferRoutingPriorityQueue::insert(
 }
 
 void WaferRoutingPriorityQueue::insert(
-	placement::NeuronPlacementResult const& neuron_placement,
+	placement::results::Placement const& neuron_placement,
 	HICANNGlobal const& hicann,
 	DNCMergerOnHICANN const& merger)
 {

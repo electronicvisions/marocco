@@ -10,9 +10,6 @@ namespace pymarocco {
 class MappingStats;
 }
 namespace marocco {
-namespace placement {
-class NeuronPlacementResult;
-}
 namespace routing {
 
 class SynapseLossImpl;
@@ -26,8 +23,7 @@ public:
 	typedef HMF::Coordinate::HICANNGlobal Index;
 	typedef assignment::PopulationSlice Assign;
 
-	SynapseLoss(placement::NeuronPlacementResult const& pl,
-				graph_t const& graph);
+	SynapseLoss(graph_t const& graph);
 
 	void addLoss(Edge const& e,
 				 Index const& src,

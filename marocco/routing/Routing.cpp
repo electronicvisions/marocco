@@ -19,7 +19,7 @@ DefaultRouting::run(result_type const& placement_result)
 
 	placement::Result const& placement = result_cast<placement::Result>(placement_result);
 
-	mSynapseLoss = boost::make_shared<SynapseLoss>(placement.neuron_placement, getGraph());
+	mSynapseLoss = boost::make_shared<SynapseLoss>(getGraph());
 
 	routing_graph routinggraph;
 

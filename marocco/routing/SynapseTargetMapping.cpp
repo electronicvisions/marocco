@@ -126,7 +126,7 @@ void map_targets(
 
 void SynapseTargetMapping::simple_mapping(
     HMF::Coordinate::HICANNOnWafer const& hicann,
-    placement::NeuronPlacementResult const& neuron_placement,
+    placement::results::Placement const& neuron_placement,
     graph_t const& graph)
 {
 	SynapseTargetVisitor const syn_tgt_visitor;

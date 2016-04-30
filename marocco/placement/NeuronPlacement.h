@@ -7,11 +7,12 @@
 #include "hal/Coordinate/Neuron.h"
 
 #include "marocco/config.h"
-#include "marocco/placement/NeuronPlacementResult.h"
 #include "marocco/placement/internal/NeuronPlacementRequest.h"
 #include "marocco/placement/internal/PlacePopulations.h"
+#include "marocco/placement/internal/Result.h"
 #include "marocco/placement/parameters/ManualPlacement.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
+#include "marocco/placement/results/Placement.h"
 
 namespace marocco {
 namespace placement {
@@ -27,7 +28,8 @@ public:
 		graph_t const& graph,
 		parameters::NeuronPlacement const& parameters,
 		parameters::ManualPlacement const& manual_placement,
-		NeuronPlacementResult& result);
+		results::Placement& result,
+		internal::Result& internal);
 
 	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
 
@@ -52,14 +54,15 @@ private:
 	graph_t const& m_graph;
 	parameters::NeuronPlacement const& m_parameters;
 	parameters::ManualPlacement const& m_manual_placement;
-	NeuronPlacementResult& m_result;
+	results::Placement& m_result;
+	internal::Result& m_internal;
 	/**
 	 * @brief Working copy of denmem assignment.
-	 * Comared to what is written to \c m_result at the end of #run(), this version
+	 * Comared to what is written to \c m_internal at the end of #run(), this version
 	 * contains all available HICANNs and their defects.  Only HICANNs that saw actual
-	 * assignments are stored in \c m_result.
+	 * assignments are stored in \c m_internal.
 	 */
-	NeuronPlacementResult::denmem_assignment_type m_denmem_assignment;
+	internal::Result::denmem_assignment_type m_denmem_assignment;
 	std::set<HMF::Coordinate::HICANNOnWafer> m_used_hicanns;
 };
 

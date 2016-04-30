@@ -8,10 +8,8 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace routing {
 
-SynapseLossImpl::SynapseLossImpl(placement::NeuronPlacementResult const& pl,
-								 graph_t const& graph) :
-	mGraph(graph),
-	mPlacement(pl)
+SynapseLossImpl::SynapseLossImpl(graph_t const& graph) :
+	mGraph(graph)
 {}
 
 void SynapseLossImpl::addLoss(Edge const& e,
@@ -167,7 +165,7 @@ SynapseLossImpl::getProxy(Edge const& e,
 /// merge two SynapseLossImpl instances
 SynapseLossImpl& SynapseLossImpl::operator+=(SynapseLossImpl const& rhs)
 {
-	if (&mGraph!=&rhs.mGraph || &mPlacement!=&rhs.mPlacement) {
+	if (&mGraph != &rhs.mGraph) {
 		throw std::runtime_error("unmergeable instances");
 	}
 

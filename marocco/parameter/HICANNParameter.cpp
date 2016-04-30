@@ -131,7 +131,8 @@ HICANNTransformator::run(
 	auto const& neuron_placement = placement.neuron_placement;
 
 	// assuming that neurons are always read out
-	bool const local_neurons = placement.address_assignment.at(chip().index()).has_output();
+	bool const local_neurons =
+		placement.internal.address_assignment.at(chip().index()).has_output();
 
 	bool const local_routes  = routing.crossbar_routing.exists(chip().index());
 
@@ -226,7 +227,7 @@ void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
 
 double HICANNTransformator::neurons(
 	neuron_calib_t const& calib,
-	typename placement::NeuronPlacementResult const& neuron_placement,
+	placement::results::Placement const& neuron_placement,
 	routing::SynapseTargetMapping const& synapse_target_mapping)
 {
 	// GLOBAL DIGITAL Neuron Paramets
@@ -316,7 +317,7 @@ void HICANNTransformator::connect_denmems(
 
 
 void HICANNTransformator::analog_output(
-	neuron_calib_t const& calib, typename placement::NeuronPlacementResult const& neuron_placement)
+	neuron_calib_t const& calib, placement::results::Placement const& neuron_placement)
 {
 	AnalogVisitor visitor;
 
@@ -385,7 +386,7 @@ void HICANNTransformator::background_generators(uint32_t isi)
 }
 
 void HICANNTransformator::spike_input(
-	placement::NeuronPlacementResult const& neuron_placement)
+	placement::results::Placement const& neuron_placement)
 {
 	HICANNOnWafer const hicann = chip().index();
 	for (auto const dnc_merger : iter_all<DNCMergerOnHICANN>()) {
@@ -427,9 +428,9 @@ void HICANNTransformator::shared_parameters(
 
 void HICANNTransformator::synapses(
 	synapse_row_calib_t const& calib,
-	typename routing::synapse_driver_mapping_t::result_type const&
+	routing::synapse_driver_mapping_t::result_type const&
 		synapse_routing, // TODO change this to pass std::vector<DriverResult>
-	typename placement::NeuronPlacementResult const& neuron_placement)
+	placement::results::Placement const& neuron_placement)
 {
 	NeuronOnHICANNPropertyArray<double> const weight_scale = weight_scale_array( neuron_placement );
 
@@ -511,7 +512,7 @@ void HICANNTransformator::synapses(
 }
 
 NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
-	typename placement::NeuronPlacementResult const& neuron_placement) const
+	placement::results::Placement const& neuron_placement) const
 {
 	CMVisitor const cm_visitor{};
 	NeuronOnHICANNPropertyArray<double> rv;

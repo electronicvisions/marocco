@@ -17,9 +17,9 @@ namespace placement {
 
 MergerRouting::MergerRouting(
 	parameters::MergerRouting const& parameters,
-	NeuronPlacementResult const& neuron_placement,
+	internal::Result::denmem_assignment_type const& denmem_assignment,
 	MergerRoutingResult& result)
-	: m_parameters(parameters), m_neuron_placement(neuron_placement), m_result(result)
+	: m_parameters(parameters), m_denmem_assignment(denmem_assignment), m_result(result)
 {
 }
 
@@ -34,7 +34,7 @@ void MergerRouting::run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnW
 			// overall use of SPL1 outputs is minimized.  Every unused SPL1 output can
 			// then be used for external input.
 
-			MergerTreeRouter router(graph, m_neuron_placement.denmem_assignment().at(hicann));
+			MergerTreeRouter router(graph, m_denmem_assignment.at(hicann));
 			router.run();
 			merger_mapping = router.result();
 			break;

@@ -2,7 +2,7 @@
 
 #include "hal/Coordinate/Neuron.h"
 #include "marocco/placement/internal/NeuronPlacementRequest.h"
-#include "marocco/placement/NeuronPlacementResult.h"
+#include "marocco/placement/internal/Result.h"
 
 namespace marocco {
 namespace placement {
@@ -27,7 +27,7 @@ public:
 	 *        If placement fails, some requests may remain in this queue.
 	 */
 	PlacePopulations(
-		NeuronPlacementResult::denmem_assignment_type& state,
+		Result::denmem_assignment_type& state,
 		std::vector<HMF::Coordinate::NeuronBlockOnWafer>& neuron_blocks,
 		std::vector<NeuronPlacementRequest>& queue)
 		: m_state(state), m_neuron_blocks(neuron_blocks), m_queue(queue)
@@ -46,7 +46,7 @@ private:
 	bool place_one_population();
 	OnNeuronBlock& on_neuron_block(HMF::Coordinate::NeuronBlockOnWafer const& nb);
 
-	NeuronPlacementResult::denmem_assignment_type& m_state;
+	Result::denmem_assignment_type& m_state;
 	std::vector<HMF::Coordinate::NeuronBlockOnWafer>& m_neuron_blocks;
 	std::vector<NeuronPlacementRequest>& m_queue;
 	std::vector<result_type> m_result;

@@ -43,7 +43,7 @@ private:
 	/// reference to resource manager
 	Resource const& mResource;
 
-	placement::NeuronPlacementResult const& mNeuronPlacement;
+	placement::results::Placement const& mNeuronPlacement;
 
 	/// (shared) pointer to the forward+reverse mapping information
 	std::shared_ptr<placement::LookupTable> mLookupTable;

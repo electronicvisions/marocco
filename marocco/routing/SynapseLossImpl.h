@@ -4,8 +4,10 @@
 #include <tbb/concurrent_unordered_map.h>
 #include <tbb/mutex.h>
 
+#include "hal/Coordinate/HICANN.h"
+
+#include "marocco/assignment/PopulationSlice.h"
 #include "marocco/graph.h"
-#include "marocco/placement/Result.h"
 #include "marocco/routing/SynapseLossProxy.h"
 
 namespace pymarocco {
@@ -25,8 +27,7 @@ public:
 	typedef HMF::Coordinate::HICANNGlobal Index;
 	typedef assignment::PopulationSlice Assign;
 
-	SynapseLossImpl(placement::NeuronPlacementResult const& pl,
-					graph_t const& graph);
+	SynapseLossImpl(graph_t const& graph);
 
 	// TODO: handle synapse loss of external inputs as well.
 
@@ -103,7 +104,6 @@ private:
 
 	graph_t const& mGraph;
 
-	placement::NeuronPlacementResult const& mPlacement;
 	tbb::mutex mMutex;
 };
 

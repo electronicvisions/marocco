@@ -61,12 +61,14 @@ NeuronPlacement::NeuronPlacement(
 	graph_t const& graph,
 	parameters::NeuronPlacement const& parameters,
 	parameters::ManualPlacement const& manual_placement,
-	NeuronPlacementResult& result)
+	results::Placement& result,
+	internal::Result& internal)
 	: m_graph(graph),
 	  m_parameters(parameters),
 	  m_manual_placement(manual_placement),
 	  m_result(result),
-	  m_denmem_assignment(result.denmem_assignment())
+	  m_internal(internal),
+	  m_denmem_assignment(internal.denmem_assignment)
 {
 }
 
@@ -250,7 +252,7 @@ void NeuronPlacement::run()
 	}
 
 	// Denmem assignment is only stored for HICANNs that saw actual assignments.
-	auto& dest = m_result.denmem_assignment();
+	auto& dest = m_internal.denmem_assignment;
 	for (auto const& hicann : m_used_hicanns) {
 		dest[hicann] = m_denmem_assignment[hicann];
 	}
@@ -269,7 +271,7 @@ void NeuronPlacement::post_process(std::vector<PlacePopulations::result_type> co
 		auto const& population = (*it)->population();
 
 		// Fill reverse lookup.
-		m_result.primary_denmems_for_population()[population].push_back(primary_neuron);
+		m_internal.primary_denmems_for_population[population].push_back(primary_neuron);
 
 		// Construct LogicalNeurons
 		auto nb = primary_neuron.toNeuronBlockOnWafer();

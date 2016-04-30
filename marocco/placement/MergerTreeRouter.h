@@ -8,7 +8,7 @@
 #include "hal/Coordinate/Neuron.h"
 #include "hal/Coordinate/typed_array.h"
 #include "marocco/placement/MergerTreeGraph.h"
-#include "marocco/placement/NeuronPlacementResult.h"
+#include "marocco/placement/internal/Result.h"
 
 namespace marocco {
 namespace placement {
@@ -35,7 +35,9 @@ public:
 	 * @param nbm Result of neuron placement, used to extract the number of mapped bio
 	 *            neurons for each neuron block.
 	 */
-	MergerTreeRouter(MergerTreeGraph const& graph, NeuronBlockMapping const& nbm);
+	MergerTreeRouter(
+		MergerTreeGraph const& graph,
+		internal::Result::denmem_assignment_type::mapped_type const& nbm);
 
 	void run();
 

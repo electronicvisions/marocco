@@ -20,7 +20,7 @@ public:
 	    hardware_system_t& hardware,
 	    resource_manager_t& resource_manager);
 
-	std::unique_ptr<result_type> run();
+	std::unique_ptr<result_type> run(results::Placement& result);
 
 private:
 	graph_t const& m_graph;

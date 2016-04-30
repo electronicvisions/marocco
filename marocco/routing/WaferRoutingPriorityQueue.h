@@ -4,7 +4,7 @@
 #include <map>
 
 #include "marocco/graph.h"
-#include "marocco/placement/Result.h"
+#include "marocco/placement/results/Placement.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace marocco {
@@ -25,7 +25,7 @@ public:
 
 	template <typename Compare>
 	void insert(
-		placement::NeuronPlacementResult const& neuron_placement,
+		placement::results::Placement const& neuron_placement,
 		std::set<HICANNGlobal, Compare> const& hicanns);
 
 	bool empty() const;
@@ -36,11 +36,11 @@ public:
 
 private:
 	void insert(
-		placement::NeuronPlacementResult const& neuron_placement,
+		placement::results::Placement const& neuron_placement,
 		HICANNGlobal const& hicann);
 
 	void insert(
-		placement::NeuronPlacementResult const& neuron_placement,
+		placement::results::Placement const& neuron_placement,
 		HICANNGlobal const& hicann,
 		DNCMergerOnHICANN const& merger);
 
@@ -54,7 +54,7 @@ private:
 
 template<typename Compare>
 void WaferRoutingPriorityQueue::insert(
-	placement::NeuronPlacementResult const& neuron_placement,
+	placement::results::Placement const& neuron_placement,
 	std::set<HICANNGlobal, Compare> const& hicanns)
 {
 	for (auto const& hicann : hicanns) {

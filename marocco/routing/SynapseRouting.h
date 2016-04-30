@@ -46,8 +46,8 @@ public:
 	Result&       getResult();
 
 private:
-	void handleSynapseLoss(LocalRoute const& local_route,
-						   placement::NeuronPlacementResult const& nrnpl);
+	void handleSynapseLoss(
+		LocalRoute const& local_route, placement::results::Placement const& neuron_placement);
 
 	/// set all synapse decoder to the the 4-bit address disabling the synapse.
 	void invalidateSynapseDecoder();

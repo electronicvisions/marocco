@@ -44,7 +44,7 @@ WaferRouting::~WaferRouting()
 {}
 
 std::unordered_set<HICANNGlobal> WaferRouting::get_targets(
-	placement::NeuronPlacementResult::primary_denmems_for_population_type const& revmap,
+	placement::internal::Result::primary_denmems_for_population_type const& revmap,
 	std::vector<HardwareProjection> const& projections) const
 {
 	std::unordered_set<HICANNGlobal> targets;
@@ -93,10 +93,10 @@ WaferRouting::run(placement::Result const& placement)
 	for (auto const& hicann : getManager().allocated())
 		hicanns.insert(hicann);
 
-	placement::NeuronPlacementResult const& neuron_placement = placement.neuron_placement;
-	mAddressAssignment = &placement.address_assignment;
+	placement::results::Placement const& neuron_placement = placement.neuron_placement;
+	mAddressAssignment = &placement.internal.address_assignment;
 
-	auto const& revmap = neuron_placement.primary_denmems_for_population();
+	auto const& revmap = placement.internal.primary_denmems_for_population;
 
 	WaferRoutingPriorityQueue queue(getGraph(), mPyMarocco);
 	queue.insert(neuron_placement, hicanns);
@@ -120,7 +120,7 @@ WaferRouting::run(placement::Result const& placement)
 			// need to count the total number of synapses.
 			SynapseTargetMapping syn_tgt_mapping;
 			syn_tgt_mapping.simple_mapping(target, neuron_placement, getGraph());
-			SynapseDriverRequirements req(target, neuron_placement, syn_tgt_mapping);
+			SynapseDriverRequirements req(target, placement, syn_tgt_mapping);
 			auto const num = req.calc(projections, getGraph());
 
 			if (!num.first) {
@@ -394,7 +394,7 @@ void WaferRouting::handleSynapseLoss(
 	HICANNGlobal const& source_hicann,
 	DNCMergerOnHICANN const& source_dnc_merger,
 	std::unordered_set<HICANNGlobal> const& unreachable,
-	placement::NeuronPlacementResult const& neuron_placement)
+	placement::results::Placement const& neuron_placement)
 {
 	std::ostringstream os;
 	for (auto const& hicann : unreachable) {

@@ -1,4 +1,4 @@
-from pygccxml.declarations import class_t, reference_t
+from pygccxml.declarations import class_t, reference_t, templates
 from pyplusplus.module_builder import call_policies
 
 
@@ -34,4 +34,18 @@ def builder_pattern(ns, name="Builder"):
             cl.parent.noncopyable = False
     else:
         return False
+    return True
+
+
+def iterable_return_type(fun):
+    try:
+        klass, args = templates.split(fun.return_type.decl_string)
+        if not klass.endswith('marocco::iterable'):
+            return False
+    except AssertionError:
+        return False
+    iterable = fun.return_type.declaration
+    iterable.include()
+    iterable.alias = "_{}".format(iterable.alias)
+    iterable.noncopyable = False
     return True

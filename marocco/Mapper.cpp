@@ -9,6 +9,7 @@
 #include "marocco/Result.h"
 #include "marocco/parameter/HICANNParameter.h"
 #include "marocco/placement/Placement.h"
+#include "marocco/results/Marocco.h"
 #include "marocco/routing/Routing.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/util/iterable.h"
@@ -79,10 +80,11 @@ void Mapper::run(ObjectStore const& pynn)
 	}
 
 	// The 3 1/2-steps to complete happiness
+	std::unique_ptr<results::Marocco> result(new results::Marocco());
 
 	// 1.  P L A C E M E N T
 	placement::Placement placer(*mPyMarocco, mGraph, mHW, mMgr);
-	auto placement = placer.run();
+	auto placement = placer.run(result->placement);
 	mLookupTable = result_cast<placement::Result>(*placement).reverse_mapping;
 
 	// 2.  R O U T I N G
@@ -145,6 +147,11 @@ void Mapper::run(ObjectStore const& pynn)
 	// generate Hardware stats
 	HardwareUsage usage(getHardware(), mMgr, *placement);
 	usage.fill(getStats());
+
+	if (!mPyMarocco->persist.empty()) {
+		MAROCCO_INFO("Saving results to " << mPyMarocco->persist);
+		result->save(mPyMarocco->persist.c_str(), true);
+	}
 }
 
 Mapper::graph_type&

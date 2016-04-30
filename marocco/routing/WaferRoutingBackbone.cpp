@@ -63,7 +63,7 @@ public:
 		std::unordered_set<HICANNGlobal>& targets,
 		std::vector<routing_graph::vertex_descriptor>& predecessor,
 		BusUsage const& usage,
-		placement::internal::WaferL1AddressAssignment const& address_assignment)
+		placement::internal::Result::address_assignment_type const& address_assignment)
 		: mSource(source),
 		  mAllTargets(targets),
 		  mTargets(),
@@ -691,7 +691,7 @@ private:
 	routing_graph const& mGraph;
 
 	BusUsage const& mUsage;
-	placement::internal::WaferL1AddressAssignment const& mAddressAssignment;
+	placement::internal::Result::address_assignment_type const& mAddressAssignment;
 };
 
 } // namespace

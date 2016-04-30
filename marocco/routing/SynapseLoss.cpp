@@ -6,9 +6,8 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace routing {
 
-SynapseLoss::SynapseLoss(placement::NeuronPlacementResult const& pl,
-						 graph_t const& graph) :
-	mImpl(new SynapseLossImpl(pl, graph))
+SynapseLoss::SynapseLoss(graph_t const& graph) :
+	mImpl(new SynapseLossImpl(graph))
 {}
 
 void SynapseLoss::addLoss(Edge const& e,

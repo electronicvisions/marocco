@@ -4,7 +4,7 @@
 #include "hal/HICANN/RowConfig.h"
 #include "marocco/graph.h"
 #include "marocco/parameter/NeuronOnHICANNPropertyArray.h"
-#include "marocco/placement/NeuronPlacementResult.h"
+#include "marocco/placement/results/Placement.h"
 #include "marocco/routing/SynapseType.h"
 
 #include <boost/serialization/serialization.hpp>
@@ -127,7 +127,7 @@ public:
 	 */
 	void simple_mapping(
 	    HMF::Coordinate::HICANNOnWafer const& hicann,
-	    placement::NeuronPlacementResult const& neuron_placement,
+	    placement::results::Placement const& neuron_placement,
 	    graph_t const& graph);
 
 	/// returns true, if synapse target mapping is equal on top and bottom neurons.

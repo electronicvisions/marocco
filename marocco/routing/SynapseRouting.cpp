@@ -72,8 +72,8 @@ SynapseRouting::SynapseRouting(
 void SynapseRouting::run(placement::Result const& placement,
 						 std::vector<LocalRoute> const& route_list)
 {
-	placement::NeuronPlacementResult const& nrnpl = placement.neuron_placement;
-	auto const& revmap = nrnpl.primary_denmems_for_population();
+	placement::results::Placement const& nrnpl = placement.neuron_placement;
+	auto const& revmap = placement.internal.primary_denmems_for_population;
 	auto& chip = mHW[hicann()];
 
 	// firstly set all SynapseDecoders to 0bXX0001 addresses
@@ -92,7 +92,7 @@ void SynapseRouting::run(placement::Result const& placement,
 	MAROCCO_INFO("calc synapse driver requirements for hicann " << hicann());
 
 	// secondly, generate statistics about SynapseDriver requirements
-	SynapseDriverRequirements drivers_required(hicann(), nrnpl, syn_tgt_mapping);
+	SynapseDriverRequirements drivers_required(hicann(), placement, syn_tgt_mapping);
 
 	std::unordered_map<VLineOnHICANN, SynapseManager::Histogram> synapse_histogram;
 	std::unordered_map<VLineOnHICANN, SynapseManager::Histogram> synrow_histogram;
@@ -353,7 +353,7 @@ void SynapseRouting::run(placement::Result const& placement,
 					}
 
 					// TODO: Use .find(vertex_descriptor) -> LogicalNeuron() interface
-					placement::internal::OnNeuronBlock const& onb = nrnpl.denmem_assignment().at(
+					placement::internal::OnNeuronBlock const& onb = placement.internal.denmem_assignment.at(
 						terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 					auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 					assert(it != onb.end());
@@ -542,8 +542,8 @@ SynapseRouting::Result& SynapseRouting::getResult()
 	return mResult;
 }
 
-void SynapseRouting::handleSynapseLoss(LocalRoute const& local_route,
-									   placement::NeuronPlacementResult const& neuron_placement)
+void SynapseRouting::handleSynapseLoss(
+	LocalRoute const& local_route, placement::results::Placement const& neuron_placement)
 {
 	Route const& route = local_route.route();
 	L1Bus const& l1 = mRoutingGraph[route.source()];

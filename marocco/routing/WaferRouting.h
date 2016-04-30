@@ -64,7 +64,7 @@ private:
 		std::unordered_set<HICANNGlobal>& unreachable) = 0;
 
 	std::unordered_set<HICANNGlobal> get_targets(
-		placement::NeuronPlacementResult::primary_denmems_for_population_type const& revmap,
+		placement::internal::Result::primary_denmems_for_population_type const& revmap,
 		std::vector<HardwareProjection> const& projections) const;
 
 	/** Responsible for setting crossbar switches and repeaters too establish
@@ -91,7 +91,7 @@ private:
 		HICANNGlobal const& source_hicann,
 		HMF::Coordinate::DNCMergerOnHICANN const& source_dnc_merger,
 		std::unordered_set<HICANNGlobal> const& unreachable,
-		placement::NeuronPlacementResult const& neuron_mapping);
+		placement::results::Placement const& neuron_placement);
 
 	// M E M B E R S
 	pymarocco::PyMarocco& mPyMarocco;
@@ -101,7 +101,7 @@ private:
 
 protected:
 	BusUsage mUsage;
-	placement::internal::WaferL1AddressAssignment const* mAddressAssignment;
+	placement::internal::Result::address_assignment_type const* mAddressAssignment;
 };
 
 

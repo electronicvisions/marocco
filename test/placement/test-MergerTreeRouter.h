@@ -25,7 +25,7 @@ public:
 		return {graph, neuron_block_mapping};
 	}
 	MergerTreeGraph graph;
-	NeuronBlockMapping neuron_block_mapping;
+	internal::Result::denmem_assignment_type::mapped_type neuron_block_mapping;
 }; // AMergerTreeRouter
 
 } // placement

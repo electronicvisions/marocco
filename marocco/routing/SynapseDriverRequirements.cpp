@@ -50,12 +50,12 @@ std::ostream& operator<<(std::ostream& os, TriParity p)
 
 SynapseDriverRequirements::SynapseDriverRequirements(
 	HMF::Coordinate::HICANNGlobal const& hicann,
-	marocco::placement::NeuronPlacementResult const& nrnpl,
+	marocco::placement::Result const& placement_result,
 	SynapseTargetMapping const& syn_tgt_mapping)
 	: mHICANN(hicann),
-	  mNeuronPlacement(nrnpl),
+	  mPlacementResult(placement_result),
 	  mSynapseTargetMapping(syn_tgt_mapping),
-	  mNeuronWidth(extract_neuron_width(mNeuronPlacement, mHICANN)),
+	  mNeuronWidth(extract_neuron_width(placement_result.internal.denmem_assignment, mHICANN)),
 	  mTargetSynapsesPerSynapticInputGranularity(
 		  calc_target_synapses_per_synaptic_input_granularity(mNeuronWidth, mSynapseTargetMapping))
 {
@@ -355,12 +355,12 @@ SynapseDriverRequirements::resolve_triparity(
 
 
 SynapseDriverRequirements::NeuronWidth SynapseDriverRequirements::extract_neuron_width(
-	placement::NeuronPlacementResult const& neuron_placement,
+	placement::internal::Result::denmem_assignment_type const& denmem_assignment,
 	HICANNOnWafer const& hicann)
 {
 	NeuronWidth rv;
-	auto it = neuron_placement.denmem_assignment().find(hicann);
-	if (it == neuron_placement.denmem_assignment().end()) {
+	auto it = denmem_assignment.find(hicann);
+	if (it == denmem_assignment.end()) {
 		return rv;
 	}
 
@@ -544,7 +544,7 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 {
 	SynapseCounts sc;
 
-	auto const& revmap = mNeuronPlacement.primary_denmems_for_population();
+	auto const& revmap = mPlacementResult.internal.primary_denmems_for_population;
 
 	for (auto const& proj : projections)
 	{
@@ -574,8 +574,9 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
 			if (terminal.toHICANNOnWafer() == hicann().toHICANNOnWafer()) {
 				// TODO: Use .find(vertex_descriptor) -> LogicalNeuron() interface
-				placement::internal::OnNeuronBlock const& onb = mNeuronPlacement.denmem_assignment().at(
-					terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
+				placement::internal::OnNeuronBlock const& onb =
+					mPlacementResult.internal.denmem_assignment.at(
+						terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 
 				auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 				assert(it != onb.end());

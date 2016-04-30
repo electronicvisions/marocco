@@ -56,7 +56,8 @@ InputPlacement::InputPlacement(
 }
 
 void InputPlacement::run(
-	NeuronPlacementResult& neuron_placement, internal::WaferL1AddressAssignment& address_assignment)
+	results::Placement& neuron_placement,
+	internal::Result::address_assignment_type& address_assignment)
 {
 	// Assign spike inputs to remaining output buffers.
 
@@ -80,7 +81,6 @@ void InputPlacement::run(
 	// check first if input is manually placed and assign it, then
 	// collect all the inputs, get their number of target HICANNs and find the
 	// optimal insertion point, given as the mean over all target HICANNs.
-	auto const& plmap = neuron_placement.primary_denmems_for_population();
 
 	std::map<size_t, std::vector<std::pair<Point, PopulationSlice> >, std::greater<size_t> >
 	    auto_inputs;
@@ -135,9 +135,10 @@ void InputPlacement::run(
 					throw std::runtime_error("spike source connected to other spike source");
 				}
 
-				auto locations = plmap.at(target);
-				for (auto const& primary_neuron : locations) {
-					auto const& hicann = primary_neuron.toHICANNOnWafer();
+				for (auto const& item : neuron_placement.find(target)) {
+					auto const& neuron_block = item.neuron_block();
+					assert(neuron_block != boost::none);
+					auto const hicann = neuron_block->toHICANNOnWafer();
 					if (targets.insert(hicann).second) {
 						xs.push_back(hicann.x());
 						ys.push_back(hicann.y());
@@ -197,7 +198,7 @@ void InputPlacement::run(
 
 void InputPlacement::insertInput(
 	HMF::Coordinate::HICANNOnWafer const& target_hicann,
-	NeuronPlacementResult& neuron_placement,
+	results::Placement& neuron_placement,
 	internal::L1AddressAssignment& address_assignment,
 	PopulationSlice& bio)
 {

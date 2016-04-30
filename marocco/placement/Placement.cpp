@@ -47,16 +47,16 @@ Placement::Placement(
 {
 }
 
-auto Placement::run() -> std::unique_ptr<result_type>
+auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<result_type>
 {
-	std::unique_ptr<Result> result(new Result);
+	std::unique_ptr<Result> result(new Result(neuron_placement));
 
 	auto const wafers = m_resource_manager.wafers();
 	BOOST_ASSERT_MSG(wafers.size() == 1, "only single-wafer use is supported");
 
 	NeuronPlacement nrn_placement(
-	    m_graph, m_pymarocco.neuron_placement, m_pymarocco.manual_placement,
-	    result->neuron_placement);
+		m_graph, m_pymarocco.neuron_placement, m_pymarocco.manual_placement,
+		neuron_placement, result->internal);
 
 	for (auto const& hicann : m_resource_manager.present()) {
 		nrn_placement.add(hicann);
@@ -69,9 +69,9 @@ auto Placement::run() -> std::unique_ptr<result_type>
 	nrn_placement.run();
 
 	MergerRouting merger_routing(
-	    m_pymarocco.merger_routing, result->neuron_placement, result->merger_routing);
+		m_pymarocco.merger_routing, result->internal.denmem_assignment, result->merger_routing);
 
-	for (auto const& item : result->neuron_placement.denmem_assignment()) {
+	for (auto const& item : result->internal.denmem_assignment) {
 		// Tag HICANN as 'in use' in the resource manager.
 		HICANNGlobal hicann(item.first, wafers.front());
 		if (m_resource_manager.available(hicann)) {
@@ -96,7 +96,7 @@ auto Placement::run() -> std::unique_ptr<result_type>
 		}
 
 		// Assign and store L1 addresses.
-		auto& address_assignment = result->address_assignment[hicann];
+		auto& address_assignment = result->internal.address_assignment[hicann];
 		for (auto const& it : merger_mapping)
 		{
 			NeuronBlockOnWafer const neuron_block(it.first, hicann);
@@ -106,10 +106,10 @@ auto Placement::run() -> std::unique_ptr<result_type>
 			address_assignment.set_mode(dnc, internal::L1AddressAssignment::Mode::output);
 			auto& pool = address_assignment.available_addresses(dnc);
 
-			for (auto const& item : result->neuron_placement.find(neuron_block)) {
+			for (auto const& item : neuron_placement.find(neuron_block)) {
 				auto const address = pool.pop(m_pymarocco.l1_address_assignment.strategy());
 				auto const& logical_neuron = item.logical_neuron();
-				result->neuron_placement.set_address(
+				neuron_placement.set_address(
 				    logical_neuron, L1AddressOnWafer(dnc, address));
 			}
 		}
@@ -120,7 +120,7 @@ auto Placement::run() -> std::unique_ptr<result_type>
 	    m_graph, m_pymarocco.input_placement, m_pymarocco.manual_placement,
 	    m_pymarocco.neuron_placement, m_pymarocco.l1_address_assignment, m_pymarocco.speedup,
 	    m_hardware, m_resource_manager);
-	input_placement.run(result->neuron_placement, result->address_assignment);
+	input_placement.run(neuron_placement, result->internal.address_assignment);
 
 	// create reverse mapping
 	result->reverse_mapping = std::make_shared<LookupTable>(*result, m_resource_manager, m_graph);

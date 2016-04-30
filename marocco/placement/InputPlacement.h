@@ -3,12 +3,15 @@
 #include <array>
 #include <memory>
 
+#include "marocco/config.h"
 #include "marocco/graph.h"
-#include "marocco/placement/Result.h"
+#include "marocco/assignment/PopulationSlice.h"
+#include "marocco/placement/internal/Result.h"
 #include "marocco/placement/parameters/InputPlacement.h"
 #include "marocco/placement/parameters/L1AddressAssignment.h"
 #include "marocco/placement/parameters/ManualPlacement.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
+#include "marocco/placement/results/Placement.h"
 
 namespace marocco {
 namespace placement {
@@ -64,8 +67,8 @@ public:
 	 *    and is amended with the results of the input placement.
 	 */
 	void run(
-		NeuronPlacementResult& neuron_placement,
-		internal::WaferL1AddressAssignment& address_assignment);
+		results::Placement& neuron_placement,
+		internal::Result::address_assignment_type& address_assignment);
 
 private:
 	void configureGbitLinks(
@@ -76,7 +79,7 @@ private:
 	 */
 	void insertInput(
 		HMF::Coordinate::HICANNOnWafer const& target_hicann,
-		NeuronPlacementResult& neuron_placement,
+		results::Placement& neuron_placement,
 		internal::L1AddressAssignment& address_assignment,
 		marocco::assignment::PopulationSlice& bio);
 

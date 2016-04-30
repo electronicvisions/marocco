@@ -122,6 +122,13 @@ public:
 	/// path to file to which wafer configuration is dumped. No output if unset
 	std::string wafer_cfg;
 
+	/**
+	 * @brief Path to file which is used to store mapping results.
+	 * @note Existing files will be overwritten.
+	 * If this parameter is empty, no file will be written.
+	 */
+	std::string persist;
+
 	/** path to file from which wafer configuration is read from (instead of running the mapping).
 	 *  ignored if unset/empty string.
 	 */

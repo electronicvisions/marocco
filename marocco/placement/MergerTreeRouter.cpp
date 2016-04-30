@@ -19,7 +19,8 @@ struct UnroutableNeuronBlock {};
 
 } // namespace
 
-MergerTreeRouter::MergerTreeRouter(MergerTreeGraph const& graph, NeuronBlockMapping const& nbm)
+MergerTreeRouter::MergerTreeRouter(
+	MergerTreeGraph const& graph, internal::Result::denmem_assignment_type::mapped_type const& nbm)
 	: m_graph(graph)
 {
 	// Count the number of mapped bio neurons for each neuron block.
