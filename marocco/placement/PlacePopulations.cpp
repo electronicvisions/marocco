@@ -1,7 +1,6 @@
 #include "marocco/placement/PlacePopulations.h"
 
 #include "marocco/Logger.h"
-#include "marocco/placement/DescendingPopulationOrdering.h"
 #include "marocco/placement/OnNeuronBlock.h"
 #include "marocco/placement/Result.h"
 #include "marocco/util/spiral_ordering.h"
