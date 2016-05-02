@@ -4,6 +4,8 @@
 
 #include "hal/HICANN/L1Address.h"
 
+#include "pymarocco/PyMarocco.h"
+
 namespace marocco {
 namespace placement {
 
@@ -46,6 +48,12 @@ public:
 	address_type pop_alternating();
 
 	/**
+	 * @brief Removes an address according to the specified strategy.
+	 */
+	address_type pop(pymarocco::PyMarocco::L1AddressAssignment const& strategy);
+
+
+	/**
 	 * @brief Returns the number of remaining addresses.
 	 */
 	size_t size() const;
@@ -54,11 +62,6 @@ public:
 	 * @brief Checks whether the pool does not contain any addresses.
 	 */
 	bool empty() const;
-
-	/**
-	 * @brief Returns available addresses, providing raw acces to the underlying data structure.
-	 */
-	pool_type const& available() const;
 
 private:
 	pool_type m_addresses;

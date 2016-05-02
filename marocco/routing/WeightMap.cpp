@@ -7,15 +7,16 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace routing {
 
-WeightMap::WeightMap(routing_graph const& rg, placement::OutputMappingResult const& outbm) :
-	g(rg), mOutbMapping(outbm)
+WeightMap::WeightMap(
+    routing_graph const& rg, placement::WaferL1AddressAssignment const& address_assignment)
+	: g(rg), mAddressAssignment(address_assignment)
 {
 	for (auto& val : horizontal) { val = 0; }
 	for (auto& val : vertical) { val = 0; }
 }
 
 WeightMap::WeightMap(pymarocco::Routing const& param, routing_graph const& rg,
-					 placement::OutputMappingResult const& outbm) :
+					 placement::WaferL1AddressAssignment const& address_assignment) :
 	g(rg),
 	w_vertical(param.weight_Vertical),
 	w_horizontal(param.weight_Horizontal),
@@ -23,7 +24,7 @@ WeightMap::WeightMap(pymarocco::Routing const& param, routing_graph const& rg,
 	w_straight_horizontal(param.weight_StraightHorizontal),
 	w_straight_vertical(param.weight_StraightVertical),
 	w_congestion_factor(param.weight_CongestionFactor),
-	mOutbMapping(outbm)
+	mAddressAssignment(address_assignment)
 {
 	for (auto& val : horizontal) { val = 0; }
 	for (auto& val : vertical) { val = 0; }
@@ -42,8 +43,8 @@ WeightMap::reference WeightMap::operator[] (key_type const& k) const
 			HICANNGlobal const& hicann = target.hicann();
 			DNCMergerOnHICANN const& merger =
 			    hrepeater.toSendingRepeaterOnHICANN().toDNCMergerOnHICANN();
-			auto it = mOutbMapping.find(hicann);
-			if (it != mOutbMapping.end() && mOutbMapping.at(hicann).any(merger)) {
+			auto it = mAddressAssignment.find(hicann);
+			if (it != mAddressAssignment.end() && !mAddressAssignment.at(hicann).is_unused(merger)) {
 				// max() leads to overflows and therefore cycles...
 				// return std::numeric_limits<reference>::max();
 				return 100000;

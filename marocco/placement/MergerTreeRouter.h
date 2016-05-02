@@ -21,7 +21,7 @@ namespace placement {
  * attempts to route as many adjacent neuron blocks as possible to mergers located further
  * to the sides.  In doing so an adjacent neuron block is considered for merging, if the
  * number of biological neurons (i.e. L1 addresses) does not exceed the maximum number of
- * addresses for a single L1 bus (see \c OutputBufferMapping::capacity()).
+ * addresses for a single L1 bus (see \c L1AddressPool::capacity()).
  * Merging of non-adjacent blocks is not allowed, to prevent “muting” the blocks in between.
  */
 class MergerTreeRouter {

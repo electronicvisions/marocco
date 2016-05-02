@@ -59,6 +59,20 @@ auto L1AddressPool::pop_alternating() -> address_type
 	}
 }
 
+auto L1AddressPool::pop(pymarocco::PyMarocco::L1AddressAssignment const& strategy) -> address_type
+{
+	switch (strategy) {
+		case pymarocco::PyMarocco::L1AddressAssignment::HighFirst:
+			return pop_back();
+		case pymarocco::PyMarocco::L1AddressAssignment::LowFirst:
+			return pop_front();
+		case pymarocco::PyMarocco::L1AddressAssignment::Alternate:
+			return pop_alternating();
+		default:
+			throw std::runtime_error("unknown L1 address assignment strategy");
+	}
+}
+
 size_t L1AddressPool::size() const
 {
 	return m_addresses.size();
@@ -67,11 +81,6 @@ size_t L1AddressPool::size() const
 bool L1AddressPool::empty() const
 {
 	return m_addresses.empty();
-}
-
-auto L1AddressPool::available() const -> pool_type const&
-{
-	return m_addresses;
 }
 
 } // namespace placement

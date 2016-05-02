@@ -64,18 +64,18 @@ public:
 	 *    and is amended with the results of the input placement.
 	 */
 	void run(NeuronPlacementResult& neuron_placement,
-			 OutputMappingResult& output_mapping);
+			 WaferL1AddressAssignment& address_assignment);
 
 private:
-	void configureGbitLinks(HMF::Coordinate::HICANNGlobal const& hicann,
-							OutputBufferMapping const& output_mapping);
+	void configureGbitLinks(
+	    HMF::Coordinate::HICANNGlobal const& hicann, L1AddressAssignment& address_assignment);
 
 	/** input spikes (bio) are inserted on free output buffers on target_hicann
 	 */
 	void insertInput(
 		HMF::Coordinate::HICANNOnWafer const& target_hicann,
 		NeuronPlacementResult& neuron_placement,
-		OutputBufferMapping& om,
+		L1AddressAssignment& address_assignment,
 		marocco::assignment::PopulationSlice& bio);
 
 	graph_t const&           mGraph;

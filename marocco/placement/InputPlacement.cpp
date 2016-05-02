@@ -62,7 +62,7 @@ InputPlacement::InputPlacement(
 
 void InputPlacement::run(
 	NeuronPlacementResult& neuron_placement,
-	OutputMappingResult& output_mapping)
+	WaferL1AddressAssignment& address_assignment)
 {
 	// Assign spike inputs to remaining output buffers.
 
@@ -109,8 +109,7 @@ void InputPlacement::run(
 
 			if (locations && !locations->empty()) {
 				for (auto const& target_hicann : *locations) {
-					OutputBufferMapping& om = output_mapping[target_hicann];
-					insertInput(target_hicann, neuron_placement, om, bio);
+					insertInput(target_hicann, neuron_placement, address_assignment[target_hicann], bio);
 				}
 
 				if (bio.size()) {
@@ -177,9 +176,7 @@ void InputPlacement::run(
 
 			neighbors.find_near(point.x, point.y);
 			for (auto const& target_hicann : neighbors) {
-				OutputBufferMapping& om = output_mapping[target_hicann];
-
-				insertInput(target_hicann, neuron_placement, om, bio);
+				insertInput(target_hicann, neuron_placement, address_assignment[target_hicann], bio);
 
 				// TODO: if HICANN has no free output buffers left.
 				// remove it from point cloud and rebuild index.
@@ -197,19 +194,15 @@ void InputPlacement::run(
 		}
 	}
 
-	auto first = mMgr.begin_allocated();
-	auto last  = mMgr.end_allocated();
-
-	std::for_each(first, last,
-		[&](HICANNGlobal const& hicann) {
-			configureGbitLinks(hicann, output_mapping.at(hicann));
-		});
+	for (auto const& hicann : mMgr.allocated()) {
+		configureGbitLinks(hicann, address_assignment.at(hicann));
+	}
 }
 
 void InputPlacement::insertInput(
 	HMF::Coordinate::HICANNOnWafer const& target_hicann,
 	NeuronPlacementResult& neuron_placement,
-	OutputBufferMapping& om,
+	L1AddressAssignment& address_assignment,
 	PopulationSlice& bio)
 {
 	// 7 must be first to allow for use_output_buffer7_for_dnc_input_and_bg_hack
@@ -217,9 +210,10 @@ void InputPlacement::insertInput(
 	     {DNCMergerOnHICANN(7), DNCMergerOnHICANN(6), DNCMergerOnHICANN(5), DNCMergerOnHICANN(4),
 	      DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)})
 		{
-			if (om.getMode(dnc) == OutputBufferMapping::INPUT)
+			auto& pool = address_assignment.available_addresses(dnc);
+			if (address_assignment.mode(dnc) == L1AddressAssignment::Mode::input)
 				{
-					size_t const left_space = om.available(dnc);
+					size_t const left_space = pool.size();
 					if (!left_space) {
 						continue;
 					}
@@ -261,7 +255,7 @@ void InputPlacement::insertInput(
 					// we found an empty slot, insert the assignment
 					auto population_slice = bio.slice_back(n);
 					for (size_t ii = 0; ii < n; ++ii) {
-						auto const address = om.popAddress(dnc, mPyMarocco.l1_address_assignment);
+						auto const address = pool.pop(mPyMarocco.l1_address_assignment);
 						size_t const neuron_index = population_slice.offset() + ii;
 						auto const logical_neuron = LogicalNeuron::external(
 							mGraph[population_slice.population()]->id(), neuron_index);
@@ -286,7 +280,7 @@ void InputPlacement::insertInput(
 
 void InputPlacement::configureGbitLinks(
 	HICANNGlobal const& hicann,
-	OutputBufferMapping const& output_mapping)
+	L1AddressAssignment& address_assignment)
 {
 	auto& chip = mHW[hicann];
 	for (auto const dnc : iter_all<DNCMergerOnHICANN>())
@@ -311,14 +305,14 @@ void InputPlacement::configureGbitLinks(
 		// bad configurations of the merger tree, where events are duplicated
 		// and feed back as external events into the routing (cf. #2165)
 
-		if (output_mapping.getMode(dnc) == OutputBufferMapping::Mode::OUTPUT) {
+		if (address_assignment.mode(dnc) == L1AddressAssignment::Mode::output) {
 			// output spikes for recording
 			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_DNC;
 			// slow only works if merger is set to MERGE
 			chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
 			chip.layer1[dnc].slow = true;
 
-		} else if (output_mapping.getMode(dnc) == OutputBufferMapping::Mode::INPUT) {
+		} else if (address_assignment.mode(dnc) == L1AddressAssignment::Mode::input) {
 			// input from external FPGAs
 			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_HICANN;
 			chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;

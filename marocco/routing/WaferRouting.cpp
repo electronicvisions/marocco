@@ -94,7 +94,7 @@ WaferRouting::run(placement::Result const& placement)
 		hicanns.insert(hicann);
 
 	placement::NeuronPlacementResult const& neuron_placement = placement.neuron_placement;
-	mOutbMapping = &placement.output_mapping;
+	mAddressAssignment = &placement.address_assignment;
 
 	auto const& revmap = neuron_placement.primary_denmems_for_population();
 

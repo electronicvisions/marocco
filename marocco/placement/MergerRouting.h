@@ -26,12 +26,12 @@ public:
 	 * @param output_mapping Output parameter used to store the result.
 	 */
 	void run(NeuronPlacementResult& neuron_placement,
-			 OutputMappingResult& output_mapping);
+			 WaferL1AddressAssignment& address_assignment);
 
 private:
 	void run(HMF::Coordinate::HICANNGlobal const& hicann,
 			 NeuronPlacementResult& neuron_placement,
-			 OutputBufferMapping& local_output_mapping);
+			 L1AddressAssignment& address_assignment);
 
 	graph_t const&            mGraph;
 	hardware_system_t&        mHW;

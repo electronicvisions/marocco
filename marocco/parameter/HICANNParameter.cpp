@@ -131,13 +131,12 @@ HICANNTransformator::run(
 	auto const& neuron_placement = placement.neuron_placement;
 
 	// assuming that neurons are always read out
-	auto const& output_mapping = placement.output_mapping.at(chip().index());
-	bool const local_neurons = !output_mapping.onlyInput();
+	bool const local_neurons = placement.address_assignment.at(chip().index()).has_output();
 
 	bool const local_routes  = routing.crossbar_routing.exists(chip().index());
 
 	// spike input sources
-	spike_input(neuron_placement, output_mapping);
+	spike_input(neuron_placement);
 
 	// switch on BackgroundGenerators for locking
 	background_generators(mPyMarocco.bkg_gen_isi);
@@ -386,8 +385,7 @@ void HICANNTransformator::background_generators(uint32_t isi)
 }
 
 void HICANNTransformator::spike_input(
-	placement::NeuronPlacementResult const& neuron_placement,
-	placement::OutputBufferMapping const& output_mapping)
+	placement::NeuronPlacementResult const& neuron_placement)
 {
 	HICANNOnWafer const hicann = chip().index();
 	for (auto const dnc_merger : iter_all<DNCMergerOnHICANN>()) {
@@ -396,7 +394,6 @@ void HICANNTransformator::spike_input(
 				continue;
 			}
 			auto const& address = item.address();
-			assert(output_mapping.getMode(dnc_merger) == placement::OutputBufferMapping::INPUT);
 			assert(address != boost::none);
 
 			SpikeInputVisitor visitor(

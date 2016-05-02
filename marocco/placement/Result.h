@@ -4,7 +4,7 @@
 #include "marocco/Result.h"
 #include "marocco/config.h"
 #include "marocco/placement/NeuronPlacementResult.h"
-#include "marocco/placement/OutputBufferMapping.h"
+#include "marocco/placement/L1AddressAssignment.h"
 
 
 namespace marocco {
@@ -12,17 +12,12 @@ namespace placement {
 
 class LookupTable;
 
-typedef NeuronPlacementResult neuron_placement_t;
-
-class OutputMappingResult
-	: public AssociativeResult<HMF::Coordinate::HICANNOnWafer, OutputBufferMapping>
-{};
-
-typedef OutputMappingResult output_mapping_t;
+typedef std::unordered_map<HMF::Coordinate::HICANNOnWafer, L1AddressAssignment>
+	WaferL1AddressAssignment;
 
 struct Result : public BaseResult {
 	NeuronPlacementResult neuron_placement;
-	OutputMappingResult output_mapping;
+	WaferL1AddressAssignment address_assignment;
 	// reverse mapping for result data (only neuron address translation for now)
 	std::shared_ptr<LookupTable> reverse_mapping;
 };

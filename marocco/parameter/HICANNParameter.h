@@ -98,8 +98,7 @@ private:
 	    typename placement::NeuronPlacementResult const& neuron_placement);
 
 	void spike_input(
-		placement::NeuronPlacementResult const& neuron_placement,
-		placement::OutputBufferMapping const& output_mapping);
+		placement::NeuronPlacementResult const& neuron_placement);
 
 	void current_input(neuron_calib_t const& calib, CurrentSources const& cs);
 

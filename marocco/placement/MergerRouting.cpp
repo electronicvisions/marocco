@@ -41,30 +41,19 @@ MergerRouting::MergerRouting(
 
 
 void MergerRouting::run(NeuronPlacementResult& neuron_placement,
-						OutputMappingResult& output_mapping)
+						WaferL1AddressAssignment& address_assignment)
 {
-	info(this) << "MergerRouting started";
+	MAROCCO_INFO("started merger routing");
 
-	for (auto hicann : mMgr.allocated())
-	{
-		// create entry (if it doesn't exist yet)
-		output_mapping[hicann];
+	for (auto hicann : mMgr.allocated()) {
+		run(hicann, neuron_placement, address_assignment[hicann]);
 	}
-
-	auto first = mMgr.begin_allocated();
-	auto last  = mMgr.end_allocated();
-
-	std::for_each(first, last,
-		[&](HICANNGlobal const& hicann) {
-			OutputBufferMapping& local_output_mapping = output_mapping[hicann];
-			run(hicann, neuron_placement, local_output_mapping);
-		});
 }
 
 void MergerRouting::run(
 	HICANNGlobal const& hicann,
 	NeuronPlacementResult& neuron_placement,
-	OutputBufferMapping& local_output_mapping)
+	L1AddressAssignment& address_assignment)
 {
 	// Assign 'real' Neurons (no spike sources) to output buffers.
 
@@ -119,11 +108,13 @@ void MergerRouting::run(
 		DNCMergerOnWafer const dnc(it.second, hicann);
 
 		// set this SPL1 merger to output
-		local_output_mapping.setMode(dnc, OutputBufferMapping::OUTPUT);
+		address_assignment.set_mode(dnc, L1AddressAssignment::Mode::output);
+
+		auto& pool = address_assignment.available_addresses(dnc);
 
 		// Assign and store L1 addresses.
 		for (auto const& item : neuron_placement.find(neuron_block)) {
-			auto address = local_output_mapping.popAddress(dnc, mPyMarocco.l1_address_assignment);
+			auto const address = pool.pop(mPyMarocco.l1_address_assignment);
 			auto const& logical_neuron = item.logical_neuron();
 			neuron_placement.set_address(logical_neuron, L1AddressOnWafer(dnc, address));
 		}

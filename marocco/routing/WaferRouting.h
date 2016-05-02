@@ -101,7 +101,7 @@ private:
 
 protected:
 	BusUsage mUsage;
-	placement::OutputMappingResult const* mOutbMapping;
+	placement::WaferL1AddressAssignment const* mAddressAssignment;
 };
 
 
@@ -117,7 +117,7 @@ WaferRouting::WaferRouting(HMF::Coordinate::Wafer const& wafer,
       mWaferGraph(wafer, getManager(), mPyMarocco, mRoutingGraph),
       mSynapseLoss(sl),
       mUsage(),
-      mOutbMapping(0) {}
+      mAddressAssignment(nullptr) {}
 
 } // namespace routing
 } // namespace marocco

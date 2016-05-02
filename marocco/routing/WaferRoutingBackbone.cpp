@@ -21,7 +21,6 @@
 	}
 
 using namespace HMF::Coordinate;
-using marocco::placement::OutputMappingResult;
 
 namespace marocco {
 namespace routing {
@@ -64,14 +63,14 @@ public:
 		std::unordered_set<HICANNGlobal>& targets,
 		std::vector<routing_graph::vertex_descriptor>& predecessor,
 		BusUsage const& usage,
-		OutputMappingResult const& outbm)
+		placement::WaferL1AddressAssignment const& address_assignment)
 		: mSource(source),
 		  mAllTargets(targets),
 		  mTargets(),
 		  mPredecessor(predecessor),
 		  mGraph(rgraph),
 		  mUsage(usage),
-		  mOutbufMapping(outbm)
+		  mAddressAssignment(address_assignment)
 	{
 		for (auto const& trg : mAllTargets) {
 			mTargets.insert(trg);
@@ -674,8 +673,8 @@ private:
 			HICANNGlobal const& hicann = bus.hicann();
 			DNCMergerOnHICANN const& merger =
 			    hrepeater.toSendingRepeaterOnHICANN().toDNCMergerOnHICANN();
-			auto it = mOutbufMapping.find(hicann);
-			if (it != mOutbufMapping.end() && mOutbufMapping.at(hicann).any(merger)) {
+			auto it = mAddressAssignment.find(hicann);
+			if (it != mAddressAssignment.end() && !mAddressAssignment.at(hicann).is_unused(merger)) {
 				return true;
 			}
 		}
@@ -692,7 +691,7 @@ private:
 	routing_graph const& mGraph;
 
 	BusUsage const& mUsage;
-	OutputMappingResult const& mOutbufMapping;
+	placement::WaferL1AddressAssignment const& mAddressAssignment;
 };
 
 } // namespace
@@ -723,7 +722,7 @@ WaferRoutingBackbone::allocateRoute(
 							  std::numeric_limits<int>::max());
 	std::vector<routing_graph::vertex_descriptor> predecessor(boost::num_vertices(routing_graph));
 
-	BackBoner boner(routing_graph, source, targets, predecessor, mUsage, *mOutbMapping);
+	BackBoner boner(routing_graph, source, targets, predecessor, mUsage, *mAddressAssignment);
 	boner.find_path();
 	std::unordered_map<HICANNGlobal, Route::BusSegment> lastMile =
 		boner.last_mile();

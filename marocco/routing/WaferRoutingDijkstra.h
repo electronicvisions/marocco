@@ -50,7 +50,7 @@ WaferRoutingDijkstra::WaferRoutingDijkstra(
 		routing_graph& rgraph,
 		Args&&... args) :
 	WaferRouting(wafer, sl, pymarocco, rgraph, std::forward<Args>(args)...),
-	mWeightMap(pymarocco.routing, getRoutingGraph(), *mOutbMapping)
+	mWeightMap(pymarocco.routing, getRoutingGraph(), *mAddressAssignment)
 {}
 
 } // namespace routing

@@ -25,9 +25,11 @@ public:
 	typedef int reference;
     typedef boost::readable_property_map_tag category;
 
-	WeightMap(routing_graph const& rg, placement::OutputMappingResult const& outbm);
-	WeightMap(pymarocco::Routing const& param, routing_graph const& rg,
-			  placement::OutputMappingResult const& outbm);
+	WeightMap(routing_graph const& rg, placement::WaferL1AddressAssignment const& address_assignment);
+	WeightMap(
+		pymarocco::Routing const& param,
+		routing_graph const& rg,
+		placement::WaferL1AddressAssignment const& address_assignment);
 
 	reference operator[] (key_type const& k) const;
 
@@ -49,7 +51,7 @@ private:
 	size_t const w_straight_vertical = 2; // TODO: remove me, no longer needed
 	size_t const w_congestion_factor = 1;
 
-	placement::OutputMappingResult const& mOutbMapping;
+	placement::WaferL1AddressAssignment const& mAddressAssignment;
 };
 
 } // namespace routing
