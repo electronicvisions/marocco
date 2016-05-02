@@ -4,6 +4,7 @@
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 /**
  * Represents part of a population that should be assigned to
@@ -38,6 +39,6 @@ private:
 	size_t mHwNeuronSize;
 };
 
-
+} // namespace internal
 } // namespace placement
 } // namespace marocco

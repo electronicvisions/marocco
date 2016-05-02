@@ -3,10 +3,11 @@
 #include "hal/Coordinate/L1.h"
 #include "hal/Coordinate/typed_array.h"
 
-#include "marocco/placement/L1AddressPool.h"
+#include "marocco/placement/internal/L1AddressPool.h"
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 /**
  * @brief Keeps track of available L1 addresses and modes (input/output) for the DNC
@@ -53,5 +54,6 @@ private:
 	HMF::Coordinate::typed_array<L1AddressPool, index_type> m_address_pools;
 }; // L1AddressAssignment
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

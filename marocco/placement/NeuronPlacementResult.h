@@ -14,7 +14,7 @@
 #include "marocco/coordinates/L1AddressOnWafer.h"
 #include "marocco/coordinates/LogicalNeuron.h"
 #include "marocco/graph.h"
-#include "marocco/placement/OnNeuronBlock.h"
+#include "marocco/placement/internal/OnNeuronBlock.h"
 #include "marocco/util/iterable.h"
 
 namespace marocco {
@@ -24,7 +24,7 @@ namespace placement {
  * @brief Provides an implicit mapping of populations to denmems of a HICANN by combining
  *        the OnNeuronBlock mappings of all neuron blocks.
  */
-typedef HMF::Coordinate::typed_array<OnNeuronBlock, HMF::Coordinate::NeuronBlockOnHICANN>
+typedef HMF::Coordinate::typed_array<internal::OnNeuronBlock, HMF::Coordinate::NeuronBlockOnHICANN>
     NeuronBlockMapping;
 
 class NeuronPlacementResult

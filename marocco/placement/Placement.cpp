@@ -103,7 +103,7 @@ auto Placement::run() -> std::unique_ptr<result_type>
 			DNCMergerOnWafer const dnc(it.second, hicann);
 
 			// set this SPL1 merger to output
-			address_assignment.set_mode(dnc, L1AddressAssignment::Mode::output);
+			address_assignment.set_mode(dnc, internal::L1AddressAssignment::Mode::output);
 			auto& pool = address_assignment.available_addresses(dnc);
 
 			for (auto const& item : result->neuron_placement.find(neuron_block)) {

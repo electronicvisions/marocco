@@ -1,7 +1,8 @@
-#include "marocco/placement/L1AddressAssignment.h"
+#include "marocco/placement/internal/L1AddressAssignment.h"
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 L1AddressAssignment::L1AddressAssignment()
 {
@@ -37,5 +38,6 @@ bool L1AddressAssignment::has_output() const {
 	    m_mode.begin(), m_mode.end(), [](Mode value) { return value == Mode::output; });
 }
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

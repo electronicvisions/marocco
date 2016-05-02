@@ -1,9 +1,10 @@
-#include "marocco/placement/NeuronPlacementRequest.h"
+#include "marocco/placement/internal/NeuronPlacementRequest.h"
 
-#include "marocco/placement/OnNeuronBlock.h"
+#include "marocco/placement/internal/OnNeuronBlock.h"
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 NeuronPlacementRequest::NeuronPlacementRequest(assignment::PopulationSlice const& bio,
                                  size_t hw_neuron_size)
@@ -43,5 +44,6 @@ size_t NeuronPlacementRequest::neuron_width() const {
 	return mHwNeuronSize / OnNeuronBlock::neuron_coordinate::y_type::size;
 }
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

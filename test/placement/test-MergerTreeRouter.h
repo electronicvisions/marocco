@@ -12,7 +12,7 @@ class AMergerTreeRouter : public ::testing::Test
 public:
 	void add(HMF::Coordinate::NeuronBlockOnHICANN nb, size_t bio_neurons_count)
 	{
-		const NeuronPlacementRequest dummy{
+		const internal::NeuronPlacementRequest dummy{
 		    assignment::PopulationSlice{{}, 0 /*offset*/, 1 /*size*/}, 2 /*hw_neuron_size*/};
 		auto& onb = neuron_block_mapping.at(nb);
 		ASSERT_EQ(2, dummy.size());

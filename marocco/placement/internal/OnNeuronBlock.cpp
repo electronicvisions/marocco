@@ -1,4 +1,4 @@
-#include "marocco/placement/OnNeuronBlock.h"
+#include "marocco/placement/internal/OnNeuronBlock.h"
 
 #include <algorithm>
 #include <limits>
@@ -8,6 +8,7 @@
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 OnNeuronBlock::OnNeuronBlock()
 	: mAssignment(),
@@ -209,5 +210,6 @@ OnNeuronBlock::neuron_coordinate neuron_iterator::dereference() const {
 } // namespace on_neuron_block
 } // namespace detail
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

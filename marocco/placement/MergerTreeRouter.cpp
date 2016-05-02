@@ -6,7 +6,7 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
-#include "marocco/placement/L1AddressPool.h"
+#include "marocco/placement/internal/L1AddressPool.h"
 
 using namespace HMF::Coordinate;
 
@@ -25,7 +25,7 @@ MergerTreeRouter::MergerTreeRouter(MergerTreeGraph const& graph, NeuronBlockMapp
 	// Count the number of mapped bio neurons for each neuron block.
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
 		m_neurons[nb] = 0u;
-		for (std::shared_ptr<NeuronPlacementRequest> const& pl : nbm[nb]) {
+		for (std::shared_ptr<internal::NeuronPlacementRequest> const& pl : nbm[nb]) {
 			m_neurons[nb] += pl->population_slice().size();
 		}
 	}
@@ -160,7 +160,7 @@ MergerTreeRouter::mergeable(
 	// to the LEFT
 	for (int pos = main_nb.value() - 1; pos >= 0; --pos) {
 		NeuronBlockOnHICANN const nb{size_t(pos)};
-		if (bio_neurons_count + m_neurons[nb] <= L1AddressPool::capacity() && merge(nb)) {
+		if (bio_neurons_count + m_neurons[nb] <= internal::L1AddressPool::capacity() && merge(nb)) {
 			bio_neurons_count += m_neurons[nb];
 		} else {
 			break;
@@ -170,7 +170,7 @@ MergerTreeRouter::mergeable(
 	// to the RIGHT
 	for (size_t pos = main_nb.value() + 1; pos < NeuronBlockOnHICANN::end; ++pos) {
 		NeuronBlockOnHICANN const nb(pos);
-		if (bio_neurons_count + m_neurons[nb] <= L1AddressPool::capacity() && merge(nb)) {
+		if (bio_neurons_count + m_neurons[nb] <= internal::L1AddressPool::capacity() && merge(nb)) {
 			bio_neurons_count += m_neurons[nb];
 		} else {
 			break;

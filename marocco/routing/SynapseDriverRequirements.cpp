@@ -365,7 +365,8 @@ SynapseDriverRequirements::NeuronWidth SynapseDriverRequirements::extract_neuron
 	}
 
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		placement::OnNeuronBlock const& onb = (it->second)[nb];
+		// TODO: Use .find(NeuronBlockOnWafer()) -> LogicalNeuron() interface
+		placement::internal::OnNeuronBlock const& onb = (it->second)[nb];
 
 		for (auto it = onb.begin(); it != onb.end(); ++it) {
 			size_t const hw_neuron_size = (*it)->neuron_size();
@@ -572,13 +573,14 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 		for (auto const& primary_neuron : revmap.at(target)) {
 			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
 			if (terminal.toHICANNOnWafer() == hicann().toHICANNOnWafer()) {
-				placement::OnNeuronBlock const& onb = mNeuronPlacement.denmem_assignment().at(
+				// TODO: Use .find(vertex_descriptor) -> LogicalNeuron() interface
+				placement::internal::OnNeuronBlock const& onb = mNeuronPlacement.denmem_assignment().at(
 					terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 
 				auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 				assert(it != onb.end());
 
-				std::shared_ptr<placement::NeuronPlacementRequest> const& trg_assign = *it;
+				std::shared_ptr<placement::internal::NeuronPlacementRequest> const& trg_assign = *it;
 				assignment::PopulationSlice const& trg_bio_assign = trg_assign->population_slice();
 				size_t const trg_bio_size   = trg_bio_assign.size();
 				size_t const trg_bio_offset = trg_bio_assign.offset();

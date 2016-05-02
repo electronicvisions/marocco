@@ -8,7 +8,7 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
-#include "marocco/placement/FiringRateVisitor.h"
+#include "marocco/placement/internal/FiringRateVisitor.h"
 #include "marocco/util/algorithm.h"
 #include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
@@ -56,8 +56,7 @@ InputPlacement::InputPlacement(
 }
 
 void InputPlacement::run(
-	NeuronPlacementResult& neuron_placement,
-	WaferL1AddressAssignment& address_assignment)
+	NeuronPlacementResult& neuron_placement, internal::WaferL1AddressAssignment& address_assignment)
 {
 	// Assign spike inputs to remaining output buffers.
 
@@ -199,7 +198,7 @@ void InputPlacement::run(
 void InputPlacement::insertInput(
 	HMF::Coordinate::HICANNOnWafer const& target_hicann,
 	NeuronPlacementResult& neuron_placement,
-	L1AddressAssignment& address_assignment,
+	internal::L1AddressAssignment& address_assignment,
 	PopulationSlice& bio)
 {
 	// 7 must be first to allow for use_output_buffer7_for_dnc_input_and_bg_hack
@@ -208,7 +207,7 @@ void InputPlacement::insertInput(
 	      DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)})
 		{
 			auto& pool = address_assignment.available_addresses(dnc);
-			if (address_assignment.mode(dnc) == L1AddressAssignment::Mode::input)
+			if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::input)
 				{
 					size_t const left_space = pool.size();
 					if (!left_space) {
@@ -277,8 +276,7 @@ void InputPlacement::insertInput(
 
 
 void InputPlacement::configureGbitLinks(
-	HICANNGlobal const& hicann,
-	L1AddressAssignment& address_assignment)
+	HICANNGlobal const& hicann, internal::L1AddressAssignment& address_assignment)
 {
 	auto& chip = mHW[hicann];
 	for (auto const dnc : iter_all<DNCMergerOnHICANN>())
@@ -303,14 +301,14 @@ void InputPlacement::configureGbitLinks(
 		// bad configurations of the merger tree, where events are duplicated
 		// and feed back as external events into the routing (cf. #2165)
 
-		if (address_assignment.mode(dnc) == L1AddressAssignment::Mode::output) {
+		if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::output) {
 			// output spikes for recording
 			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_DNC;
 			// slow only works if merger is set to MERGE
 			chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
 			chip.layer1[dnc].slow = true;
 
-		} else if (address_assignment.mode(dnc) == L1AddressAssignment::Mode::input) {
+		} else if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::input) {
 			// input from external FPGAs
 			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_HICANN;
 			chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
@@ -376,7 +374,7 @@ InputPlacement::neuronsFittingIntoAvailableRate(
 
 	auto const& params = pop.parameters();
 
-	FiringRateVisitor fr_visitor(m_speedup);
+	internal::FiringRateVisitor fr_visitor(m_speedup);
 
 	debug(this) << " available_rate: " <<  available_rate;
 	rate_type summed_rate = 0;

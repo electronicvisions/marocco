@@ -1,4 +1,4 @@
-#include "marocco/placement/L1AddressPool.h"
+#include "marocco/placement/internal/L1AddressPool.h"
 
 #include "hal/Coordinate/iter_all.h"
 #include "HMF/SynapseDecoderDisablingSynapse.h"
@@ -8,6 +8,7 @@ using namespace HMF::HICANN;
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 namespace {
 
@@ -83,5 +84,6 @@ bool L1AddressPool::empty() const
 	return m_addresses.empty();
 }
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

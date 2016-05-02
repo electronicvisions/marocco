@@ -13,6 +13,8 @@
 #include "marocco/util/iterable.h"
 
 using namespace HMF::Coordinate;
+using marocco::placement::internal::NeuronPlacementRequest;
+using marocco::placement::internal::PlacePopulations;
 
 namespace {
 

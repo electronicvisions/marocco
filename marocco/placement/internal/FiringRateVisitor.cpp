@@ -1,9 +1,10 @@
-#include "marocco/placement/FiringRateVisitor.h"
+#include "marocco/placement/internal/FiringRateVisitor.h"
 #include "marocco/Logger.h"
 #include <algorithm>
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 FiringRateVisitor::FiringRateVisitor(double speedup) : m_speedup(speedup)
 {
@@ -51,5 +52,6 @@ FiringRateVisitor::operator() (
 	return param.rate * m_speedup; // PyNN rate is in Hz.
 }
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

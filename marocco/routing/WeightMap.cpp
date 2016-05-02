@@ -8,7 +8,8 @@ namespace marocco {
 namespace routing {
 
 WeightMap::WeightMap(
-    routing_graph const& rg, placement::WaferL1AddressAssignment const& address_assignment)
+	routing_graph const& rg,
+	placement::internal::WaferL1AddressAssignment const& address_assignment)
 	: g(rg), mAddressAssignment(address_assignment)
 {
 	for (auto& val : horizontal) { val = 0; }
@@ -16,7 +17,7 @@ WeightMap::WeightMap(
 }
 
 WeightMap::WeightMap(pymarocco::Routing const& param, routing_graph const& rg,
-					 placement::WaferL1AddressAssignment const& address_assignment) :
+					 placement::internal::WaferL1AddressAssignment const& address_assignment) :
 	g(rg),
 	w_vertical(param.weight_Vertical),
 	w_horizontal(param.weight_Horizontal),

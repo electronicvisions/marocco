@@ -5,10 +5,11 @@
 
 #include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/Neuron.h"
+
 #include "marocco/config.h"
-#include "marocco/placement/NeuronPlacementRequest.h"
 #include "marocco/placement/NeuronPlacementResult.h"
-#include "marocco/placement/PlacePopulations.h"
+#include "marocco/placement/internal/NeuronPlacementRequest.h"
+#include "marocco/placement/internal/PlacePopulations.h"
 #include "marocco/placement/parameters/ManualPlacement.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
 
@@ -44,9 +45,9 @@ private:
 	 * @brief Extract placement requests and run manual placement.
 	 * @return Populations without manual placement information.
 	 */
-	std::vector<NeuronPlacementRequest> perform_manual_placement();
+	std::vector<internal::NeuronPlacementRequest> perform_manual_placement();
 
-	void post_process(std::vector<PlacePopulations::result_type> const& placements);
+	void post_process(std::vector<internal::PlacePopulations::result_type> const& placements);
 
 	graph_t const& m_graph;
 	parameters::NeuronPlacement const& m_parameters;

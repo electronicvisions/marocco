@@ -1,11 +1,12 @@
 #pragma once
 
 #include "hal/Coordinate/Neuron.h"
-#include "marocco/placement/NeuronPlacementRequest.h"
+#include "marocco/placement/internal/NeuronPlacementRequest.h"
 #include "marocco/placement/NeuronPlacementResult.h"
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 /** Placement of populations to a list of neuron blocks.
  */
@@ -51,5 +52,6 @@ private:
 	std::vector<result_type> m_result;
 }; // PlacePopulations
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

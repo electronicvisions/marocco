@@ -101,7 +101,7 @@ private:
 
 protected:
 	BusUsage mUsage;
-	placement::WaferL1AddressAssignment const* mAddressAssignment;
+	placement::internal::WaferL1AddressAssignment const* mAddressAssignment;
 };
 
 

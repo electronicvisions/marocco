@@ -6,10 +6,11 @@
 
 #include "hal/Coordinate/HMFGeometry.h"
 #include "marocco/util/iterable.h"
-#include "marocco/placement/NeuronPlacementRequest.h"
+#include "marocco/placement/internal/NeuronPlacementRequest.h"
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 namespace detail {
 namespace on_neuron_block {
@@ -201,5 +202,6 @@ private:
 } // namespace on_neuron_block
 } // namespace detail
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

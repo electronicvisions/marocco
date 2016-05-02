@@ -8,6 +8,7 @@
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 /**
  * @brief Provides a pool of available L1 addresses.
@@ -68,5 +69,6 @@ private:
 	bool m_alternating_pop_front_next;
 }; // L1AddressPool
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

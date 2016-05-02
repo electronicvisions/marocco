@@ -352,7 +352,8 @@ void SynapseRouting::run(placement::Result const& placement,
 						continue;
 					}
 
-					placement::OnNeuronBlock const& onb = nrnpl.denmem_assignment().at(
+					// TODO: Use .find(vertex_descriptor) -> LogicalNeuron() interface
+					placement::internal::OnNeuronBlock const& onb = nrnpl.denmem_assignment().at(
 						terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
 					auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
 					assert(it != onb.end());
@@ -364,7 +365,7 @@ void SynapseRouting::run(placement::Result const& placement,
 					}
 
 					NeuronOnNeuronBlock const& first = primary_neuron.toNeuronOnNeuronBlock();
-					std::shared_ptr<placement::NeuronPlacementRequest> const& trg_assign = *it;
+					std::shared_ptr<placement::internal::NeuronPlacementRequest> const& trg_assign = *it;
 					assignment::PopulationSlice const& trg_bio_assign = trg_assign->population_slice();
 
 					size_t const trg_bio_size   = trg_bio_assign.size();

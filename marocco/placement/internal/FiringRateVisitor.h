@@ -7,6 +7,7 @@
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 /**
  * Extract the expected average firing rate of spike sources.
@@ -55,5 +56,6 @@ struct FiringRateVisitor
 	double const m_speedup;
 };
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

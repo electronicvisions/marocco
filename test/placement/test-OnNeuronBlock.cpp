@@ -3,13 +3,14 @@
 #include <vector>
 
 #include "marocco/assignment/PopulationSlice.h"
-#include "marocco/placement/OnNeuronBlock.h"
+#include "marocco/placement/internal/OnNeuronBlock.h"
 #include "marocco/util.h"
 
 using namespace HMF::Coordinate;
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 class OnNeuronBlockTest : public ::testing::Test {
 protected:
@@ -231,5 +232,6 @@ TEST_F(OnNeuronBlockTest, AllowsIterationOfPopulationNeurons) {
 	}
 }
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco

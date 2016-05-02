@@ -1,7 +1,6 @@
-#include "marocco/placement/PlacePopulations.h"
+#include "marocco/placement/internal/PlacePopulations.h"
 
 #include "marocco/Logger.h"
-#include "marocco/placement/OnNeuronBlock.h"
 #include "marocco/placement/Result.h"
 #include "marocco/util/spiral_ordering.h"
 
@@ -9,6 +8,7 @@ using namespace HMF::Coordinate;
 
 namespace marocco {
 namespace placement {
+namespace internal {
 
 auto PlacePopulations::run() -> std::vector<result_type> const&
 {
@@ -114,5 +114,6 @@ bool PlacePopulations::place_one_population()
 	return true;
 }
 
+} // namespace internal
 } // namespace placement
 } // namespace marocco
