@@ -8,6 +8,8 @@ template <typename Iterator>
 class iterable
 {
 public:
+	typedef Iterator iterator;
+
 	template <typename It>
 	iterable(It begin, It end) : mBegin(begin), mEnd(end)
 	{
@@ -29,8 +31,8 @@ public:
 	}
 
 private:
-	Iterator const mBegin;
-	Iterator const mEnd;
+	Iterator mBegin;
+	Iterator mEnd;
 };
 
 template <typename It>
