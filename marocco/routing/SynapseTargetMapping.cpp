@@ -1,6 +1,7 @@
 #include "marocco/routing/SynapseTargetMapping.h"
 
 #include <iomanip>
+#include <boost/serialization/nvp.hpp>
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/placement/Result.h"
@@ -14,13 +15,7 @@ using namespace HMF;
 namespace marocco {
 namespace routing {
 
-SynapseTargetMapping::SynapseTargetMapping()
-{
-	// initialize all synapse targets to SynapseType::None
-	for (auto const& noh : iter_all<NeuronOnHICANN>())
-		for (auto const& side : iter_all<SideHorizontal>())
-			(*this)[noh][side] = SynapseType::None;
-}
+namespace {
 
 /**
  * maps required synapse targets in a simple manner onto connected hardware neurons.
@@ -124,6 +119,28 @@ void map_targets(
 	}
 }
 
+} // namespace
+
+SynapseTargetMapping::SynapseTargetMapping()
+{
+	// initialize all synapse targets to SynapseType::None
+	for (auto const& noh : iter_all<NeuronOnHICANN>()) {
+		for (auto const& side : iter_all<SideHorizontal>()) {
+			m_mapping[noh][side] = SynapseType::None;
+		}
+	}
+}
+
+auto SynapseTargetMapping::operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) -> value_type&
+{
+	return m_mapping[neuron];
+}
+
+auto SynapseTargetMapping::operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) const -> value_type const&
+{
+	return m_mapping[neuron];
+}
+
 void SynapseTargetMapping::simple_mapping(
     HMF::Coordinate::HICANNOnWafer const& hicann,
     placement::results::Placement const& neuron_placement,
@@ -133,11 +150,12 @@ void SynapseTargetMapping::simple_mapping(
 
 	for (auto const& item : neuron_placement.find(hicann)) {
 		Population const& pop = *(graph[item.population()]);
-		auto const& logical_neuron = item.logical_neuron();
-		assert(logical_neuron.is_rectangular());
-
 		std::vector<SynapseType> synapse_targets = visitCellParameterVector(
 			pop.parameters(), syn_tgt_visitor, item.neuron_index());
+
+		auto const& logical_neuron = item.logical_neuron();
+		// Assumes rectangular neuron shapes spanning both rows.
+		assert(logical_neuron.is_rectangular());
 
 		{
 			assert(logical_neuron.size() % NeuronOnNeuronBlock::y_type::size == 0);
@@ -160,61 +178,78 @@ void SynapseTargetMapping::simple_mapping(
 	}
 }
 
-
 bool SynapseTargetMapping::check_top_and_bottom_are_equal() const
 {
-	bool good = true;
-	for (size_t xx = 0; xx < NeuronOnHICANN::x_type::end; ++xx) {
-		const NeuronOnHICANN nt(X(xx), top);
-		const NeuronOnHICANN nb(X(xx), bottom);
-		good &= ((*this)[nt][left] == (*this)[nb][left]);
-		good &= ((*this)[nt][right] == (*this)[nb][right]);
+	for (auto xx : iter_all<NeuronOnHICANN::x_type>()) {
+		const NeuronOnHICANN nt(xx, top);
+		const NeuronOnHICANN nb(xx, bottom);
+		if ((m_mapping[nt][left] != m_mapping[nb][left]) ||
+		    (m_mapping[nt][right] != m_mapping[nb][right])) {
+			return false;
+		}
 	}
-	return good;
+	return true;
 }
 
 std::ostream& operator<<(std::ostream& os, SynapseTargetMapping const& target_mapping)
 {
-	for (auto vside : {top, bottom}) {
-		std::stringstream row1, row2;
-		for (size_t xx = 0; xx < NeuronOnHICANN::x_type::end; ++xx) {
-			const NeuronOnHICANN nn(X(xx), vside);
-			// synaptic target stuff.
-			row1 << "|";
-			SynapseType target_left = target_mapping[nn][left];
-			// print first character of string equivalent
-			// i.e.: 'e' -> excitatory, 'i' -> inhibitory, '0' -> target 0 etc.
-			if (target_left != SynapseType::None) {
-				std::stringstream ss;
-				ss << target_left;
-				row1 << ss.str()[0];
-			} else {
-				row1 << " ";
-			}
+	std::string const horizontal_line(NeuronOnNeuronBlock::x_type::size * 4 + 9, '-');
+	os << horizontal_line << "\n";
 
-			row1 << " ";
-
-			SynapseType target_right = target_mapping[nn][right];
-			if (target_right != SynapseType::None) {
-				std::stringstream ss;
-				ss << target_right;
-				row1 << ss.str()[0];
-			} else {
-				row1 << " ";
-			}
-
-			// denmems
-			row2 << "|" << std::setw(3) << std::setfill(' ') << (size_t)nn.id();
+	// Print mapping by Neuron blocks
+	for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {
+		os << "|  NB(" << size_t(nb) << ") ";
+		for (auto xx : iter_all<NeuronOnNeuronBlock::x_type>()) {
+			os << "|" << std::setw(3) << std::setfill(' ') << size_t(xx);
 		}
-		row1 << "|\n";
-		row2 << "|\n";
-		if (vside == top)
-			os << row1.str() << row2.str();
-		else
-			os << row2.str() << row1.str();
+		os << "|\n";
+
+		// For each neuron print the first character of synapse type, i.e.:
+		// 'e' -> excitatory, 'i' -> inhibitory, '0' -> target 0 etc.
+		for (auto yy : iter_all<NeuronOnNeuronBlock::y_type>()) {
+			os << "| " << (yy == top ? "   top" : "bottom") << " ";
+
+			for (auto xx : iter_all<NeuronOnNeuronBlock::x_type>()) {
+				auto const nrn = NeuronOnNeuronBlock(xx, yy).toNeuronOnHICANN(nb);
+				os << "|";
+				SynapseType target_left = target_mapping[nrn][left];
+				if (target_left != SynapseType::None) {
+					std::stringstream ss;
+					ss << target_left;
+					os << ss.str()[0];
+				} else {
+					os << " ";
+				}
+
+				os << " ";
+
+				SynapseType target_right = target_mapping[nrn][right];
+				if (target_right != SynapseType::None) {
+					std::stringstream ss;
+					ss << target_right;
+					os << ss.str()[0];
+				} else {
+					os << " ";
+				}
+			}
+			os << "|\n";
+		}
+		os << horizontal_line << "\n";
 	}
 	return os;
 }
 
+template <typename Archiver>
+void SynapseTargetMapping::serialize(Archiver& ar, unsigned int const /*version*/)
+{
+	using namespace boost::serialization;
+	ar & make_nvp("mapping", m_mapping);
+}
+
 } // namespace routing
 } // namespace marocco
+
+BOOST_CLASS_EXPORT_IMPLEMENT(::marocco::routing::SynapseTargetMapping)
+
+#include "boost/serialization/serialization_helper.tcc"
+EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::marocco::routing::SynapseTargetMapping)

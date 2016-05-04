@@ -1,40 +1,25 @@
 #pragma once
 
 #include <array>
+#include <boost/serialization/export.hpp>
+
+#include "hal/Coordinate/Neuron.h"
+#include "hal/Coordinate/typed_array.h"
 #include "hal/HICANN/RowConfig.h"
+#include "pywrap/compat/array.hpp"
+
 #include "marocco/graph.h"
-#include "marocco/parameter/NeuronOnHICANNPropertyArray.h"
 #include "marocco/placement/results/Placement.h"
 #include "marocco/routing/SynapseType.h"
 
-#include <boost/serialization/serialization.hpp>
-#include <boost/serialization/nvp.hpp>
-
-#include "pywrap/compat/array.hpp"
+namespace boost {
+namespace serialization {
+class access;
+} // namespace serialization
+} // namespace boost
 
 namespace marocco {
 namespace routing {
-
-/**
- * Synapse targets (synapse types) mapped to the two synaptic inputs of a
- * hardware neuron.
- *
- * Usage:
- * \code
- *  // IF_cond_exp etc ..
- * 	syn_tgts[left] = SynapseType::excitatory
- * 	syn_tgts[right] = SynapseType::inhibitory
- *
- *  // IF_multi_cond_exp with 4 time constants
- *  // Leftmost denmem
- *  syn_tgts[left] = SynapseType(0)
- *  syn_tgts[right] = SynapseType(1)
- *  //2nd denmem
- *  syn_tgts[left] = SynapseType(2)
- *  syn_tgts[right] = SynapseType(3)
- *  \endcode
- */
-typedef std::array<SynapseType, HMF::HICANN::RowConfig::num_syn_ins> synapse_targets;
 
 /**
  * Mapping of synapse targets (synapse types) to the synaptic input circuits of
@@ -48,13 +33,39 @@ typedef std::array<SynapseType, HMF::HICANN::RowConfig::num_syn_ins> synapse_tar
  * furthermore offers a method for a simple synapse target mapping for the
  * neuron mapped onto a HICANN, cf. method. simple_mapping().
  */
-struct SynapseTargetMapping : public parameter::NeuronOnHICANNPropertyArray<synapse_targets>
+struct SynapseTargetMapping
 {
 public:
+	/**
+	 * Synapse targets (synapse types) mapped to the two synaptic inputs of a
+	 * hardware neuron.
+	 *
+	 * Usage:
+	 * \code
+	 *  // IF_cond_exp etc ..
+	 * 	syn_tgts[left] = SynapseType::excitatory
+	 * 	syn_tgts[right] = SynapseType::inhibitory
+	 *
+	 *  // IF_multi_cond_exp with 4 time constants
+	 *  // Leftmost denmem
+	 *  syn_tgts[left] = SynapseType(0)
+	 *  syn_tgts[right] = SynapseType(1)
+	 *  //2nd denmem
+	 *  syn_tgts[left] = SynapseType(2)
+	 *  syn_tgts[right] = SynapseType(3)
+	 *  \endcode
+	 */
+	typedef std::array<SynapseType, HMF::HICANN::RowConfig::num_syn_ins> value_type;
+	typedef HMF::Coordinate::typed_array<value_type, HMF::Coordinate::NeuronOnHICANN> mapping_type;
+
 	/** constructor.
 	 *  sets all synapse targets to SynapseType::None
 	 */
 	SynapseTargetMapping();
+
+	value_type& operator[](HMF::Coordinate::NeuronOnHICANN const& neuron);
+
+	value_type const& operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) const;
 
 	/**
 	 * creates a simple mapping of synapse targets onto the synaptic inputs
@@ -134,19 +145,17 @@ public:
 	bool check_top_and_bottom_are_equal() const;
 
 private:
+	mapping_type m_mapping;
+
 	friend class boost::serialization::access;
 	template <typename Archiver>
 	void serialize(Archiver& ar, unsigned int const /*version*/);
-};
+}; // SynapseTargetMapping
 
 std::ostream& operator<<(std::ostream& os, SynapseTargetMapping const& target_mapping);
 
-template <typename Archiver>
-void SynapseTargetMapping::serialize(Archiver& ar, unsigned int const /*version*/)
-{
-	using namespace boost::serialization;
-	ar & make_nvp("array", mArray);
-}
-
 } // namespace routing
 } // namespace marocco
+
+
+BOOST_CLASS_EXPORT_KEY(::marocco::routing::SynapseTargetMapping)

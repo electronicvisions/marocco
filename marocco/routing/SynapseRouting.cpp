@@ -84,9 +84,7 @@ void SynapseRouting::run(placement::Result const& placement,
 
 	syn_tgt_mapping.simple_mapping(hicann(), nrnpl, mGraph);
 	assert(syn_tgt_mapping.check_top_and_bottom_are_equal());
-	std::stringstream msg;
-	msg << "synapse_target_mapping:\n" << syn_tgt_mapping;
-	MAROCCO_DEBUG(msg.str());
+	MAROCCO_DEBUG("SynapseTargetMapping:\n" << syn_tgt_mapping);
 
 	MAROCCO_INFO("calc synapse driver requirements for hicann " << hicann());
 
