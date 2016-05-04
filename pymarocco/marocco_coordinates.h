@@ -1,5 +1,6 @@
 #pragma once
 
+#include "marocco/coordinates/BioNeuron.h"
 #include "marocco/coordinates/L1AddressOnWafer.h"
 #include "marocco/coordinates/L1Route.h"
 #include "marocco/coordinates/L1RouteTree.h"
