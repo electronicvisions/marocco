@@ -10,7 +10,7 @@
 #include "hal/Coordinate/HMFGeometry.h"
 #include "hal/HICANN/L1Address.h"
 #include "marocco/routing/SynapseTargetMapping.h"
-#include "marocco/placement/Result.h"
+#include "marocco/placement/results/Placement.h"
 #include "marocco/routing/LocalRoute.h"
 #include "marocco/routing/STPMode.h"
 #include "marocco/routing/SynapseType.h"
@@ -69,7 +69,7 @@ inline Parity to_Parity(size_t i)
 /// hardware neurons on a HICANN.
 ///
 /// @note: although this class stores counts for single hardware neurons, currently only
-///        the top left neuron of the compound neurons are used
+///        the first (top left) neuron of the logical neurons is used
 class SynapseCounts
 {
 public:
@@ -80,7 +80,7 @@ public:
 	/// increase synapse count for target neuron 'p', for DriverDecoderMask
 	/// of source 'addr', target 'type', and STP mode 'stp'.
 	///
-	/// @param p target neuron described by coordinate of top left neuron of compound neuron
+	/// @param p target neuron described by coordinate of first (top left) neuron of logical neuron
 	/// @param addr 6 bit Layer 1 Address of pre synaptic neuron
 	/// @param type target of the synapse, a.k.a the synapse type
 	/// @param stp STP mode of the synapse
@@ -129,7 +129,7 @@ private:
  *    these can be mapped to the left(right) synaptic input of the neuron.
  *    However, when more than two different synaptic time constants are
  *    desired, these parameters must be mapped to different synaptic input
- *    circuits on different denmems within a compound neurons, which
+ *    circuits on different denmems within a logical neuron, which
  *    complicates the routing.
  *
  * This class computes the number of synapse drivers required to realize all
@@ -165,17 +165,17 @@ public:
 	/// @param syn_tgt_mapping  mapping of biological synapse types onto the
 	/// synaptic input circuits of the hardware neurons
 	SynapseDriverRequirements(
-		HMF::Coordinate::HICANNGlobal const& hicann,
-		marocco::placement::Result const& placement_result,
+		HMF::Coordinate::HICANNOnWafer const& hicann,
+		placement::results::Placement const& placement_result,
 		SynapseTargetMapping const& syn_tgt_mapping);
 
-	/// calculate the number of required synapse drivers for the connections
-	/// from a L1 route.
+	/// calculate the number of required synapse drivers for connections from the
+	/// specified sources.
 	///
-	/// Extracts the synaptic connections targetting neurons on the current
-	/// HICANN from the hardware projections mapped onto the L1 Route.
-	/// For each target neuron, the number synapses per bio synapse property is
-	/// counted, cf. class SynapseCounts.
+	/// Extracts the synaptic connections targetting neurons on the current HICANN from
+	/// the outgoing projections of populations mapped to the specified DNC merger.
+	/// For each target neuron, the number of required synapses per bio synapse property
+	/// is counted, cf. SynapseCounts.
 	/// Next the number of required synapse drivers to realize all synapses
 	/// considering the hardware configurability constraints is calculated.
 	/// In doing so, the number of half synapse rows per hardware synapse
@@ -184,8 +184,8 @@ public:
 	/// and synrow_histogram.
 	/// See _calc() for more details.
 	///
-	/// @param[in] projections list of hardware projections mapped onto the L1
-	/// route.
+	/// @param[in] source merger used to lookup the populations whose outgoing
+	///                   projections to consider
 	/// @param[in] graph the PyNN graph of populations and projections
 	/// @param[out] synapse_histogram synapses per hardware synapse property
 	/// @param[out] synrow_histogram required half synapse rows per hardware
@@ -194,29 +194,26 @@ public:
 	/// @return a std::pair (number of required drivers, number of synapses
 	/// from this L1 Route to target neurons on the HICANN)
 	std::pair<size_t, size_t> calc(
-		std::vector<HardwareProjection> const& projections,
+		HMF::Coordinate::DNCMergerOnWafer const& source,
 		graph_t const& graph,
 		std::map<Side_Parity_Decoder_STP, size_t>& synapse_histogram,
 		std::map<Side_Parity_Decoder_STP, size_t>& synrow_histogram) const;
 
-	/// calculate the number of required synapse drivers for the connections
-	/// from a L1 route.
+	/// calculate the number of required synapse drivers for connections from the
+	/// specified sources.
 	///
-	/// @param projections list of hardware projections mapped onto the L1
-	/// route.
+	/// @param source merger used to lookup the populations whose outgoing projections
+	///               to consider
 	/// @param graph the PyNN graph of populations and projections
 	///
 	/// @return a std::pair (number of required drivers, number of synapses)
 	///
-	/// @note: this version is used by the algorithm `WaferRouting` to
-	/// determine whether any L1Route has targets on a given HICANN. This
-	/// assertion could be done much more efficiently, cf. #1594.
-	std::pair<size_t, size_t>
-	calc(std::vector<HardwareProjection> const& projections, graph_t const& graph) const;
-
-	HMF::Coordinate::HICANNGlobal const& hicann() const {
-		return mHICANN;
-	}
+	/// @note This version is used by the algorithm `WaferRouting` to determine whether to
+	///       route from a source merger to a given HICANN, i.e. whether any outgoing
+	///       projection has targets on this HICANN. This assertion could be done much
+	///       more efficiently, cf. #1594.
+	std::pair<size_t, size_t> calc(
+		HMF::Coordinate::DNCMergerOnWafer const& source, graph_t const& graph) const;
 
 	std::unordered_map<HMF::Coordinate::NeuronOnHICANN, std::map<SynapseType, SynapseColumnsMap> >
 	get_synapse_type_to_synapse_columns_map() const;
@@ -230,7 +227,7 @@ private:
 	/// @param hicann HICANN coordinate
 	/// neurons of a HICANN
 	static NeuronWidth extract_neuron_width(
-		placement::internal::Result::denmem_assignment_type const& denmem_assignment,
+		placement::results::Placement const& neuron_placement,
 		HMF::Coordinate::HICANNOnWafer const& hicann);
 
 	/// calculate for all used compound hardware neurons the number of target
@@ -489,10 +486,10 @@ private:
 
 	// members
 	/// Coordinate of HICANN chip we are currently working on.
-	HMF::Coordinate::HICANNGlobal mHICANN;
+	HMF::Coordinate::HICANNOnWafer mHICANN;
 
 	/// @mapping of biological neurons/populations onto hardware neurons
-	marocco::placement::Result const& mPlacementResult;
+	placement::results::Placement const& mPlacementResult;
 
 	/// mapping of biological synapse types onto the synaptic input circuits of
 	/// the hardware neurons

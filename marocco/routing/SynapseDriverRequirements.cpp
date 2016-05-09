@@ -49,13 +49,13 @@ std::ostream& operator<<(std::ostream& os, TriParity p)
 }
 
 SynapseDriverRequirements::SynapseDriverRequirements(
-	HMF::Coordinate::HICANNGlobal const& hicann,
-	marocco::placement::Result const& placement_result,
+	HMF::Coordinate::HICANNOnWafer const& hicann,
+	placement::results::Placement const& placement_result,
 	SynapseTargetMapping const& syn_tgt_mapping)
 	: mHICANN(hicann),
 	  mPlacementResult(placement_result),
 	  mSynapseTargetMapping(syn_tgt_mapping),
-	  mNeuronWidth(extract_neuron_width(placement_result.internal.denmem_assignment, mHICANN)),
+	  mNeuronWidth(extract_neuron_width(placement_result, mHICANN)),
 	  mTargetSynapsesPerSynapticInputGranularity(
 		  calc_target_synapses_per_synaptic_input_granularity(mNeuronWidth, mSynapseTargetMapping))
 {
@@ -355,27 +355,22 @@ SynapseDriverRequirements::resolve_triparity(
 
 
 SynapseDriverRequirements::NeuronWidth SynapseDriverRequirements::extract_neuron_width(
-	placement::internal::Result::denmem_assignment_type const& denmem_assignment,
+	placement::results::Placement const& neuron_placement,
 	HICANNOnWafer const& hicann)
 {
 	NeuronWidth rv;
-	auto it = denmem_assignment.find(hicann);
-	if (it == denmem_assignment.end()) {
-		return rv;
-	}
 
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		// TODO: Use .find(NeuronBlockOnWafer()) -> LogicalNeuron() interface
-		placement::internal::OnNeuronBlock const& onb = (it->second)[nb];
+		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
+			auto const& logical_neuron = item.logical_neuron();
+			assert(!logical_neuron.is_external());
 
-		for (auto it = onb.begin(); it != onb.end(); ++it) {
-			size_t const hw_neuron_size = (*it)->neuron_size();
-			size_t const hw_neuron_width = (*it)->neuron_width();
+			// Assumes rectangular neuron shapes spanning both rows.
+			assert(logical_neuron.is_rectangular());
 
-			for (auto& neuron : chunked(onb.neurons(it), hw_neuron_size)) {
-				auto nrn = *neuron.begin();
-				rv[nrn.toNeuronOnHICANN(nb)] = hw_neuron_width;
-			}
+			auto const front = logical_neuron.front();
+			auto const back = logical_neuron.back();
+			rv[front.toNeuronOnHICANN()] = back.x() - front.x() + 1;
 		}
 	}
 	return rv;
@@ -447,11 +442,11 @@ SynapseDriverRequirements::get_synapse_type_to_synapse_columns_map() const
 }
 
 std::pair<size_t, size_t> SynapseDriverRequirements::calc(
-	std::vector<HardwareProjection> const& projections, graph_t const& graph) const
+	DNCMergerOnWafer const& source, graph_t const& graph) const
 {
 	std::map<Side_Parity_Decoder_STP, size_t> synapse_histogram;
 	std::map<Side_Parity_Decoder_STP, size_t> synrow_histogram;
-	return calc(projections, graph, synapse_histogram, synrow_histogram);
+	return calc(source, graph, synapse_histogram, synrow_histogram);
 }
 
 std::pair<size_t, size_t> SynapseDriverRequirements::_calc(
@@ -537,116 +532,57 @@ std::pair<size_t, size_t> SynapseDriverRequirements::_calc(
 }
 
 std::pair<size_t, size_t> SynapseDriverRequirements::calc(
-	std::vector<HardwareProjection> const& projections,
+	DNCMergerOnWafer const& source,
 	graph_t const& graph,
 	std::map<Side_Parity_Decoder_STP, size_t>& synapse_histogram,
 	std::map<Side_Parity_Decoder_STP, size_t>& synrow_histogram) const
 {
 	SynapseCounts sc;
 
-	auto const& revmap = mPlacementResult.internal.primary_denmems_for_population;
+	for (auto const& source_item : mPlacementResult.find(source)) {
+		for (auto const& edge : make_iterable(out_edges(source_item.population(), graph))) {
+			ProjectionView const proj_view = graph[edge];
 
-	for (auto const& proj : projections)
-	{
-		graph_t::edge_descriptor pynn_proj = proj.projection();
-
-		graph_t::vertex_descriptor target = boost::target(pynn_proj, graph);
-
-		assignment::AddressMapping const& am = proj.source();
-		std::vector<L1Address> const& addresses = am.addresses();
-
-		assignment::PopulationSlice const& src_bio_assign = am.bio();
-
-		size_t const src_bio_size   = src_bio_assign.size();
-		size_t const src_bio_offset = src_bio_assign.offset();
-
-		// now there is everything from the source, now need more info about target
-		// population placement.
-
-		ProjectionView const proj_view = graph[pynn_proj];
-
-		size_t const src_neuron_offset_in_proj_view =
-			getPopulationViewOffset(src_bio_offset, proj_view.pre().mask());
-
-		// FIXME: some of the following seems to have been copied
-		// verbatim from SynapseRouting.cpp
-		for (auto const& primary_neuron : revmap.at(target)) {
-			auto const terminal = primary_neuron.toNeuronBlockOnWafer();
-			if (terminal.toHICANNOnWafer() == hicann().toHICANNOnWafer()) {
-				// TODO: Use .find(vertex_descriptor) -> LogicalNeuron() interface
-				placement::internal::OnNeuronBlock const& onb =
-					mPlacementResult.internal.denmem_assignment.at(
-						terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
-
-				auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
-				assert(it != onb.end());
-
-				std::shared_ptr<placement::internal::NeuronPlacementRequest> const& trg_assign = *it;
-				assignment::PopulationSlice const& trg_bio_assign = trg_assign->population_slice();
-				size_t const trg_bio_size   = trg_bio_assign.size();
-				size_t const trg_bio_offset = trg_bio_assign.offset();
-
-				{
-					// FIXME: Confirm and remove this:
-					NeuronOnNeuronBlock first = *onb.neurons(it).begin();
-					assert(first == primary_neuron.toNeuronOnNeuronBlock());
-				}
-
-				NeuronOnNeuronBlock const& first = primary_neuron.toNeuronOnNeuronBlock();
-
-				size_t const hw_neuron_width = trg_assign->neuron_width();
-
-				auto bio_weights = proj_view.getWeights(); // this is just a view, no copying
-
-				SynapseType syntype_proj = toSynapseType(proj_view.projection()->target());
-
-				auto dynamics = proj_view.projection()->dynamics();
-				STPMode stp_proj = toSTPMode(dynamics);
-
-				size_t const trg_neuron_offset_in_proj_view =
-					getPopulationViewOffset(trg_bio_offset, proj_view.post().mask());
-
-				size_t cnt=0;
-				size_t src_neuron_in_proj_view = src_neuron_offset_in_proj_view;
-				for (size_t src_neuron=src_bio_offset; src_neuron<src_bio_offset+src_bio_size; ++src_neuron)
-				{
-					if (!proj_view.pre().mask()[src_neuron]) {
-						continue;
-					}
-
-					L1Address const& l1_address = addresses[cnt++];
-
-					//boost::numeric::ublas::matrix_row<Connector::const_matrix_view_type> row(weights, src_neuron_in_proj_view);
-					//auto weight_iterator = row.begin()+trg_neuron_offset_in_proj_view;
-
-					size_t trg_neuron_in_proj_view = trg_neuron_offset_in_proj_view;
-					for (size_t trg_neuron=trg_bio_offset; trg_neuron<trg_bio_offset+trg_bio_size; ++trg_neuron)
-					{
-						if (!proj_view.post().mask()[trg_neuron]) {
-							continue;
-						}
-
-						double const weight = bio_weights(src_neuron_in_proj_view, trg_neuron_in_proj_view);
-						//double const weight = *(weight_iterator++);
-						if (!std::isnan(weight) && weight > 0.)
-						{
-							// FIXME: use coordinate conversion functions...
-							size_t const trg_hw_offset =
-							    terminal.toNeuronBlockOnHICANN().value() * 32 +
-							    first.x() +
-							    (trg_neuron - trg_bio_offset) * hw_neuron_width;
-							sc.add(
-								NeuronOnHICANN(X(trg_hw_offset), Y(0)), l1_address, syntype_proj,
-								stp_proj);
-						}
-						++trg_neuron_in_proj_view;
-					}
-
-					++src_neuron_in_proj_view;
-				}
+			if (!proj_view.pre().mask()[source_item.neuron_index()]) {
+				continue;
 			}
-		} // all hw assignments
-	} // all hw projections
+
+			Connector::const_matrix_view_type const bio_weights = proj_view.getWeights();
+			SynapseType const syntype_proj = toSynapseType(proj_view.projection()->target());
+			STPMode const stp_proj = toSTPMode(proj_view.projection()->dynamics());
+
+			graph_t::vertex_descriptor target = boost::target(edge, graph);
+			for (auto const& target_item : mPlacementResult.find(target)) {
+				auto const& neuron_block = target_item.neuron_block();
+				if (neuron_block == boost::none ||
+				    neuron_block->toHICANNOnWafer() != mHICANN) {
+					continue;
+				}
+
+				if (!proj_view.post().mask()[target_item.neuron_index()]) {
+					continue;
+				}
+
+				size_t const src_neuron_in_proj_view =
+					getPopulationViewOffset(source_item.neuron_index(), proj_view.pre().mask());
+				size_t const trg_neuron_in_proj_view =
+					getPopulationViewOffset(target_item.neuron_index(), proj_view.post().mask());
+
+				double const weight =
+					bio_weights(src_neuron_in_proj_view, trg_neuron_in_proj_view);
+
+				if (std::isnan(weight) || weight <= 0.) {
+					continue;
+				}
+
+				auto const address = source_item.address();
+				assert(address != boost::none);
+				auto const logical_neuron = target_item.logical_neuron();
+				assert(!logical_neuron.is_external());
+				sc.add(logical_neuron.front(), address->toL1Address(), syntype_proj, stp_proj);
+			}
+		}
+	}
 
 	return _calc(
 		sc, mTargetSynapsesPerSynapticInputGranularity, synapse_histogram, synrow_histogram);

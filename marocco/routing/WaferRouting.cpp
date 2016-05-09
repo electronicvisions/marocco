@@ -105,6 +105,7 @@ WaferRouting::run(placement::Result const& placement)
 
 	while (!queue.empty())
 	{
+		// All current projections start from the same DNCMergerOnWafer.
 		auto const source = queue.source();
 		HICANNGlobal const& hicann = source.first;
 		DNCMergerOnHICANN const& dnc = source.second;
@@ -120,8 +121,8 @@ WaferRouting::run(placement::Result const& placement)
 			// need to count the total number of synapses.
 			SynapseTargetMapping syn_tgt_mapping;
 			syn_tgt_mapping.simple_mapping(target, neuron_placement, getGraph());
-			SynapseDriverRequirements req(target, placement, syn_tgt_mapping);
-			auto const num = req.calc(projections, getGraph());
+			SynapseDriverRequirements req(target, neuron_placement, syn_tgt_mapping);
+			auto const num = req.calc(DNCMergerOnWafer(dnc, hicann), getGraph());
 
 			if (!num.first) {
 				to_remove.push_back(target);

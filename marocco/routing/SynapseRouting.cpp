@@ -89,17 +89,25 @@ void SynapseRouting::run(placement::Result const& placement,
 	MAROCCO_INFO("calc synapse driver requirements for hicann " << hicann());
 
 	// secondly, generate statistics about SynapseDriver requirements
-	SynapseDriverRequirements drivers_required(hicann(), placement, syn_tgt_mapping);
+	SynapseDriverRequirements drivers_required(hicann(), nrnpl, syn_tgt_mapping);
 
 	std::unordered_map<VLineOnHICANN, SynapseManager::Histogram> synapse_histogram;
 	std::unordered_map<VLineOnHICANN, SynapseManager::Histogram> synrow_histogram;
 	for (auto const& local_route : route_list)
 	{
 		VLineOnHICANN const vline(local_route.targetBus(mRoutingGraph).getBusId());
+		auto const source_bus = mRoutingGraph[local_route.route().source()];
+		assert(source_bus.getDirection() == L1Bus::Horizontal);
+		auto const source_dnc = DNCMergerOnWafer(
+			source_bus.toHLine()
+				.toHRepeaterOnHICANN()
+				.toSendingRepeaterOnHICANN()
+				.toDNCMergerOnHICANN(),
+			source_bus.hicann());
 
 		std::map<Side_Parity_Decoder_STP, size_t>& synhist = synapse_histogram[vline];
 		std::map<Side_Parity_Decoder_STP, size_t>& rowhist = synrow_histogram[vline];
-		auto const needed = drivers_required.calc(local_route.route().projections(), mGraph, synhist, rowhist);
+		auto const needed = drivers_required.calc(source_dnc, mGraph, synhist, rowhist);
 		MAROCCO_DEBUG(
 			"route " << vline << " requires " << needed.first << " SynapseDrivers for "
 					 << needed.second << " synapses");
