@@ -15,16 +15,18 @@ namespace fieres {
 
 const int InboundRoute::DEFECT = -1;
 
-void Assignment::add_defect(side_vertical_t const& side, coord_t const& drv) {
+void Assignment::add_defect(SideVertical const& side, coordinate_type const& drv)
+{
 	auto& ptr = mData[side][drv];
 	if (ptr) {
 		throw std::runtime_error("Synapse driver already taken.");
 	}
-	ptr = std::make_shared<interval_t>();
+	ptr = std::make_shared<interval_type>();
 }
 
-void Assignment::insert(side_vertical_t const& side_vertical, coord_t const& drv,
-                        InboundRoute const& route) {
+void Assignment::insert(
+	SideVertical const& side_vertical, coordinate_type const& drv, InboundRoute const& route)
+{
 	size_t const length = route.assigned;
 
 	if (length < 1) {
@@ -32,31 +34,32 @@ void Assignment::insert(side_vertical_t const& side_vertical, coord_t const& drv
 	}
 
 	auto& assign = mData[side_vertical];
-	auto const begin = assign.begin();
-	auto const primary = begin + drv;
-	array_t::reverse_iterator rprimary{primary};
+	auto const begin_it = assign.begin();
+	auto const primary_it = begin_it + drv;
+	array_type::reverse_iterator const primary_rit{primary_it};
 
-	if (*primary) {
+	if (*primary_it) {
 		throw std::runtime_error("Primary synapse driver already taken.");
 	}
 
 	// Look for up to (length - 1) free spots above, excluding primary:
-	auto const top =
-	    std::find_if(rprimary, std::min(rprimary + (length - 1), assign.rend()),
-	                 assigned_p).base();
-	auto const possible_above = primary - top;
+	auto const top_it =
+		std::find_if(primary_rit, std::min(primary_rit + (length - 1), assign.rend()), assigned_p)
+			.base();
+	auto const possible_above = primary_it - top_it;
 
 	// Look for the remaining spots below, including primary:
 	// (Note that bottom points past the last element, like .end().)
-	auto const bottom = std::find_if(
-	    primary, std::min(primary + (length - possible_above), assign.end()), assigned_p);
+	auto const bottom_it = std::find_if(
+		primary_it, std::min(primary_it + (length - possible_above), assign.end()), assigned_p);
 
-	if (size_t(bottom - top) != length) {
+	if (size_t(bottom_it - top_it) != length) {
 		throw std::runtime_error("Could not fit assignment range into gap.");
 	}
 
-	auto ival = std::make_shared<interval_t>(route, drv, top - begin, bottom - begin);
-	std::fill(top, bottom, ival);
+	auto const ival =
+		std::make_shared<interval_type>(route, drv, top_it - begin_it, bottom_it - begin_it);
+	std::fill(top_it, bottom_it, ival);
 }
 
 /// Auxiliary structure to keep track of possible insertion options
@@ -105,7 +108,7 @@ bool Assignment::add(InboundRoute const& route) {
 
 		// Count "gap", i.e. number of unassigned drivers surrounding the
 		// given primary driver:
-		array_t::const_reverse_iterator const rit{it};
+		array_type::const_reverse_iterator const rit{it};
 
 		size_t const gap = (
 			// look below: [it, assign.end())
@@ -153,9 +156,10 @@ bool Assignment::add(InboundRoute const& route) {
 	return true;
 }
 
-Assignment::result_t Assignment::result() const {
-	result_t res;
-	std::unordered_set<interval_t const*> processed;
+auto Assignment::result() const -> result_type
+{
+	result_type res;
+	std::unordered_set<interval_type const*> processed;
 
 	for (auto const side_vertical : iter_all<SideVertical>()) {
 		for (auto const& interval : mData[side_vertical]) {

@@ -45,7 +45,7 @@ public:
 	SideHorizontal side;
 	TestableAssignment assignment;
 
-	decltype(assignment.mData[0]) & raw(SideVertical sidev) {
+	decltype(assignment.mData[top])& raw(SideVertical sidev) {
 		return assignment.mData[sidev];
 	}
 };
@@ -146,9 +146,9 @@ TEST_P(AssignmentTest, AchievesASnugFit) {
 		EXPECT_EQ(3, assignment.test_count_unassigned());
 		auto const side = target.toSideVertical();
 		auto const onquadr = target.toSynapseDriverOnQuadrant();
-		EXPECT_FALSE(raw(side)[onquadr + 0]);
-		EXPECT_FALSE(raw(side)[onquadr + 1]);
-		EXPECT_FALSE(raw(side)[onquadr + 2]);
+		EXPECT_FALSE(raw(side)[SynapseDriverOnQuadrant(onquadr + 0)]);
+		EXPECT_FALSE(raw(side)[SynapseDriverOnQuadrant(onquadr + 1)]);
+		EXPECT_FALSE(raw(side)[SynapseDriverOnQuadrant(onquadr + 2)]);
 	}
 
 	// As there is a gap around a reachable synapse driver this should work:

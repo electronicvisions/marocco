@@ -1,14 +1,15 @@
 #pragma once
 
-#include <vector>
-#include <array>
 #include <iosfwd>
 #include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <boost/icl/interval_map.hpp>
 #include <boost/shared_ptr.hpp>
+
+#include "hal/Coordinate/typed_array.h"
 
 #include "marocco/config.h"
 #include "marocco/routing/DriverAssignment.h"
@@ -77,36 +78,46 @@ struct InboundRoute {
 /// Holds assignment data for all synapse drivers of one side
 /// (left/right) of the HICANN.
 class Assignment {
-	typedef HMF::Coordinate::SynapseDriverOnQuadrant coord_t;
-	typedef HMF::Coordinate::SideVertical side_vertical_t;
+	typedef HMF::Coordinate::SynapseDriverOnQuadrant coordinate_type;
 
 public:
-	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN,
-	                           std::vector<DriverAssignment>> result_t;
+	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN, std::vector<DriverAssignment> >
+		result_type;
 
 	Assignment(HMF::Coordinate::SideHorizontal const& side) : mSide(side) {}
 
 	/// Disable a synapse driver for further use.
 	/// Note that you HAVE to mark defects before doing anything else.
-	void add_defect(side_vertical_t const& side, coord_t const& drv);
+	void add_defect(HMF::Coordinate::SideVertical const& side, coordinate_type const& drv);
 
 	/// Find an appropriate gap with enough unused adjacent drivers and
 	/// insert this incoming route.  Returns true on success and false
 	/// if this route is rejected (due to resource shortage).
 	bool add(InboundRoute const& route);
 
-	result_t result() const;
+	result_type result() const;
 
 protected:
-	void insert(side_vertical_t const& side, coord_t const& drv,
-	            InboundRoute const& route);
+	void insert(
+		HMF::Coordinate::SideVertical const& side,
+		coordinate_type const& drv,
+		InboundRoute const& route);
 
 	/// Represents a range of synapse drivers assigned to the same incoming route.
-	struct interval_t {
-		interval_t() : route(), primary(), begin(0), end(0) {}
-		interval_t(InboundRoute val, HMF::Coordinate::SynapseDriverOnQuadrant drv,
-		           std::ptrdiff_t b, std::ptrdiff_t e)
-		    : route(val), primary(drv), begin(b), end(e) {}
+	struct interval_type
+	{
+		interval_type() : route(), primary(), begin(0), end(0)
+		{
+		}
+
+		interval_type(
+			InboundRoute val,
+			HMF::Coordinate::SynapseDriverOnQuadrant drv,
+			std::ptrdiff_t b,
+			std::ptrdiff_t e)
+			: route(val), primary(drv), begin(b), end(e)
+		{
+		}
 
 		InboundRoute route;
 		HMF::Coordinate::SynapseDriverOnQuadrant primary;
@@ -114,14 +125,20 @@ protected:
 		std::ptrdiff_t end;
 	};
 
-	typedef std::shared_ptr<interval_t> value_t;
-	typedef std::array<value_t, coord_t::end> array_t;
+	typedef std::shared_ptr<interval_type> value_type;
+	typedef HMF::Coordinate::typed_array<value_type, coordinate_type> array_type;
 
-	static bool unassigned_p(value_t const& val) { return !val; }
+	static bool unassigned_p(value_type const& val)
+	{
+		return !val;
+	}
 
-	static bool assigned_p(value_t const& val) { return !!val; }
+	static bool assigned_p(value_type const& val)
+	{
+		return !!val;
+	}
 
-	std::array<array_t, 2> mData;
+	HMF::Coordinate::typed_array<array_type, HMF::Coordinate::SideVertical> mData;
 	HMF::Coordinate::SideHorizontal mSide;
 };
 
