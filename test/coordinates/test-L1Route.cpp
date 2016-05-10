@@ -231,12 +231,24 @@ TEST(L1Route, findInvalid)
 	}
 
 	route.emplace_back(HICANNOnWafer(X(6), Y(5)));
-	ASSERT_EQ(route.end(), find_invalid(route));
+	// HICANNOnWafer on its own is invalid.  Route has to end with non-HICANN segment.
+	ASSERT_EQ(std::prev(route.end()), find_invalid(route));
 	route.emplace_back(HLineOnHICANN(48));
+	ASSERT_EQ(route.end(), find_invalid(route));
 	route.emplace_back(VLineOnHICANN(39));
 	route.emplace_back(SynapseDriverOnHICANN(left, Y(99)));
 	route.emplace_back(SynapseOnHICANN(SynapseColumnOnHICANN(5), SynapseRowOnHICANN(0)));
 	ASSERT_EQ(route.end(), find_invalid(route));
+}
+
+TEST_F(ASimpleL1Route, canNotEndWithHICANN)
+{
+	EXPECT_ANY_THROW(L1Route route{HICANNOnWafer(X(5), Y(5))});
+	try {
+	    L1Route route{HICANNOnWafer(X(5), Y(5)), HLineOnHICANN(46), HICANNOnWafer(X(6), Y(5))};
+	    FAIL() << "route that ends with HICANN did not throw";
+	} catch (InvalidRouteError const&) {
+	}
 }
 
 TEST_F(ASimpleL1Route, isNotEmpty)
@@ -357,6 +369,16 @@ TEST(L1Route, outputToLeftOfSendingRepeater)
 	L1Route route{HICANNOnWafer(X(5), Y(5)), DNCMergerOnHICANN(2)};
 	ASSERT_ANY_THROW(route.append(HICANNOnWafer(X(4), Y(5)), HLineOnHICANN(46)));
 	ASSERT_NO_THROW(route.append(HICANNOnWafer(X(4), Y(5)), HLineOnHICANN(44)));
+}
+
+TEST(L1Route, insertIntoAdjacentSynapseArray)
+{
+	L1Route route{HICANNOnWafer(X(5), Y(5)), VLineOnHICANN(2)};
+	ASSERT_ANY_THROW(route.append(HICANNOnWafer(X(4), Y(5)), SynapseDriverOnHICANN(left, Y(99))));
+	ASSERT_ANY_THROW(route.append(HICANNOnWafer(X(5), Y(5)), SynapseDriverOnHICANN(right, Y(100))));
+	ASSERT_ANY_THROW(route.append(HICANNOnWafer(X(6), Y(5)), SynapseDriverOnHICANN(left, Y(99))));
+	ASSERT_ANY_THROW(route.append(HICANNOnWafer(X(6), Y(5)), SynapseDriverOnHICANN(right, Y(100))));
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(X(4), Y(5)), SynapseDriverOnHICANN(right, Y(100))));
 }
 
 } // namespace marocco

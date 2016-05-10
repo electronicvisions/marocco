@@ -21,8 +21,8 @@ bool is_hicann(L1Route::segment_type const& segment) {
 class IsValidSuccessor : public boost::static_visitor<bool>
 {
 	HICANNOnWafer m_current_hicann;
-	// Expected horizontal/vertical line when going beyond HICANN boundaries.
-	L1Route::segment_type m_expected_line;
+	// Previous segment when crossing HICANN boundaries.
+	L1Route::segment_type m_previous_segment;
 
 public:
 	IsValidSuccessor(HICANNOnWafer hicann) : m_current_hicann(std::move(hicann))
@@ -60,23 +60,13 @@ public:
 
 	bool operator()(HLineOnHICANN const& current, HICANNOnWafer const& next)
 	{
-		int diff = int(m_current_hicann.x()) - next.x();
-		if (diff == 0) {
-			return false;
-		}
-		m_expected_line = (diff < 0) ? current.east() : current.west();
-		m_current_hicann = next;
+		m_previous_segment = current;
 		return true;
 	}
 
 	bool operator()(VLineOnHICANN const& current, HICANNOnWafer const& next)
 	{
-		int diff = int(m_current_hicann.y()) - next.y();
-		if (diff == 0) {
-			return false;
-		}
-		m_expected_line = (diff < 0) ? current.south() : current.north();
-		m_current_hicann = next;
+		m_previous_segment = current;
 		return true;
 	}
 
@@ -89,16 +79,48 @@ public:
 		return operator()(current.toSendingRepeaterOnHICANN().toHLineOnHICANN(), next);
 	}
 
-	bool operator()(HICANNOnWafer const& current, HLineOnHICANN const& next)
+	bool operator()(HICANNOnWafer const& hicann, HLineOnHICANN const& next)
 	{
-		auto const* expected = boost::get<HLineOnHICANN>(&m_expected_line);
-		return current == m_current_hicann && expected != nullptr && next == *expected;
+		int diff = int(m_current_hicann.x()) - hicann.x();
+		if (diff == 0) {
+			return false;
+		}
+		auto const* previous = boost::get<HLineOnHICANN>(&m_previous_segment);
+		if (previous == nullptr || next != (diff < 0 ? previous->east() : previous->west())) {
+			return false;
+		}
+		m_current_hicann = hicann;
+		return true;
 	}
 
-	bool operator()(HICANNOnWafer const& current, VLineOnHICANN const& next)
+	bool operator()(HICANNOnWafer const& hicann, VLineOnHICANN const& next)
 	{
-		auto const* expected = boost::get<VLineOnHICANN>(&m_expected_line);
-		return current == m_current_hicann && expected != nullptr && next == *expected;
+		int diff = int(m_current_hicann.y()) - hicann.y();
+		if (diff == 0) {
+			return false;
+		}
+		auto const* previous = boost::get<VLineOnHICANN>(&m_previous_segment);
+		if (previous == nullptr || next != (diff < 0 ? previous->south() : previous->north())) {
+			return false;
+		}
+		m_current_hicann = hicann;
+		return true;
+	}
+
+	// Adjacent input to synapse array.
+	bool operator()(HICANNOnWafer const& hicann, SynapseDriverOnHICANN const& next)
+	{
+		int diff = int(m_current_hicann.x()) - hicann.x();
+		if (m_current_hicann.y() != hicann.y()) {
+			return false;
+		}
+		auto const* previous = boost::get<VLineOnHICANN>(&m_previous_segment);
+		if (previous == nullptr || previous->toSideHorizontal() == next.toSideHorizontal() ||
+		    diff != (previous->toSideHorizontal() == left ? 1 : -1)) {
+			return false;
+		}
+		m_current_hicann = hicann;
+		return true;
 	}
 
 	//  ——— Merger tree ————————————————————————————————————————————————————————
@@ -507,11 +529,19 @@ L1Route::find_invalid(
 		return beg;
 	}
 
+	// Ensure that route does not end with a HICANNOnWafer segment.
+	auto const last = std::prev(end);
+	if (boost::get<HICANNOnWafer>(&*last) != nullptr) {
+		return last;
+	}
+
 	IsValidSuccessor visitor(*starting_hicann);
 	auto it = visitor.find_invalid(std::next(beg), end);
-	if (store_last_hicann != nullptr) {
+
+	if (it == end && store_last_hicann != nullptr) {
 		*store_last_hicann = visitor.current_hicann();
 	}
+
 	return it;
 }
 
