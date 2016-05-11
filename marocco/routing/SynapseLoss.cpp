@@ -64,12 +64,12 @@ SynapseLoss& SynapseLoss::operator+=(SynapseLoss const& rhs)
 	return *this;
 }
 
-size_t SynapseLoss::getPreLoss(HICANNGlobal const& hicann) const
+size_t SynapseLoss::getPreLoss(Index const& hicann) const
 {
 	return mImpl->getPreLoss(hicann);
 }
 
-size_t SynapseLoss::getPostLoss(HICANNGlobal const& hicann) const
+size_t SynapseLoss::getPostLoss(Index const& hicann) const
 {
 	return mImpl->getPostLoss(hicann);
 }

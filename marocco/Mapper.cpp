@@ -83,10 +83,10 @@ void Mapper::run(ObjectStore const& pynn)
 	auto placement = placer.run(m_results->placement);
 
 	// 2.  R O U T I N G
-	std::unique_ptr<routing::Routing> router(
-		new routing::DefaultRouting(*mPyMarocco, graph, mHW, mMgr));
-	auto routing = router->run(*placement);
-	auto synapse_loss = router->getSynapseLoss();
+	routing::Routing router(
+		mBioGraph, mHW, mMgr, *mPyMarocco, m_results->placement);
+	auto routing = router.run(m_results->l1_routing);
+	auto synapse_loss = router.getSynapseLoss();
 
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
 

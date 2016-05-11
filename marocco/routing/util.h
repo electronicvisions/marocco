@@ -1,43 +1,51 @@
 #pragma once
 
-#include <array>
 #include <stdexcept>
-#include <boost/dynamic_bitset.hpp>
-
-#include "marocco/config.h"
-#include "marocco/util.h"
-#include "hal/Coordinate/HMFGeometry.h"
 
 namespace marocco {
 namespace routing {
 
-inline
-size_t getPopulationViewOffset(size_t pop_offset, boost::dynamic_bitset<> const& mask)
+/**
+ * @brief Convert index to index of subset.
+ * @tparam T bitset, e.g. \c boost::dynamic_bitset<>.
+ * @param mask Mask used to specify the subset.
+ * @param index Index into original sequence.
+ * @return Index into sequence of elements with positive bit in mask.
+ */
+template <typename T>
+size_t to_relative_index(T const& mask, size_t const index)
 {
-	if (pop_offset>=mask.size()) {
+	if (index >= mask.size()) {
 		throw std::out_of_range("mask to short");
 	}
-	size_t cnt=0;
-	for (size_t ii=0; ii<pop_offset; ++ii)
-	{
-		cnt += mask[ii];
+
+	if (!mask.test(index)) {
+		throw std::invalid_argument("index not enabled in mask");
 	}
-	return cnt;
+
+	size_t relative = 0;
+	for (size_t ii = 0; ii < index; ++ii) {
+		relative += mask[ii];
+	}
+
+	return relative;
 }
 
-inline
-size_t getPopulationOffset(size_t pop_view_offset, boost::dynamic_bitset<> const& mask)
+template <typename T>
+size_t from_relative_index(T const& mask, size_t const index)
 {
-	if (pop_view_offset >= mask.count()) {
+	if (index >= mask.count()) {
 		throw std::out_of_range("mask to short");
 	}
+
 	size_t ii = 0;
-	size_t cnt = 0;
-	for (; ii < mask.size(); ++ii){
-		cnt += mask[ii];
-		if (cnt ==  pop_view_offset + 1)
+	for (size_t relative = 0; ii < mask.size(); ++ii) {
+		relative += mask[ii];
+		if (relative > index) {
 			break;
+		}
 	}
+
 	return ii;
 }
 

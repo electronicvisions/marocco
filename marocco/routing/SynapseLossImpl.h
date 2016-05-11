@@ -24,7 +24,7 @@ public:
 	typedef SynapseLossProxy::value_type value_Type;
 
 	typedef graph_t::edge_descriptor Edge;
-	typedef HMF::Coordinate::HICANNGlobal Index;
+	typedef HMF::Coordinate::HICANNOnWafer Index;
 	typedef assignment::PopulationSlice Assign;
 
 	SynapseLossImpl(graph_t const& graph);

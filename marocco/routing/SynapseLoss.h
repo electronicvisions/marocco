@@ -20,7 +20,7 @@ public:
 	typedef Connector::matrix_type Matrix;
 	typedef graph_t::edge_descriptor Edge;
 	typedef graph_t::vertex_descriptor Vertex;
-	typedef HMF::Coordinate::HICANNGlobal Index;
+	typedef HMF::Coordinate::HICANNOnWafer Index;
 	typedef assignment::PopulationSlice Assign;
 
 	SynapseLoss(graph_t const& graph);
@@ -53,8 +53,8 @@ public:
 	/// merge two SynapseLossImpl instances
 	SynapseLoss& operator+=(SynapseLoss const& rhs);
 
-	size_t getPreLoss(HMF::Coordinate::HICANNGlobal const& hicann) const;
-	size_t getPostLoss(HMF::Coordinate::HICANNGlobal const& hicann) const;
+	size_t getPreLoss(Index const& hicann) const;
+	size_t getPostLoss(Index const& hicann) const;
 	size_t getTotalLoss() const;
 	size_t getTotalSynapses() const;
 	size_t getTotalSet() const;

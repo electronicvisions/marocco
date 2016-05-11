@@ -11,7 +11,6 @@
 #include "hal/HICANN/L1Address.h"
 #include "marocco/routing/SynapseTargetMapping.h"
 #include "marocco/placement/results/Placement.h"
-#include "marocco/routing/LocalRoute.h"
 #include "marocco/routing/STPMode.h"
 #include "marocco/routing/SynapseType.h"
 #include "marocco/test.h"

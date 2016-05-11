@@ -27,9 +27,6 @@ class TestSynapseLoss(unittest.TestCase):
         # FIXME: this test currently runs only in ester-breached mode
         #with Ester() as ester:
 
-        self.marocco.routing.use_config = True
-        self.marocco.routing.cb_reset()
-
         # map network
         synapses = self.big_network()
 
@@ -131,7 +128,7 @@ class TestSynapseLoss(unittest.TestCase):
 
         # check stats
         self.assertEqual(exp_loss,
-                self.marocco.stats.getSynapseLossAfterWaferRouting())
+                self.marocco.stats.getSynapseLossAfterL1Routing())
         self.assertEqual(exp_loss,
                 self.marocco.stats.getSynapseLoss())
 

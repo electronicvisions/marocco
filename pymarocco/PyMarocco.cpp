@@ -31,7 +31,6 @@ PyMarocco::PyMarocco() :
 	calib_path(""),
 	skip_mapping(false),
 	bkg_gen_isi(500),
-	only_bkg_visible(false),
 	pll_freq(100e6),
 	hicann_configurator(HICANNCfg::HICANNConfigurator),
 	speedup(10000.),
@@ -54,10 +53,9 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("neuron_placement", neuron_placement)
 	   & make_nvp("l1_address_assignment", l1_address_assignment)
 	   & make_nvp("l1_routing", l1_routing)
+	   & make_nvp("synapse_routing", synapse_routing)
 	   & make_nvp("stats", stats)
 	   & make_nvp("defects", defects)
-	   & make_nvp("routing_priority", routing_priority)
-	   & make_nvp("routing", routing)
 	   & make_nvp("param_trafo", param_trafo)
 	   & make_nvp("roqt", roqt)
 	   & make_nvp("default_wafer", default_wafer)
@@ -66,7 +64,6 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("wafer_cfg", wafer_cfg)
 	   & make_nvp("skip_mapping", skip_mapping)
 	   & make_nvp("bkg_gen_isi", bkg_gen_isi)
-	   & make_nvp("only_bkg_visible", only_bkg_visible)
 	   & make_nvp("pll_freq", pll_freq)
 	   & make_nvp("hicann_configurator", hicann_configurator)
 	   & make_nvp("speedup", speedup)

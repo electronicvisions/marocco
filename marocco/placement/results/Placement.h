@@ -27,6 +27,7 @@ namespace results {
 
 class Placement {
 public:
+	/// Vertex in bio graph, used to implement lookup by population.
 	typedef size_t vertex_descriptor;
 
 	class item_type {

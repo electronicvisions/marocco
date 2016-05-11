@@ -60,9 +60,9 @@ void SynapseLossImpl::addLoss(Edge const& e,
 
 	// calculate offsets for pre and post populations in this view
 	size_t const src_neuron_offset_in_proj_view =
-		getPopulationViewOffset(bsrc.offset(), view.pre().mask());
+		to_relative_index(view.pre().mask(), bsrc.offset());
 	size_t const trg_neuron_offset_in_proj_view =
-		getPopulationViewOffset(btrg.offset(), view.post().mask());
+		to_relative_index(view.post().mask(), btrg.offset());
 
 	auto const& _ws = view.getWeights();
 
@@ -216,12 +216,12 @@ SynapseLossImpl& SynapseLossImpl::operator+=(SynapseLossImpl const& rhs)
 	return *this;
 }
 
-size_t SynapseLossImpl::getPreLoss(HICANNGlobal const& hicann) const
+size_t SynapseLossImpl::getPreLoss(Index const& hicann) const
 {
 	return mChipPre.at(hicann);
 }
 
-size_t SynapseLossImpl::getPostLoss(HICANNGlobal const& hicann) const
+size_t SynapseLossImpl::getPostLoss(Index const& hicann) const
 {
 	return mChipPost.at(hicann);
 }

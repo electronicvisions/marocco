@@ -241,7 +241,7 @@ TEST(Fieres, Issue1666_Case1) {
 			return cnt + entry.driver;
 			});
 
-	auto result = fieres.result(HICANNGlobal(Enum(0)));
+	auto result = fieres.result();
 
 	size_t drivers_assigned = 0;
 	for (auto const& vline : result) {
@@ -282,7 +282,7 @@ TEST(Fieres, Issue1666_Case2) {
 			return cnt + entry.driver;
 			});
 
-	auto result = fieres.result(HICANNGlobal(Enum(0)));
+	auto result = fieres.result();
 
 	size_t drivers_assigned = 0;
 	for (auto const& vline : result) {
@@ -318,7 +318,7 @@ TEST(Fieres, Issue1666_Case3) {
 			return cnt + entry.driver;
 			});
 
-	auto result = fieres.result(HICANNGlobal(Enum(0)));
+	auto result = fieres.result();
 
 	size_t drivers_assigned = 0;
 	for (auto const& vline : result) {

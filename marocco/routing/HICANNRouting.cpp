@@ -1,7 +1,8 @@
 #include "marocco/routing/HICANNRouting.h"
+#include "marocco/Logger.h"
+#include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/SynapseRouting.h"
 #include "marocco/routing/util.h"
-#include "marocco/Logger.h"
 #include "marocco/util.h"
 
 #include <algorithm>
@@ -15,88 +16,56 @@ namespace marocco {
 namespace routing {
 
 HICANNRouting::HICANNRouting(
-	boost::shared_ptr<SynapseLoss> const& sl,
+	BioGraph const& bio_graph,
+	hardware_system_t& hardware,
+	resource_manager_t& resource_manager,
 	pymarocco::PyMarocco const& pymarocco,
-	graph_t const& nnetwork,
-	hardware_type& hw,
-	resource_manager_t& mgr,
-	routing_graph const& rgraph) :
-		Algorithm(nnetwork, hw, mgr),
-		mPyMarocco(pymarocco),
-		mRoutingGraph(rgraph),
-		mSynapseLoss(sl)
-{}
-
-HICANNRouting::~HICANNRouting() {}
+	placement::results::Placement const& neuron_placement,
+	results::L1Routing const& l1_routing,
+	boost::shared_ptr<SynapseLoss> const& synapse_loss)
+	: m_bio_graph(bio_graph),
+	  m_hardware(hardware),
+	  m_resource_manager(resource_manager),
+	  m_pymarocco(pymarocco),
+	  m_neuron_placement(neuron_placement),
+	  m_l1_routing(l1_routing),
+	  m_synapse_loss(synapse_loss)
+{
+}
 
 SynapseRoutingResult
-HICANNRouting::run(placement::Result const& placement, routing::CrossbarRoutingResult const& routes)
+HICANNRouting::run()
 {
 	SynapseRoutingResult result;
 
-	// get all used process local chips
-	auto first = getManager().begin_allocated();
-	auto last  = getManager().end_allocated();
-
-	// configure GigabitLinks on Hardware
-	auto start = std::chrono::system_clock::now();
-	std::for_each(first, last,
-	//tbb::parallel_for_each(first, last,
-		[&](HICANNGlobal const& hicann) {
-			this->run(hicann, placement, routes, result);
-	});
-	auto end = std::chrono::system_clock::now();
-	size_t& time = const_cast<size_t&>(mPyMarocco.stats.timeSpentInParallelRegion);
-	time += std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
+	for (HICANNGlobal const& hicann : m_resource_manager.allocated()) {
+		run(hicann, result);
+	}
 
 	configure_hardware(result);
 
 	return result;
 }
 
-void HICANNRouting::run(
-	HMF::Coordinate::HICANNGlobal const& hicann,
-	placement::Result const& placement,
-	CrossbarRoutingResult const& routes,
-	SynapseRoutingResult& result)
+void HICANNRouting::run(HMF::Coordinate::HICANNGlobal const& hicann, SynapseRoutingResult& result)
 {
 	// synapse routing has to be run no matter there are routes ending at this
 	// chip or not, because we need the synapse target mapping for param trafo
 	SynapseRouting synapse_routing(
-		hicann, mSynapseLoss, mPyMarocco, getGraph(), mRoutingGraph, getManager(), getHardware());
+		hicann, m_bio_graph, m_hardware, m_resource_manager, m_pymarocco.synapse_routing,
+		m_neuron_placement, m_l1_routing, m_synapse_loss);
+	synapse_routing.run();
 
-	if (routes.exists(hicann)) {
-		// get list of LocalRoutes ending @ this chip
-		std::vector<LocalRoute> const& route_list = routes.at(hicann);
-		synapse_routing.run(placement, route_list);
-	} else {
-		// this can only happen if HICANN is in use, meaning neurons have
-		// been placed on it and neurons don't get spiking input or
-		// resources have been exhausted, such that sources could not be
-		// routed to here.
-		MAROCCO_WARN("used hicann without spike input: "<< hicann);
-		// run routing with empty routes to generate synapse target mapping
-		synapse_routing.run(placement, std::vector<LocalRoute>());
-	}
-
-	mMutex.lock();
-	// insert results;
 	auto& res = result[hicann];
 	res = std::move(synapse_routing.getResult());
-	mMutex.unlock();
-
-	if (routes.exists(hicann) && res.driver_result.empty()) {
-		MAROCCO_ERROR("empty local routing result");
-		std::runtime_error("empty local routing result");
-	}
 }
 
 void HICANNRouting::configure_hardware(routing::SynapseRoutingResult const& synapse_routing)
 {
 	// get all used process local chips
-	for (auto const& hicann: getManager().allocated())
+	for (auto const& hicann: m_resource_manager.allocated())
 	{
-		auto& chip = getHardware()[hicann];
+		auto& chip = m_hardware[hicann];
 
 		if (!synapse_routing.exists(hicann)) {
 			MAROCCO_DEBUG("no SynapseRowRouting Result for " << hicann << " this is ok, if there are "
@@ -115,7 +84,7 @@ void HICANNRouting::configure_hardware(routing::SynapseRoutingResult const& syna
 
 				if (d.from_adjacent()) {
 					HICANNGlobal const& adj = (d.line().toSideHorizontal()==left) ? hicann.east() : hicann.west();
-					auto& adjacent_chip = getHardware()[adj];
+					auto& adjacent_chip = m_hardware[adj];
 					setSynapseSwitch(d.line(), primary.toSynapseSwitchRowOnHICANN(), adjacent_chip);
 				} else {
 					// local synapse switch

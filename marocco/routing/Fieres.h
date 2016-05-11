@@ -41,7 +41,7 @@ public:
 		   size_t max_chain_length,
 		   std::vector<HMF::Coordinate::SynapseDriverOnHICANN> const& defect);
 
-	Result result(HMF::Coordinate::HICANNGlobal const& hicann) const;
+	Result result() const;
 	Rejected rejected() const;
 
 private:

@@ -37,12 +37,6 @@ public:
 	 */
 	std::string path;
 
-	float getNeuronDefect() const;
-	void setNeuronDefect(float v);
-
-	float getBusDefect() const;
-	void setBusDefect(float v);
-
 	void disable(HMF::Coordinate::HICANNGlobal);
 
 	void inject(HMF::Coordinate::HICANNGlobal,
@@ -54,17 +48,13 @@ public:
 
 private:
 	hicann_map_type mHicanns;
-	float mNeuronDefects;
-	float mBusDefects;
 
 	friend class boost::serialization::access;
 	template<typename Archive>
 	void serialize(Archive& ar, unsigned int const)
 	{
 		using boost::serialization::make_nvp;
-		ar & make_nvp("hicanns", mHicanns)
-		   & make_nvp("neuron_defect", mNeuronDefects)
-		   & make_nvp("bus_defect", mBusDefects);
+		ar & make_nvp("hicanns", mHicanns);
 	}
 };
 

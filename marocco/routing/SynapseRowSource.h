@@ -57,6 +57,7 @@ class SynapseRowSource
 public:
 	typedef HMF::HICANN::DriverDecoder Address;
 
+	// TODO: typed_array<…, SynapseColumnOnHICANN>
 	typedef std::array< SynapseSource, HMF::Coordinate::NeuronOnHICANN::x_type::end > SynapseMapping;
 
 	SynapseRowSource(HMF::Coordinate::Side const& syn_input);
@@ -85,13 +86,6 @@ private:
 	friend class boost::serialization::access;
 	template<typename Archiver>
 	void serialize(Archiver& ar, unsigned int const /*version*/);
-
-	// TODO: place everything here which should later be set individually at the
-	// SynapseDriver for a given route, e.g.: STP
-
-	// the corrsponding projection is only needed, when weights are supposed to
-	// be set externally. Rather than during the SynapseRow assignment.
-	//HardwareProjection mProjection;
 
 	/// 2bit MSB of L1 Addresses forwarded on this line.
 	std::array<Address, HMF::HICANN::RowConfig::num_syn_ins> mPrefix;

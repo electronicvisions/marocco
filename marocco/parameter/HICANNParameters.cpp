@@ -40,7 +40,7 @@ void HICANNParameters::run()
 	bool const local_neurons =
 		m_placement.internal.address_assignment.at(m_chip.index()).has_output();
 
-	bool const local_routes = m_routing.crossbar_routing.exists(m_chip.index());
+	bool const local_routes = m_routing.synapse_routing.exists(m_chip.index());
 
 	// switch on BackgroundGenerators for locking
 	background_generators(m_pymarocco.bkg_gen_isi);

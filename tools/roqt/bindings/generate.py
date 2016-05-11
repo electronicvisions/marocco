@@ -15,11 +15,6 @@ mb = wrap.mb
 #Expose classes
 classes = [
         'PyRoQt',
-        'CrossbarRoutingResult',
-        'LocalRoute',
-        'Route',
-        'HardwareProjection',
-        'L1Bus',
         'SynapseRowSource',
         'DriverResult',
         'DriverResultAndSynapseTargetMapping',

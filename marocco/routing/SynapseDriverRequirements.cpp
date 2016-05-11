@@ -564,9 +564,9 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 				}
 
 				size_t const src_neuron_in_proj_view =
-					getPopulationViewOffset(source_item.neuron_index(), proj_view.pre().mask());
+					to_relative_index(proj_view.pre().mask(), source_item.neuron_index());
 				size_t const trg_neuron_in_proj_view =
-					getPopulationViewOffset(target_item.neuron_index(), proj_view.post().mask());
+					to_relative_index(proj_view.post().mask(), target_item.neuron_index());
 
 				double const weight =
 					bio_weights(src_neuron_in_proj_view, trg_neuron_in_proj_view);

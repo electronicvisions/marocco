@@ -4,7 +4,6 @@
 #include "marocco/Logger.h"
 #include "marocco/util/algorithm.h"
 #include "marocco/routing/Fieres.h"
-#include "marocco/routing/util.h"
 
 using namespace HMF::Coordinate;
 
@@ -417,16 +416,8 @@ Fieres::Fieres(IntervalList const& _list,
 	mResult = assignment.result();
 }
 
-Fieres::Result Fieres::result(HICANNGlobal const& hicann) const
+Fieres::Result Fieres::result() const
 {
-	size_t used=0;
-	for (auto const& vline : mResult) {
-		for (auto const& as : vline.second) {
-			used+=as.drivers.size();
-		}
-	}
-	MAROCCO_INFO("Synapse Drivers used: " << used <<  " on hicann: " << hicann << " " << mSide);
-
 	return mResult;
 }
 

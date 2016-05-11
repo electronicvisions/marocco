@@ -6,12 +6,11 @@
 
 #include <hal/Coordinate/HMFGeometry.h>
 
-#include "marocco/config.h"
-#include "marocco/Result.h"
 #include "marocco/AssociativeResult.h"
-#include "marocco/routing/LocalRoute.h"
-#include "marocco/routing/SynapseRowSource.h"
+#include "marocco/Result.h"
+#include "marocco/config.h"
 #include "marocco/routing/DriverAssignment.h"
+#include "marocco/routing/SynapseRowSource.h"
 #ifndef PYPLUSPLUS
 #include "marocco/routing/SynapseTargetMapping.h"
 #endif // !PYPLUSPLUS
@@ -23,14 +22,6 @@ namespace routing {
 // post-neurons. Therfore, the whole way from synapse to, synapsedriver to
 // merger tree needs to be traversable from post to pre to e.g. look up analog
 // parameters for synapse driver etc.
-
-class CrossbarRoutingResult
-	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, std::vector<LocalRoute> >
-{};
-
-typedef CrossbarRoutingResult route_mapping_t;
-typedef CrossbarRoutingResult global_routing_t;
-
 
 /// Combined result for SynapseRouting
 struct DriverResultAndSynapseTargetMapping
@@ -50,7 +41,7 @@ struct DriverResultAndSynapseTargetMapping
 
 /// class storing the synapse routing results for all HICANNs
 class SynapseRoutingResult
-	: public AssociativeResult<HMF::Coordinate::HICANNGlobal, DriverResultAndSynapseTargetMapping>
+	: public AssociativeResult<HMF::Coordinate::HICANNOnWafer, DriverResultAndSynapseTargetMapping>
 {
 public:
 	std::ostream& operator<<(std::ostream& o) const;
@@ -61,7 +52,6 @@ typedef SynapseRoutingResult detailed_routing_t;
 
 #ifndef PYPLUSPLUS
 struct Result : public BaseResult {
-	CrossbarRoutingResult crossbar_routing;
 	SynapseRoutingResult synapse_routing;
 };
 

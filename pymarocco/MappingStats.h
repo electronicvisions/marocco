@@ -23,7 +23,7 @@ public:
 	MappingStats();
 
 	size_t getSynapseLoss() const;
-	size_t getSynapseLossAfterWaferRouting() const;
+	size_t getSynapseLossAfterL1Routing() const;
 	size_t getSynapses() const;
 	size_t getSynapsesSet() const;
 	size_t getNumPopulations() const;
@@ -35,7 +35,7 @@ public:
 
 #if !defined(PYPLUSPLUS)
 	void setSynapseLoss(size_t s);
-	void setSynapseLossAfterWaferRouting(size_t s);
+	void setSynapseLossAfterL1Routing(size_t s);
 	void setSynapses(size_t s);
 	void setSynapsesSet(size_t s);
 	void setNumPopulations(size_t s);
@@ -61,7 +61,7 @@ public:
 
 private:
 	size_t mSynapseLoss;
-	size_t mSynapseLossAfterWaferRouting;
+	size_t mSynapseLossAfterL1Routing;
 	size_t mSynapses;
 	size_t mSynapsesSet;
 	size_t mNumPopulations;
@@ -80,7 +80,7 @@ private:
 	{
 		using boost::serialization::make_nvp;
 		ar & make_nvp("synapse_loss", mSynapseLoss)
-		   & make_nvp("synapse_loss_after_wafer_routing", mSynapseLossAfterWaferRouting)
+		   & make_nvp("synapse_loss_after_l1_routing", mSynapseLossAfterL1Routing)
 		   & make_nvp("synapses", mSynapses)
 		   & make_nvp("populations", mNumPopulations)
 		   & make_nvp("projections", mNumProjections)

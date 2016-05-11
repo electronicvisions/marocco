@@ -11,14 +11,7 @@
 class Population;
 
 namespace marocco {
-
-namespace routing {
-class HardwareProjection;
-} // namespace routing
-
 namespace assignment {
-
-class AddressMapping;
 
 /** Part of a population to be assigned to hardware neurons (also used
  *  for spike input).  As populations may be too big to be assigned to
@@ -58,8 +51,6 @@ public:
 	std::array<PopulationSlice, 2> split() const;
 
 private:
-	friend class AddressMapping;
-	friend class routing::HardwareProjection;
 	// Default constructor needed for serialization
 	PopulationSlice();
 

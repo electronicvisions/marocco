@@ -1,71 +1,39 @@
 #pragma once
 
-#include <algorithm>
-#include <type_traits>
-#include <stdexcept>
 #include <boost/shared_ptr.hpp>
 
-#include "marocco/util.h"
-#include "marocco/Algorithm.h"
-#include "marocco/placement/Result.h"
+#include "marocco/BioGraph.h"
+#include "marocco/config.h"
+#include "marocco/placement/results/Placement.h"
 #include "marocco/routing/Result.h"
 #include "marocco/routing/SynapseLoss.h"
+#include "marocco/routing/results/L1Routing.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace marocco {
 namespace routing {
 
-/*! \class abstract placement interface
- */
-class Routing :
-	public Algorithm
+class Routing
 {
 public:
-	virtual ~Routing() {}
-	template<typename ... Args>
-	Routing(Args&& ... args) :
-		Algorithm(std::forward<Args>(args)...) {}
+	Routing(
+		BioGraph const& graph,
+		hardware_system_t& hardware,
+		resource_manager_t& resource_manager,
+		pymarocco::PyMarocco& pymarocco,
+		placement::results::Placement const& neuron_placement);
 
-	// placement start interface
-	virtual std::unique_ptr<result_type> run(result_type const&) = 0;
-
-	virtual boost::shared_ptr<SynapseLoss> getSynapseLoss() const
-	{
-		return boost::shared_ptr<SynapseLoss>();
-	}
-};
-
-
-class DefaultRouting :
-	public Routing
-{
-public:
-	template<typename ... Args>
-	DefaultRouting(pymarocco::PyMarocco& pymarocco, Args&& ... args);
-
-	virtual
-	std::unique_ptr<typename Routing::result_type>
-	run(result_type const& placement_result);
-
+	std::unique_ptr<Result> run(results::L1Routing& l1_routing_result);
 	boost::shared_ptr<SynapseLoss> getSynapseLoss() const;
 
 private:
-	pymarocco::PyMarocco& mPyMarocco;
-	boost::shared_ptr<SynapseLoss> mSynapseLoss;
+	BioGraph const& m_graph;
+	hardware_system_t& m_hardware;
+	resource_manager_t& m_resource_manager;
+	pymarocco::PyMarocco& m_pymarocco;
+	placement::results::Placement const& m_neuron_placement;
+	boost::shared_ptr<SynapseLoss> m_synapse_loss;
 };
-
-template<typename ... Args>
-DefaultRouting::DefaultRouting(pymarocco::PyMarocco& pymarocco, Args&& ... args) :
-	Routing(std::forward<Args>(args)...),
-	mPyMarocco(pymarocco),
-	mSynapseLoss()
-{
-	// get all process local output buffer a.k.a. terminals
-	//auto output_buffer = get_by_trait<TerminalTrait>();
-
-	// make sure to have apropriate ghost cells in the graph for each route
-	//request_remote_populations(output_buffer, proj_map, rev_map, mGraph);
-}
 
 } // namespace routing
 } // namespace marocco

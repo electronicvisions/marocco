@@ -8,7 +8,7 @@ MappingStats::MappingStats() :
 	timeSpentInParallelRegion(0),
 	timeTotal(0),
 	mSynapseLoss(0),
-	mSynapseLossAfterWaferRouting(0),
+	mSynapseLossAfterL1Routing(0),
 	mSynapses(0),
 	mNumPopulations(0),
 	mNumProjections(0),
@@ -25,14 +25,14 @@ size_t MappingStats::getSynapseLoss() const
 	return mSynapseLoss;
 }
 
-void MappingStats::setSynapseLossAfterWaferRouting(size_t s)
+void MappingStats::setSynapseLossAfterL1Routing(size_t s)
 {
-	mSynapseLossAfterWaferRouting = s;
+	mSynapseLossAfterL1Routing = s;
 }
 
-size_t MappingStats::getSynapseLossAfterWaferRouting() const
+size_t MappingStats::getSynapseLossAfterL1Routing() const
 {
-	return mSynapseLossAfterWaferRouting;
+	return mSynapseLossAfterL1Routing;
 }
 
 void MappingStats::setSynapses(size_t s)
@@ -115,7 +115,7 @@ std::ostream& MappingStats::operator<< (std::ostream& os) const
 		<< "\n\tsynapses: " << getSynapses()
 		<< "\n\tsynapses set: " << getSynapsesSet()
 		<< "\n\tsynapses lost: " << getSynapseLoss()
-		<< "\n\tsynapses lost(l1): " << getSynapseLossAfterWaferRouting()
+		<< "\n\tsynapses lost(l1): " << getSynapseLossAfterL1Routing()
 		<< "\n\tpopulations: " << getNumPopulations()
 		<< "\n\tprojections: " << getNumProjections()
 		<< "\n\tneurons: " << getNumNeurons()

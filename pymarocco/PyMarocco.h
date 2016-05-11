@@ -9,8 +9,6 @@
 
 #include "pymarocco/MappingStats.h"
 #include "pymarocco/Defects.h"
-#include "pymarocco/Routing.h"
-#include "pymarocco/RoutingPriority.h"
 #include "pymarocco/ParamTrafo.h"
 
 #include "marocco/placement/parameters/InputPlacement.h"
@@ -19,6 +17,7 @@
 #include "marocco/placement/parameters/MergerRouting.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
 #include "marocco/routing/parameters/L1Routing.h"
+#include "marocco/routing/parameters/SynapseRouting.h"
 
 #include "sthal/ESSConfig.h"
 
@@ -95,18 +94,13 @@ public:
 	marocco::placement::parameters::NeuronPlacement neuron_placement;
 	marocco::placement::parameters::L1AddressAssignment l1_address_assignment;
 	marocco::routing::parameters::L1Routing l1_routing;
+	marocco::routing::parameters::SynapseRouting synapse_routing;
 
 	/// python property to access mapping stats
 	MappingStats stats;
 
 	/// defect information
 	Defects defects;
-
-	/// routing priorities for projections
-	RoutingPriority routing_priority;
-
-	/// parameters for routing algorithms
-	Routing routing;
 
 	/// parameters for the transformation of neuron and synapse parameters
 	ParamTrafo param_trafo;
@@ -148,10 +142,6 @@ public:
 	/// hence the frequency of the background generators is given by: pll_freq/bkg_gen_isi
 	/// default: 500
 	uint32_t bkg_gen_isi;
-
-	/// enable debug feature: configure network as usual but decode only address 0 (background) events
-	/// default: false
-	bool only_bkg_visible;
 
 	/// HICANN PLL clock frequency in Hz, e.g. 100e6, 150e6, 200e6
 	/// default: 100e6,

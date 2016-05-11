@@ -1,170 +1,141 @@
 #include "marocco/routing/SynapseRouting.h"
 
 #include <cstdlib>
+#include <functional>
 #include <stdexcept>
+#include <boost/make_shared.hpp>
+
+#include "HMF/SynapseDecoderDisablingSynapse.h"
+#include "hal/Coordinate/Synapse.h"
+#include "hal/Coordinate/iter_all.h"
+#include "hal/Coordinate/typed_array.h"
 
 #include "marocco/Logger.h"
 #include "marocco/routing/Fieres.h"
+#include "marocco/routing/HandleSynapseLoss.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/SynapseManager.h"
 #include "marocco/routing/SynapseTargetMapping.h"
 #include "marocco/routing/util.h"
-#include "marocco/util/guess_wafer.h"
-
-#include "hal/Coordinate/iter_all.h"
-
-#include "HMF/SynapseDecoderDisablingSynapse.h"
-
-#include <boost/make_shared.hpp>
 
 // NOTE: always use clear vertex and maybe edge lists, rather than vectors,
 // because we have a rather dynamically changing graph.
 // Resource allocate for e.g. synapse driver will remove edges.
 
-
-// One LocalRoute unwrapped
-// ========================
-//size_t num_sources = local_route.numSources();
-//Route::BusSegment targetBus = local_route.targetBus();
-//Route const& route = local_route.route();
-
-//std::vector<HardwareProjection> const& projections = route.projections();
-
-//for (auto const& proj : projections)
-//{
-	//graph_t::edge_descriptor pynn_proj = proj.projection();
-
-	//assignment::AddressMapping const& am = proj.source();
-	//std::vector<L1Address> const& addresses = am.addresses();
-	//assignment::PopulationSlice const& bio = am.bio();
-
-	//graph_t::vertex_descriptor pop = bio.population();
-	//size_t size   = bio.size();
-	//size_t offset = bio.offset();
-//}
-
 using namespace HMF::Coordinate;
 using namespace HMF::HICANN;
-
 
 namespace marocco {
 namespace routing {
 
-SynapseRouting::SynapseRouting(
-	HICANNGlobal const& hicann,
-	boost::shared_ptr<SynapseLoss> const& sl,
-	pymarocco::PyMarocco const& pymarocco,
-	graph_t const& graph,
-	routing_graph const& routing_graph,
-	resource_manager_t const& mgr,
-	hardware_system_t& hw) :
-		mPyMarocco(pymarocco),
-		mHICANN(hicann),
-		mHW(hw),
-		mGraph(graph),
-		mRoutingGraph(routing_graph),
-		mManager(mgr),
-		mSynapseLoss(sl)
-{}
+template <typename T>
+using by_side_type = typed_array<T, SideHorizontal>;
 
-void SynapseRouting::run(placement::Result const& placement,
-						 std::vector<LocalRoute> const& route_list)
+template <typename T>
+using by_vline_type = std::unordered_map<VLineOnHICANN, T>;
+
+SynapseRouting::SynapseRouting(
+	HMF::Coordinate::HICANNGlobal const& hicann,
+	BioGraph const& bio_graph,
+	hardware_system_t& hardware,
+	resource_manager_t& resource_manager,
+	parameters::SynapseRouting const& parameters,
+	placement::results::Placement const& neuron_placement,
+	results::L1Routing const& l1_routing,
+	boost::shared_ptr<SynapseLoss> const& synapse_loss)
+	: m_hicann(hicann),
+	  m_bio_graph(bio_graph),
+	  m_hardware(hardware),
+	  m_resource_manager(resource_manager),
+	  m_parameters(parameters),
+	  m_neuron_placement(neuron_placement),
+	  m_l1_routing(l1_routing),
+	  m_synapse_loss(synapse_loss)
 {
-	placement::results::Placement const& nrnpl = placement.neuron_placement;
-	auto const& revmap = placement.internal.primary_denmems_for_population;
-	auto& chip = mHW[hicann()];
+}
+
+void SynapseRouting::run()
+{
+	auto& chip = m_hardware[m_hicann];
 
 	// firstly set all SynapseDecoders to 0bXX0001 addresses
 	invalidateSynapseDecoder();
 	tagDefectSynapses();
 
 	// mapping of synapse targets (excitatory, inhibitory) to synaptic inputs of denmems
-	SynapseTargetMapping& syn_tgt_mapping = mResult.synapse_target_mapping;
+	SynapseTargetMapping& syn_tgt_mapping = m_result.synapse_target_mapping;
 
-	syn_tgt_mapping.simple_mapping(hicann(), nrnpl, mGraph);
+	syn_tgt_mapping.simple_mapping(m_hicann, m_neuron_placement, m_bio_graph.graph());
 	assert(syn_tgt_mapping.check_top_and_bottom_are_equal());
 	MAROCCO_DEBUG("SynapseTargetMapping:\n" << syn_tgt_mapping);
 
-	MAROCCO_INFO("calc synapse driver requirements for hicann " << hicann());
+	MAROCCO_INFO("calc synapse driver requirements for hicann " << m_hicann);
 
-	// secondly, generate statistics about SynapseDriver requirements
-	SynapseDriverRequirements drivers_required(hicann(), nrnpl, syn_tgt_mapping);
+	SynapseDriverRequirements drivers_required(m_hicann, m_neuron_placement, syn_tgt_mapping);
 
-	std::unordered_map<VLineOnHICANN, SynapseManager::Histogram> synapse_histogram;
-	std::unordered_map<VLineOnHICANN, SynapseManager::Histogram> synrow_histogram;
-	for (auto const& local_route : route_list)
-	{
-		VLineOnHICANN const vline(local_route.targetBus(mRoutingGraph).getBusId());
-		auto const source_bus = mRoutingGraph[local_route.route().source()];
-		assert(source_bus.getDirection() == L1Bus::Horizontal);
-		auto const source_dnc = DNCMergerOnWafer(
-			source_bus.toHLine()
-				.toHRepeaterOnHICANN()
-				.toSendingRepeaterOnHICANN()
-				.toDNCMergerOnHICANN(),
-			source_bus.hicann());
+	// Helper to handle synapse loss for whole routes.
+	HandleSynapseLoss handle_synapse_loss(
+		m_bio_graph, m_neuron_placement, m_l1_routing, m_synapse_loss);
 
-		std::map<Side_Parity_Decoder_STP, size_t>& synhist = synapse_histogram[vline];
-		std::map<Side_Parity_Decoder_STP, size_t>& rowhist = synrow_histogram[vline];
-		auto const needed = drivers_required.calc(source_dnc, mGraph, synhist, rowhist);
-		MAROCCO_DEBUG(
-			"route " << vline << " requires " << needed.first << " SynapseDrivers for "
-					 << needed.second << " synapses");
-		set(local_route, needed);
-	}
+	//  ——— synapse driver requirements ————————————————————————————————————————
+	// The number of required synapse drivers are calculated for all routes ending at the
+	// current HICANN.  This is done separately for drivers on the left and right side.
 
-	// in the following, find synapse driver assignments for driver on left and
-	// right side.
+	// An incoming L1 route is uniquely identified by its vline and the side the synapse
+	// driver is on, as lines from adjacent HICANNs fulfill `vline.side() != side` and can
+	// be distinguished from a local line with the same id.
+
+	by_side_type<by_vline_type<std::reference_wrapper<results::L1Routing::route_item_type const> > >
+		route_item_by_source;
 
 	typedef std::vector<DriverInterval> IntervalList;
-	// generate two lists, of LocalRoutes seperated into vlines on left and
-	// right side of hicann.
-	std::array<IntervalList, 2> lists;
+	by_side_type<IntervalList> requested_drivers_per_side;
 
-	// two mappings of VLines to route iterators, for drivers on left and right
-	// side.
-	std::array<std::unordered_map<VLineOnHICANN, std::vector<LocalRoute>::const_iterator>, 2> maps;
+	by_side_type<SynapseManager::HistMap> synapse_histogram;
+	by_side_type<SynapseManager::HistMap> synrow_histogram;
 
-	for (auto it=route_list.begin(); it!=route_list.end(); ++it)
-	{
-		LocalRoute const& local_route = *it;
-		L1Bus const& l1 = local_route.targetBus(mRoutingGraph);
-		HICANNGlobal const& h = l1.hicann();
-		VLineOnHICANN const& vline = l1.toVLine();
+	for (auto const& route_item : m_l1_routing.find_routes_to(m_hicann)) {
+		auto const& route = route_item.route();
+		VLineOnHICANN const vline = boost::get<VLineOnHICANN>(route.back());
+		DNCMergerOnWafer const source_dnc = route_item.source();
 
-		auto const needed = get(local_route);
+		SideHorizontal drv_side = vline.toSideHorizontal();
+		if (route.target_hicann() != m_hicann) {
+			// Connection from adjacent HICANN.
+			drv_side = (drv_side == left) ? right : left;
+		}
+
+		auto const needed = drivers_required.calc(
+			source_dnc, m_bio_graph.graph(),
+			synapse_histogram[drv_side][vline],
+			synrow_histogram[drv_side][vline]);
+
+		MAROCCO_TRACE(
+			"route " << vline << " requires " << needed.first << " synapse drivers for "
+			         << needed.second << " synapses");
 
 		// this can only happen in very rare ocasions, where by chance, no
 		// weight has been realized in the projectionView. More likely for lower
 		// connection probs.
-		if (!needed.first) {
-			warn(this) << "no synapse driver needed";
-			handleSynapseLoss(local_route, nrnpl);
+		if (needed.first == 0u) {
+			MAROCCO_WARN(
+				"no synapse driver needed for route from " << route_item.source()
+				<< " to " << route_item.target());
+			handle_synapse_loss(route_item);
 			continue;
 		}
 
-		bool side;
-		if (h != hicann()) {
-			// input from adjacent HICANN
-			side = vline<VLineOnHICANN::end/2;
-		} else {
-			// input from same HICANN
-			side = vline.toSideHorizontal();
-		}
-
-		lists[side].push_back(DriverInterval(vline, needed.first, needed.second));
-		auto res = maps[side].insert(std::make_pair(vline, it));
+		requested_drivers_per_side[drv_side].emplace_back(vline, needed.first, needed.second);
+		auto res = route_item_by_source[drv_side].insert(std::make_pair(vline, std::cref(route_item)));
 		if (!res.second) {
 			throw std::runtime_error("insertion error");
 		}
 	}
 
-
-	size_t const chain_length = mPyMarocco.routing.syndriver_chain_length;
-	if (chain_length != 56) {
-		warn(this) << "using non-default synapse driver chain length of "
-			<< chain_length;
+	size_t const chain_length = m_parameters.driver_chain_length();
+	if (chain_length != SynapseDriverOnQuadrant::size) {
+		MAROCCO_WARN("using non-default synapse driver chain length of " << chain_length);
 	}
 
 
@@ -173,50 +144,69 @@ void SynapseRouting::run(placement::Result const& placement,
 		synapse_type_to_synapse_columns_map =
 			drivers_required.get_synapse_type_to_synapse_columns_map();
 
-	// then optimize synapse driver assignment
-	for (auto const& side : iter_all<SideHorizontal>())
-	{
-		// if list is empty, there is nothing to optimize
-		IntervalList const& list = lists[side];
-		if (list.empty()) {
+	for (auto const& drv_side : iter_all<SideHorizontal>()) {
+		IntervalList const& requested_drivers =
+			requested_drivers_per_side[drv_side];
+		if (requested_drivers.empty()) {
 			continue;
 		}
 
 		// prepare defect list first.
 		std::vector<SynapseDriverOnHICANN> defect_list;
-		auto const& defects = mManager.get(hicann());
+		auto const& defects = m_resource_manager.get(m_hicann);
 		auto const& drvs = defects->drivers();
 		MAROCCO_INFO("Collecting defect synapse drivers");
 		for (auto it=drvs->begin_disabled(); it!=drvs->end_disabled(); ++it)
 		{
 			defect_list.push_back(*it);
-			MAROCCO_DEBUG("Marked " << *it << " on " << hicann() << " as defect/disabled");
+			MAROCCO_DEBUG("Marked " << *it << " on " << m_hicann << " as defect/disabled");
 		}
 
-		Fieres fieres(list, side, chain_length, defect_list);
+		Fieres fieres(requested_drivers, drv_side, chain_length, defect_list);
 		std::vector<VLineOnHICANN> const rejected = fieres.rejected();
-		auto const result = fieres.result(hicann());
+		auto const result = fieres.result();
 
+		{
+			size_t used = 0;
+			for (auto const& item : result) {
+				for (auto const& assignment : item.second) {
+					used += assignment.drivers.size();
+				}
+			}
+			MAROCCO_INFO(
+				"Used " << used << " synapse drivers on " << drv_side << " of " << m_hicann);
+		}
 
 		// mark synapses lost beloning to rejected incoming routes
-		for (auto const& vline : rejected)
-		{
-			LocalRoute const& local_route = *maps[side].at(vline);
-			handleSynapseLoss(local_route, nrnpl);
-		} // for all rejected
+		for (auto const& vline : rejected) {
+			auto const& route_item = route_item_by_source[drv_side].at(vline).get();
+			MAROCCO_WARN(
+				"Could not allocate synapse driver for route from " << route_item.source()
+				<< " to " << route_item.target());
+			handle_synapse_loss(route_item);
+		}
 
 
 		// manages the SynapseRows assigned to local routes but it
 		// differentiates between sources with different MSBs and different
 		// synapse types (exc/inh).
 		SynapseManager syn_manager(result);
-		syn_manager.init(synapse_histogram, synrow_histogram);
+		syn_manager.init(synapse_histogram[drv_side], synrow_histogram[drv_side]);
 
 		for (auto const& entry : result)
 		{
 			VLineOnHICANN const& vline = entry.first;
 			std::vector<DriverAssignment> const& as = entry.second;
-			LocalRoute const& local_route = *maps[side].at(vline);
+			auto const& route_item = route_item_by_source[drv_side].at(vline).get();
+			auto const& route = route_item.route();
+			DNCMergerOnWafer const route_source_merger = route_item.source();
+			HICANNOnWafer const route_source_hicann = route.source_hicann();
+			assert(route_item.target() == m_hicann);
+			MAROCCO_TRACE(
+			    "======================================================================"
+			    "route from "
+			    << route_source_merger << " to " << route.back() << " on "
+			    << route.target_hicann());
 
 			SynapseManager::SynapsesOnVLine synapses_on_vline =
 				syn_manager.getSynapses(vline, synapse_type_to_synapse_columns_map);
@@ -225,7 +215,7 @@ void SynapseRouting::run(placement::Result const& placement,
 			// S T O R E   D R I V E R   C O N F I G
 			////////////////////////////////////////
 
-			// generate routing result for the current local_route
+			// generate routing result for the current route
 			DriverResult driver_res(vline);
 
 			// first insert primary and adjacent drivers
@@ -288,7 +278,8 @@ void SynapseRouting::run(placement::Result const& placement,
 								std::make_pair(row, SynapseRowSource(side)));
 						}
 						it->second.prefix(static_cast<size_t>(parity)) =
-							mPyMarocco.only_bkg_visible ? DriverDecoder(0) : decoder;
+							m_parameters.only_allow_background_events() ? DriverDecoder(0)
+							                                            : decoder;
 					}
 				}
 			}
@@ -297,216 +288,136 @@ void SynapseRouting::run(placement::Result const& placement,
 			// P R O C E S S   S Y N A P S E S
 			//////////////////////////////////
 
-
-			//size_t num_sources = local_route.numSources();
-			//Route::BusSegment targetBus = local_route.targetBus(); // unecessary here
-			Route const& route = local_route.route();
-			L1Bus const& l1 = mRoutingGraph[route.source()];
-			HICANNGlobal const& src_hicann = l1.hicann();
-
-			std::vector<HardwareProjection> const& projections = route.projections();
-
-			for (auto const& proj : projections)
-			{
-				graph_t::edge_descriptor pynn_proj = proj.projection();
-
-				graph_t::vertex_descriptor target = boost::target(pynn_proj, mGraph);
-
-				assignment::AddressMapping const& am = proj.source();
-				std::vector<L1Address> const& addresses = am.addresses();
-
-				assignment::PopulationSlice const& src_bio_assign = am.bio();
-
-				size_t const src_bio_size   = src_bio_assign.size();
-				size_t const src_bio_offset = src_bio_assign.offset();
+			for (auto const& proj_item : m_l1_routing.find_projections(route_item)) {
+				auto const edge = m_bio_graph.edge_from_id(proj_item.projection());
+				auto const source = boost::source(edge, m_bio_graph.graph());
+				auto const target = boost::target(edge, m_bio_graph.graph());
 
 
-				// now there is everything from the source, now need more info about target
-				// population placement.
-
-
-				boost::shared_ptr<ProjectionView> const proj_view =
-					boost::make_shared<ProjectionView>(mGraph[pynn_proj]);
-				Population const& target_pop = *mGraph[target];
-
-
-				// calculate offsets for pre population in this view
-				size_t const src_neuron_offset_in_proj_view =
-					getPopulationViewOffset(src_bio_offset, proj_view->pre().mask());
+				MAROCCO_TRACE(
+				    "----------------------------------------------------------------------\n"
+				    "projection "
+				    << proj_item.projection() << " from " << *(m_bio_graph.graph()[source])
+				    << " to " << *(m_bio_graph.graph()[target]));
 
 				// get synloss proxy object for faster loss counting
 				SynapseLossProxy syn_loss_proxy =
-					mSynapseLoss->getProxy(pynn_proj, src_hicann, hicann());
+					m_synapse_loss->getProxy(edge, route_source_hicann, m_hicann);
 
-				for (auto const& primary_neuron : revmap.at(target)) {
-					auto const terminal = primary_neuron.toNeuronBlockOnWafer();
-					if (terminal.toHICANNOnWafer() != hicann().toHICANNOnWafer()) {
-						// this terminal doesn't correspond to the current local
-						// hicann. so there is nothing to do.
+				auto const proj_view = boost::make_shared<ProjectionView>(m_bio_graph.graph()[edge]);
+				Connector::const_matrix_view_type const bio_weights = proj_view->getWeights();
+				SynapseType const syntype_proj = toSynapseType(proj_view->projection()->target());
+				STPMode const stp_proj = toSTPMode(proj_view->projection()->dynamics());
+
+				for (auto const& source_item : m_neuron_placement.find(source)) {
+					auto const& address = source_item.address();
+					// Only process source neuron placements matching current route.
+					if (address == boost::none ||
+						address->toDNCMergerOnWafer() != route_source_merger) {
 						continue;
 					}
 
-					// TODO: Use .find(vertex_descriptor) -> LogicalNeuron() interface
-					placement::internal::OnNeuronBlock const& onb = placement.internal.denmem_assignment.at(
-						terminal.toHICANNOnWafer())[terminal.toNeuronBlockOnHICANN()];
-					auto const it = onb.get(primary_neuron.toNeuronOnNeuronBlock());
-					assert(it != onb.end());
-
-					{
-						// FIXME: Confirm and remove this:
-						NeuronOnNeuronBlock first = *onb.neurons(it).begin();
-						assert(first == primary_neuron.toNeuronOnNeuronBlock());
+					if (!proj_view->pre().mask()[source_item.neuron_index()]) {
+						continue;
 					}
 
-					NeuronOnNeuronBlock const& first = primary_neuron.toNeuronOnNeuronBlock();
-					std::shared_ptr<placement::internal::NeuronPlacementRequest> const& trg_assign = *it;
-					assignment::PopulationSlice const& trg_bio_assign = trg_assign->population_slice();
+					MAROCCO_TRACE("from " << source_item.bio_neuron() << " with " << *address);
 
-					size_t const trg_bio_size   = trg_bio_assign.size();
-					size_t const trg_bio_offset = trg_bio_assign.offset();
-					// FIXME: first.toNeuronOnHICANN(nb)...!
-					size_t const trg_pop_hw_offset =
-					    terminal.toNeuronBlockOnHICANN().value() * 32 + first.x();
-
-					size_t const hw_neuron_width = trg_assign->neuron_width();
-
-					auto bio_weights = proj_view->getWeights(); // this is just a view, no copying
-
-					SynapseType syntype_proj = toSynapseType(proj_view->projection()->target());
-
-					auto dynamics = proj_view->projection()->dynamics();
-					STPMode stp_proj = toSTPMode(dynamics);
-
-					// calculate offsets for post population in this view
-					size_t const trg_neuron_offset_in_proj_view =
-						getPopulationViewOffset(trg_bio_offset, proj_view->post().mask());
-
-					// TODO: switch back to iterator later on. But for now
-					// counting the neuron indexes and indexing the matrix
-					// every time is safer and easier to debug.
-					//boost::numeric::ublas::matrix_row<Connector::const_matrix_view_type> row(bio_weights, src_neuron_in_proj_view);
-					//auto weight_iterator = row.begin()+trg_neuron_offset_in_proj_view ;
-					size_t trg_neuron_in_proj_view = trg_neuron_offset_in_proj_view;
-					for (size_t trg_neuron=trg_bio_offset; trg_neuron<trg_bio_offset+trg_bio_size; ++trg_neuron)
-					{
-						if (!proj_view->post().mask()[trg_neuron]) {
+					for (auto const& target_item : m_neuron_placement.find(target)) {
+						auto const& neuron_block = target_item.neuron_block();
+						// Only process targets on current HICANN.
+						if (neuron_block == boost::none ||
+							neuron_block->toHICANNOnWafer() != m_hicann) {
 							continue;
 						}
 
+						if (!proj_view->post().mask()[target_item.neuron_index()]) {
+							continue;
+						}
 
-						size_t const trg_hw_offset = trg_pop_hw_offset+(trg_neuron-trg_bio_offset)*hw_neuron_width;
+						MAROCCO_TRACE(
+						    "to " << target_item.bio_neuron() << " at "
+						          << target_item.logical_neuron().front());
 
-						size_t address_cnt = 0;
-						size_t src_neuron_in_proj_view = src_neuron_offset_in_proj_view;
-						for (size_t src_neuron=src_bio_offset; src_neuron<src_bio_offset+src_bio_size; ++src_neuron)
-						{
-							size_t address = address_cnt++;
-							// source neuron address (relative to Population) is
-							// ONLY needed for mask. To address weights, always use
-							// neuron address relative to PopulationView.
-							if (!proj_view->pre().mask()[src_neuron]) {
-								continue;
+						size_t const src_neuron_in_proj_view =
+							to_relative_index(proj_view->pre().mask(), source_item.neuron_index());
+						size_t const trg_neuron_in_proj_view =
+							to_relative_index(proj_view->post().mask(), target_item.neuron_index());
+
+						double const weight =
+							bio_weights(src_neuron_in_proj_view, trg_neuron_in_proj_view);
+
+						if (std::isnan(weight) || weight <= 0.) {
+							continue;
+						}
+
+						auto const& logical_neuron = target_item.logical_neuron();
+						assert(!logical_neuron.is_external());
+						NeuronOnHICANN const target_nrn = logical_neuron.front();
+
+						L1Address const& l1_address = address->toL1Address();
+						DriverDecoder const driver_dec = l1_address.getDriverDecoderMask();
+
+						Type_Decoder_STP const bio_synapse_property(
+							syntype_proj, driver_dec, stp_proj);
+
+						SynapseOnHICANN syn_addr;
+						bool found_candidate = false;
+
+						while (!found_candidate) {
+							std::tie(syn_addr, found_candidate) =
+							    synapses_on_vline.getSynapse(target_nrn, bio_synapse_property);
+
+							if (!found_candidate) {
+								// There are no more available synapses.
+								break;
 							}
 
-							L1Address const& l1_address = addresses.at(address);
-							DriverDecoder const driver_dec = l1_address.getDriverDecoderMask();
+							auto synapse_proxy = chip.synapses[syn_addr];
+							// assert that synapse has not been used otherwise
+							assert(synapse_proxy.decoder == SynapseDecoderDisablingSynapse);
+							// check that synapse has not been tagged as defect
+							if (synapse_proxy.weight != SynapseWeight(0)) {
+								found_candidate = false;
+							}
+						}
 
+						if (!found_candidate) {
+							// no synapse found, so add to synapse loss
+							syn_loss_proxy.addLoss(
+							    src_neuron_in_proj_view, trg_neuron_in_proj_view);
+							// NOTE: SJ here iterated over all remaining src neuron with the
+							// same DriverDecoder
+							// and marked the synapses as lost.
+						} else {
+							// we found a usable weight
+							auto synapse_proxy = chip.synapses[syn_addr];
+							synapse_proxy.decoder =
+								(m_parameters.only_allow_background_events()
+									? SynapseDecoder(0)
+								 	: l1_address.getSynapseDecoderMask());
 
-							//double const weight = *(weight_iterator++);
-#if !defined(MAROCCO_NDEBUG)
-							//if (src_neuron_in_proj_view>=bio_weights.size1()) {
-								//throw std::runtime_error("src out of range");
-							//}
-							//if (trg_neuron_in_proj_view>=bio_weights.size2()) {
-								//throw std::runtime_error("trg out of range");
-							//}
-#endif // MAROCCO_NDEBUG
-							double weight = bio_weights(src_neuron_in_proj_view, trg_neuron_in_proj_view);
-							if (weight>0.)
-							{
-								Type_Decoder_STP const bio_synapse_property(
-									syntype_proj, driver_dec, stp_proj);
-								// address of leftmost top denmem of target neuron
-								NeuronOnHICANN const target_nrn(X(trg_hw_offset), Y(0));
+							// Before, here the distorted weight was stored.
+							// As we postpone the weight trafo to HICANNTransformator, this
+							// has to be done there (TODO: #1611)
+							// Instead, we only mark the synapse as realized in the target
+							// chip.
+							// syn_loss_proxy.setWeight(src_neuron_in_proj_view,
+							// trg_neuron_in_proj_view, clipped_weight);
+							syn_loss_proxy.addRealized();
 
-								SynapseOnHICANN syn_addr;
-								bool success = false;
-								while (true) {
-									bool found_candidate;
-									std::tie(syn_addr, found_candidate) =
-										synapses_on_vline.getSynapse(
-											target_nrn, bio_synapse_property);
-									MAROCCO_DEBUG(
-										"found syn = " << found_candidate << ", " << syn_addr);
+							// store synapse mapping
+							auto it = driver_res.rows().find(syn_addr.toSynapseRowOnHICANN());
+							assert(it != driver_res.rows().end());
+							it->second.synapses().at(syn_addr.toSynapseColumnOnHICANN()) =
+							    SynapseSource(
+							        proj_view, src_neuron_in_proj_view, trg_neuron_in_proj_view);
+						}
+					}
+				}
+			}
 
-									if (found_candidate) {
-										auto synapse_proxy = chip.synapses[syn_addr];
-										// assert that synapse has not been used otherwise
-										assert(
-											synapse_proxy.decoder ==
-											SynapseDecoderDisablingSynapse);
-										// check that synapse has not been tagged as defect
-										if (synapse_proxy.weight == SynapseWeight(0)) {
-											//  we found usable weight
-											success = true;
-											break;
-										}
-										// else try next available synapse
-
-									} else {
-										success = false;
-										break;
-									}
-								}
-
-								if (!success) {
-									// no synapse found, so add to synapse loss
-									syn_loss_proxy.addLoss(
-										src_neuron_in_proj_view, trg_neuron_in_proj_view);
-									// NOTE: SJ here iterated over all remaining src neuron with the
-									// same DriverDecoder
-									// and marked the synapses as lost.
-								} else {
-									// we found a usable weight
-									auto synapse_proxy = chip.synapses[syn_addr];
-									MAROCCO_TRACE(
-										"setting synapse (" << syn_addr << ") = "
-															<< l1_address.getSynapseDecoderMask());
-									synapse_proxy.decoder =
-										mPyMarocco.only_bkg_visible
-											? SynapseDecoder(0)
-											: l1_address.getSynapseDecoderMask();
-
-									// Before, here the distorted weight was stored.
-									// As we postpone the weight trafo to HICANNTransformator, this
-									// has to be done there (TODO: #1611)
-									// Instead, we only mark the synapse as realized in the target
-									// chip.
-									// syn_loss_proxy.setWeight(src_neuron_in_proj_view,
-									// trg_neuron_in_proj_view, clipped_weight);
-									syn_loss_proxy.addRealized();
-
-									// store synapse mapping
-									auto it =
-										driver_res.rows().find(syn_addr.toSynapseRowOnHICANN());
-									assert(it != driver_res.rows().end());
-									it->second.synapses().at(syn_addr.toSynapseColumnOnHICANN()) =
-										SynapseSource(
-											proj_view, src_neuron_in_proj_view,
-											trg_neuron_in_proj_view);
-								}
-							} // if valid bio weights
-							++src_neuron_in_proj_view;
-						} // src bio neurons
-						++trg_neuron_in_proj_view;
-					} // trg bio neurons
-
-				} // all hw assignments
-			} // all hw projections
-
-
-			mResult.driver_result.push_back(std::move(driver_res));
-
+			m_result.driver_result.push_back(std::move(driver_res));
 		} // synapse driver assignments
 
 		MAROCCO_DEBUG(syn_manager); // print row usage stats
@@ -516,62 +427,19 @@ void SynapseRouting::run(placement::Result const& placement,
 	disableDefectSynapes();
 }
 
-void SynapseRouting::set(LocalRoute const& route, std::pair<size_t, size_t> const& need)
-{
-	mNumSynapseDriver[route.id()] = need;
-}
-
-std::pair<size_t, size_t> SynapseRouting::get(LocalRoute const& route) const
-{
-	return mNumSynapseDriver.at(route.id());
-}
-
 SynapseRouting::Result const& SynapseRouting::getResult() const
 {
-	return mResult;
+	return m_result;
 }
 
 SynapseRouting::Result& SynapseRouting::getResult()
 {
-	return mResult;
-}
-
-void SynapseRouting::handleSynapseLoss(
-	LocalRoute const& local_route, placement::results::Placement const& neuron_placement)
-{
-	Route const& route = local_route.route();
-	L1Bus const& l1 = mRoutingGraph[route.source()];
-	HICANNGlobal const& src_hicann = l1.hicann();
-	std::vector<HardwareProjection> const& projections = route.projections();
-	for (auto const& proj : projections)
-	{
-		graph_t::edge_descriptor pynn_proj = proj.projection();
-
-		graph_t::vertex_descriptor target = boost::target(pynn_proj, mGraph);
-
-		assignment::AddressMapping const& am = proj.source();
-		assignment::PopulationSlice const& src_bio_assign = am.bio();
-
-		for (auto const& item : neuron_placement.find(target)) {
-			auto neuron_block = item.neuron_block();
-			assert(neuron_block != boost::none);
-			if (neuron_block->toHICANNOnWafer() != hicann().toHICANNOnWafer()) {
-				// This neuron of the target population was not placed to the current hicann,
-				// so there is nothing to do.
-				continue;
-			}
-
-			HICANNGlobal trg_hicann(neuron_block->toHICANNOnWafer(), guess_wafer(mManager));
-			mSynapseLoss->addLoss(
-			    pynn_proj, src_hicann, trg_hicann, src_bio_assign,
-			    assignment::PopulationSlice(item.population(), item.neuron_index(), 1));
-		}
-	} // for all projetions
+	return m_result;
 }
 
 void SynapseRouting::invalidateSynapseDecoder()
 {
-	auto& chip = mHW[hicann()];
+	auto& chip = m_hardware[m_hicann];
 
 	for (auto const& row : iter_all<SynapseRowOnHICANN>())
 	{
@@ -585,8 +453,8 @@ void SynapseRouting::invalidateSynapseDecoder()
 
 void SynapseRouting::tagDefectSynapses()
 {
-	auto& chip = mHW[hicann()];
-	auto const& defects = mManager.get(hicann());
+	auto& chip = m_hardware[m_hicann];
+	auto const& defects = m_resource_manager.get(m_hicann);
 	auto const& syns = defects->synapses();
 
 	MAROCCO_INFO("Handling defect synapses");
@@ -594,13 +462,13 @@ void SynapseRouting::tagDefectSynapses()
 	{
 		auto proxy = chip.synapses[*it];
 		proxy.weight = SynapseWeight(1);
-		MAROCCO_DEBUG("Marked " << *it << " on " << hicann() << " as defect/disabled");
+		MAROCCO_DEBUG("Marked " << *it << " on " << m_hicann << " as defect/disabled");
 	}
 }
 
 void SynapseRouting::disableDefectSynapes()
 {
-	auto& chip = mHW[hicann()];
+	auto& chip = m_hardware[m_hicann];
 
 	for (auto const& syn : iter_all<SynapseOnHICANN>())
 	{
