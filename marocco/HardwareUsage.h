@@ -1,7 +1,6 @@
 #pragma once
 
 #include "marocco/placement/Result.h"
-#include "marocco/placement/LookupTable.h"
 #include "marocco/graph.h"
 #include "pymarocco/MappingStats.h"
 
@@ -44,9 +43,6 @@ private:
 	Resource const& mResource;
 
 	placement::results::Placement const& mNeuronPlacement;
-
-	/// (shared) pointer to the forward+reverse mapping information
-	std::shared_ptr<placement::LookupTable> mLookupTable;
 };
 
 } // namespace marocco

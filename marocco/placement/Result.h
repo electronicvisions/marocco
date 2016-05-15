@@ -11,8 +11,6 @@
 namespace marocco {
 namespace placement {
 
-class LookupTable;
-
 struct Result : public BaseResult {
 	Result(results::Placement const& result)
 		: neuron_placement(result)
@@ -22,8 +20,6 @@ struct Result : public BaseResult {
 	results::Placement const& neuron_placement;
 	internal::Result internal;
 	MergerRoutingResult merger_routing;
-	// reverse mapping for result data (only neuron address translation for now)
-	std::shared_ptr<LookupTable> reverse_mapping;
 };
 
 } // namespace placement

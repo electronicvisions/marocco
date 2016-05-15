@@ -2,7 +2,6 @@
 
 #include "marocco/Logger.h"
 #include "marocco/placement/InputPlacement.h"
-#include "marocco/placement/LookupTable.h"
 #include "marocco/placement/MergerRouting.h"
 #include "marocco/placement/MergerTreeConfigurator.h"
 #include "marocco/placement/NeuronPlacement.h"
@@ -121,9 +120,6 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 	    m_pymarocco.neuron_placement, m_pymarocco.l1_address_assignment, m_pymarocco.speedup,
 	    m_hardware, m_resource_manager);
 	input_placement.run(neuron_placement, result->internal.address_assignment);
-
-	// create reverse mapping
-	result->reverse_mapping = std::make_shared<LookupTable>(*result, m_resource_manager, m_graph);
 
 	return { std::move(result) };
 }

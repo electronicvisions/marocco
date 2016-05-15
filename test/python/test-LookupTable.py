@@ -1,75 +1,63 @@
+import os
+import shutil
+import tempfile
 import unittest
+
+from pymarocco.results import Marocco
 import pyhmf as pynn
-import pymarocco
-import pyhalbe
 import pylogging
+import pymarocco
+
 
 class TestLookupTable(unittest.TestCase):
+    def setUp(self):
+        pylogging.reset()
+        pylogging.default_config(pylogging.LogLevel.ERROR)
+        pylogging.set_loglevel(
+            pylogging.get("marocco"), pylogging.LogLevel.INFO)
 
-    def setUp(self, backend=pymarocco.PyMarocco.None):
-        pylogging.log_to_cout(pylogging.LogLevel.ERROR)
-        self.llog = pylogging.get("test-LookupTable")
+        self.log = pylogging.get(__name__)
+        self.temporary_directory = tempfile.mkdtemp(prefix="marocco-test-")
+
         self.marocco = pymarocco.PyMarocco()
-        self.marocco.backend = backend
+        self.marocco.backend = pymarocco.PyMarocco.None
+        self.marocco.persist = os.path.join(
+            self.temporary_directory, "results.bin")
         self.marocco.neuron_placement.default_neuron_size(4)
-        self.assertTrue(hasattr(pymarocco.MappingStats, 'bio_id'))
-        self.assertTrue(hasattr(pymarocco.MappingStats, 'hw_id'))
-        self.assertTrue(hasattr(pymarocco.MappingStats, 'getBioId'))
-        self.assertTrue(hasattr(pymarocco.MappingStats, 'getHwId'))
 
     def tearDown(self):
+        shutil.rmtree(self.temporary_directory, ignore_errors=True)
         del self.marocco
-
 
     def test_mini_network(self):
         pynn.setup(marocco=self.marocco)
-        numNeurons = 10000
+        numNeurons = 1000
         numPopulations = 42
         numNeuronsPerPopulation = numNeurons/numPopulations
-        for p in range(numPopulations):
-            pynn.Population(numNeuronsPerPopulation, pynn.IF_cond_exp, {})
+
+        pops = []
+        for p in xrange(numPopulations):
+            pops.append(pynn.Population(numNeuronsPerPopulation, pynn.IF_cond_exp, {}))
         pynn.run(0)
+        pynn.end()
 
         self.assertEqual(numPopulations*numNeuronsPerPopulation, self.marocco.getStats().getNumNeurons())
 
-        # old-skool (we (!) count it)
-        for p in range(numPopulations):
-            bio_id = pymarocco.MappingStats.bio_id()
-            bio_id.pop = p
-            for n in range(numNeuronsPerPopulation):
-                bio_id.neuron = n
-                for hw_id in self.marocco.getStats().getHwId(bio_id):
-                    reverse_bio_id = self.marocco.getStats().getBioId(hw_id)
-                    self.assertEqual(reverse_bio_id, bio_id)
-                    #print reverse_bio_id.pop, '/', reverse_bio_id.neuron, ' ----> ', hw_id.hicann, hw_id.outb, hw_id.addr
-        pynn.reset()
-        pynn.end()
-
+        map(self.helper_test_mapping, pops)
 
     def helper_test_mapping(self, pop):
-        bio_id = pymarocco.MappingStats.bio_id()
-        p = pop.euter_id()
-        bio_id.pop = pop.euter_id()
-
-        # check mapping of L1 addresses
-        for n in range(len(pop)):
-            bio_id.neuron = n
-            for hw_id in self.marocco.getStats().getHwId(bio_id):
-                reverse_bio_id = self.marocco.getStats().getBioId(hw_id)
-                self.assertEqual(reverse_bio_id, bio_id)
-                #print bio_id.pop, '/', bio_id.neuron, ' ----> ', hw_id.hicann, hw_id.outb, hw_id.addr
-
-        # check mapping of hardware positions, exclude SpikeSourceArray population
-        if pop.celltype is pynn.SpikeSourceArray:
-            # those are not mapped
-            return
-
-        for n in range(len(pop)):
-            bio_id.neuron = n
-            for denmem in self.marocco.getStats().getDenmems(bio_id):
-                reverse_bio_id = self.marocco.getStats().getBioId(denmem)
-                self.assertEqual(bio_id, reverse_bio_id)
-
+        results = Marocco.from_file(self.marocco.persist)
+        for n in xrange(len(pop)):
+            items = list(results.placement.find(pop[n]))
+            if not items:
+                self.fail("Neuron {} of population {} not placed".format(
+                    n, pop.euter_id()
+                ))
+            for item in items:
+                self.assertEqual(item.neuron_index(), n)
+                self.assertEqual(
+                    pop.celltype == pynn.SpikeSourceArray,
+                    item.logical_neuron().is_external())
 
     def test_get_denmems(self):
         pop_size = 2
@@ -103,25 +91,12 @@ class TestLookupTable(unittest.TestCase):
 
             mapstats = self.marocco.getStats()
 
+            results = Marocco.from_file(self.marocco.persist)
             for pop in populations:
                 for nrn in xrange(pop_size):
-                    bio_id = pymarocco.bio_id()
-                    bio_id.pop = pop.euter_id()
-                    bio_id.neuron = nrn
-
-                    denmems = mapstats.getDenmems(bio_id)
-                    self.assertEqual(
-                        len(denmems),
-                        neuron_size,
-                        "neuron is comprised of {} denmems".format(neuron_size))
-                    self.assertEqual(
-                        len(set(denmems)),
-                        neuron_size,
-                        "neuron is comprised of {} distinct denmems".format(neuron_size))
-
-                    for denmem in denmems:
-                        self.assertIsInstance(denmem, pyhalbe.Coordinate.NeuronGlobal)
-
+                    for item in results.placement.find(pop[nrn]):
+                        self.assertFalse(item.logical_neuron().is_external())
+                        self.assertEqual(neuron_size, item.logical_neuron().size())
 
     def test_stimulated_network(self):
         con = pynn.FixedProbabilityConnector(p_connect=1.0, weights=0.004)

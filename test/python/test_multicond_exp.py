@@ -1,16 +1,28 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+import shutil
+import tempfile
 import unittest
+
 import pyhmf as pynn
-import pymarocco
 from pyhalbe.Coordinate import *
 import pyhalbe.HICANN
 nrn_param = pyhalbe.HICANN.neuron_parameter
 import debug_config
 
+import pymarocco
+from pymarocco.results import Marocco
+
 
 class IF_multicond_exp(unittest.TestCase):
+    def setUp(self):
+        self.temporary_directory = tempfile.mkdtemp(prefix="marocco-test-")
+
+    def tearDown(self):
+        shutil.rmtree(self.temporary_directory, ignore_errors=True)
+
     def test_basic(self):
         """
         tests the routing and parameter trafo of a IF_multicond_exp neuron
@@ -30,7 +42,8 @@ class IF_multicond_exp(unittest.TestCase):
         marocco=pymarocco.PyMarocco()
         marocco.backend = pymarocco.PyMarocco.None
         marocco.neuron_placement.default_neuron_size(4)
-        marocco.wafer_cfg = "wafer.dump"
+        marocco.wafer_cfg = os.path.join(self.temporary_directory, "wafer.bin")
+        marocco.persist = os.path.join(self.temporary_directory, "results.bin")
         used_hicann = HICANNGlobal(Enum(0))
 
         pynn.setup(marocco=marocco)
@@ -81,10 +94,14 @@ class IF_multicond_exp(unittest.TestCase):
                 (s3,SynapseColumnOnHICANN(1),left),
                 (s4,SynapseColumnOnHICANN(1),right)]
 
+        results = Marocco.from_file(marocco.persist)
         for (src,col,side) in exptected_mapping:
-            addr = marocco.getStats().getHwId(debug_config.get_bio_id(src,0))[0].addr
+            items = list(results.placement.find(src[0]))
+            self.assertEqual(1, len(items))
+            item = items[0]
+            addr = item.address().toL1Address()
             syns = debug_config.find_synapses(h.synapses,driver_c,addr)
-            assert len(syns) == 1
+            self.assertEqual(1, len(syns))
             syn = syns[0]
             # check synapse column
             self.assertEqual(syn.toSynapseColumnOnHICANN(), col)

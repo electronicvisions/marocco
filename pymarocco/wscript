@@ -40,28 +40,28 @@ def build(bld):
                          ],
             }
 
-    # ECM: FIXME
-    # marocco depends on stuff from pymarocco -- that's a bit "unconventional".
-    # We should think about this and maybe move stuff around.
-    # My recommendation:
-    # Make pymarocco a "pure" wrapper of marocco functionality and move all
-    # pymarocco parts into marocco which are needed in marocco.
+    bld(target='pymarocco',
+        features='cxx cxxshlib post_task',
+        source=bld.path.ant_glob('*.cpp'),
+        use=[
+            'BOOST4PYMAROCCO',
+            'marocco_parameters',
+            'euter_inc',
+            'redman',
+            'halbe_coordinate',
+        ],
+        post_task='_pymarocco',
+        install_path='lib',
+        **flags)
 
-    bld(target          = '_pymarocco',
+    bld(target='_pymarocco',
         features        = 'cxx cxxshlib pypp pyembed pyext post_task',
         script          = 'generate.py',
         gen_defines     = 'PYPLUSPLUS __STRICT_ANSI__',
         defines         = 'PYBINDINGS',
         headers         = 'bindings.h',
-        use             =  [
-            'BOOST4PYMAROCCO',
-            'marocco',
-            'marocco_parameters',
-            'euter_inc',
-            'redman_inc',
-            'halbe_coordinate',
-            ],
-        post_task=[
+        use             = ['pymarocco', 'VERSION'],
+        post_task       = [
             'pyhalbe',
             'pyhmf',
             'pylogging',
@@ -71,10 +71,6 @@ def build(bld):
         ],
         install_path    = 'lib',
         **flags)
-
-    bld(target          = 'pymarocco',
-        features        = 'use',
-        use             = ['_pymarocco', 'VERSION'])
 
     bld.install_files('lib',
             bld.path.ant_glob('pymarocco/**/*.py'),

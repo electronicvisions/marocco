@@ -22,7 +22,7 @@ HMF::Coordinate::HICANNOnWafer L1AddressOnWafer::toHICANNOnWafer() const
 	return m_dnc_merger.toHICANNOnWafer();
 }
 
-HMF::Coordinate::DNCMergerOnWafer L1AddressOnWafer::toDNCMergerOnWafer() const
+HMF::Coordinate::DNCMergerOnWafer const& L1AddressOnWafer::toDNCMergerOnWafer() const
 {
 	return m_dnc_merger;
 }
@@ -32,7 +32,7 @@ HMF::Coordinate::DNCMergerOnHICANN L1AddressOnWafer::toDNCMergerOnHICANN() const
 	return m_dnc_merger.toDNCMergerOnHICANN();
 }
 
-HMF::HICANN::L1Address L1AddressOnWafer::toL1Address() const
+HMF::HICANN::L1Address const& L1AddressOnWafer::toL1Address() const
 {
 	return m_address;
 }

@@ -1,11 +1,18 @@
 #!/usr/bin/python
+
+import os
+import shutil
+import tempfile
 import unittest
+
 import pylogging
 import pyhmf as pynn
-import pymarocco
 import pyhalbe
 import numpy as np
 import debug_config
+
+import pymarocco
+from pymarocco.results import Marocco
 
 
 pylogging.reset()
@@ -24,6 +31,12 @@ class TestRateDependentInputPlacement(unittest.TestCase):
     hicann_bw = 17.8e6
     fpga_bw = 125.e6
 
+    def setUp(self):
+        self.temporary_directory = tempfile.mkdtemp(prefix="marocco-test-")
+
+    def tearDown(self):
+        shutil.rmtree(self.temporary_directory, ignore_errors=True)
+
     def run_experiment(self, marocco, n_stim, rate, poisson=True, shuffle=False):
         """
         runs experiment with `n_stim` SpikeSources, firing at
@@ -40,6 +53,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         """
 
         sim_duration = 200.
+        marocco.persist = os.path.join(self.temporary_directory, "results.bin")
         pynn.setup(marocco=marocco)
 
         exc_pop = pynn.Population(1, pynn.IF_cond_exp, {})
@@ -63,17 +77,18 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         pynn.Projection( pop_stim, exc_pop, a2a, target='excitatory')
         pynn.run(sim_duration)
 
+        results = Marocco.from_file(marocco.persist)
         hicanns = {} # count number of stimuli mapped on Hicann
         fpgas = {} # count number of stimuli mapped on fpga
         for idx in range(len(pop_stim)):
-            bio_id = debug_config.get_bio_id(pop_stim, idx)
-            hw_id = marocco.getStats().getHwId(bio_id) # returns list of placements
-            assert len(hw_id) == 1 # stim nrns are only placed once per wafer
-            hw_id = hw_id[0]
-            hicann_str = str(hw_id.hicann)
+            items = list(results.placement.find(pop_stim[idx]))
+            # stim nrns are only placed once per wafer
+            self.assertEqual(1, len(items))
+            address = items[0].address()
+            hicann_str = str(address.toHICANNOnWafer())
             hicanns[hicann_str] = hicanns.get(hicann_str, 0) + 1
             hicann_global = pyhalbe.Coordinate.HICANNGlobal(
-                hw_id.hicann, pyhalbe.Coordinate.Wafer())
+                address.toHICANNOnWafer(), pyhalbe.Coordinate.Wafer())
             fpga_str = str(hicann_global.toFPGAGlobal())
             fpgas[fpga_str] = fpgas.get(fpga_str, 0) + 1
 

@@ -100,9 +100,7 @@ def build(bld):
                     'marocco/**/parameters/*',
                     'marocco/**/results/*',
                 ]) +
-            bld.path.ant_glob('control/**/*.cpp') +
-            bld.path.ant_glob('experiment/**/*.cpp') +
-            bld.path.ant_glob('pymarocco/*.cpp'),
+            bld.path.ant_glob('control/**/*.cpp'),
         install_path    = 'lib',
         use             = [
             'USE4MAROCCO',
@@ -123,6 +121,7 @@ def build(bld):
             'marocco_coordinates',
             'marocco_parameters',
             'marocco_results',
+            'pymarocco',
             ],
         cxxflags=cxxflags)
 

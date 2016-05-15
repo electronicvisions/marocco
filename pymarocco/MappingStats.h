@@ -9,18 +9,7 @@
 #include <boost/serialization/nvp.hpp>
 #include "boost/serialization/ublas.hpp"
 
-#include "marocco/placement/LookupTableData.h"
-
 namespace ublas = boost::numeric::ublas;
-
-
-#if !defined(PYPLUSPLUS)
-#include <memory>
-// fwd dcl 4tw
-namespace marocco { namespace placement {
-class LookupTable;
-}}
-#endif // !defined(PYPLUSPLUS)
 
 namespace pymarocco {
 
@@ -30,8 +19,6 @@ public:
 	typedef float value_type;
 	typedef ublas::matrix<value_type> Matrix;
 	typedef size_t ProjectionId;
-	typedef marocco::placement::bio_id bio_id;
-	typedef marocco::placement::hw_id hw_id;
 
 	MappingStats();
 
@@ -46,20 +33,6 @@ public:
 	double getNeuronUsage() const;
 	double getSynapseUsage() const;
 
-	/// translate between hardware spike address (HICANNOnWafer +
-	/// OutputBufferOnHICANN + / L1Address) and biological neuron id
-	bio_id getBioId(hw_id const id);
-
-	/// translate between NeuronOnWafer and biological neuron id
-	bio_id getBioId(HMF::Coordinate::NeuronOnWafer const id);
-
-	/// translate between biological and hardware spike addresses
-	std::vector<hw_id> getHwId(bio_id const id);
-
-	/// return a vector of coordinates of the denmems which comprises bio
-	/// neuron 'id'
-	std::vector<HMF::Coordinate::NeuronOnWafer> getDenmems(bio_id const id);
-
 #if !defined(PYPLUSPLUS)
 	void setSynapseLoss(size_t s);
 	void setSynapseLossAfterWaferRouting(size_t s);
@@ -71,9 +44,6 @@ public:
 
 	void setNeuronUsage(double v);
 	void setSynapseUsage(double v);
-
-	/// provide reverse mapping data
-	void setLookupTable(std::shared_ptr<marocco::placement::LookupTable>);
 #endif
 
 	size_t timeSpentInParallelRegion;
@@ -104,11 +74,6 @@ private:
 	/// mapping of projection ids to weight matrices
 	std::map<ProjectionId, Matrix> mWeights;
 
-#if !defined(PYPLUSPLUS)
-	/// reverse mapping data
-	std::shared_ptr<marocco::placement::LookupTable> mLookupTable;
-#endif
-
 	friend class boost::serialization::access;
 	template<typename Archive>
 	void serialize(Archive& ar, unsigned int const)
@@ -121,7 +86,6 @@ private:
 		   & make_nvp("projections", mNumProjections)
 		   & make_nvp("neurons", mNumNeurons)
 		   & make_nvp("weights", mWeights)
-
 		   & make_nvp("neuron_usage", mNeuronUsage)
 		   & make_nvp("synapse_usage", mSynapseUsage);
 	}

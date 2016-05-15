@@ -19,9 +19,9 @@ public:
 	    HMF::HICANN::L1Address const& address);
 
 	HMF::Coordinate::HICANNOnWafer toHICANNOnWafer() const;
-	HMF::Coordinate::DNCMergerOnWafer toDNCMergerOnWafer() const;
+	HMF::Coordinate::DNCMergerOnWafer const& toDNCMergerOnWafer() const;
 	HMF::Coordinate::DNCMergerOnHICANN toDNCMergerOnHICANN() const;
-	HMF::HICANN::L1Address toL1Address() const;
+	HMF::HICANN::L1Address const& toL1Address() const;
 
 	friend bool operator==(L1AddressOnWafer const& lhs, L1AddressOnWafer const& rhs);
 

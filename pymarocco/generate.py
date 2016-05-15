@@ -25,10 +25,6 @@ for name in ['PyMarocco']:
 for td in mb.typedefs(allow_empty=True):
     td.exclude()
 
-for name in ['hw_id', 'bio_id']:
-    ns_marocco.classes(name).include()
-    ns_pymarocco.typedefs(name).include()
-
 # expose only public interfaces
 namespaces.exclude_by_access_type(mb, ['variables', 'calldefs', 'classes', 'typedefs'], 'private')
 namespaces.exclude_by_access_type(mb, ['variables', 'calldefs', 'classes', 'typedefs'], 'protected')

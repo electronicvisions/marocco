@@ -10,9 +10,7 @@
 
 #include "marocco/BioGraph.h"
 #include "marocco/config.h"
-
-// FIXME: due to hacky reverse mapping
-#include "marocco/placement/Placement.h"
+#include "marocco/results/Marocco.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace marocco {
@@ -42,8 +40,9 @@ public:
 	pymarocco::MappingStats&       getStats();
 	pymarocco::MappingStats const& getStats() const;
 
-	// TODO: hacky reverse mapping for preliminary reverse channel
-	std::shared_ptr<placement::LookupTable> getLookupTable() const;
+	BioGraph const& bio_graph() const;
+
+	results::Marocco const& results() const;
 
 private:
 	BioGraph mBioGraph;
@@ -57,8 +56,9 @@ private:
 	// communicator of participating mapping processes
 	comm_type mComm;
 
-	std::shared_ptr<placement::LookupTable> mLookupTable;
 	boost::shared_ptr<pymarocco::PyMarocco> mPyMarocco;
+
+	std::unique_ptr<results::Marocco> m_results;
 };
 
 } // namespace marocco

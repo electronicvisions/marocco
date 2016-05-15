@@ -12,6 +12,10 @@ void BioGraph::load(ObjectStore const& os)
 		if (m_vertices.find(pop.get()) == m_vertices.end()) {
 			graph_type::vertex_descriptor v =
 			    add_vertex(boost::const_pointer_cast<const Population>(pop), m_graph);
+			// Conveniently the vertex descriptor (which is used in the placement result
+			// container) coincides with the euter id of the population because of the
+			// order of iteration.  Thus we do not need an additional lookup table.
+			assert(v == pop->id());
 			m_vertices[pop.get()] = v;
 		}
 	}

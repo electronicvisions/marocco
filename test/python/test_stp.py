@@ -1,13 +1,26 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
+import shutil
+import tempfile
 import unittest
+
 import pyhmf as pynn
-import pymarocco
 from pyhalbe.Coordinate import *
 import debug_config
 
+import pymarocco
+from pymarocco.results import Marocco
+
+
 class STPTest(unittest.TestCase):
+    def setUp(self):
+        self.temporary_directory = tempfile.mkdtemp(prefix="marocco-test-")
+
+    def tearDown(self):
+        shutil.rmtree(self.temporary_directory, ignore_errors=True)
+
     def test_basic(self):
         """
         tests whether synapses with short term plasticity are routed correctly.
@@ -21,7 +34,8 @@ class STPTest(unittest.TestCase):
         marocco=pymarocco.PyMarocco()
         marocco.backend = pymarocco.PyMarocco.None
         marocco.neuron_placement.default_neuron_size(4)
-        marocco.wafer_cfg = "wafer.dump"
+        marocco.wafer_cfg = os.path.join(self.temporary_directory, "wafer.bin")
+        marocco.persist = os.path.join(self.temporary_directory, "results.bin")
         used_hicann = HICANNGlobal(Enum(0))
 
         pynn.setup(marocco=marocco)
@@ -65,9 +79,13 @@ class STPTest(unittest.TestCase):
         self.assertEqual(num_active_drivers, 3)
         self.assertEqual(len(drivers), 3)
 
+        results = Marocco.from_file(marocco.persist)
         # check that synapses are on the drivers with the correct mode
         for src,mode in [(s1,'depression'), (s2,'facilitation'), (s3,'static')]:
-            addr = marocco.getStats().getHwId(debug_config.get_bio_id(src,0))[0].addr
+            items = list(results.placement.find(src[0]))
+            self.assertEqual(1, len(items))
+            item = items[0]
+            addr = item.address().toL1Address()
             syns = debug_config.find_synapses(h.synapses,drivers[mode],addr)
             self.assertEqual(len(syns), 1) # the addr of the source should be found once
 

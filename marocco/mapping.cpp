@@ -10,6 +10,9 @@
 #include "redman/backend/MockBackend.h"
 #include "redman/resources/Wafer.h"
 
+#include "control/Control.h"
+#include "marocco/experiment/ReadResults.h"
+
 using namespace HMF::Coordinate;
 
 namespace {
@@ -139,8 +142,9 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 		// TODO: translate hw data back to bio data
 		// TODO: merge results and send it back to user
 
-		experiment::ReadResults reader{*mi, hw, resources};
-		reader.run(*store, *mapper.getLookupTable());
+		experiment::ReadResults reader(
+			*mi, hw, mapper.results().placement, mapper.bio_graph(), wafer);
+		reader.run(*store);
 	}
 
 	mi->setStats(mapper.getStats());

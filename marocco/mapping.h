@@ -5,9 +5,6 @@
 
 #include "marocco/Mapper.h"
 
-#include "control/Control.h"
-#include "experiment/Result.h"
-
 #include "mappingresult.h"
 #include "pymarocco/PyMarocco.h"
 

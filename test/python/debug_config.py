@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 """
 functions for debugging the HICANN configuration
 """
@@ -7,18 +7,6 @@ functions for debugging the HICANN configuration
 import pyhalbe.Coordinate as Coord
 import pysthal
 import pymarocco
-
-def get_bio_id(pop, idx):
-    """
-    ge the PyMarocco.MappingStats.bio_id of a neuron
-
-    pop - a pyhmf.Population
-    idx - index of the neuron within the population
-    """
-    bio_id = pymarocco.MappingStats.bio_id()
-    bio_id.pop = pop.euter_id()
-    bio_id.neuron = idx
-    return bio_id
 
 
 def load_hicann_cfg(wafer_cfg, h):

@@ -8,7 +8,6 @@
 #include "marocco/Result.h"
 #include "marocco/parameter/HICANNParameter.h"
 #include "marocco/placement/Placement.h"
-#include "marocco/results/Marocco.h"
 #include "marocco/routing/Routing.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/util/iterable.h"
@@ -38,7 +37,8 @@ Mapper::Mapper(hardware_type& hw,
 	mMgr(mgr),
 	mHW(hw),
 	mComm(comm),
-	mPyMarocco(pymarocco)
+	mPyMarocco(pymarocco),
+	m_results(new results::Marocco())
 {
 	if (!mPyMarocco) {
 		mPyMarocco = PyMarocco::create();
@@ -80,12 +80,10 @@ void Mapper::run(ObjectStore const& pynn)
 	}
 
 	// The 3 1/2-steps to complete happiness
-	std::unique_ptr<results::Marocco> result(new results::Marocco());
 
 	// 1.  P L A C E M E N T
 	placement::Placement placer(*mPyMarocco, graph, mHW, mMgr);
-	auto placement = placer.run(result->placement);
-	mLookupTable = result_cast<placement::Result>(*placement).reverse_mapping;
+	auto placement = placer.run(m_results->placement);
 
 	// 2.  R O U T I N G
 	std::unique_ptr<routing::Routing> router(
@@ -149,7 +147,7 @@ void Mapper::run(ObjectStore const& pynn)
 
 	if (!mPyMarocco->persist.empty()) {
 		MAROCCO_INFO("Saving results to " << mPyMarocco->persist);
-		result->save(mPyMarocco->persist.c_str(), true);
+		m_results->save(mPyMarocco->persist.c_str(), true);
 	}
 }
 
@@ -186,10 +184,14 @@ pymarocco::MappingStats const& Mapper::getStats() const
 	return mPyMarocco->getStats();
 }
 
-std::shared_ptr<placement::LookupTable>
-Mapper::getLookupTable() const
+BioGraph const& Mapper::bio_graph() const
 {
-	return mLookupTable;
+	return mBioGraph;
+}
+
+results::Marocco const& Mapper::results() const
+{
+	return *m_results;
 }
 
 } // namespace marocco

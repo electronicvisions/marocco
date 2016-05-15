@@ -12,8 +12,7 @@ namespace marocco {
 HardwareUsage::HardwareUsage(Hardware const& hw, Resource const& r, BaseResult const& pl)
 	: mHW(hw),
 	  mResource(r),
-	  mNeuronPlacement(result_cast<placement::Result>(pl).neuron_placement),
-	  mLookupTable(result_cast<placement::Result>(pl).reverse_mapping)
+	  mNeuronPlacement(result_cast<placement::Result>(pl).neuron_placement)
 {}
 
 double HardwareUsage::overallNeuronUsage() const
@@ -132,7 +131,6 @@ void HardwareUsage::fill(pymarocco::MappingStats& stats) const
 {
 	stats.setNeuronUsage(overallNeuronUsage());
 	stats.setSynapseUsage(overallSynapseUsage());
-	stats.setLookupTable(mLookupTable);
 }
 
 sthal::HICANN const& HardwareUsage::getChip(Index const& hicann) const
