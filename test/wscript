@@ -49,12 +49,16 @@ def build(bld):
             'pymarocco_coordinates',
         ])
 
-    bld(
-        target = 'pytests-marocco',
-        tests=bld.path.ant_glob('python/test*.py'),
+    bld(target='marocco-pytest-quick',
         features='pytest',
-        use=['pyhmf', 'marocco', 'pymarocco', 'pysthal'],
-    )
+        tests=bld.path.ant_glob('python/quick/test*.py'),
+        use=['pyhmf', 'marocco', 'pymarocco', 'pysthal'])
+
+    bld(target='marocco-pytest-slow',
+        features='pytest',
+        tests=bld.path.ant_glob('python/slow/test*.py'),
+        test_timeout=180,
+        use=['pyhmf', 'marocco', 'pymarocco', 'pysthal'])
 
     bld(tests           = [
             'test-scaling.py'

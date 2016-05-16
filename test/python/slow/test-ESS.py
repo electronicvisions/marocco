@@ -1,5 +1,4 @@
 import copy, unittest, random
-from ester import Ester
 from pymarocco import *
 from pyhalbe.Coordinate import *
 from pyhmf import *
@@ -23,7 +22,7 @@ class TestESS(unittest.TestCase):
         return HICANNGlobal(Enum(hicann))
 
     def test_TwoNeuron(self):
-        with Ester() as ester:
+        if True:
             setup(marocco=self.marocco)
 
             # create neuron with v_rest below v_thresh

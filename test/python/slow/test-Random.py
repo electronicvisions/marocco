@@ -1,5 +1,4 @@
 import copy, unittest, random
-from ester import Ester
 from pymarocco import *
 from pyhalbe.Coordinate import *
 from pyhmf import *
@@ -15,10 +14,9 @@ class TestRandom(unittest.TestCase):
         del self.marocco
 
     def test_Big(self):
-        with Ester() as ester:
-            self.random_network(ester)
+        self.random_network()
 
-    def random_network(self, ester):
+    def random_network(self):
         setup(marocco=self.marocco)
 
         NUM_POPS = random.randint(10, 1000)
@@ -43,8 +41,6 @@ class TestRandom(unittest.TestCase):
 
         stats = self.marocco.getStats()
         print "python synapse loss: ", stats.getSynapseLoss()
-
-        self.assertEqual(None, ester.exit_code())
 
 
 if __name__ == '__main__':
