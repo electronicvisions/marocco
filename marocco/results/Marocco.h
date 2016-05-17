@@ -18,7 +18,21 @@ namespace results {
  */
 class Marocco {
 public:
+	/**
+	 * @brief Load mapping results from disk.
+	 * @param filename Path to input file.  The extension is used to determine the file
+	 *                 format, e.g. `.xml`/`.bin` or `.xml.gz`/`.bin.gz`.
+	 * @see #save().
+	 */
 	static Marocco from_file(char const* filename);
+
+	/**
+	 * @brief Save mapping results to disk.
+	 * @param filename Path to output file.  The extension is used to determine the file
+	 *                 format, e.g. `.xml` or `.bin`.  Optionally a second extension of
+	 *                 `.gz` can be added to write results in compressed form,
+	 *                 e.g. `results.xml.gz`.
+	 */
 	void save(char const* filename, bool overwrite = false) const;
 
 	placement::results::Placement placement;

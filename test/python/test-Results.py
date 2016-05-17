@@ -31,6 +31,23 @@ class TestResults(unittest.TestCase):
         shutil.rmtree(self.temporary_directory, ignore_errors=True)
         del self.marocco
 
+    @utils.parametrize([".xml", ".bin", ".xml.gz", ".bin.gz"])
+    def test_file_format(self, extension):
+        self.marocco.persist = (
+            os.path.splitext(self.marocco.persist)[0] + extension
+        )
+        pynn.setup(marocco=self.marocco)
+
+        target = pynn.Population(1, pynn.IF_cond_exp, {})
+
+        pynn.run(0)
+        pynn.end()
+
+        self.assertTrue(os.path.exists(self.marocco.persist))
+        results = Marocco.from_file(self.marocco.persist)
+
+        self.assertEqual(1, len(list(results.placement)))
+
     @utils.parametrize([2, 4, 6, 8])
     def test_small_network(self, neuron_size):
         self.marocco.neuron_placement.default_neuron_size(neuron_size)
@@ -49,6 +66,7 @@ class TestResults(unittest.TestCase):
         pynn.run(0)
         pynn.end()
 
+        self.assertTrue(os.path.exists(self.marocco.persist))
         results = Marocco.from_file(self.marocco.persist)
 
         self.assertEqual(sum(map(len, pops)), len(list(results.placement)))
