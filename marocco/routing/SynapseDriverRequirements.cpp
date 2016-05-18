@@ -236,79 +236,17 @@ SynapseDriverRequirements::count_half_rows_vec(
 	return rv;
 }
 
-std::map<TriParity, std::map<Side_STP, size_t> >
-SynapseDriverRequirements::count_half_rows_per_side(
-	std::map<TriParity, std::map<Side_Decoder_STP, size_t> > const& required_half_rows)
+std::map<Side_STP, size_t>
+SynapseDriverRequirements::count_rows_per_side(
+    std::map<Side_Parity_STP, size_t> const& required_half_rows_per_parity)
 {
-	std::map<TriParity, std::map<Side_STP, size_t> > rv;
-	for (auto p_and_counts : required_half_rows) {
-		TriParity parity = p_and_counts.first;
-		std::map<Side_STP, size_t>& global_counts = rv[parity];
-		std::map<Side_Decoder_STP, size_t> const& counts = p_and_counts.second;
-		for (auto item : counts) {
-			global_counts[to_Side_STP(item.first)] += item.second;
-		}
-	}
-	return rv;
-}
-
-std::map<Side_STP, size_t> SynapseDriverRequirements::count_rows_per_side(
-	std::map<TriParity, std::map<Side_STP, size_t> > const& required_half_rows_per_side,
-	std::map<Side_STP, std::map<Parity, size_t> >& half_rows_assigned_to_parity)
-{
-	// we create a map with reversed keys ...
-	// TODO: this might be done in a preceding function.
-	std::map<Side_STP, std::map<TriParity, size_t> > map_reversed;
-
-	for (auto p_and_counts : required_half_rows_per_side) {
-		TriParity parity = p_and_counts.first;
-		std::map<Side_STP, size_t> const& counts = p_and_counts.second;
-		for (auto item : counts) {
-			map_reversed[item.first][parity] = item.second;
-		}
-	}
-
 	std::map<Side_STP, size_t> rv;
-
-	for (auto item : map_reversed) {
-		auto counts = item.second; // copy to remove constness attribute
-
-		std::map<Parity, size_t>& assigned_half_row_counts =
-			half_rows_assigned_to_parity[item.first];
-
-		size_t count_per_side = std::max(counts[TriParity::even], counts[TriParity::odd]);
-
-		assigned_half_row_counts[Parity::even] = counts[TriParity::even];
-		assigned_half_row_counts[Parity::odd] = counts[TriParity::odd];
-		if (counts[TriParity::any] > 0) {
-			size_t abs_diff_even_odd =
-				std::abs((int)counts[TriParity::even] - (int)counts[TriParity::odd]);
-			if (counts[TriParity::any] > abs_diff_even_odd) {
-				count_per_side +=
-					std::max(0, int(std::ceil(0.5 * (counts[TriParity::any] - abs_diff_even_odd))));
-			}
-
-			if (abs_diff_even_odd > counts[TriParity::any]) {
-				if (counts[TriParity::even] > counts[TriParity::odd]) {
-					assigned_half_row_counts[Parity::odd] += counts[TriParity::any];
-				} else {
-					assigned_half_row_counts[Parity::even] += counts[TriParity::any];
-				}
-			} else { // difference between left and right is not sufficient to realize all
-				size_t additional_half_rows = counts[TriParity::any] - abs_diff_even_odd;
-				if (counts[TriParity::even] > counts[TriParity::odd]) {
-					assigned_half_row_counts[Parity::odd] += abs_diff_even_odd;
-				} else {
-					assigned_half_row_counts[Parity::even] += abs_diff_even_odd;
-				}
-				// put more on the left than on the right
-				assigned_half_row_counts[Parity::even] +=
-					size_t(std::ceil(additional_half_rows / 2.));
-				assigned_half_row_counts[Parity::odd] +=
-					size_t(std::floor(additional_half_rows / 2.));
-			}
-		}
-		rv[item.first] = count_per_side;
+	for (auto const& item : required_half_rows_per_parity) {
+		Side side;
+		STPMode stp;
+		std::tie(side, std::ignore, stp) = item.first;
+		Side_STP key(side, stp);
+		rv[key] = std::max(rv[key], item.second); // max of all parities
 	}
 	return rv;
 }
@@ -342,6 +280,77 @@ SynapseDriverRequirements::count_drivers(std::map<STPMode, size_t> const& requir
 		rv += item.second;
 	}
 	return rv;
+}
+
+std::map<Side_Parity_STP, size_t>
+SynapseDriverRequirements::resolve_triparity(
+    std::map<TriParity, std::map<Side_Decoder_STP, size_t> > const& half_rows_per_triparity,
+    std::map<Side_Parity_Decoder_STP, size_t>& synrow_hist,
+    std::map<Side_Decoder_STP, std::vector<Parity> >& assignment_to_parity)
+{
+	synrow_hist.clear();
+	assignment_to_parity.clear();
+
+	std::map<Side_Parity_STP, size_t> used_half_rows; // return value
+
+	// first process  TriParity even and odd
+	for (auto const& item : half_rows_per_triparity) {
+		TriParity triparity = item.first;
+
+		if (triparity == TriParity::any) {
+			continue;
+		}
+
+		Parity parity = static_cast<Parity>(triparity);
+		for (auto const& item2 : item.second) {
+			Side side;
+			DriverDecoder decoder;
+			STPMode stp;
+			std::tie(side, decoder, stp) = item2.first;
+
+			used_half_rows[Side_Parity_STP(side, Parity(triparity), stp)] += item2.second;
+
+			synrow_hist[Side_Parity_Decoder_STP(side, parity, decoder, stp)] += item2.second;
+		}
+	}
+
+	// finally process triparity::any
+	auto it_any = half_rows_per_triparity.find(TriParity::any);
+	if (it_any != half_rows_per_triparity.end()) {
+		for (auto const& item : it_any->second) {
+			Side side;
+			DriverDecoder decoder;
+			STPMode stp;
+			std::tie(side, decoder, stp) = item.first;
+			// consider the number of rows per side!!
+			// same procedure as in count_synapses_per_hardware_property
+			// what is better: all to the same parity, or round-robin?
+			size_t req_half_rows = item.second;
+
+			Side_Parity_STP const c_even(side, Parity::even, stp);
+			Side_Parity_STP const c_odd(side, Parity::odd, stp);
+
+			while (req_half_rows > 0) {
+				Side_Parity_STP choice;
+				// use the parity with the lower number of used counts
+				if (used_half_rows[c_even] <= used_half_rows[c_odd]) {
+					choice = c_even;
+				} else {
+					choice = c_odd;
+				}
+				Parity parity = std::get<1>(choice);
+				synrow_hist[Side_Parity_Decoder_STP(side, parity, decoder, stp)]++;
+				// store the assignment
+				assignment_to_parity[Side_Decoder_STP(side, decoder, stp)].push_back(parity);
+				// store used half rows
+				used_half_rows[choice]++;
+				// decrease requirements
+				req_half_rows--;
+			}
+		}
+	}
+
+	return used_half_rows;
 }
 
 
@@ -472,41 +481,31 @@ std::pair<size_t, size_t> SynapseDriverRequirements::_calc(
 	std::map<TriParity, std::map<Side_Decoder_STP, size_t> > half_rows_per_triparity_global =
 		count_half_rows_vec(half_rows_per_triparity);
 
-	std::map<Side_STP, std::map<Parity, size_t> > half_rows_assigned_to_parity;
-	std::map<Side_STP, size_t> rows_per_side = count_rows_per_side(
-		count_half_rows_per_side(half_rows_per_triparity_global), half_rows_assigned_to_parity);
+	// resolve triparity to parity and calculate synrow histogram
+	std::map<Side_Decoder_STP, std::vector<Parity> > triparity_assignment_to_parity;
+	std::map<Side_Parity_STP, size_t> half_rows_per_parity = resolve_triparity(
+	    half_rows_per_triparity_global, synrow_histogram, triparity_assignment_to_parity);
 
-	size_t n_drivers = count_drivers(count_drivers_per_STP(count_rows_per_STP(rows_per_side)));
+	// total number of required drivers
+	size_t n_drivers = count_drivers(
+	    count_drivers_per_STP(count_rows_per_STP(count_rows_per_side(half_rows_per_parity))));
 
-
-	// ok, now count the number of synapses and half synapse rows per HW Property
-	std::map<Side_Parity_Decoder_STP, size_t> syn_counts_per_hw_property_global;
-	std::map<Side_Parity_Decoder_STP, size_t> half_rows_assigned_per_parity_global;
-
+	// count the number of synapses per hardware property
 	size_t ii = 0;
 	for (auto const& item : syn_counts.get_counts()) {
 		NeuronOnHICANN const& nrn_addr = item.first;
 		auto const& bio_property_counts = item.second;
 
-		std::map<Side_Parity_Decoder_STP, size_t> half_rows_per_hardware_property;
-		std::map<Type_Decoder_STP, std::vector<Side_Parity> > assigned_side_parity; // not used
-																					// further
-
 		std::map<Side_Parity_Decoder_STP, size_t> syn_counts_per_hw_property =
-			count_synapses_per_hardware_property(
-				bio_property_counts, rows_per_side, bio_to_hw_assignment[ii],
-				target_synapses_per_parity_and_synaptic_input.at(nrn_addr),
-				half_rows_per_hardware_property, assigned_side_parity);
+		    count_synapses_per_hardware_property(
+		        bio_property_counts, bio_to_hw_assignment[ii],
+		        target_synapses_per_parity_and_synaptic_input.at(nrn_addr),
+		        triparity_assignment_to_parity, synrow_histogram);
 
 		for (auto const& item : syn_counts_per_hw_property) {
-			syn_counts_per_hw_property_global[item.first] += item.second;
+			synapse_histogram[item.first] += item.second;
 		}
 
-		for (auto const& item : half_rows_per_hardware_property) {
-			size_t& half_row_count = half_rows_assigned_per_parity_global[item.first];
-			if (item.second > half_row_count)
-				half_row_count = item.second;
-		}
 		ii++;
 	}
 
@@ -520,15 +519,14 @@ std::pair<size_t, size_t> SynapseDriverRequirements::_calc(
 	// check synapse count again:
 	{
 		size_t syn_count2 = 0;
-		for (auto const& item : syn_counts_per_hw_property_global) {
+		for (auto const& item : synapse_histogram) {
 			syn_count2 += item.second;
 		}
 		if (syn_count != syn_count2)
 			throw std::runtime_error(
 				"there was an error when counting synapses per hw synapse property");
 	}
-	synapse_histogram = syn_counts_per_hw_property_global;
-	synrow_histogram = half_rows_assigned_per_parity_global;
+
 	return {n_drivers, syn_count};
 }
 
@@ -648,37 +646,36 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 
 std::map<Side_Parity_Decoder_STP, size_t>
 SynapseDriverRequirements::count_synapses_per_hardware_property(
-	// in
-	std::map<Type_Decoder_STP, size_t> bio_property_counts,					// neuron-wise
-	std::map<Side_STP, size_t> const& assigned_rows_per_side_stp,			// global
-	std::map<Type_Decoder_STP, Side_TriParity> const& bio_to_hw_assignment, // neuron-wise
-	std::map<SynapseType, std::map<Side_Parity, size_t> >
-		target_synapses_per_parity_and_synaptic_input, // neuron-wise
-	// out
-	std::map<Side_Parity_Decoder_STP, size_t>& half_rows_per_hardware_property, // neuron-wise
-	std::map<Type_Decoder_STP, std::vector<Side_Parity> >& assigned_side_parity // neuron-wise
-	)
+    std::map<Type_Decoder_STP, size_t> const& bio_property_counts,          // neuron-wise
+    std::map<Type_Decoder_STP, Side_TriParity> const& bio_to_hw_assignment, // neuron-wise
+    std::map<SynapseType, std::map<Side_Parity, size_t> > const&
+        target_synapses_per_parity_and_synaptic_input,                               // neuron-wise
+    std::map<Side_Decoder_STP, std::vector<Parity> > const& assignment_to_parity,    // global
+    std::map<Side_Parity_Decoder_STP, size_t> const& half_rows_per_hardware_property // global for
+                                                                                     // check
+    )
 {
-	std::map<Side_Parity_Decoder_STP, size_t> syn_count;
-
-	std::map<Type_Decoder_STP, std::pair<Side, size_t> > postponed_any_requests;
-	std::map<Side_Parity_STP, size_t> used_half_rows;
+	std::map<Side_Parity_Decoder_STP, size_t> syn_count; // return value
+#ifndef MAROCCO_NDEBUG
+	std::map<Side_Parity_Decoder_STP, size_t> used_half_rows; // for check
+#endif // MAROCCO_NDEBUG
 
 	// first process synapses that are bound to even or odd columns
 	for (auto const& item : bio_property_counts) {
 		Type_Decoder_STP const& bio_prop = item.first;
-		size_t const synapse_count = item.second;
+		size_t synapse_count = item.second;
 
 		Side side;
 		TriParity triparity;
 		std::tie(side, triparity) = bio_to_hw_assignment.at(bio_prop);
 
+		SynapseType syntype;
+		DriverDecoder decoder;
+		STPMode stp;
+		std::tie(syntype, decoder, stp) = bio_prop;
+
 		if (triparity != TriParity::any) {
 			// get num required half rows.
-			SynapseType syntype;
-			DriverDecoder decoder;
-			STPMode stp;
-			std::tie(syntype, decoder, stp) = bio_prop;
 			Parity parity = static_cast<Parity>(triparity);
 			Side_Parity const side_parity(side, parity);
 			size_t const syns_per_half_row =
@@ -686,78 +683,41 @@ SynapseDriverRequirements::count_synapses_per_hardware_property(
 			size_t const req_half_rows = std::ceil(double(synapse_count) / syns_per_half_row);
 			// store syn count
 			syn_count[Side_Parity_Decoder_STP(side, parity, decoder, stp)] += synapse_count;
-			// store the assignment
-			assigned_side_parity[bio_prop] = std::vector<Side_Parity>(req_half_rows, side_parity);
-			// store used half rows
-			used_half_rows[Side_Parity_STP(side, parity, stp)] += req_half_rows;
-			// store required half rows
-			half_rows_per_hardware_property[Side_Parity_Decoder_STP(side, parity, decoder, stp)] +=
-				req_half_rows;
+#ifndef MAROCCO_NDEBUG
+			// store used half rows for consistency check
+			used_half_rows[Side_Parity_Decoder_STP(side, parity, decoder, stp)] += req_half_rows;
+#endif // MAROCCO_NDEBUG
 		} else {
-			postponed_any_requests[bio_prop] = std::make_pair(side, synapse_count);
-		}
-	}
-	// now process synapses that can be realized in either column (TriParity::any)
-	for (auto const& item : postponed_any_requests) {
-		Type_Decoder_STP const& bio_prop = item.first;
-		size_t const synapse_count = item.second.second;
-		Side side = item.second.first;
-
-		// get num required half rows.
-		SynapseType syntype;
-		DriverDecoder decoder;
-		STPMode stp;
-		std::tie(syntype, decoder, stp) = bio_prop;
-
-		size_t const syns_per_half_row = target_synapses_per_parity_and_synaptic_input.at(syntype)
-											 .at(Side_Parity(side, Parity::even));
-		size_t req_half_rows = std::ceil(double(synapse_count) / syns_per_half_row);
-
-		// number of requested half rows should be equal for both parities.
-		// (number of synapses per half rows may differ, e.g. when there is only 1 synapse)
-		size_t const syns_per_half_row_odd =
-			target_synapses_per_parity_and_synaptic_input.at(syntype)
-				.at(Side_Parity(side, Parity::odd));
-		size_t const req_half_rows_odd = std::ceil(double(synapse_count) / syns_per_half_row_odd);
-		assert(req_half_rows == req_half_rows_odd);
-
-		Side_Parity_STP const c_even(side, Parity::even, stp);
-		Side_Parity_STP const c_odd(side, Parity::odd, stp);
-		size_t req_synapses = synapse_count;
-
-		while (req_half_rows > 0) {
-			Side_Parity_STP choice;
-			// use the parity with the lower number of used counts
-			if (used_half_rows[c_even] <= used_half_rows[c_odd]) {
-				choice = c_even;
-			} else {
-				choice = c_odd;
+			// TriParity::any
+			std::vector<Parity> const& parities =
+			    assignment_to_parity.at(Side_Decoder_STP(side, decoder, stp));
+			auto p_it = parities.cbegin();
+			while (synapse_count > 0) {
+				assert(p_it != parities.cend());
+				Parity parity = *p_it;
+				size_t const syns_per_half_row =
+				    target_synapses_per_parity_and_synaptic_input.at(syntype).at(
+				        Side_Parity(side, parity));
+				size_t assigned_syns = std::min(synapse_count, syns_per_half_row);
+				// store syn count
+				syn_count[Side_Parity_Decoder_STP(side, parity, decoder, stp)] += assigned_syns;
+#ifndef MAROCCO_NDEBUG
+				// store used half rows for consistency check
+				used_half_rows[Side_Parity_Decoder_STP(side, parity, decoder, stp)]++;
+#endif // MAROCCO_NDEBUG
+				synapse_count -= assigned_syns;
+				p_it++;
 			}
-			// store syn count
-			size_t const syns_for_this_half_row = std::min(req_synapses, syns_per_half_row);
-			Parity parity = std::get<1>(choice);
-			syn_count[Side_Parity_Decoder_STP(side, parity, decoder, stp)] +=
-				syns_for_this_half_row;
-			half_rows_per_hardware_property[Side_Parity_Decoder_STP(side, parity, decoder, stp)]++;
-			// store the assignment
-			assigned_side_parity[bio_prop].push_back(Side_Parity(side, parity));
-			// store used half rows
-			used_half_rows[choice]++;
-			// decrease requirements
-			req_half_rows--;
-			req_synapses -= syns_for_this_half_row;
 		}
-		assert(req_synapses == 0);
 	}
-	// check that used rows are lower equal than assigned rows;
+
+#ifndef MAROCCO_NDEBUG
+	// consistency check
 	for (auto const& item : used_half_rows) {
-		Side_Parity_STP const& key_used = item.first;
-		Side side;
-		STPMode stp;
-		std::tie(side, std::ignore, stp) = key_used;
-		if (!(item.second <= assigned_rows_per_side_stp.at(Side_STP(side, stp))))
-			throw std::runtime_error("more half rows assigned per Side_STP than allowed!");
+		if (!(item.second <= half_rows_per_hardware_property.at(item.first)))
+			throw std::runtime_error("Too many half rows assigned per hardware synapse property");
 	}
+#endif // MAROCCO_NDEBUG
 
 	return syn_count;
 }

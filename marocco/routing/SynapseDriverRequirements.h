@@ -335,39 +335,51 @@ private:
 		std::vector<std::map<TriParity, std::map<Side_Decoder_STP, size_t> > > const&
 			required_half_rows_per_neuron);
 
-	/// count the number of required half rows per TriParity, Side and STP.
-	/// I.e., sums over all available Decoder values, per (TriParity,Side,STP).
-	/// @param required_half_rows required half rows per
-	/// (TriParity,Side,Decoder,STP)
-	static std::map<TriParity, std::map<Side_STP, size_t> > count_half_rows_per_side(
-		std::map<TriParity, std::map<Side_Decoder_STP, size_t> > const& required_half_rows);
-
-	/// counts the number of synapse rows required per input target side and
-	/// STP, in order to realize the half row numbers specified in
-	/// `required_half_rows_per_side`.
+	/// resolve the TriParity degree of freedom.
 	///
 	/// This function resolves the TriParity degree of freedom.
 	/// I.e. requirements, that can be realized with same efficiency in the odd
 	/// and even columns (specified by property TriParity::any), are now
 	/// distributed to even and odd columns. The actual assignment is returned
-	/// by filling the reference argument `half_rows_assigned_to_parity`.
+	/// by filling the reference argument `triparity_assignmemt_to_parity`.
 	///
 	/// For each Side_STP, this is done as follows:
-	/// the load of odd and even columns is tried to be balanced.
-	/// In case that
-	///  1) there are more half rows required of type "any" than available by
-	///  the difference of pure even and odd counts,
-	///  2) the remaining "any" half rows are an odd number, then the even
-	///  count is 1 higher than the odd one.
+	/// First, for all DriverDecoders the requests with TriParity even and odd
+	/// are assigned to the respective parities.
+	/// Then, the remaining requested half synapse rows with TriParity::any are
+	/// assigned one after another to even and odd parities such that the load
+	/// for both columns is balanced.
+	/// Always the parity with currently less used half rows per Side_STP is
+	/// used. In case that both are equally used, the even column is preferred
+	/// by definition.
+	/// The used order of assignment is stored for each (Side, Decoder, STP) in
+	/// `triparity_assignmemt_to_parity`
+	///
+	/// Additionally, the required number of half rows per hardware synapse
+	/// property is counted and stored in `synrow_hist`.
 	//
-	/// @param[in] required_half_rows_per_side required half rows per
-	/// (TriParity, Side and STP)
-	/// @param[out] half_rows_assigned_to_parity number of half rows assigned
-	/// per column parity per (Side,STP) combination. This is currently not
-	/// used in the following steps and might be removed.
-	static std::map<Side_STP, size_t> count_rows_per_side(
-		std::map<TriParity, std::map<Side_STP, size_t> > const& required_half_rows_per_side,
-		std::map<Side_STP, std::map<Parity, size_t> >& half_rows_assigned_to_parity);
+	/// @param[in] required_half_rows required half rows per (TriParity,
+	/// Side, Decoder, STP)
+	/// @param[out] synrow_hist number of half rows assigned to each hardware
+	/// synapse property
+	/// @param[out] triparity_assignmemt_to_parity assignment of half rows to
+	/// even and odd parities for synapses that can be implemented with either
+	/// parity (having TriParity::any)
+	///
+	/// @return the number of half rows per (Side, Parity, STP)
+	static std::map<Side_Parity_STP, size_t> resolve_triparity(
+	    std::map<TriParity, std::map<Side_Decoder_STP, size_t> > const& required_half_rows,
+	    std::map<Side_Parity_Decoder_STP, size_t>& synrow_hist,
+	    std::map<Side_Decoder_STP, std::vector<Parity> >& triparity_assignmemt_to_parity);
+
+	/// counts the number of synapse rows required per side and STP.
+	///
+	/// The number of rows per Side_STP is the maximum of half rows per parity.
+	///
+	/// @param[in] required_half_rows_per_parity required half rows per (Side,
+	/// Parity, STP)
+	static std::map<Side_STP, size_t>
+	count_rows_per_side(std::map<Side_Parity_STP, size_t> const& required_half_rows_per_parity);
 
 	/// counts the number of synapse rows required per STP setting.
 	/// marginalizes the counts of the different sides.
@@ -434,58 +446,44 @@ private:
 		std::map<Side_Parity_Decoder_STP, size_t>& synrow_histogram);
 
 	/// Counts the number of synapses per hardware property for one neuron.
-	/// Furthermore, the number of required half rows per hardware property is
-	/// computed.
 	///
 	/// This function is used after the global requirements have been
-	/// calculated, to fill the synapse and synapse half row histograms in the
-	/// calc() method.
+	/// calculated, to fill the synapse histogram in the calc() method.
 	///
-	/// First, synapses with a fixed Parity (TriParity equals even or odd) are
+	/// First, synapses with a fixed Parity (TriParity even or odd) are
 	/// assigned to hardware properties, using the bio to hw assignment passed
 	/// in bio_to_hw_assignment`.
-	/// Second, synapses with TriParity::any are assigned to hardware
-	/// properties such that odd and even synapse columns are used as evenly as
-	/// possible per (Side,STP) combination.
-	/// The usage of half-synapse rows follows the same principles as in
-	/// count_half_rows(), i.e. the total number of used half rows is kept at a
-	/// minimum.
-	/// In the course of this, also the number of synapses realized per
-	/// hardware property are counted.
+	/// Second, synapses with TriParity::any are assigned to even and odd
+	/// parities according to the assignment order specified in
+	/// `triparity_assignmemt_to_parity`.
+	///
+	/// It is checked that the number of half rows per hardare synapse property
+	/// for this neuron does not exceed the globally assigned half rows passed
+	/// in half_rows_per_hardware_property`.
 	///
 	/// @param[in] bio_property_counts number of afferent synapses per bio
 	/// property for the given target neuron
-	/// @param[in] assigned_rows_per_side_stp number of synapse rows
-	/// assigned(reserved) for each (Side,STPMode) combination. (global)
-	/// this is only used to check for correctness. might be removed (TODO)!
 	/// @param[in] bio_to_hw_assignment assignment of bio properties to
 	/// intermediate HW properties (Side,TriParity). (neuron-wise)
 	/// TODO: we might change the type to
 	///       map< STP, map< Type_Decoder, Side_TriParity> >
 	/// @param[in] target_synapses_per_parity_and_synaptic_input for each bio
 	/// synapse target, the number of synapses that can be realized per input
-	/// granularity (Side,Parity)
-	///
-	/// @param[out] half_rows_per_hardware_property required half rows per
-	/// hardware property.
-	/// @param[out] assigned_side_parity list of (Side,Parity) combinations
-	/// assigned to each bio property. Note that each combination can be
-	/// several times in the vector. This map is foreseen to be used for the
-	/// implementation with the 'synapse gain with n-th driver' method adopted
-	/// from the old flow.
+	/// granularity (Side,Parity) (neuron-wise)
+	/// @param[in] triparity_assignmemt_to_parity assignment of half rows to
+	/// even and odd parities for synapses that can be implemented with either
+	/// parity (having TriParity::any) (global)
+	/// @param[in] half_rows_per_hardware_property assigned half rows per
+	/// hardware property (global)
 	///
 	/// @return for each hardware property the number of assigned synapses
 	static std::map<Side_Parity_Decoder_STP, size_t> count_synapses_per_hardware_property(
-		// in
-		std::map<Type_Decoder_STP, size_t> bio_property_counts,
-		std::map<Side_STP, size_t> const& assigned_rows_per_side_stp,
-		std::map<Type_Decoder_STP, Side_TriParity> const& bio_to_hw_assignment,
-		std::map<SynapseType, std::map<Side_Parity, size_t> >
-			target_synapses_per_parity_and_synaptic_input,
-		// out
-		std::map<Side_Parity_Decoder_STP, size_t>& half_rows_per_hardware_property,
-		std::map<Type_Decoder_STP, std::vector<Side_Parity> >& assigned_side_parity);
-
+	    std::map<Type_Decoder_STP, size_t> const& bio_property_counts,
+	    std::map<Type_Decoder_STP, Side_TriParity> const& bio_to_hw_assignment,
+	    std::map<SynapseType, std::map<Side_Parity, size_t> > const&
+	        target_synapses_per_parity_and_synaptic_input,
+	    std::map<Side_Decoder_STP, std::vector<Parity> > const& triparity_assignmemt_to_parity,
+	    std::map<Side_Parity_Decoder_STP, size_t> const& half_rows_per_hardware_property);
 
 	// members
 	/// Coordinate of HICANN chip we are currently working on.
@@ -509,7 +507,7 @@ private:
 
 	FRIEND_TEST(SynapseDriverRequirements, Base);
 	FRIEND_TEST(SynapseDriverRequirements, SeveralTargets);
-	FRIEND_TEST(SynapseDriverRequirements, count_half_rows_per_side);
+	FRIEND_TEST(SynapseDriverRequirements, resolve_triparity);
 	FRIEND_TEST(SynapseDriverRequirements, count_rows_per_side);
 	FRIEND_TEST(SynapseDriverRequirements, count_drivers);
 	FRIEND_TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputSimple);

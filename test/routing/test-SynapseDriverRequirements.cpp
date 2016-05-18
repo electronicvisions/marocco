@@ -124,81 +124,105 @@ TEST(SynapseDriverRequirements, SeveralTargets)
 	ASSERT_EQ(required_half_rows[TriParity::even][c3], 3);
 }
 
-TEST(SynapseDriverRequirements, count_half_rows_per_side)
+TEST(SynapseDriverRequirements, resolve_triparity)
 {
 	std::map<TriParity, std::map<Side_Decoder_STP, size_t> > required_half_rows;
 
-	Side_Decoder_STP c1(geometry::left, DriverDecoder(1), STPMode::off);
-	Side_Decoder_STP c2(geometry::left, DriverDecoder(2), STPMode::off);
-	Side_Decoder_STP c3(geometry::left, DriverDecoder(3), STPMode::off);
+	Side_Decoder_STP c1(geometry::left, DriverDecoder(0), STPMode::off);
+	Side_Decoder_STP c2(geometry::left, DriverDecoder(1), STPMode::off);
+	Side_Decoder_STP c3(geometry::left, DriverDecoder(2), STPMode::off);
+	Side_Decoder_STP c4(geometry::left, DriverDecoder(3), STPMode::off);
 
-	Side_Decoder_STP c4(geometry::right, DriverDecoder(0), STPMode::off);
-	Side_Decoder_STP c5(geometry::right, DriverDecoder(1), STPMode::off);
+	Side_Decoder_STP c5(geometry::right, DriverDecoder(0), STPMode::off);
+	Side_Decoder_STP c6(geometry::right, DriverDecoder(1), STPMode::off);
 
 	required_half_rows[TriParity::even][c1] = 2;
 	required_half_rows[TriParity::even][c2] = 3;
-	required_half_rows[TriParity::even][c3] = 4;
+	required_half_rows[TriParity::odd][c3] = 4;
+	required_half_rows[TriParity::any][c4] = 2;
 
-	required_half_rows[TriParity::odd][c4] = 1;
-	required_half_rows[TriParity::odd][c5] = 3;
+	required_half_rows[TriParity::odd][c5] = 1;
+	required_half_rows[TriParity::odd][c6] = 3;
 
+	std::map<Side_Decoder_STP, std::vector<Parity> > triparity_assignmemt_to_parity;
+	std::map<Side_Parity_Decoder_STP, size_t> synrow_hist;
 
-	std::map<TriParity, std::map<Side_STP, size_t> > required_half_rows_per_side =
-		SynapseDriverRequirements::count_half_rows_per_side(required_half_rows);
+	std::map<Side_Parity_STP, size_t> half_rows_per_parity =
+		SynapseDriverRequirements::resolve_triparity(
+				required_half_rows, synrow_hist,
+				triparity_assignmemt_to_parity);
 
-	ASSERT_EQ(
-		2 + 3 + 4,
-		required_half_rows_per_side[TriParity::even][Side_STP(geometry::left, STPMode::off)]);
-	ASSERT_EQ(
-		1 + 3,
-		required_half_rows_per_side[TriParity::odd][Side_STP(geometry::right, STPMode::off)]);
+	// check half rows per parity
+	// For c4, which has TriParity::any, we expect that the 2 requested half
+	// rows are split evenly among even and odd columns, as there are 2+3=5
+	// even half rows requested from c1 and c2, and 4 odd half rows from c3.
+	EXPECT_EQ(2+3+1, half_rows_per_parity[Side_Parity_STP(geometry::left,Parity::even, STPMode::off)]);
+	EXPECT_EQ(4+1, half_rows_per_parity[Side_Parity_STP(geometry::left,Parity::odd, STPMode::off)]);
+
+	// check assignment from triparity to parity
+	// As there are 2+3 even half rows requested from c1 and c2, and 4 odd half
+	// rows from c3, we expect that the first half row is assigned to odd
+	// columns (fill-up strategy), and the second to an even column.
+	ASSERT_EQ(2, triparity_assignmemt_to_parity[c4].size());
+	EXPECT_EQ(Parity::odd, triparity_assignmemt_to_parity[c4][0]);
+	EXPECT_EQ(Parity::even, triparity_assignmemt_to_parity[c4][1]);
+
+	// check synrow histogram
+	Side_Parity_Decoder_STP p1(geometry::left, Parity::even, DriverDecoder(0), STPMode::off);
+	EXPECT_EQ(2, synrow_hist[p1]);
+
+	Side_Parity_Decoder_STP p2(geometry::left, Parity::even, DriverDecoder(1), STPMode::off);
+	EXPECT_EQ(3, synrow_hist[p2]);
+
+	Side_Parity_Decoder_STP p3(geometry::left, Parity::odd, DriverDecoder(2), STPMode::off);
+	EXPECT_EQ(4, synrow_hist[p3]);
+
+	// Again, check that half rows of c4 are split to p4e and p4e
+	Side_Parity_Decoder_STP p4o(geometry::left, Parity::odd, DriverDecoder(3), STPMode::off);
+	EXPECT_EQ(1, synrow_hist[p4o]);
+
+	Side_Parity_Decoder_STP p4e(geometry::left, Parity::even, DriverDecoder(3), STPMode::off);
+	EXPECT_EQ(1, synrow_hist[p4e]);
+
+	Side_Parity_Decoder_STP p5(geometry::right, Parity::odd, DriverDecoder(0), STPMode::off);
+	EXPECT_EQ(1, synrow_hist[p5]);
+
+	Side_Parity_Decoder_STP p6(geometry::right, Parity::odd, DriverDecoder(1), STPMode::off);
+	EXPECT_EQ(3, synrow_hist[p6]);
 }
 
 TEST(SynapseDriverRequirements, count_rows_per_side)
 {
-	std::map<TriParity, std::map<Side_STP, size_t> > required_half_rows_per_side;
+	std::map<Side_Parity_STP, size_t> required_half_rows_per_parity;
 
-	Side_STP c1(geometry::left, STPMode::off);
-	Side_STP c2(geometry::right, STPMode::off);
-	Side_STP c3(geometry::left, STPMode::depression);
-	Side_STP c4(geometry::left, STPMode::facilitation);
+	Side_Parity_STP c1(geometry::left, Parity::even, STPMode::off);
+	Side_Parity_STP c2(geometry::left, Parity::odd, STPMode::off);
+	Side_Parity_STP c3(geometry::right, Parity::even, STPMode::off);
+	Side_Parity_STP c4(geometry::right, Parity::odd, STPMode::off);
+	Side_Parity_STP c5(geometry::left, Parity::even, STPMode::depression);
+	Side_Parity_STP c6(geometry::left, Parity::odd, STPMode::depression);
+	Side_Parity_STP c7(geometry::left, Parity::even, STPMode::facilitation);
 
-	required_half_rows_per_side[TriParity::even][c1] = 2;
-	required_half_rows_per_side[TriParity::odd][c1] = 3;
-	required_half_rows_per_side[TriParity::any][c1] = 2;
+	// even is higher
+	required_half_rows_per_parity[c1] = 4;
+	required_half_rows_per_parity[c2] = 2;
+	// odd is higher
+	required_half_rows_per_parity[c3] = 3;
+	required_half_rows_per_parity[c4] = 5;
+	// equal
+	required_half_rows_per_parity[c5] = 2;
+	required_half_rows_per_parity[c6] = 2;
+	// only one of both
+	required_half_rows_per_parity[c7] = 1;
 
-	required_half_rows_per_side[TriParity::even][c2] = 5;
-	required_half_rows_per_side[TriParity::odd][c2] = 2;
-	required_half_rows_per_side[TriParity::any][c2] = 2;
+	std::map<Side_STP, size_t> rows_per_side =
+		SynapseDriverRequirements::count_rows_per_side(
+				required_half_rows_per_parity);
 
-	required_half_rows_per_side[TriParity::even][c3] = 2;
-	required_half_rows_per_side[TriParity::odd][c3] = 3;
-	required_half_rows_per_side[TriParity::any][c3] = 3;
-
-	required_half_rows_per_side[TriParity::even][c4] = 5;
-	required_half_rows_per_side[TriParity::odd][c4] = 2;
-	required_half_rows_per_side[TriParity::any][c4] = 1;
-
-	std::map<Side_STP, std::map<Parity, size_t> > half_rows_assigned_to_parity;
-	std::map<Side_STP, size_t> rows_per_side = SynapseDriverRequirements::count_rows_per_side(
-		required_half_rows_per_side, half_rows_assigned_to_parity);
-
-	ASSERT_EQ(4, rows_per_side[c1]);
-	ASSERT_EQ(5, rows_per_side[c2]);
-	ASSERT_EQ(4, rows_per_side[c3]);
-	ASSERT_EQ(5, rows_per_side[c4]);
-
-	ASSERT_EQ(4, half_rows_assigned_to_parity[c1][Parity::even]);
-	ASSERT_EQ(3, half_rows_assigned_to_parity[c1][Parity::odd]);
-
-	ASSERT_EQ(5, half_rows_assigned_to_parity[c2][Parity::even]);
-	ASSERT_EQ(4, half_rows_assigned_to_parity[c2][Parity::odd]);
-
-	ASSERT_EQ(4, half_rows_assigned_to_parity[c3][Parity::even]);
-	ASSERT_EQ(4, half_rows_assigned_to_parity[c3][Parity::odd]);
-
-	ASSERT_EQ(5, half_rows_assigned_to_parity[c4][Parity::even]);
-	ASSERT_EQ(3, half_rows_assigned_to_parity[c4][Parity::odd]);
+	EXPECT_EQ( 4, rows_per_side[ Side_STP(geometry::left, STPMode::off) ]);
+	EXPECT_EQ( 5, rows_per_side[ Side_STP(geometry::right, STPMode::off) ]);
+	EXPECT_EQ( 2, rows_per_side[ Side_STP(geometry::left, STPMode::depression) ]);
+	EXPECT_EQ( 1, rows_per_side[ Side_STP(geometry::left, STPMode::facilitation) ]);
 }
 
 TEST(SynapseDriverRequirements, count_drivers)
@@ -416,11 +440,14 @@ TEST(SynapseDriverRequirements, count_synapses_per_hardware_property)
 	// (i.e. configurations that are not symmetric)
 	// and only 1 synapse needed per neuron
 
+	Type_Decoder_STP bio1(SynapseType(0), DriverDecoder(0), STPMode::off);
+	Type_Decoder_STP bio2(SynapseType(1), DriverDecoder(0), STPMode::off);
+	Type_Decoder_STP bio3(SynapseType(2), DriverDecoder(0), STPMode::off);
+
 	std::map<Type_Decoder_STP, size_t> bio_property_counts;
-	bio_property_counts[Type_Decoder_STP(SynapseType(0), DriverDecoder(0), STPMode::off)] =
-		1; // only one, so that one even or odd half row is fine.
-	bio_property_counts[Type_Decoder_STP(SynapseType(1), DriverDecoder(0), STPMode::off)] = 4;
-	bio_property_counts[Type_Decoder_STP(SynapseType(2), DriverDecoder(0), STPMode::off)] = 3;
+	bio_property_counts[bio1] = 1; // only one, so that one even or odd half row is fine.
+	bio_property_counts[bio2] = 4;
+	bio_property_counts[bio3] = 3;
 
 	// neuron size = 6, mapping is 0 1, 0 2, 0 1
 	std::map<SynapseType, std::map<Side_Parity, size_t> >
@@ -435,27 +462,34 @@ TEST(SynapseDriverRequirements, count_synapses_per_hardware_property)
 		geometry::right, Parity::odd)] = 1;
 
 	std::map<Type_Decoder_STP, Side_TriParity> bio_to_hw_assignment;
-	bio_to_hw_assignment[Type_Decoder_STP(SynapseType(0), DriverDecoder(0), STPMode::off)] =
-		Side_TriParity(geometry::left, TriParity::any);
-	bio_to_hw_assignment[Type_Decoder_STP(SynapseType(1), DriverDecoder(0), STPMode::off)] =
-		Side_TriParity(geometry::right, TriParity::even);
-	bio_to_hw_assignment[Type_Decoder_STP(SynapseType(2), DriverDecoder(0), STPMode::off)] =
-		Side_TriParity(geometry::right, TriParity::odd);
+	bio_to_hw_assignment[bio1] = Side_TriParity(geometry::left, TriParity::any);
+	bio_to_hw_assignment[bio2] = Side_TriParity(geometry::right, TriParity::even);
+	bio_to_hw_assignment[bio3] = Side_TriParity(geometry::right, TriParity::odd);
 
-	std::map<Side_STP, size_t> assigned_rows_per_side_stp;
-	assigned_rows_per_side_stp[Side_STP(geometry::left, STPMode::off)] = 1;
-	assigned_rows_per_side_stp[Side_STP(geometry::right, STPMode::off)] = 3;
-
+	// synapse row histogram
 	std::map<Side_Parity_Decoder_STP, size_t> half_rows_assigned_per_parity;
-	std::map<Type_Decoder_STP, std::vector<Side_Parity> > assigned_side_parity;
+	// synapse type 1: requires 2 half rows for 4 synapses, as there are 2 target synapses per (right, even) config.
+	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(geometry::right, Parity::even, DriverDecoder(0), STPMode::off)] = 2;
+	// synapse type 2: requires 3 half rows for 3 synapses on (right, odd) config.
+	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(geometry::right, Parity::odd, DriverDecoder(0), STPMode::off)] = 3;
+	// synapse type 0: TriParity::any is resolved to even columns, which is prioritized over odd columns
+	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(geometry::left, Parity::even, DriverDecoder(0), STPMode::off)] = 1;
+
+	// assignment to parity for TriParity::any requests
+	std::map<Side_Decoder_STP, std::vector<Parity> > assignmemt_to_parity;
+	// only for synapse type 0. Even columns have priority over odd columns.
+	assignmemt_to_parity[ Side_Decoder_STP(geometry::left, DriverDecoder(0), STPMode::off) ].push_back(Parity::even);
 
 	std::map<Side_Parity_Decoder_STP, size_t> hardware_property_counts =
 		SynapseDriverRequirements::count_synapses_per_hardware_property(
-			// in
-			bio_property_counts, assigned_rows_per_side_stp, bio_to_hw_assignment,
+			bio_property_counts, bio_to_hw_assignment,
 			target_synapses_per_parity_and_synaptic_input,
-			// out
-			half_rows_assigned_per_parity, assigned_side_parity);
+			assignmemt_to_parity, half_rows_assigned_per_parity);
+
+	// check hardware property counts
+	EXPECT_EQ(1, hardware_property_counts[ Side_Parity_Decoder_STP(geometry::left, Parity::even, DriverDecoder(0), STPMode::off) ]);
+	EXPECT_EQ(4, hardware_property_counts[ Side_Parity_Decoder_STP(geometry::right, Parity::even, DriverDecoder(0), STPMode::off) ]);
+	EXPECT_EQ(3, hardware_property_counts[ Side_Parity_Decoder_STP(geometry::right, Parity::odd, DriverDecoder(0), STPMode::off) ]);
 }
 
 // helper for next tests
