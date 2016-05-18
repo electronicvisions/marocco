@@ -13,6 +13,7 @@ namespace marocco {
 class L1AddressOnWafer : boost::equality_comparable<L1AddressOnWafer>
 {
 public:
+	L1AddressOnWafer();
 	L1AddressOnWafer(
 	    HMF::Coordinate::DNCMergerOnWafer const& dnc_merger,
 	    HMF::HICANN::L1Address const& address);
@@ -29,7 +30,6 @@ private:
 	HMF::HICANN::L1Address m_address;
 
 	friend class boost::serialization::access;
-	L1AddressOnWafer();
 	template <typename Archiver>
 	void serialize(Archiver& ar, const unsigned int /* version */);
 }; // L1AddressOnWafer

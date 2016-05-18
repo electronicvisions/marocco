@@ -17,7 +17,11 @@ ns_marocco.include()
 wrap.ishell()
 
 for cl in map(ns_marocco.class_, [
-        "BioNeuron", "L1Route", "L1RouteTree", "LogicalNeuron"
+        "BioNeuron",
+        "L1AddressOnWafer",
+        "L1Route",
+        "L1RouteTree",
+        "LogicalNeuron"
 ]):
     cl.add_registration_code('def(bp::self_ns::str(bp::self_ns::self))')
     classes.add_pickle_suite(cl)

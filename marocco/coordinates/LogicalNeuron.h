@@ -135,6 +135,8 @@ public:
 		container_type m_chunks;
 	};
 
+	LogicalNeuron();
+
 	/**
 	 * @brief Constructs a logical neuron that represents a collection of denmems.
 	 */
@@ -216,7 +218,6 @@ public:
 	size_t hash() const;
 
 private:
-	LogicalNeuron();
 	LogicalNeuron(external_identifier_type const external_identifier, size_t const index = 0);
 #ifndef PYPLUSPLUS
 	LogicalNeuron(neuron_block_type const& block, container_type&& chunks);

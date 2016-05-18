@@ -32,6 +32,7 @@ class BioNeuron : boost::equality_comparable<BioNeuron> {
 	typedef size_t vertex_descriptor;
 
 public:
+	BioNeuron();
 	BioNeuron(vertex_descriptor population, size_t neuron_index);
 
 	vertex_descriptor population() const;
@@ -42,7 +43,6 @@ private:
 	size_t m_neuron_index;
 
 	friend class boost::serialization::access;
-	BioNeuron();
 	template <typename Archiver>
 	void serialize(Archiver& ar, const unsigned int /* version */);
 }; // BioNeuron
