@@ -11,6 +11,7 @@
 #include "redman/resources/Wafer.h"
 
 #include "control/Control.h"
+#include "marocco/experiment/AnalogOutputsConfigurator.h"
 #include "marocco/experiment/ReadResults.h"
 
 using namespace HMF::Coordinate;
@@ -126,6 +127,15 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	// auto pyoneer = objectstore->getMetaData<HMF::PyOneer>("pyoneer");
 
 	// C O N F I G U R E   H A R D W A R E
+
+	auto const& results = mapper.results();
+
+	// Configure analog outputs.
+	{
+		experiment::AnalogOutputsConfigurator analog_outputs(results.analog_outputs);
+		analog_outputs.configure(hw[wafer]);
+	}
+
 	// backend None is handled gracefully within Control
 	control::Control control{hw, resources, *mi};
 

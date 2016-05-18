@@ -7,7 +7,6 @@
 #include "hal/Coordinate/iter_all.h"
 
 #include "marocco/Logger.h"
-#include "marocco/parameter/AnalogVisitor.h"
 #include "marocco/parameter/CMVisitor.h"
 #include "marocco/parameter/NeuronVisitor.h"
 #include "marocco/parameter/SpikeInputVisitor.h"
@@ -79,12 +78,6 @@ void HICANNParameters::run()
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(m_pymarocco.speedup);
 		auto const& synapse_routing = m_routing.synapse_routing.at(m_chip.index());
-
-		// Analog output: set correct values for output buffer
-		// FIXME: in principle this has nothing to with whether or not there are
-		// local neurons. There are other analog output sources than membrane
-		// voltages.
-		analog_output(*neuron_calib, neuron_placement);
 
 		{
 			// 3. transform individual analog parameters
@@ -225,21 +218,6 @@ void HICANNParameters::connect_denmems(
 	size_t const xwidth = hw_neurons_size/2;
 	size_t const xmin   = topleft_neuron.x();
 	m_chip.connect_denmems(X(xmin), X(xmin+xwidth-1));
-}
-
-
-void HICANNParameters::analog_output(
-	neuron_calib_type const& calib, placement::results::Placement const& neuron_placement)
-{
-	AnalogVisitor visitor;
-
-	auto const& graph = m_bio_graph.graph();
-	for (auto const& item : neuron_placement.find(m_chip.index())) {
-		auto const& pop = *(graph[item.population()]);
-		NeuronOnHICANN const nrn = *(item.logical_neuron().begin());
-		transform_analog_outputs(
-			calib, pop, item.neuron_index(), nrn, visitor, m_chip);
-	}
 }
 
 void HICANNParameters::background_generators(uint32_t isi)

@@ -52,10 +52,6 @@ private:
 
 	void neuron_config(neuron_calib_type const& calib);
 
-	void analog_output(
-	    neuron_calib_type const& calib,
-	    placement::results::Placement const& neuron_placement);
-
 	void spike_input(
 		placement::results::Placement const& neuron_placement);
 

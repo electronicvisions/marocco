@@ -68,7 +68,8 @@ void Marocco::serialize(Archiver& ar, const unsigned int /* version */)
 {
 	using namespace boost::serialization;
 	// clang-format off
-	ar & make_nvp("placement", placement);
+	ar & make_nvp("analog_outputs", analog_outputs)
+	   & make_nvp("placement", placement);
 	// clang-format on
 }
 

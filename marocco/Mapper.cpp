@@ -6,6 +6,7 @@
 #include "marocco/Logger.h"
 #include "marocco/Mapper.h"
 #include "marocco/Result.h"
+#include "marocco/parameter/AnalogOutputs.h"
 #include "marocco/parameter/CurrentSources.h"
 #include "marocco/parameter/HICANNParameters.h"
 #include "marocco/placement/Placement.h"
@@ -118,9 +119,12 @@ void Mapper::run(ObjectStore const& pynn)
 		"Transformed " << pynn.current_sources().size() << " current sources into "
 		<< bio_current_sources.size() << " single-neuron items");
 
-	parameter::CurrentSources current_sources(mHW[guess_wafer(mMgr)], m_results->placement);
+	auto& wafer_config = mHW[guess_wafer(mMgr)];
+	parameter::CurrentSources current_sources(wafer_config, m_results->placement);
 	current_sources.run(bio_current_sources);
 
+	parameter::AnalogOutputs aouts(mBioGraph, m_results->placement);
+	aouts.run(m_results->analog_outputs);
 
 	auto end = std::chrono::system_clock::now();
 	getStats().timeTotal =

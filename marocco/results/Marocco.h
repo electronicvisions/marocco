@@ -2,6 +2,7 @@
 
 #include <boost/serialization/export.hpp>
 
+#include "marocco/parameter/results/AnalogOutputs.h"
 #include "marocco/placement/results/Placement.h"
 
 namespace boost {
@@ -41,6 +42,7 @@ public:
 	 */
 	void save(char const* filename, bool overwrite = false) const;
 
+	parameter::results::AnalogOutputs analog_outputs;
 	placement::results::Placement placement;
 
 private:

@@ -94,6 +94,48 @@ class TestResults(unittest.TestCase):
                 address = item.address()
                 self.assertIsNotNone(address)
 
+    @utils.parametrize([1, 2, 3])
+    def test_analog_outputs(self, num_recorded_populations):
+        """
+        Test that analog outputs are correctly assigned and that
+        mapping fails if per-HICANN constraints are broken.
+        """
+        pynn.setup(marocco=self.marocco)
+        hicann = C.HICANNOnWafer(C.Enum(210))
+
+        pops = []
+        for i in range(num_recorded_populations):
+            pop = pynn.Population(1, pynn.IF_cond_exp, {})
+            self.marocco.manual_placement.on_hicann(pop, hicann)
+            pop.record_v()
+            pops.append(pop)
+
+        if num_recorded_populations > 2:
+            with self.assertRaises(RuntimeError):
+                pynn.run(0)
+                pynn.end()
+            return
+
+        pynn.run(0)
+        pynn.end()
+
+        results = Marocco.from_file(self.marocco.persist)
+        aouts = list(results.analog_outputs)
+        self.assertEqual(num_recorded_populations, len(aouts))
+
+        for pop in pops:
+            placement_item, = list(results.placement.find(pop[0]))
+
+            logical_neuron = placement_item.logical_neuron()
+            for aout_item in aouts:
+                if aout_item.logical_neuron() == logical_neuron:
+                    break
+            else:
+                self.fail("logical neuron not found in analog outputs result")
+
+            aout_item_ = results.analog_outputs.record(logical_neuron)
+            self.assertEqual(aout_item.analog_output(), aout_item_.analog_output())
+
 
 if __name__ == '__main__':
     unittest.main()
