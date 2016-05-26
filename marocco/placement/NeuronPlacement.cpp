@@ -1,5 +1,6 @@
 #include "marocco/placement/NeuronPlacement.h"
 
+#include <algorithm>
 #include <boost/assert.hpp>
 #include <boost/variant.hpp>
 #include <unordered_map>
@@ -174,6 +175,12 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::manual_placement(NeuronPlac
 				NeuronBlockLocationVisitor vis(neuron_blocks);
 				boost::apply_visitor(vis, entry.locations);
 			}
+
+			// As PlacePopulations starts at the back of neuron_blocks for
+			// placing neurons, the order of neuron blocks is reversed, so that
+			// the order specified by the user is complied with.
+			std::reverse(neuron_blocks.begin(), neuron_blocks.end());
+
 			std::vector<NeuronPlacementRequest> queue{placement};
 			PlacePopulations placer(res, neuron_blocks, queue);
 			auto const& result = placer.run();

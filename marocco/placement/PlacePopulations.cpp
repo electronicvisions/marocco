@@ -45,15 +45,18 @@ void PlacePopulations::sort_neuron_blocks()
 
 	// Because pop_back() is more efficient for vectors, neuron blocks are sorted by size
 	// in descending order but nevertheless processed small-to-big.
+	// If neuron blocks on the same HICANN have the same size, they shall be processed from left to
+	// right. Therefore, these neuron blocks are sorted from right to left.
 	const spiral_ordering<HICANNOnWafer> ordering;
 	std::sort(
 		m_neuron_blocks.begin(), m_neuron_blocks.end(),
 		[&available, &ordering](NeuronBlockOnWafer const& a, NeuronBlockOnWafer const& b) {
 			return (
 				(available[a] > available[b]) ||
-				((a.toHICANNOnWafer() == b.toHICANNOnWafer())
-					 ? (a.toNeuronBlockOnHICANN() < b.toNeuronBlockOnHICANN())
-					 : ordering(a.toHICANNOnWafer(), b.toHICANNOnWafer())));
+				(available[a] == available[b] &&
+				 ((a.toHICANNOnWafer() == b.toHICANNOnWafer())
+					  ? (a.toNeuronBlockOnHICANN() > b.toNeuronBlockOnHICANN())
+					  : ordering(a.toHICANNOnWafer(), b.toHICANNOnWafer()))));
 		});
 }
 
