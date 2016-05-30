@@ -6,13 +6,12 @@ import pylogging
 from pymarocco import PyMarocco
 
 from pyhalbe.Coordinate import *
-from pyhalbe.Coordinate.iter_all import iter_all
 import pyhmf as sim
 
 import utils
 
 pyhalbe.Debug.change_loglevel(0)
-pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.TRACE)
+pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.INFO)
 
 
 class MaroccoFixture(unittest.TestCase):
@@ -95,7 +94,7 @@ class TestNeuronDefects(TrivialNetworkFixture):
     def test_disable_all_neurons(self):
         self.inject_disabled_component('neurons', iter_all(NeuronOnHICANN))
 
-        with self.assertRaisesRegexp(RuntimeError, '(no terminals left)'):
+        with self.assertRaisesRegexp(RuntimeError, 'unable to implement manual placement request'):
             sim.run(10)
 
 merger_resources = {
