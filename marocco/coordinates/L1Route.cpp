@@ -230,7 +230,7 @@ bool L1Route::empty() const
 	return m_segments.empty();
 }
 
-HICANNOnWafer L1Route::source_hicann() const
+HICANNOnWafer const& L1Route::source_hicann() const
 {
 	if (m_segments.empty()) {
 		throw std::runtime_error("source_hicann() called on empty route");
@@ -243,7 +243,7 @@ HICANNOnWafer L1Route::source_hicann() const
 	throw std::logic_error("route does not start with HICANNOnWafer");
 }
 
-HICANNOnWafer L1Route::target_hicann() const
+HICANNOnWafer const& L1Route::target_hicann() const
 {
 	if (m_segments.empty()) {
 		throw std::runtime_error("target_hicann() called on empty route");
@@ -252,7 +252,7 @@ HICANNOnWafer L1Route::target_hicann() const
 	return m_last_hicann;
 }
 
-auto L1Route::front() const -> segment_type
+auto L1Route::front() const -> segment_type const&
 {
 	if (m_segments.empty()) {
 		throw std::runtime_error("front() called on empty route");
@@ -261,7 +261,7 @@ auto L1Route::front() const -> segment_type
 	return *std::next(m_segments.begin());
 }
 
-auto L1Route::back() const -> segment_type
+auto L1Route::back() const -> segment_type const&
 {
 	if (m_segments.empty()) {
 		throw std::runtime_error("back() called on empty route");

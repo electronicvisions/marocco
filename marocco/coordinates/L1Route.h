@@ -97,16 +97,16 @@ public:
 	segment_type const& operator[](size_t pos) const;
 
 	/// Returns the first segment of the route that is not a \c HICANNOnWafer.
-	segment_type front() const;
+	segment_type const& front() const;
 
 	/// Returns the last segment of the route that is not a \c HICANNOnWafer.
-	segment_type back() const;
+	segment_type const& back() const;
 
 	/// Returns the \c HICANNOnWafer this route starts from.
-	HMF::Coordinate::HICANNOnWafer source_hicann() const;
+	HMF::Coordinate::HICANNOnWafer const& source_hicann() const;
 
 	/// Returns the \c HICANNOnWafer this route leads to.
-	HMF::Coordinate::HICANNOnWafer target_hicann() const;
+	HMF::Coordinate::HICANNOnWafer const& target_hicann() const;
 
 	/**
 	 * @brief Extends this route by a single segment.
