@@ -267,9 +267,6 @@ auto L1Route::back() const -> segment_type
 		throw std::runtime_error("back() called on empty route");
 	}
 
-	if (is_hicann(m_segments.back())) {
-		return *std::next(m_segments.rbegin());
-	}
 	return m_segments.back();
 }
 
