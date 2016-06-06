@@ -12,8 +12,8 @@
 #include "hal/Coordinate/typed_array.h"
 
 #include "marocco/config.h"
-#include "marocco/routing/DriverAssignment.h"
 #include "marocco/routing/DriverInterval.h"
+#include "marocco/routing/results/ConnectedSynapseDrivers.h"
 
 namespace marocco {
 namespace routing {
@@ -26,10 +26,8 @@ class Fieres
 public:
 	typedef HMF::Coordinate::VLineOnHICANN VLineOnHICANN;
 	typedef std::vector<DriverInterval> IntervalList;
-	typedef std::unordered_map<
-			VLineOnHICANN,
-			std::vector<DriverAssignment>
-		> Result;
+	typedef std::unordered_map<VLineOnHICANN, std::vector<results::ConnectedSynapseDrivers> >
+		Result;
 	typedef std::vector<VLineOnHICANN> Rejected;
 
 	Fieres(IntervalList const& list,
@@ -81,7 +79,8 @@ class Assignment {
 	typedef HMF::Coordinate::SynapseDriverOnQuadrant coordinate_type;
 
 public:
-	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN, std::vector<DriverAssignment> >
+	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN,
+	                           std::vector<results::ConnectedSynapseDrivers> >
 		result_type;
 
 	Assignment(HMF::Coordinate::SideHorizontal const& side) : mSide(side) {}

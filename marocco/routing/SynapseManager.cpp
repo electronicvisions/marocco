@@ -12,13 +12,12 @@ SynapseManager::SynapseManager(Result const& resources) : mAllocation(), mLines(
 {
 	for (auto const& entry : resources) {
 		VLineOnHICANN const& vline = entry.first;
-		std::vector<DriverAssignment> const& vec = entry.second;
 
 		mLines[vline] = 0;
-		for (auto const& da : vec) {
-			mLines[vline] += da.drivers.size();
-			for (auto const& d : da.drivers)
-				mDrivers[vline].push_back(d);
+		for (auto const& connected_drivers : entry.second) {
+			mLines[vline] += connected_drivers.size();
+			auto const& drivers = connected_drivers.drivers();
+			mDrivers[vline].assign(drivers.begin(), drivers.end());
 		}
 		assert(mLines[vline] == mDrivers[vline].size());
 	}

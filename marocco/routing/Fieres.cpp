@@ -168,20 +168,14 @@ auto Assignment::result() const -> result_type
 				continue;
 			}
 
-			DriverAssignment as;
 			QuadrantOnHICANN quadrant{side_vertical, mSide};
-			as.primary = interval->primary.toSynapseDriverOnHICANN(quadrant);
+			results::ConnectedSynapseDrivers drivers(
+				interval->primary.toSynapseDriverOnHICANN(quadrant));
 
-			for (std::ptrdiff_t ii = interval->begin; ii < interval->end; ++ii) {
-				as.drivers.insert(
-				    SynapseDriverOnQuadrant(ii).toSynapseDriverOnHICANN(quadrant));
-			}
+			drivers.connect(SynapseDriverOnQuadrant(interval->begin));
+			drivers.connect(SynapseDriverOnQuadrant(interval->end - 1));
 
-			if (as.drivers.empty()) {
-				throw std::runtime_error("empty drivers");
-			}
-
-			res[interval->route.line].push_back(as);
+			res[interval->route.line].push_back(drivers);
 		}
 	}
 

@@ -173,9 +173,9 @@ TEST_P(AssignmentTest, AchievesASnugFit) {
 		EXPECT_EQ(1, result.size());
 		auto const driver_assignments = result.at(route.line);
 		EXPECT_EQ(1, driver_assignments.size());
-		auto const& da = driver_assignments.at(0);
-		EXPECT_EQ(target, da.primary);
-		EXPECT_EQ(route.assigned, da.drivers.size());
+		auto const& connected_drivers = driver_assignments.at(0);
+		EXPECT_EQ(target, connected_drivers.primary_driver());
+		EXPECT_EQ(route.assigned, connected_drivers.size());
 	}
 }
 
@@ -203,9 +203,9 @@ TEST_P(AssignmentTest, MayClipARoute) {
 		EXPECT_EQ(1, result.size());
 		auto const driver_assignments = result.at(route.line);
 		EXPECT_EQ(1, driver_assignments.size());
-		auto const& da = driver_assignments.at(0);
-		EXPECT_EQ(target, da.primary);
-		EXPECT_EQ(3, da.drivers.size());
+		auto const& connected_drivers = driver_assignments.at(0);
+		EXPECT_EQ(target, connected_drivers.primary_driver());
+		EXPECT_EQ(3, connected_drivers.size());
 	}
 }
 
@@ -245,8 +245,8 @@ TEST(Fieres, Issue1666_Case1) {
 
 	size_t drivers_assigned = 0;
 	for (auto const& vline : result) {
-		for (auto const& as : vline.second) {
-			drivers_assigned +=as.drivers.size();
+		for (auto const& connected_drivers : vline.second) {
+			drivers_assigned += connected_drivers.size();
 		}
 	}
 
@@ -286,8 +286,8 @@ TEST(Fieres, Issue1666_Case2) {
 
 	size_t drivers_assigned = 0;
 	for (auto const& vline : result) {
-		for (auto const& as : vline.second) {
-			drivers_assigned +=as.drivers.size();
+		for (auto const& connected_drivers : vline.second) {
+			drivers_assigned += connected_drivers.size();
 		}
 	}
 
@@ -322,8 +322,8 @@ TEST(Fieres, Issue1666_Case3) {
 
 	size_t drivers_assigned = 0;
 	for (auto const& vline : result) {
-		for (auto const& as : vline.second) {
-			drivers_assigned +=as.drivers.size();
+		for (auto const& connected_drivers : vline.second) {
+			drivers_assigned += connected_drivers.size();
 		}
 	}
 

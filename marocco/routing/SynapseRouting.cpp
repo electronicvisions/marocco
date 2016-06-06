@@ -170,7 +170,7 @@ void SynapseRouting::run()
 			size_t used = 0;
 			for (auto const& item : result) {
 				for (auto const& assignment : item.second) {
-					used += assignment.drivers.size();
+					used += assignment.size();
 				}
 			}
 			MAROCCO_INFO(
@@ -196,7 +196,6 @@ void SynapseRouting::run()
 		for (auto const& entry : result)
 		{
 			VLineOnHICANN const& vline = entry.first;
-			std::vector<DriverAssignment> const& as = entry.second;
 			auto const& route_item = route_item_by_source[drv_side].at(vline).get();
 			auto const& route = route_item.route();
 			DNCMergerOnWafer const route_source_merger = route_item.source();
@@ -219,13 +218,10 @@ void SynapseRouting::run()
 			DriverResult driver_res(vline);
 
 			// first insert primary and adjacent drivers
-			for (DriverAssignment const& da : as)
-			{
-				std::vector<SynapseDriverOnHICANN>& drivers = driver_res.drivers()[da.primary];
-				drivers.reserve(da.drivers.size());
-				for (auto const& drv : da.drivers) {
-					drivers.push_back(drv);
-				}
+			for (auto const& connected_drivers : entry.second) {
+				auto const& drivers = connected_drivers.drivers();
+				driver_res.drivers()[connected_drivers.primary_driver()].assign(
+					drivers.begin(), drivers.end());
 			}
 
 			syn_manager.check(chain_length);

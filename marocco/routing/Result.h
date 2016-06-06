@@ -9,7 +9,6 @@
 #include "marocco/AssociativeResult.h"
 #include "marocco/Result.h"
 #include "marocco/config.h"
-#include "marocco/routing/DriverAssignment.h"
 #include "marocco/routing/SynapseRowSource.h"
 #ifndef PYPLUSPLUS
 #include "marocco/routing/SynapseTargetMapping.h"

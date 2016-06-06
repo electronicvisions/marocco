@@ -1,8 +1,14 @@
 #pragma once
 
-#include "marocco/routing/DriverAssignment.h"
-#include "marocco/routing/SynapseDriverRequirements.h"
+#include <iosfwd>
+#include <list>
+#include <map>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
+#include "marocco/routing/SynapseDriverRequirements.h"
+#include "marocco/routing/results/ConnectedSynapseDrivers.h"
 
 namespace marocco {
 namespace routing {
@@ -21,12 +27,13 @@ namespace routing {
 class SynapseManager
 {
 public:
-	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN, std::vector<DriverAssignment> >
+	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN,
+	                           std::vector<results::ConnectedSynapseDrivers> >
 		Result;
 	typedef std::vector<HMF::Coordinate::SynapseRowOnHICANN> SubRows; // vector of synapse row
-																	  // coordinates, used to map
-																	  // half synapse rows HW
-																	  // synapse properties
+	                                                                  // coordinates, used to map
+	                                                                  // half synapse rows HW
+	                                                                  // synapse properties
 	typedef std::map<Side_Parity_Decoder_STP, SubRows> Assignment; // assigned half synapse rows for
 																   // each HW synapse property
 
@@ -261,7 +268,8 @@ private:
 
 	/// mapping of vlines to assigned Synapse Drivers
 	std::unordered_map<HMF::Coordinate::VLineOnHICANN,
-					   std::list<HMF::Coordinate::SynapseDriverOnHICANN> > mDrivers;
+	                   std::list<HMF::Coordinate::SynapseDriverOnHICANN> >
+		mDrivers;
 
 	/// the number of drivers assigned to each vline
 	std::unordered_map<HMF::Coordinate::VLineOnHICANN, size_t> mLines;
