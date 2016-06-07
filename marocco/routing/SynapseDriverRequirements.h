@@ -18,12 +18,7 @@
 namespace marocco {
 namespace routing {
 
-enum class Parity
-{
-	even = 0,
-	odd = 1
-};
-std::ostream& operator<<(std::ostream& os, Parity p);
+using HMF::Coordinate::Parity;
 
 /// Parity with the option that both columns are fine
 /// name inspired by boost::tribool
@@ -57,12 +52,6 @@ inline Side_STP to_Side_STP(Side_Decoder_STP const& rhs)
 {
 	return Side_STP(std::get<0>(rhs), std::get<2>(rhs));
 }
-
-inline Parity to_Parity(size_t i)
-{
-	return i % 2 ? Parity::odd : Parity::even;
-}
-
 
 /// Holds counts of synapses for each combination of 2MSB pattern, bio synapse_type, STPMode for
 /// hardware neurons on a HICANN.

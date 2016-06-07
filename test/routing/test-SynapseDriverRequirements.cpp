@@ -549,51 +549,6 @@ size_t count_drivers_from_synrow_histogram(
 	return r_drivers;
 }
 
-/// Test reproducing #2115
-/// uses serialized synapse counts and target synapses extracted from original
-/// PyNN experiment
-TEST(SynapseDriverRequirements, Issue2115)
-{
-	const std::string input_data_path = "routing/input_data/issue2115";
-	const size_t num_error_cases = 10;
-
-	for (size_t i_ec = 0; i_ec < num_error_cases; ++i_ec) {
-
-		SynapseCounts sc;
-		{
-			std::stringstream fn;
-			fn << input_data_path << "/" << "synapse_counts" << i_ec << ".txt";
-			std::ifstream ifs(fn.str());
-			boost::archive::text_iarchive ia(ifs);
-			ia >> sc;
-		}
-
-		std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
-			SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
-				target_synapses_per_synaptic_input_granularity;
-
-		{
-			std::stringstream fn;
-			fn << input_data_path << "/" << "target_synapses" << i_ec << ".txt";
-			std::ifstream ifs(fn.str());
-			boost::archive::text_iarchive ia(ifs);
-			ia >> target_synapses_per_synaptic_input_granularity;
-		}
-
-		size_t num_drivers, num_synapses;
-		std::map<Side_Parity_Decoder_STP, size_t> synapse_histogram;
-		std::map<Side_Parity_Decoder_STP, size_t> synrow_histogram;
-		std::tie(num_drivers, num_synapses) = SynapseDriverRequirements::_calc(
-			sc, target_synapses_per_synaptic_input_granularity,
-			synapse_histogram, synrow_histogram);
-
-		// count number of requested drivers from synrow histogram
-		size_t r_drivers = count_drivers_from_synrow_histogram(synrow_histogram);
-
-		EXPECT_EQ(num_drivers, r_drivers);
-	}
-}
-
 /// Minimal example reproducing #2115 with only 2 neurons
 /// Setup: neuron size 4 and default synapse target mapping
 ///

@@ -15,21 +15,6 @@ using HMF::HICANN::DriverDecoder;
 namespace marocco {
 namespace routing {
 
-std::ostream& operator<<(std::ostream& os, Parity p)
-{
-	switch (p) {
-		case Parity::even:
-			os << "even";
-			break;
-		case Parity::odd:
-			os << "odd";
-			break;
-		default:
-			throw std::runtime_error("unsupported switch case");
-	}
-	return os;
-}
-
 std::ostream& operator<<(std::ostream& os, TriParity p)
 {
 	switch (p) {
@@ -301,14 +286,14 @@ SynapseDriverRequirements::resolve_triparity(
 			continue;
 		}
 
-		Parity parity = static_cast<Parity>(triparity);
+		Parity parity = Parity(triparity == TriParity::odd);
 		for (auto const& item2 : item.second) {
 			Side side;
 			DriverDecoder decoder;
 			STPMode stp;
 			std::tie(side, decoder, stp) = item2.first;
 
-			used_half_rows[Side_Parity_STP(side, Parity(triparity), stp)] += item2.second;
+			used_half_rows[Side_Parity_STP(side, parity, stp)] += item2.second;
 
 			synrow_hist[Side_Parity_Decoder_STP(side, parity, decoder, stp)] += item2.second;
 		}
@@ -391,7 +376,7 @@ SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
 
 		for (size_t xx = address.x(); xx < address.x() + width; ++xx) {
 			NeuronOnHICANN nrn_addr(X(xx), Y(address.y()));
-			const Parity p = static_cast<Parity>(xx % 2);
+			const Parity p = Parity::from_number(xx);
 			auto const& inputs_on_neuron = syn_tgt_mapping[nrn_addr];
 			for (auto side : iter_all<SideHorizontal>()) {
 				SynapseType syn_type = inputs_on_neuron[side];
@@ -420,7 +405,7 @@ SynapseDriverRequirements::calc_synapse_type_to_synapse_columns_map(
 
 		for (size_t xx = address.x(); xx < address.x() + width; ++xx) {
 			NeuronOnHICANN nrn_addr(X(xx), Y(address.y()));
-			const Parity p = static_cast<Parity>(xx % 2);
+			const Parity p = Parity::from_number(xx);
 			auto const& inputs_on_neuron = syn_tgt_mapping[nrn_addr];
 			for (auto side : iter_all<SideHorizontal>()) {
 				SynapseType syn_type = inputs_on_neuron[side];
@@ -620,7 +605,7 @@ SynapseDriverRequirements::count_synapses_per_hardware_property(
 
 		if (triparity != TriParity::any) {
 			// get num required half rows.
-			Parity parity = static_cast<Parity>(triparity);
+			Parity parity = Parity(triparity == TriParity::odd);
 			Side_Parity const side_parity(side, parity);
 			size_t const syns_per_half_row =
 				target_synapses_per_parity_and_synaptic_input.at(syntype).at(side_parity);
