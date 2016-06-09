@@ -125,6 +125,17 @@ auto Placement::find(
 	return make_iterable(get<DNCMergerOnWafer>(m_container).equal_range(dnc_merger));
 }
 
+auto Placement::find(HICANNOnWafer const& hicann) const
+	-> iterable<by_neuron_block_type::iterator>
+{
+	return make_iterable(
+		get<NeuronBlockOnWafer>(m_container)
+			.lower_bound(NeuronBlockOnWafer(NeuronBlockOnHICANN(NeuronBlockOnHICANN::min), hicann)),
+		get<NeuronBlockOnWafer>(m_container)
+			.upper_bound(
+				NeuronBlockOnWafer(NeuronBlockOnHICANN(NeuronBlockOnHICANN::max), hicann)));
+}
+
 bool Placement::empty() const
 {
 	return m_container.empty();

@@ -2,6 +2,7 @@
 
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/mem_fun.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/optional.hpp>
 #include <boost/serialization/export.hpp>
@@ -73,7 +74,7 @@ public:
 	            boost::multi_index::tag<vertex_descriptor>,
 	            boost::multi_index::
 	                const_mem_fun<item_type, vertex_descriptor, &item_type::population> >,
-	        boost::multi_index::hashed_non_unique<
+	        boost::multi_index::ordered_non_unique<
 	            boost::multi_index::tag<HMF::Coordinate::NeuronBlockOnWafer>,
 	            boost::multi_index::const_mem_fun<
 	                item_type,
@@ -117,6 +118,12 @@ public:
 
 	iterable<by_dnc_merger_type::iterator> find(
 	    HMF::Coordinate::DNCMergerOnWafer const& dnc_merger) const;
+
+	/**
+	 * @brief Find all placements with neuron blocks on the given HICANN.
+	 */
+	iterable<by_neuron_block_type::iterator> find(
+		HMF::Coordinate::HICANNOnWafer const& hicann) const;
 
 	bool empty() const;
 

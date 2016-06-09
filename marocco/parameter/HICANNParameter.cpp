@@ -242,13 +242,11 @@ double HICANNTransformator::neurons(
 	 *
 	 */
 	NeuronSharedParameterRequirements shared_parameter_visitor;
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
-			auto const& params = getGraph()[item.population()]->parameters();
-			for (NeuronOnHICANN nrn : item.logical_neuron()) {
-				visitCellParameterVector(
-				    params, shared_parameter_visitor, item.neuron_index(), nrn);
-			}
+	for (auto const& item : neuron_placement.find(hicann)) {
+		auto const& params = getGraph()[item.population()]->parameters();
+		for (NeuronOnHICANN nrn : item.logical_neuron()) {
+			visitCellParameterVector(
+				params, shared_parameter_visitor, item.neuron_index(), nrn);
 		}
 	}
 
@@ -256,39 +254,37 @@ double HICANNTransformator::neurons(
 	TransformNeurons visitor{mPyMarocco.param_trafo.alpha_v, mPyMarocco.param_trafo.shift_v};
 
 	MAROCCO_INFO("Configuring neuron parameters");
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
-			auto const& pop = *(getGraph()[item.population()]);
-			auto const& logical_neuron = item.logical_neuron();
+	for (auto const& item : neuron_placement.find(hicann)) {
+		auto const& pop = *(getGraph()[item.population()]);
+		auto const& logical_neuron = item.logical_neuron();
 
-			// Configure ANALOG neuron parameters.
-			for (NeuronOnWafer nrn : logical_neuron) {
-				MAROCCO_DEBUG("configuring analog parameters for " << nrn);
+		// Configure ANALOG neuron parameters.
+		for (NeuronOnWafer nrn : logical_neuron) {
+			MAROCCO_DEBUG("configuring analog parameters for " << nrn);
 
-				transform_analog_neuron(
-					calib, pop, item.neuron_index(), nrn, synapse_target_mapping,
-					visitor, chip());
-			}
-
-			// As all denmems of a logical neuron will be connected,
-			// DIGITAL neuron parameters are only configured for the first denmem.
-
-			NeuronOnHICANN const nrn = logical_neuron.front();
-			HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
-
-			// Set L1 address
-			auto const& address = item.address();
-			assert(address != boost::none);
-			MAROCCO_DEBUG(nrn << " has sending address " << address->toL1Address());
-			neuron.address(address->toL1Address());
-			neuron.activate_firing(true);
-			neuron.enable_spl1_output(true);
-
-			// Connect all denmems belonging to this logical neuron.
-			assert(logical_neuron.is_rectangular());
-			connect_denmems(nrn, logical_neuron.size());
+			transform_analog_neuron(
+				calib, pop, item.neuron_index(), nrn, synapse_target_mapping,
+				visitor, chip());
 		}
-	} // all neuron blocks
+
+		// As all denmems of a logical neuron will be connected,
+		// DIGITAL neuron parameters are only configured for the first denmem.
+
+		NeuronOnHICANN const nrn = logical_neuron.front();
+		HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
+
+		// Set L1 address
+		auto const& address = item.address();
+		assert(address != boost::none);
+		MAROCCO_DEBUG(nrn << " has sending address " << address->toL1Address());
+		neuron.address(address->toL1Address());
+		neuron.activate_firing(true);
+		neuron.enable_spl1_output(true);
+
+		// Connect all denmems belonging to this logical neuron.
+		assert(logical_neuron.is_rectangular());
+		connect_denmems(nrn, logical_neuron.size());
+	}
 
 	auto const v_resets = shared_parameter_visitor.get_v_resets();
 	auto const mean_v_reset = shared_parameter_visitor.get_mean_v_reset();
@@ -321,13 +317,11 @@ void HICANNTransformator::analog_output(
 {
 	AnalogVisitor visitor;
 
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, chip().index()))) {
-			auto const& pop = *(getGraph()[item.population()]);
-			NeuronOnHICANN const nrn = *(item.logical_neuron().begin());
-			transform_analog_outputs(
-				calib, pop, item.neuron_index(), nrn, visitor, chip());
-		}
+	for (auto const& item : neuron_placement.find(chip().index())) {
+		auto const& pop = *(getGraph()[item.population()]);
+		NeuronOnHICANN const nrn = *(item.logical_neuron().begin());
+		transform_analog_outputs(
+			calib, pop, item.neuron_index(), nrn, visitor, chip());
 	}
 }
 
@@ -524,29 +518,27 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 	auto const& use_bigcap = chip().neurons.config.bigcap;
 
 
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		// We need to calculate the scaling factor for each logical neuron.
-		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, chip().index()))) {
-			auto const& params = getGraph()[item.population()]->parameters();
-			auto const& logical_neuron = item.logical_neuron();
+	// We need to calculate the scaling factor for each logical neuron.
+	for (auto const& item : neuron_placement.find(chip().index())) {
+		auto const& params = getGraph()[item.population()]->parameters();
+		auto const& logical_neuron = item.logical_neuron();
 
-			// Sum up the capacity of the connected denmems on the hardware.
-			double cm_hw = 0.;
-			std::vector<NeuronOnHICANN> connected_neurons;
-			connected_neurons.reserve(logical_neuron.size());
-			for (NeuronOnHICANN nrn : item.logical_neuron()) {
-				// We have to consider different capacitor choices on top / bottom neuron blocks.
-				cm_hw +=
-				    use_bigcap[nrn.y()] ? NeuronCalibration::big_cap : NeuronCalibration::small_cap;
-				connected_neurons.push_back(nrn);
-			}
+		// Sum up the capacity of the connected denmems on the hardware.
+		double cm_hw = 0.;
+		std::vector<NeuronOnHICANN> connected_neurons;
+		connected_neurons.reserve(logical_neuron.size());
+		for (NeuronOnHICANN nrn : item.logical_neuron()) {
+			// We have to consider different capacitor choices on top / bottom neuron blocks.
+			cm_hw +=
+				use_bigcap[nrn.y()] ? NeuronCalibration::big_cap : NeuronCalibration::small_cap;
+			connected_neurons.push_back(nrn);
+		}
 
-			double const cm_bio = visitCellParameterVector(params, cm_visitor, item.neuron_index());
-			double const scale = mPyMarocco.speedup * cm_hw / cm_bio;
+		double const cm_bio = visitCellParameterVector(params, cm_visitor, item.neuron_index());
+		double const scale = mPyMarocco.speedup * cm_hw / cm_bio;
 
-			for (auto cnrn : connected_neurons) {
-				rv[cnrn] = scale;
-			}
+		for (auto cnrn : connected_neurons) {
+			rv[cnrn] = scale;
 		}
 	}
 	return rv;

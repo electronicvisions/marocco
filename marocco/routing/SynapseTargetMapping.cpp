@@ -131,34 +131,32 @@ void SynapseTargetMapping::simple_mapping(
 {
 	SynapseTargetVisitor const syn_tgt_visitor;
 
-	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
-		for (auto const& item : neuron_placement.find(NeuronBlockOnWafer(nb, hicann))) {
-			Population const& pop = *(graph[item.population()]);
-			auto const& logical_neuron = item.logical_neuron();
-			assert(logical_neuron.is_rectangular());
+	for (auto const& item : neuron_placement.find(hicann)) {
+		Population const& pop = *(graph[item.population()]);
+		auto const& logical_neuron = item.logical_neuron();
+		assert(logical_neuron.is_rectangular());
 
-			std::vector<SynapseType> synapse_targets = visitCellParameterVector(
-				pop.parameters(), syn_tgt_visitor, item.neuron_index());
+		std::vector<SynapseType> synapse_targets = visitCellParameterVector(
+			pop.parameters(), syn_tgt_visitor, item.neuron_index());
 
-			{
-				assert(logical_neuron.size() % NeuronOnNeuronBlock::y_type::size == 0);
-				size_t const neuron_width =
-				    logical_neuron.size() / NeuronOnNeuronBlock::y_type::size;
-				if (synapse_targets.size() > neuron_width * HICANN::RowConfig::num_syn_ins) {
-					throw std::runtime_error(
-					    "Neuron has more synaptic time constants than provided by placement. "
-					    "HardwareNeuronSize should be >= # of synaptic time constants.");
-				}
+		{
+			assert(logical_neuron.size() % NeuronOnNeuronBlock::y_type::size == 0);
+			size_t const neuron_width =
+				logical_neuron.size() / NeuronOnNeuronBlock::y_type::size;
+			if (synapse_targets.size() > neuron_width * HICANN::RowConfig::num_syn_ins) {
+				throw std::runtime_error(
+					"Neuron has more synaptic time constants than provided by placement. "
+					"HardwareNeuronSize should be >= # of synaptic time constants.");
 			}
-
-			std::vector<NeuronOnHICANN> connected_neurons;
-			connected_neurons.reserve(logical_neuron.size());
-			for (NeuronOnHICANN nrn : logical_neuron) {
-				connected_neurons.push_back(nrn);
-			}
-
-			map_targets(synapse_targets, connected_neurons, *this);
 		}
+
+		std::vector<NeuronOnHICANN> connected_neurons;
+		connected_neurons.reserve(logical_neuron.size());
+		for (NeuronOnHICANN nrn : logical_neuron) {
+			connected_neurons.push_back(nrn);
+		}
+
+		map_targets(synapse_targets, connected_neurons, *this);
 	}
 }
 

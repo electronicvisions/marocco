@@ -22,10 +22,8 @@ double HardwareUsage::overallNeuronUsage() const
 	size_t hicanns = 0;
 	for (auto const& hicann : mResource.allocated()) {
 		size_t denmems_on_hicann = 0;
-		for (auto block : iter_all<NeuronBlockOnHICANN>()) {
-			for (auto const& item : mNeuronPlacement.find(NeuronBlockOnWafer(block, hicann))) {
-				denmems_on_hicann += item.logical_neuron().size();
-			}
+		for (auto const& item : mNeuronPlacement.find(hicann)) {
+			denmems_on_hicann += item.logical_neuron().size();
 		}
 		if (denmems_on_hicann > 0) {
 			denmems += denmems_on_hicann;
@@ -44,14 +42,7 @@ double HardwareUsage::overallSynapseUsage() const
 	size_t hicanns = 0;
 	for (auto const& hicann : mResource.allocated()) {
 		// Check if any neurons have been placed to this HICANN.
-		bool any = false;
-		for (auto block : iter_all<NeuronBlockOnHICANN>()) {
-			if (!mNeuronPlacement.find(NeuronBlockOnWafer(block, hicann)).empty()) {
-				any = true;
-				break;
-			}
-		}
-		if (any) {
+		if (!mNeuronPlacement.find(hicann).empty()) {
 			synapses += numSynapsesUsed(hicann);
 			++hicanns;
 		}
