@@ -1,7 +1,8 @@
 #include "marocco/parameter/SpikeInputVisitor.h"
-#include "marocco/Logger.h"
 
 #include "hal/Coordinate/iter_all.h"
+
+#include "marocco/Logger.h"
 
 using namespace HMF::Coordinate;
 
@@ -24,7 +25,6 @@ void transform_input_spikes(
 		chip);
 }
 
-
 SpikeInputVisitor::SpikeInputVisitor(
 			pymarocco::PyMarocco const& pymarocco,
 			SpikeList& spikes, int seed, double exp_dur) :
@@ -41,16 +41,19 @@ SpikeInputVisitor::operator() (
 	size_t neuron_id,
 	chip_t& /*unused*/)
 {
-	MAROCCO_TRACE("SpikeSourceArray");
 	const double speedup = mPyMarocco.speedup;
 	const double time_offset = mPyMarocco.experiment_time_offset;
 
 	auto const& param = v.parameters()[neuron_id];
 
-	for (double const time : param.spike_times)
-		// use euter's spike_times (cell parameter), transform and attach to
-		// this' SpikeList -> used by HICANNTransformator
-		mSpikes.emplace_back(l1, time_offset+time/speedup/1000.);
+	mSpikes.reserve(param.spike_times.size());
+	for (double const time : param.spike_times) {
+		if (time < mExperimentDuration) {
+			mSpikes.emplace_back(l1, time_offset + time / speedup / 1000.0);
+		}
+	}
+
+	MAROCCO_DEBUG("added " << mSpikes.size() << " spikes from SpikeSourceArray");
 }
 
 // Spike Source Poisson Transformation
@@ -61,34 +64,27 @@ SpikeInputVisitor::operator() (
 	size_t neuron_id,
 	chip_t& /*unused*/)
 {
-	MAROCCO_TRACE("SpikeSourcePoisson");
 	const double speedup = mPyMarocco.speedup;
 	const double time_offset = mPyMarocco.experiment_time_offset;
 
 	auto const& param = v.parameters()[neuron_id];
 
-	double const duration = param.duration;
-	double const start = param.start;
-	double const rate = param.rate;
+	// Rate has to be divided by 1000 because time is given in ms.
+	std::exponential_distribution<double> dist(param.rate / 1000.0);
 
-   std::mt19937 gen(mRNG());
-   std::uniform_real_distribution<> dis(0, 1);
-	static double const dt = 0.1;
+	double time = param.start;
+	// spike train stops either at start + duration or at end of pynn experiment
+	double const stop = std::min(param.start + param.duration, mExperimentDuration);
 
-	double time = start;
-	// spike train stops either at start+duration or at end of pynn experiment
-	double const stop = std::min(start + duration, mExperimentDuration);
-
-	while ( time < stop )
-	{
-		// time is given in ms => factor of 1000.
-		if (rate * dt / 1000. >= dis(gen)) {
-		//if (rate * dt >= mRNG()) {
-			auto const t = time_offset+time/speedup/1000.;
-			mSpikes.emplace_back(l1, t);
+	while (true) {
+		time += dist(mRNG);
+		if (time >= stop) {
+			break;
 		}
-		time+=dt;
+		mSpikes.emplace_back(l1, time_offset + time / speedup / 1000.0);
 	}
+
+	MAROCCO_DEBUG("added " << mSpikes.size() << " spikes from " << param);
 }
 
 } // namespace parameter

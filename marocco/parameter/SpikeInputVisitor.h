@@ -3,12 +3,12 @@
 
 #include <type_traits>
 #include <stdexcept>
+#include <random>
 
 #include "euter/typedcellparametervector.h"
 
 #include "marocco/config.h"
 #include "marocco/graph.h"
-#include "marocco/RNG.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace marocco {
@@ -59,7 +59,7 @@ struct SpikeInputVisitor
 
 	pymarocco::PyMarocco const& mPyMarocco;
 	SpikeList& mSpikes;
-	RNG mRNG;
+	std::mt19937 mRNG;
 	double const mExperimentDuration; //!< PyNN experiment duration in ms
 };
 
