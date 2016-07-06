@@ -17,7 +17,25 @@ public:
 	typedef std::map<HMF::Coordinate::HICANNGlobal, boost::shared_ptr<redman::resources::Hicann> >
 	hicann_map_type;
 
+	PYPP_CLASS_ENUM(Backend) {
+		XML,
+		None
+	};
+
 	Defects();
+
+	/**
+	 * @brief Backend for defect data.
+	 * Defaults to \c None.
+	 */
+	Backend backend;
+
+	/**
+	 * @brief Path to directory containing defect data.
+	 * Marocco will throw during runtime if \c MAROCCO_DEFECTS_PATH is set and this string
+	 * is non-empty.
+	 */
+	std::string path;
 
 	float getNeuronDefect() const;
 	void setNeuronDefect(float v);

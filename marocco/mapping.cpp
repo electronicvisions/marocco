@@ -1,13 +1,50 @@
 #include "marocco/mapping.h"
 #include "marocco/Logger.h"
 
+#include <cstdlib>
 #include <stdexcept>
 #include <boost/make_shared.hpp>
 
+#include "redman/backend/Backend.h"
+#include "redman/backend/Library.h"
 #include "redman/backend/MockBackend.h"
 #include "redman/resources/Wafer.h"
 
 using namespace HMF::Coordinate;
+
+namespace {
+
+boost::shared_ptr<redman::backend::Backend> load_redman_backend(pymarocco::Defects const& defects)
+{
+	if (defects.backend == pymarocco::Defects::Backend::XML) {
+		auto const lib = redman::backend::loadLibrary("libredman_xml.so");
+		auto const backend = redman::backend::loadBackend(lib);
+
+		if (!backend) {
+			throw std::runtime_error("unable to load xml backend");
+		}
+
+		std::string defects_path = defects.path;
+		if (std::getenv("MAROCCO_DEFECTS_PATH") != nullptr) {
+			if (!defects_path.empty()) {
+				throw std::runtime_error(
+				    "only one of pymarocco.defects.path and MAROCCO_DEFECTS_PATH "
+				    "should be set");
+			}
+			defects_path = std::string(std::getenv("MAROCCO_DEFECTS_PATH"));
+		}
+
+		backend->config("path", defects_path);
+		backend->init();
+		return backend;
+	} else if (defects.backend == pymarocco::Defects::Backend::None) {
+		return boost::make_shared<redman::backend::MockBackend>();
+	}
+	throw std::runtime_error("defects backend not implemented");
+}
+
+
+} // namespace
 
 namespace marocco {
 namespace mapping {
@@ -43,8 +80,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 
 	auto const wafer = *wafers.begin();
 
-	// FIXME: use resource manager with proper backend
-	resource_manager_t resources{boost::make_shared<redman::backend::MockBackend>()};
+	resource_manager_t resources{load_redman_backend(mi->defects)};
 
 	{
 		auto res = redman::resources::WaferWithBackend(resources.backend(), wafer);

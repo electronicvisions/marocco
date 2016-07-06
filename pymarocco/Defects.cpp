@@ -4,6 +4,8 @@
 namespace pymarocco {
 
 Defects::Defects() :
+	backend(Backend::None),
+	path(),
 	mHicanns(),
 	mNeuronDefects(0),
 	mBusDefects(0)
