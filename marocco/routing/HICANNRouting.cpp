@@ -183,8 +183,11 @@ void HICANNRouting::setSynapseDriver(
 			std::sort(sorted.begin(), sorted.end());
 		}
 
-		bool const top = primary.line() <  112;
-		if (top) {
+		MAROCCO_INFO("Connecting " << sorted.size() << " synapse driver(s) from "
+		                           << sorted.front() << " to " << sorted.back() << " on "
+		                           << chip.index());
+
+		if (primary.isTop()) {
 			// start with top most synapse driver, its topin bit should not be set.
 			connectSynapseDriver(primary, sorted.begin(), sorted.end(), chip);
 		} else {
