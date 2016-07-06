@@ -84,9 +84,16 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 
 	{
 		auto res = redman::resources::WaferWithBackend(resources.backend(), wafer);
+		auto const hicanns = res.hicanns();
 
 		for (auto const& pair : mi->defects.hicanns()) {
-			res.inject(pair.first.toHICANNOnWafer(), pair.second);
+			if (!pair.second) {
+				LOG4CXX_DEBUG(log4cxx::Logger::getLogger("marocco"),
+				              "Marked " << pair.first << " as defect/disabled");
+				hicanns->disable(pair.first.toHICANNOnWafer());
+			} else {
+				res.inject(pair.first.toHICANNOnWafer(), pair.second);
+			}
 		}
 
 		resources.inject(res);

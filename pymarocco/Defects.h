@@ -43,6 +43,8 @@ public:
 	float getBusDefect() const;
 	void setBusDefect(float v);
 
+	void disable(HMF::Coordinate::HICANNGlobal);
+
 	void inject(HMF::Coordinate::HICANNGlobal,
 	            boost::shared_ptr<redman::resources::Hicann>);
 

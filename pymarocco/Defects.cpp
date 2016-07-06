@@ -37,6 +37,11 @@ void Defects::setBusDefect(float v)
 	mBusDefects = v;
 }
 
+void Defects::disable(HMF::Coordinate::HICANNGlobal id)
+{
+	mHicanns[id].reset();
+}
+
 void Defects::inject(HMF::Coordinate::HICANNGlobal id,
                      boost::shared_ptr<redman::resources::Hicann> res) {
 	mHicanns[id] = res;
