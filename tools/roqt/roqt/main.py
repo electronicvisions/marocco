@@ -31,12 +31,17 @@ def save_figure(scene, fname):
         invoke_painter(scene, img)
         img.save(fname)
 
+def valid_file(arg):
+    if not os.path.isfile(arg):
+        raise argparse.ArgumentTypeError(
+            "{!r} does not exist".format(arg))
+    return arg
 
 def main():
     app = QtGui.QApplication(sys.argv)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=str, help='pyroqt routing data')
+    parser.add_argument('file', type=valid_file, help='pyroqt routing data')
     parser.add_argument('-o', type=str, default=None,
             help='write rendering to file, e.g.: *.png, *.svg')
     parser.add_argument('--switches', action='store_true',
