@@ -119,7 +119,18 @@ public:
 	/// path to graphviz bio graph output file. No bio graph output if unset
 	std::string bio_graph;
 
-	/// path to file to which wafer configuration is dumped. No output if unset
+	/**
+	 * @brief Do not run mapping step but load results from previous run.
+	 * @see \c wafer_cfg and \c persist which must be set.
+	 * Defaults to \c false.
+	 */
+	bool skip_mapping;
+
+	/**
+	 * @brief Path to file to which is used to store wafer configuration.
+	 * @note Existing files will be overwritten.
+	 * If this parameter is empty, no file will be written.
+	 */
 	std::string wafer_cfg;
 
 	/**
@@ -128,11 +139,6 @@ public:
 	 * If this parameter is empty, no file will be written.
 	 */
 	std::string persist;
-
-	/** path to file from which wafer configuration is read from (instead of running the mapping).
-	 *  ignored if unset/empty string.
-	 */
-	std::string wafer_cfg_inject;
 
 	/// path to file to which recorded membrane potential is written. No output if unset
 	/// only one neuron can be recorded at a time, calling record_v()

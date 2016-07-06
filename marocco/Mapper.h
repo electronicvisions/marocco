@@ -42,6 +42,7 @@ public:
 
 	BioGraph const& bio_graph() const;
 
+	results::Marocco& results();
 	results::Marocco const& results() const;
 
 private:

@@ -29,6 +29,7 @@ PyMarocco::PyMarocco() :
 	backend(Backend::None),
 	calib_backend(CalibBackend::Default),
 	calib_path(""),
+	skip_mapping(false),
 	membrane_translate_to_bio(true),
 	bkg_gen_isi(500),
 	only_bkg_visible(false),
@@ -63,7 +64,7 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("bio_graph", bio_graph)
 	   & make_nvp("persist", persist)
 	   & make_nvp("wafer_cfg", wafer_cfg)
-	   & make_nvp("wafer_cfg_inject", wafer_cfg_inject)
+	   & make_nvp("skip_mapping", skip_mapping)
 	   & make_nvp("membrane", membrane)
 	   & make_nvp("membrane_translate_to_bio", membrane_translate_to_bio)
 	   & make_nvp("hicann_enum", hicann_enum)

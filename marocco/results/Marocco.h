@@ -19,12 +19,18 @@ namespace results {
 class Marocco {
 public:
 	/**
+	 * @brief Construct a new results object by loading mapping results from disk.
+	 * @see #load().
+	 */
+	static Marocco from_file(char const* filename);
+
+	/**
 	 * @brief Load mapping results from disk.
 	 * @param filename Path to input file.  The extension is used to determine the file
 	 *                 format, e.g. `.xml`/`.bin` or `.xml.gz`/`.bin.gz`.
 	 * @see #save().
 	 */
-	static Marocco from_file(char const* filename);
+	void load(char const* filename);
 
 	/**
 	 * @brief Save mapping results to disk.

@@ -15,6 +15,13 @@ namespace results {
 
 Marocco Marocco::from_file(char const* filename)
 {
+	Marocco result;
+	result.load(filename);
+	return result;
+}
+
+void Marocco::load(char const* filename)
+{
 	boost::filesystem::path path(filename);
 	if (!boost::filesystem::exists(path)) {
 		throw std::runtime_error("file not found");
@@ -27,13 +34,11 @@ Marocco Marocco::from_file(char const* filename)
 	}
 	stream.push(ifstream);
 
-	Marocco result;
 	if (path.extension() == ".xml") {
-		boost::archive::xml_iarchive{stream} >> boost::serialization::make_nvp("Marocco", result);
+		boost::archive::xml_iarchive{stream} >> boost::serialization::make_nvp("Marocco", *this);
 	} else {
-		boost::archive::binary_iarchive{stream} >> result;
+		boost::archive::binary_iarchive{stream} >> *this;
 	}
-	return result;
 }
 
 void Marocco::save(char const* filename, bool overwrite) const

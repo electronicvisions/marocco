@@ -68,14 +68,14 @@ std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
 MappingResult run(boost::shared_ptr<ObjectStore> store,
                   Mapper::comm_type const& comm) {
 	using pymarocco::PyMarocco;
-	auto mi = store->getMetaData<PyMarocco>("marocco");
 
+	log4cxx::LoggerPtr const logger = log4cxx::Logger::getLogger("marocco");
+
+	auto mi = store->getMetaData<PyMarocco>("marocco");
 	auto wafers = wafers_used_in(store);
 
 	if (wafers.empty()) {
-		LOG4CXX_INFO(log4cxx::Logger::getLogger("marocco"),
-		             "Could not deduce wafer, will use "
-		             << mi->default_wafer << ".");
+		LOG4CXX_INFO(logger, "Could not deduce wafer, will use " << mi->default_wafer << ".");
 		wafers.insert(mi->default_wafer);
 	} else if (wafers.size() > 1) {
 		throw std::runtime_error("Currently only a single wafer is supported.");
@@ -107,15 +107,21 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 
 	Mapper mapper{hw, resources, comm, mi};
 
-	mapper.run(*store);
-
-	if(!mi->wafer_cfg_inject.empty()) {
-	  // load wafer from file
-	  LOG4CXX_INFO(log4cxx::Logger::getLogger("marocco"),
-		       "injecting wafer configuration from: \"" <<
-		       mi->wafer_cfg_inject << "\"");
-	  hw[wafer].load(mi->wafer_cfg_inject.c_str());
+	if (mi->skip_mapping) {
+		if (mi->wafer_cfg.empty() || mi->persist.empty()) {
+			throw std::runtime_error(
+			    "wafer_cfg and persist must be set for skip_mapping option to work");
+		}
+		LOG4CXX_INFO(logger, "Mapping will be skipped");
+		LOG4CXX_INFO(logger, "Loading wafer configuration from " << mi->wafer_cfg);
+		hw[wafer].load(mi->wafer_cfg.c_str());
+		LOG4CXX_INFO(logger, "Loading mapping results from " << mi->persist);
+		mapper.results().load(mi->persist.c_str());
 	}
+
+	// Even when skip_mapping is true we need to setup the bio graph.
+	// (Alternatively the bio graph could be persisted to the mapping results object, too).
+	mapper.run(*store);
 
 	// pyoneer doesn't work currently
 	// auto pyoneer = objectstore->getMetaData<HMF::PyOneer>("pyoneer");

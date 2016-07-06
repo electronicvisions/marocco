@@ -74,6 +74,11 @@ void Mapper::run(ObjectStore const& pynn)
 	MAROCCO_INFO(
 	    neuron_count << " neurons in " << boost::num_vertices(graph) << " populations");
 
+	if (mPyMarocco->skip_mapping) {
+		// We only need to set up the bio graph when using old results.
+		return;
+	}
+
 	// rough capacity check; in case we can stop mapping already here
 	if (neuron_count > mHW.capacity()) {
 		throw std::runtime_error("hardware capacity too low");
@@ -187,6 +192,11 @@ pymarocco::MappingStats const& Mapper::getStats() const
 BioGraph const& Mapper::bio_graph() const
 {
 	return mBioGraph;
+}
+
+results::Marocco& Mapper::results()
+{
+	return *m_results;
 }
 
 results::Marocco const& Mapper::results() const
