@@ -62,7 +62,14 @@ void PlacePopulations::sort_neuron_blocks()
 
 OnNeuronBlock& PlacePopulations::on_neuron_block(NeuronBlockOnWafer const& nb)
 {
-	return m_state[nb.toHICANNOnWafer()][nb.toNeuronBlockOnHICANN()];
+	auto it = m_state.find(nb.toHICANNOnWafer());
+	if (it == m_state.end()) {
+		// HICANN is not available, this can only happen for manual placement requests because
+		// automatic placement loops over available HICANNs when determining available neuron
+		// blocks.
+		throw std::runtime_error("HICANN unavailable during manual population placement");
+	}
+	return it->second[nb.toNeuronBlockOnHICANN()];
 }
 
 bool PlacePopulations::place_one_population()

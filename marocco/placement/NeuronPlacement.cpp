@@ -81,7 +81,7 @@ void NeuronPlacement::add_defect(
     HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::NeuronOnHICANN const& neuron)
 {
 	MAROCCO_DEBUG("Marked " << neuron << " on " << hicann << " as defect/disabled");
-	m_denmem_assignment[hicann][neuron.toNeuronBlockOnHICANN()].add_defect(
+	m_denmem_assignment.at(hicann)[neuron.toNeuronBlockOnHICANN()].add_defect(
 	    neuron.toNeuronOnNeuronBlock());
 }
 
@@ -254,7 +254,7 @@ void NeuronPlacement::run()
 	// Denmem assignment is only stored for HICANNs that saw actual assignments.
 	auto& dest = m_internal.denmem_assignment;
 	for (auto const& hicann : m_used_hicanns) {
-		dest[hicann] = m_denmem_assignment[hicann];
+		dest[hicann] = m_denmem_assignment.at(hicann);
 	}
 
 	MAROCCO_INFO("Placement of populations finished");
