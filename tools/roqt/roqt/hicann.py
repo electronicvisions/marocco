@@ -36,7 +36,7 @@ class HICANN(object):
             QtGui.QPen(QtGui.QColor(0, 0, 0)),
             QtGui.QBrush(QtGui.QColor(200, 200, 200)))
 
-        t = self.scene.addText(str(self.id))
+        t = self.scene.addText("{}\n\nEnum({})".format(self.id,self.id.id().value()))
         t.setPos(off.x + self.WIDTH / 2 - 100., off.y + 100.)
 
         # draw horizontal lines

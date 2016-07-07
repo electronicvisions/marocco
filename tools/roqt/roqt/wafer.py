@@ -45,17 +45,16 @@ class Wafer(object):
                 self.scene,
                 coord.x().value() * (HICANN.WIDTH + self.SPACING),
                 coord.y().value() * (HICANN.HEIGHT + self.SPACING),
-                self.draw_switches, coord)
+                self.draw_switches, coord.toHICANNOnWafer())
         return self._hicanns[coord]
 
     def draw_from_pyroqt(self, pyroqt):
         crossbars = pyroqt.crossbar()
         synapserows = pyroqt.synapserow()
         routing_graph = pyroqt
-        print '# HICANNs:', crossbars.size()
 
         # need to guess all possible wafers (HICANNGlobal is not iterable anymore)
-        max_wafers = 30
+        max_wafers = 100
         max_hicann_global_enum = max_wafers*HICANNOnWafer.enum_type.end
 
         for hh in [HICANNGlobal(Enum(ii)) for ii in xrange(max_hicann_global_enum)]:
