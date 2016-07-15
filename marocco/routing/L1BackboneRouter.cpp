@@ -42,15 +42,16 @@ auto L1BackboneRouter::source() const -> vertex_descriptor
 
 void L1BackboneRouter::run()
 {
-	if (m_targets.empty()) {
-		return;
-	}
-
 	m_predecessors = std::vector<vertex_descriptor>(boost::num_vertices(m_graph));
 	m_predecessors[m_source] = m_source;
 
 	// Walk horizontally until we reach the leftmost/rightmost HICANN.
 	for (auto const direction : {east, west}) {
+		// All targets may have already been removed in the first iteration.
+		if (m_targets.empty()) {
+			return;
+		}
+
 		size_t const limit = direction == west ? m_targets.begin()->first.value()
 		                                       : m_targets.rbegin()->first.value();
 		L1GraphWalker::path_type path;
