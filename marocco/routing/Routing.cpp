@@ -60,7 +60,6 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 			}
 		}
 
-		MAROCCO_INFO("Beginning L1 routing");
 		L1Routing l1_routing(
 		    l1_graph, m_graph, m_pymarocco.l1_routing, m_neuron_placement, l1_routing_result);
 		l1_routing.run();

@@ -58,6 +58,7 @@ public:
 
 private:
 	void run_backbone_router();
+	void run_dijkstra_router();
 	bool store_result(
 		request_type const& request,
 	    L1RoutingGraph::vertex_descriptor const source,

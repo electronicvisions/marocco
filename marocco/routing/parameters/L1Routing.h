@@ -27,7 +27,8 @@ public:
 
 	PYPP_CLASS_ENUM(Algorithm)
 	{
-		backbone
+		backbone,
+		dijkstra
 	};
 
 	PYPP_CLASS_ENUM(PriorityAccumulationMeasure)

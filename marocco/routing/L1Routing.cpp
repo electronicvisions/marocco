@@ -4,6 +4,7 @@
 
 #include "marocco/Logger.h"
 #include "marocco/routing/L1BackboneRouter.h"
+#include "marocco/routing/L1DijkstraRouter.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/routing/VLineUsage.h"
 #include "marocco/routing/internal/SynapseTargetMapping.h"
@@ -146,6 +147,9 @@ void L1Routing::run()
 		case parameters::L1Routing::Algorithm::backbone:
 			run_backbone_router();
 			break;
+		case parameters::L1Routing::Algorithm::dijkstra:
+			run_dijkstra_router();
+			break;
 		default:
 			throw std::runtime_error("unknown routing algorithm");
 	}
@@ -153,6 +157,7 @@ void L1Routing::run()
 
 void L1Routing::run_backbone_router()
 {
+	MAROCCO_INFO("Beginning L1 routing using backbone router");
 	auto const& graph = m_l1_graph.graph();
 
 	auto const sources = sources_sorted_by_priority();
@@ -207,6 +212,56 @@ void L1Routing::run_backbone_router()
 		PathBundle bundle;
 		for (auto const& target : targets) {
 			auto const path = backbone.path_to(target.first);
+
+			if (store_result(request_type{merger, target.first, target.second}, source, path)) {
+				bundle.add(path);
+			}
+		}
+		m_l1_graph.remove(bundle);
+	}
+}
+
+void L1Routing::run_dijkstra_router()
+{
+	MAROCCO_INFO("Beginning L1 routing using dijkstra router");
+	auto const sources = sources_sorted_by_priority();
+	MAROCCO_DEBUG("found " << sources.size() << " sources");
+
+	L1EdgeWeights weights(m_l1_graph.graph());
+
+	// Avoid horizontal buses belonging to used sending repeaters.
+	for (auto const& merger : sources) {
+		weights.set_weight(
+			m_l1_graph[merger.toHICANNOnWafer()]
+			          [merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()],
+			10000); // TODO: magic number
+	}
+
+	for (auto const& merger : sources) {
+		auto const source = m_l1_graph[merger.toHICANNOnWafer()]
+		                              [merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()];
+		auto const targets = targets_for_source(merger);
+
+		MAROCCO_TRACE("routing from " << merger << " to " << targets.size() << " targets");
+
+		L1DijkstraRouter dijkstra(weights, source);
+
+		for (auto const& target : targets) {
+			dijkstra.add_target(Target(target.first, vertical));
+		}
+
+		dijkstra.run();
+
+		PathBundle bundle;
+		for (auto const& target : targets) {
+			auto const& vertices = dijkstra.vertices_for(Target(target.first, vertical));
+
+			PathBundle::path_type path;
+			if (!vertices.empty()) {
+				// TODO: choose from multiple possible target vertices via
+				// to-be-introduced random seed
+				path = dijkstra.path_to(*(vertices.begin()));
+			}
 
 			if (store_result(request_type{merger, target.first, target.second}, source, path)) {
 				bundle.add(path);
