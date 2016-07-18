@@ -6,10 +6,12 @@
 #include "marocco/Logger.h"
 #include "marocco/Mapper.h"
 #include "marocco/Result.h"
+#include "marocco/parameter/CurrentSources.h"
 #include "marocco/parameter/HICANNParameter.h"
 #include "marocco/placement/Placement.h"
 #include "marocco/routing/Routing.h"
 #include "marocco/routing/SynapseLoss.h"
+#include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 
 using namespace pymarocco;
@@ -86,33 +88,34 @@ void Mapper::run(ObjectStore const& pynn)
 
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
 
-	// collect current sources
-	typedef graph_t::vertex_descriptor Vertex;
-	auto const& current_sources = pynn.current_sources();
-	parameter::HICANNParameter::CurrentSourceMap mSources;
+	std::unique_ptr<parameter::HICANNParameter> transformator(
+		new parameter::HICANNParameter(*mPyMarocco, pynn.getDuration(), graph, mHW, mMgr));
+	auto parameter = transformator->run(*placement, *routing);
 
-	for (auto const& source : current_sources)
-	{
-		auto target = source->target();
-		for (auto view : target->populations())
-		{
-			auto const& mask = view.mask();
-			for (size_t ii=0; ii<mask.size(); ++ii)
-			{
-				if (mask[ii]) {
-					Vertex v = mBioGraph[view.population_ptr().get()];
-					mSources[v] = std::make_pair(ii, source);
+	// collect current sources
+	parameter::CurrentSources::current_sources_type bio_current_sources;
+
+	for (auto const& current_source : pynn.current_sources()) {
+		auto target_assembly = current_source->target();
+		for (auto population_view : target_assembly->populations()) {
+			auto const& mask = population_view.mask();
+			for (size_t ii = 0; ii < mask.size(); ++ii) {
+				if (!mask[ii]) {
+					continue;
 				}
+
+				auto vertex = mBioGraph[population_view.population_ptr().get()];
+				bio_current_sources[BioNeuron(vertex, ii)] = current_source;
 			}
 		}
 	}
-	MAROCCO_DEBUG("current_sources.size(): " << current_sources.size());
-	MAROCCO_DEBUG("mSources.size(): " << mSources.size());
 
-	std::unique_ptr<parameter::HICANNParameter> transformator(
-		new parameter::HICANNParameter(*mPyMarocco, mSources,
-			pynn.getDuration(), graph, mHW, mMgr));
-	auto parameter = transformator->run(*placement, *routing);
+	MAROCCO_DEBUG(
+		"Transformed " << pynn.current_sources().size() << " current sources into "
+		<< bio_current_sources.size() << " single-neuron items");
+
+	parameter::CurrentSources current_sources(mHW[guess_wafer(mMgr)], m_results->placement);
+	current_sources.run(bio_current_sources);
 
 
 	auto end = std::chrono::system_clock::now();

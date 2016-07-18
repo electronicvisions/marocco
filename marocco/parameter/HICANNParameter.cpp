@@ -42,34 +42,6 @@ HICANNParameter::run(
 	auto const& placement = result_cast<placement::Result>(_placement);
 	auto const& routing   = result_cast<routing::Result>(_routing);
 
-	std::unordered_map<HICANNOnWafer, HICANNTransformator::CurrentSources> current_source_map;
-
-	auto const& neuron_placement = placement.neuron_placement;
-	for (auto const& entry : mCurrentSourceMap)
-	{
-		Vertex const v = entry.first;
-		size_t const nrn = entry.second.first;
-
-		// There should be exactly one result for this lookup.
-		auto iterable = neuron_placement.find(BioNeuron(v, nrn));
-		assert(iterable.begin() != iterable.end());
-		assert(std::next(iterable.begin()) == iterable.end());
-
-		auto const& logical_neuron = iterable.begin()->logical_neuron();
-		assert(!logical_neuron.is_external());
-
-		auto const primary_neuron = logical_neuron.front();
-
-		auto ptr = boost::dynamic_pointer_cast<StepCurrentSource const>(entry.second.second);
-		if (!ptr) {
-			MAROCCO_WARN("unsupported current type");
-		} else {
-			MAROCCO_DEBUG("insert source");
-			current_source_map[primary_neuron.toHICANNOnWafer()]
-			                  [primary_neuron.toNeuronOnHICANN()] = ptr;
-		}
-	}
-
 	auto first = getManager().begin_allocated();
 	auto last  = getManager().end_allocated();
 
@@ -81,7 +53,7 @@ HICANNParameter::run(
 		[&](HICANNGlobal const& hicann) {
 			chip_type& chip = getHardware()[hicann];
 			HICANNTransformator trafo(getGraph(), chip, mPyMarocco, mDuration);
-			trafo.run(current_source_map[hicann], placement, routing);
+			trafo.run(placement, routing);
 		});
 	auto end = std::chrono::system_clock::now();
 	mPyMarocco.stats.timeSpentInParallelRegion +=
@@ -124,7 +96,6 @@ HICANNTransformator::~HICANNTransformator()
 
 std::unique_ptr<HICANNTransformator::result_type>
 HICANNTransformator::run(
-	CurrentSources const& cs,
 	placement::Result const& placement,
 	routing::Result const& routing)
 {
@@ -181,10 +152,6 @@ HICANNTransformator::run(
 
 				synapses(*synapse_row_calib, synapse_routing, neuron_placement);
 			}
-
-			// current sources
-			current_input(*neuron_calib, cs);
-
 		}
 	}
 
@@ -322,45 +289,6 @@ void HICANNTransformator::analog_output(
 		NeuronOnHICANN const nrn = *(item.logical_neuron().begin());
 		transform_analog_outputs(
 			calib, pop, item.neuron_index(), nrn, visitor, chip());
-	}
-}
-
-void HICANNTransformator::current_input(neuron_calib_t const& /*calib*/, CurrentSources const& cs)
-{
-	if (cs.empty()) {
-		return;
-	} else if (cs.size()>1) {
-		MAROCCO_WARN("only one current input per HICANN");
-	}
-
-	for (auto const& e : cs)
-	{
-		NeuronOnHICANN const& nrn = e.first;
-		StepCurrentSource const& src = *(e.second);
-
-		auto const& times = src.times();
-		auto const& amps = src.amplitudes();
-
-		if (times.size() != amps.size()) {
-			throw std::runtime_error(
-				"number of amplitudes doesn't match times for StepCurrentInput");
-		}
-
-		sthal::FGStimulus pattern;
-		static size_t const MAX = pattern.size();
-		for (size_t ii = 0; ii < MAX; ii++)
-		{
-			pattern[ii] = amps[ii*(amps.size()/MAX)];
-		}
-
-		pattern.setPulselength(15);
-		pattern.setContinuous(true);
-
-		MAROCCO_DEBUG("setting FGStim for " << nrn);
-		chip().setCurrentStimulus(nrn, pattern);
-
-		// only one current input available
-		return;
 	}
 }
 

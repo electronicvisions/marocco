@@ -24,18 +24,12 @@ public:
 	typedef ParameterTransformation::result_type result_type;
 	typedef typename ::chip_type<hardware_system_t>::calib_type  calib_t;
 
-	typedef graph_t::vertex_descriptor Vertex;
-	typedef std::unordered_map<Vertex,
-			std::pair<size_t /*neuron offset*/, ConstCurrentSourcePtr> >
-		CurrentSourceMap;
-
 	virtual ~HICANNParameter() {}
 	template<typename ... Args>
-	HICANNParameter(pymarocco::PyMarocco& pym, CurrentSourceMap const& csm,
+	HICANNParameter(pymarocco::PyMarocco& pym,
 			double duration, //!< PyNN experiment duration in ms
 			Args&& ... args) :
 		ParameterTransformation(std::forward<Args>(args)...),
-		mCurrentSourceMap(csm),
 		mPyMarocco(pym),
 		mDuration(duration)
 	{}
@@ -45,7 +39,6 @@ public:
 		result_type const& routing);
 
 private:
-	CurrentSourceMap const& mCurrentSourceMap;
 	pymarocco::PyMarocco& mPyMarocco;
 	double const mDuration; //!< PyNN experiment duration in ms
 };
@@ -62,16 +55,12 @@ public:
 	typedef HMF::SynapseRowCollection  synapse_row_calib_t;
 	typedef HMF::Coordinate::GbitLinkOnHICANN dnc_merger_coord;
 
-	typedef std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
-		boost::shared_ptr<StepCurrentSource const>> CurrentSources;
-
 	HICANNTransformator(graph_t const& graph, chip_type& chip, pymarocco::PyMarocco& pym,
 			double duration //!< PyNN experiment duration in ms
 			);
 	~HICANNTransformator();
 
 	virtual std::unique_ptr<result_type> run(
-		CurrentSources const& cs,
 		placement::Result const& placement,
 		routing::Result const& routing);
 
@@ -99,8 +88,6 @@ private:
 
 	void spike_input(
 		placement::results::Placement const& neuron_placement);
-
-	void current_input(neuron_calib_t const& calib, CurrentSources const& cs);
 
 	void background_generators(uint32_t isi=500);
 
