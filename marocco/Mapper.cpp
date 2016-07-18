@@ -7,7 +7,7 @@
 #include "marocco/Mapper.h"
 #include "marocco/Result.h"
 #include "marocco/parameter/CurrentSources.h"
-#include "marocco/parameter/HICANNParameter.h"
+#include "marocco/parameter/HICANNParameters.h"
 #include "marocco/placement/Placement.h"
 #include "marocco/routing/Routing.h"
 #include "marocco/routing/SynapseLoss.h"
@@ -88,9 +88,13 @@ void Mapper::run(ObjectStore const& pynn)
 
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
 
-	std::unique_ptr<parameter::HICANNParameter> transformator(
-		new parameter::HICANNParameter(*mPyMarocco, pynn.getDuration(), graph, mHW, mMgr));
-	auto parameter = transformator->run(*placement, *routing);
+	for (auto const& hicann : mMgr.allocated()) {
+		auto& chip = mHW[hicann];
+		parameter::HICANNParameters hicann_parameters(
+			mBioGraph, chip, *mPyMarocco, result_cast<placement::Result>(*placement),
+			result_cast<routing::Result>(*routing), pynn.getDuration());
+		hicann_parameters.run();
+	}
 
 	// collect current sources
 	parameter::CurrentSources::current_sources_type bio_current_sources;

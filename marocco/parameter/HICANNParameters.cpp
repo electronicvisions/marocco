@@ -1,117 +1,68 @@
-#include "marocco/parameter/HICANNParameter.h"
+#include "marocco/parameter/HICANNParameters.h"
 
-#include <tbb/parallel_for_each.h>
-#include <algorithm>
-#include <memory>
-#include <chrono>
-#include <string>
-#include <sstream>
-#include <cstdlib>
-
-#include "calibtic/backend/Library.h"
 #include "HMF/NeuronCalibration.h"
 #include "HMF/SynapseRowCalibration.h"
-
-#include "sthal/FGStimulus.h"
+#include "calibtic/backend/Backend.h"
+#include "calibtic/backend/Library.h"
 #include "hal/Coordinate/iter_all.h"
 
 #include "marocco/Logger.h"
-#include "marocco/config.h"
 #include "marocco/parameter/AnalogVisitor.h"
-#include "marocco/parameter/NeuronVisitor.h"
-#include "marocco/parameter/Result.h"
-#include "marocco/parameter/SpikeInputVisitor.h"
 #include "marocco/parameter/CMVisitor.h"
-#include "marocco/util.h"
-#include "marocco/util/chunked.h"
-
-#include "marocco/routing/util.h"
-
+#include "marocco/parameter/NeuronVisitor.h"
+#include "marocco/parameter/SpikeInputVisitor.h"
 
 using namespace HMF::Coordinate;
-using namespace HMF;
 
 namespace marocco {
 namespace parameter {
 
-std::unique_ptr<HICANNParameter::result_type>
-HICANNParameter::run(
-	result_type const& _placement,
-	result_type const& _routing)
+HICANNParameters::HICANNParameters(
+    BioGraph const& bio_graph,
+    chip_type& chip,
+    pymarocco::PyMarocco const& pymarocco,
+    placement::Result const& placement,
+    routing::Result const& routing,
+    double duration)
+    : m_bio_graph(bio_graph),
+      m_chip(chip),
+      m_pymarocco(pymarocco),
+      m_placement(placement),
+      m_routing(routing),
+      m_duration(duration)
 {
-	auto const& placement = result_cast<placement::Result>(_placement);
-	auto const& routing   = result_cast<routing::Result>(_routing);
+}
 
-	auto first = getManager().begin_allocated();
-	auto last  = getManager().end_allocated();
-
-	// Note, this works only if ALL threads use the same global population map
-	// instance.
-	auto start = std::chrono::system_clock::now();
-	//tbb::parallel_for_each(first, last,
-	std::for_each(first, last,
-		[&](HICANNGlobal const& hicann) {
-			chip_type& chip = getHardware()[hicann];
-			HICANNTransformator trafo(getGraph(), chip, mPyMarocco, mDuration);
-			trafo.run(placement, routing);
-		});
-	auto end = std::chrono::system_clock::now();
-	mPyMarocco.stats.timeSpentInParallelRegion +=
-		std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
-
-
-	// FIXME: return default result
-	std::unique_ptr<result_type> result(new Result);
-	return result;
-} // run()
-
-
-
-HICANNTransformator::HICANNTransformator(
-		graph_t const& graph,
-		chip_type& chip,
-		pymarocco::PyMarocco& pym,
-		double duration
-		) :
-	mChip(chip),
-	mGraph(graph),
-	mPyMarocco(pym),
-	mDuration(duration)
-{}
-
-HICANNTransformator::~HICANNTransformator()
+HICANNParameters::~HICANNParameters()
 {
 	// finally, we need to give sthal the spikes. Note, that we don't have to
 	// sort them before hand, because they have to be reordered at the sthal
 	// level anyway. This is also why it makes no sense to move (by-rvalue) the
 	// spikes to sthal.
-	for (auto const& merger : iter_all<dnc_merger_coord>())
+	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
 	{
-		auto const& spikes = mSpikes[merger];
+		auto const& spikes = m_spikes[merger];
 		if (!spikes.empty()) {
-			chip().sendSpikes(merger, spikes);
+			m_chip.sendSpikes(GbitLinkOnHICANN(merger), spikes);
 		}
 	}
 }
 
-std::unique_ptr<HICANNTransformator::result_type>
-HICANNTransformator::run(
-	placement::Result const& placement,
-	routing::Result const& routing)
+void HICANNParameters::run()
 {
-	auto const& neuron_placement = placement.neuron_placement;
+	auto const& neuron_placement = m_placement.neuron_placement;
 
 	// assuming that neurons are always read out
 	bool const local_neurons =
-		placement.internal.address_assignment.at(chip().index()).has_output();
+		m_placement.internal.address_assignment.at(m_chip.index()).has_output();
 
-	bool const local_routes  = routing.crossbar_routing.exists(chip().index());
+	bool const local_routes = m_routing.crossbar_routing.exists(m_chip.index());
 
 	// spike input sources
 	spike_input(neuron_placement);
 
 	// switch on BackgroundGenerators for locking
-	background_generators(mPyMarocco.bkg_gen_isi);
+	background_generators(m_pymarocco.bkg_gen_isi);
 
 	// load calibration data from DB
 	// const auto calib = getCalibrationData();
@@ -126,8 +77,8 @@ HICANNTransformator::run(
 		//const auto& neuron_calib = calib->atNeuronCollection();
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1543
 		auto neuron_calib = calib->atNeuronCollection();
-		neuron_calib->setSpeedup(mPyMarocco.speedup);
-		auto const& synapse_routing = routing.synapse_routing.at(chip().index());
+		neuron_calib->setSpeedup(m_pymarocco.speedup);
+		auto const& synapse_routing = m_routing.synapse_routing.at(m_chip.index());
 
 		// Analog output: set correct values for output buffer
 		// FIXME: in principle this has nothing to with whether or not there are
@@ -145,7 +96,7 @@ HICANNTransformator::run(
 				auto synapse_row_calib = calib->atSynapseRowCollection();
 
 				// FIXME: remove next lines when synapse calibration exists for real hardware (#1584)
-				if ( mPyMarocco.param_trafo.use_ess_synapse_trafo )
+				if ( m_pymarocco.param_trafo.use_ess_synapse_trafo )
 					synapse_row_calib->setEssDefaults();
 				else
 					synapse_row_calib->setDefaults();
@@ -168,21 +119,19 @@ HICANNTransformator::run(
 
 		double const mV_to_V = 1/1000.;
 
-		shared_parameters(getGraph(), *shared_calib,
-		                  v_reset * mPyMarocco.param_trafo.alpha_v * mV_to_V +
-						  mPyMarocco.param_trafo.shift_v);
+		shared_parameters(*shared_calib,
+		                  v_reset * m_pymarocco.param_trafo.alpha_v * mV_to_V +
+						  m_pymarocco.param_trafo.shift_v);
 	}
+}
 
-	return std::unique_ptr<result_type>(new Result);
-} // run()
-
-void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
+void HICANNParameters::neuron_config(neuron_calib_type const& /*unused*/)
 {
 
-	chip().use_big_capacitors(mPyMarocco.param_trafo.use_big_capacitors);
+	m_chip.use_big_capacitors(m_pymarocco.param_trafo.use_big_capacitors);
 
 	// use defaults so far
-	//auto& config = chip().neurons.config;
+	//auto& config = m_chip.neurons.config;
 	//config.bigcap         = 0x0;
 	//config.slow_I_radapt  = 0x0;
 	//config.fast_I_radapt  = 0x0;
@@ -192,15 +141,16 @@ void HICANNTransformator::neuron_config(neuron_calib_t const& /*unused*/)
 	//config.fast_I_gl      = 0x0;
 }
 
-double HICANNTransformator::neurons(
-	neuron_calib_t const& calib,
+double HICANNParameters::neurons(
+	neuron_calib_type const& calib,
 	placement::results::Placement const& neuron_placement,
 	routing::SynapseTargetMapping const& synapse_target_mapping)
 {
 	// GLOBAL DIGITAL Neuron Paramets
 	neuron_config(calib);
 
-	auto const hicann = chip().index();
+	auto const hicann = m_chip.index();
+	auto const& graph = m_bio_graph.graph();
 
 	/* SHARED Analog Neuron Parameteres
 	 * For each group of neurons that share analog values we have to agree
@@ -210,7 +160,7 @@ double HICANNTransformator::neurons(
 	 */
 	NeuronSharedParameterRequirements shared_parameter_visitor;
 	for (auto const& item : neuron_placement.find(hicann)) {
-		auto const& params = getGraph()[item.population()]->parameters();
+		auto const& params = graph[item.population()]->parameters();
 		for (NeuronOnHICANN nrn : item.logical_neuron()) {
 			visitCellParameterVector(
 				params, shared_parameter_visitor, item.neuron_index(), nrn);
@@ -218,11 +168,11 @@ double HICANNTransformator::neurons(
 	}
 
 	// INDIVIDUAL Neuron Parameters
-	TransformNeurons visitor{mPyMarocco.param_trafo.alpha_v, mPyMarocco.param_trafo.shift_v};
+	TransformNeurons visitor{m_pymarocco.param_trafo.alpha_v, m_pymarocco.param_trafo.shift_v};
 
 	MAROCCO_INFO("Configuring neuron parameters");
 	for (auto const& item : neuron_placement.find(hicann)) {
-		auto const& pop = *(getGraph()[item.population()]);
+		auto const& pop = *(graph[item.population()]);
 		auto const& logical_neuron = item.logical_neuron();
 
 		// Configure ANALOG neuron parameters.
@@ -231,14 +181,14 @@ double HICANNTransformator::neurons(
 
 			transform_analog_neuron(
 				calib, pop, item.neuron_index(), nrn, synapse_target_mapping,
-				visitor, chip());
+				visitor, m_chip);
 		}
 
 		// As all denmems of a logical neuron will be connected,
 		// DIGITAL neuron parameters are only configured for the first denmem.
 
 		NeuronOnHICANN const nrn = logical_neuron.front();
-		HMF::HICANN::Neuron& neuron = chip().neurons[nrn];
+		HMF::HICANN::Neuron& neuron = m_chip.neurons[nrn];
 
 		// Set L1 address
 		auto const& address = item.address();
@@ -257,7 +207,7 @@ double HICANNTransformator::neurons(
 	auto const mean_v_reset = shared_parameter_visitor.get_mean_v_reset();
 
 	if(v_resets.size() != 1) {
-		MAROCCO_WARN("more than one value for V_reset requested on " << chip());
+		MAROCCO_WARN("more than one value for V_reset requested on " << m_chip);
 		MAROCCO_WARN("only the mean v_reset will be used: " << mean_v_reset << " mV");
 		for(auto v_reset : v_resets) {
 			MAROCCO_DEBUG("individual v_reset values: " << v_reset << " mV");
@@ -266,33 +216,33 @@ double HICANNTransformator::neurons(
 	}
 
 	return mean_v_reset;
-
 }
 
-void HICANNTransformator::connect_denmems(
+void HICANNParameters::connect_denmems(
 	NeuronOnHICANN const& topleft_neuron,
 	size_t hw_neurons_size)
 {
 	size_t const xwidth = hw_neurons_size/2;
 	size_t const xmin   = topleft_neuron.x();
-	chip().connect_denmems(X(xmin), X(xmin+xwidth-1));
+	m_chip.connect_denmems(X(xmin), X(xmin+xwidth-1));
 }
 
 
-void HICANNTransformator::analog_output(
-	neuron_calib_t const& calib, placement::results::Placement const& neuron_placement)
+void HICANNParameters::analog_output(
+	neuron_calib_type const& calib, placement::results::Placement const& neuron_placement)
 {
 	AnalogVisitor visitor;
 
-	for (auto const& item : neuron_placement.find(chip().index())) {
-		auto const& pop = *(getGraph()[item.population()]);
+	auto const& graph = m_bio_graph.graph();
+	for (auto const& item : neuron_placement.find(m_chip.index())) {
+		auto const& pop = *(graph[item.population()]);
 		NeuronOnHICANN const nrn = *(item.logical_neuron().begin());
 		transform_analog_outputs(
-			calib, pop, item.neuron_index(), nrn, visitor, chip());
+			calib, pop, item.neuron_index(), nrn, visitor, m_chip);
 	}
 }
 
-void HICANNTransformator::background_generators(uint32_t isi)
+void HICANNParameters::background_generators(uint32_t isi)
 {
 	// configure ALL BackgroundGenerators for Repeater & SynapseDriver locking.
 	// They are NOT use for production neuron stimulation.
@@ -303,37 +253,37 @@ void HICANNTransformator::background_generators(uint32_t isi)
 		bg.address(HMF::HICANN::L1Address(0));
 		bg.set_mode(false /*random*/, isi /*isi*/);
 
-		chip().layer1[addr] = bg;
+		m_chip.layer1[addr] = bg;
 	}
 }
 
-void HICANNTransformator::spike_input(
+void HICANNParameters::spike_input(
 	placement::results::Placement const& neuron_placement)
 {
-	HICANNOnWafer const hicann = chip().index();
+	HICANNOnWafer const hicann = m_chip.index();
+	auto const& graph = m_bio_graph.graph();
 	for (auto const dnc_merger : iter_all<DNCMergerOnHICANN>()) {
 		for (auto const& item : neuron_placement.find(DNCMergerOnWafer(dnc_merger, hicann))) {
-			if (!is_source(item.population(), getGraph())) {
+			if (!is_source(item.population(), graph)) {
 				continue;
 			}
 			auto const& address = item.address();
 			assert(address != boost::none);
 
 			SpikeInputVisitor visitor(
-			    mPyMarocco, mSpikes[dnc_merger], int(dnc_merger) * 209823 /*seed*/, mDuration);
+			    m_pymarocco, m_spikes[dnc_merger], int(dnc_merger) * 209823 /*seed*/, m_duration);
 
-			Population const& pop = *(getGraph()[item.population()]);
+			Population const& pop = *(graph[item.population()]);
 
 			// configure input spike parameters
 			transform_input_spikes(
-			    pop, address->toL1Address(), item.neuron_index(), chip(), visitor);
+			    pop, address->toL1Address(), item.neuron_index(), m_chip, visitor);
 		}
 	}
 }
 
-void HICANNTransformator::shared_parameters(
-	graph_t const& /*graph*/,
-	shared_calib_t const& calib,
+void HICANNParameters::shared_parameters(
+	shared_calib_type const& calib,
 	double v_reset)
 {
 	using namespace HMF;
@@ -343,25 +293,26 @@ void HICANNTransformator::shared_parameters(
 		// default values for other parameters are also retrieved
 		auto hwparams = calib.applySharedCalibration(v_reset, ii);
 		FGBlockOnHICANN fgb{Enum{ii}};
-		auto& fg = chip().floating_gates;
+		auto& fg = m_chip.floating_gates;
 		hwparams.toHW(fgb, fg);
 	}
 }
 
-void HICANNTransformator::synapses(
-	synapse_row_calib_t const& calib,
+void HICANNParameters::synapses(
+	synapse_row_calib_type const& calib,
 	routing::synapse_driver_mapping_t::result_type const&
 		synapse_routing, // TODO change this to pass std::vector<DriverResult>
 	placement::results::Placement const& neuron_placement)
 {
-	NeuronOnHICANNPropertyArray<double> const weight_scale = weight_scale_array( neuron_placement );
+	HMF::Coordinate::typed_array<double, NeuronOnHICANN> const weight_scale =
+		weight_scale_array(neuron_placement);
 
 	for (routing::DriverResult const& driver_res : synapse_routing.driver_result) {
 		for (auto synrow : driver_res.rows() ) {
 			auto const & synrow_addr = synrow.first;
 			auto const & synrow_source = synrow.second;
 			auto const & synapse_mapping = synrow_source.synapses();  // array of synapse mapping (1 row)
-			auto synrow_proxy = chip().synapses[synrow_addr];
+			auto synrow_proxy = m_chip.synapses[synrow_addr];
 
 			std::array<double , NeuronOnHICANN::x_type::size> scaled_weights{{}}; // array storing scaled weights in nanoSiemens, 0. if not used
 #ifndef MAROCCO_NDEBUG
@@ -403,7 +354,7 @@ void HICANNTransformator::synapses(
 			for (size_t col = 0; col < scaled_weights.size(); ++col) {
 				if (scaled_weights[col] > 0.) {
 					const double scaled_weight = scaled_weights[col];
-					const HICANN::SynapseWeight hwweight = synapse_trafo->getDigitalWeight(scaled_weight);
+					const HMF::HICANN::SynapseWeight hwweight = synapse_trafo->getDigitalWeight(scaled_weight);
 					// store weight
 					synrow_proxy.weights [col] = hwweight;
 
@@ -418,8 +369,8 @@ void HICANNTransformator::synapses(
 			}
 
 			// store gmax config
-			auto& driver = chip().synapses[synrow_addr.toSynapseDriverOnHICANN()];
-			HICANN::RowConfig& config = driver[synrow_addr.toRowOnSynapseDriver()];
+			auto& driver = m_chip.synapses[synrow_addr.toSynapseDriverOnHICANN()];
+			HMF::HICANN::RowConfig& config = driver[synrow_addr.toRowOnSynapseDriver()];
 
 			// selects 1 of 4 V_max values from global FGs
 			config.set_gmax(gc.get_sel_Vgmax());
@@ -433,22 +384,23 @@ void HICANNTransformator::synapses(
 	// TODO: store V_gmax, depending on ESS or not ESS
 }
 
-NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
+HMF::Coordinate::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_scale_array(
 	placement::results::Placement const& neuron_placement) const
 {
 	CMVisitor const cm_visitor{};
-	NeuronOnHICANNPropertyArray<double> rv;
+	HMF::Coordinate::typed_array<double, NeuronOnHICANN> rv;
 
 	//initialize all values to 0.
 	for (auto const& noh : iter_all<NeuronOnHICANN>())
 		rv[noh] = 0.;
 
-	auto const& use_bigcap = chip().neurons.config.bigcap;
+	auto const& use_bigcap = m_chip.neurons.config.bigcap;
 
+	auto const& graph = m_bio_graph.graph();
 
 	// We need to calculate the scaling factor for each logical neuron.
-	for (auto const& item : neuron_placement.find(chip().index())) {
-		auto const& params = getGraph()[item.population()]->parameters();
+	for (auto const& item : neuron_placement.find(m_chip.index())) {
+		auto const& params = graph[item.population()]->parameters();
 		auto const& logical_neuron = item.logical_neuron();
 
 		// Sum up the capacity of the connected denmems on the hardware.
@@ -457,13 +409,13 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 		connected_neurons.reserve(logical_neuron.size());
 		for (NeuronOnHICANN nrn : item.logical_neuron()) {
 			// We have to consider different capacitor choices on top / bottom neuron blocks.
-			cm_hw +=
-				use_bigcap[nrn.y()] ? NeuronCalibration::big_cap : NeuronCalibration::small_cap;
+			cm_hw += use_bigcap[nrn.y()] ? HMF::NeuronCalibration::big_cap
+			                             : HMF::NeuronCalibration::small_cap;
 			connected_neurons.push_back(nrn);
 		}
 
 		double const cm_bio = visitCellParameterVector(params, cm_visitor, item.neuron_index());
-		double const scale = mPyMarocco.speedup * cm_hw / cm_bio;
+		double const scale = m_pymarocco.speedup * cm_hw / cm_bio;
 
 		for (auto cnrn : connected_neurons) {
 			rv[cnrn] = scale;
@@ -472,34 +424,34 @@ NeuronOnHICANNPropertyArray<double> HICANNTransformator::weight_scale_array(
 	return rv;
 }
 
-boost::shared_ptr<HICANNTransformator::calib_t>
-HICANNTransformator::getCalibrationData()
+boost::shared_ptr<HICANNParameters::calib_type>
+HICANNParameters::getCalibrationData()
 {
 	using pymarocco::PyMarocco;
 
-	MAROCCO_DEBUG("Hardware backend: " << int(mPyMarocco.backend));
-	MAROCCO_DEBUG("Calibration backend: " << int(mPyMarocco.calib_backend));
+	MAROCCO_DEBUG("Hardware backend: " << int(m_pymarocco.backend));
+	MAROCCO_DEBUG("Calibration backend: " << int(m_pymarocco.calib_backend));
 
-	boost::shared_ptr<calib_t> calib(new calib_t);
+	boost::shared_ptr<calib_type> calib(new calib_type);
 
-	if (mPyMarocco.backend == PyMarocco::Backend::ESS &&
-	    mPyMarocco.calib_backend != PyMarocco::CalibBackend::Default)
+	if (m_pymarocco.backend == PyMarocco::Backend::ESS &&
+	    m_pymarocco.calib_backend != PyMarocco::CalibBackend::Default)
 		throw std::runtime_error(
 		    "Using the ESS with calib_backend != CalibBackend::Default is currently not supported");
 
-	switch(mPyMarocco.calib_backend) {
+	switch(m_pymarocco.calib_backend) {
 
 		case PyMarocco::CalibBackend::XML: {
 			calibtic::MetaData md;
 			auto backend = getCalibticBackend();
 
-			const int hicann_id = chip().index().toHICANNOnWafer().id().value();
+			const int hicann_id = m_chip.index().toHICANNOnWafer().id().value();
 			std::stringstream calib_file;
-			calib_file << "w" << int(chip().index().toWafer()) << "-h";
+			calib_file << "w" << int(m_chip.index().toWafer()) << "-h";
 			calib_file << hicann_id;
 			const std::string calib_file_string = calib_file.str();
 
-			MAROCCO_INFO("loading calibration file: " << mPyMarocco.calib_path+"/"+calib_file_string << ".xml");
+			MAROCCO_INFO("loading calibration file: " << m_pymarocco.calib_path+"/"+calib_file_string << ".xml");
 			backend->load(calib_file_string, md, *calib);
 
 			break;
@@ -516,22 +468,22 @@ HICANNTransformator::getCalibrationData()
 	} // switch calib backend
 
 
-	if(calib->getPLLFrequency() != mPyMarocco.pll_freq) {
+	if(calib->getPLLFrequency() != m_pymarocco.pll_freq) {
 		MAROCCO_WARN("PLL stored in HICANNCollection "
 		             << int(calib->getPLLFrequency()/1e6) << " MHz != "
-		             << int(mPyMarocco.pll_freq/1e6) << " MHz set here.");
+		             << int(m_pymarocco.pll_freq/1e6) << " MHz set here.");
 	}
 
 	return calib;
 }
 
 boost::shared_ptr<calibtic::backend::Backend>
-HICANNTransformator::getCalibticBackend()
+HICANNParameters::getCalibticBackend()
 {
 	using namespace calibtic;
 	using namespace calibtic::backend;
 
-	switch(mPyMarocco.calib_backend) {
+	switch(m_pymarocco.calib_backend) {
 
 	case pymarocco::PyMarocco::CalibBackend::XML: {
 		auto lib = loadLibrary("libcalibtic_xml.so");
@@ -541,7 +493,7 @@ HICANNTransformator::getCalibticBackend()
 			throw std::runtime_error("unable to load xml backend");
 		}
 
-		std::string calib_path = mPyMarocco.calib_path;
+		std::string calib_path = m_pymarocco.calib_path;
 		if (std::getenv("MAROCCO_CALIB_PATH") != nullptr) {
 			if (!calib_path.empty())
 				// we break hard, if the user specified via both ways...
@@ -561,23 +513,6 @@ HICANNTransformator::getCalibticBackend()
 
 	}
 
-}
-
-graph_t const& HICANNTransformator::getGraph() const
-{
-	return mGraph;
-}
-
-HICANNTransformator::chip_type&
-HICANNTransformator::chip()
-{
-	return mChip;
-}
-
-HICANNTransformator::chip_type const&
-HICANNTransformator::chip() const
-{
-	return mChip;
 }
 
 } // namespace parameter
