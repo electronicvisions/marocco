@@ -6,6 +6,7 @@
 #include "marocco/parameter/results/SpikeTimes.h"
 #include "marocco/placement/results/Placement.h"
 #include "marocco/routing/results/L1Routing.h"
+#include "marocco/routing/results/SynapseRouting.h"
 
 namespace boost {
 namespace serialization {
@@ -48,6 +49,7 @@ public:
 	parameter::results::SpikeTimes spike_times;
 	placement::results::Placement placement;
 	routing::results::L1Routing l1_routing;
+	routing::results::SynapseRouting synapse_routing;
 
 private:
 	friend class boost::serialization::access;
