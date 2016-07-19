@@ -50,7 +50,7 @@ class IF_multicond_exp(unittest.TestCase):
         p1 = pynn.Population(1, pynn.IF_multicond_exp)
         # we use 4 different time constants and reversal potentials
         p1.set('e_rev', [0.,-10,-80,-100])
-        p1.set('tau_syn', [5,10,15,20])
+        p1.set('tau_syn', [17,18,19,20])
 
         # place to a certain HICANN to be able to extract config data afterwards
         marocco.manual_placement.on_hicann(p1, used_hicann)
@@ -130,8 +130,9 @@ class IF_multicond_exp(unittest.TestCase):
         T3 = fgs.getNeuron(nrn_right,nrn_param.V_syntcx)
         T4 = fgs.getNeuron(nrn_right,nrn_param.V_syntci)
         T = [T1,T2,T3,T4]
+        # HICANN V4: The lower the DAC-Value, the higher the time constant
         for k,l in zip(T,T[1:]):
-            self.assertLess(k, l)
+            self.assertGreater(k, l)
 
 if __name__ == '__main__':
     unittest.main()
