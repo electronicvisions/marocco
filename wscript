@@ -43,18 +43,6 @@ def configure(cfg):
     cfg.load('boost')
     cfg.load('post_task')
 
-    compiler_version_error = "g++-4.7, clang-3.1 or newer required"
-    cfg.check_cxx(
-        msg      = "Checking compiler version",
-        errmsg   = compiler_version_error,
-        type     = "cxx",
-        execute  = False,
-        fragment = """#if __cplusplus != 201103L
-                          #error %(MSG)s
-                      #endif
-                   """ % { "MSG" : compiler_version_error })
-
-
     cfg.check_boost(lib='serialization filesystem system '
             'thread program_options mpi graph regex',
             uselib_store='BOOST4MAROCCO')
