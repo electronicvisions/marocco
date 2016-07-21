@@ -140,22 +140,6 @@ public:
 	 */
 	std::string persist;
 
-	/// path to file to which recorded membrane potential is written. No output if unset
-	/// only one neuron can be recorded at a time, calling record_v()
-	/// also the hicann enum and analog recorder enum have to be adjusted manually
-	std::string membrane;
-
-	/// true: translate the recorded membrane to biological domain (mV, ms)
-	/// false: keep the data as returned from the ADC (V, s)
-	/// default: true
-	bool membrane_translate_to_bio;
-
-	/// global enum id of hicann on which membrane is recorded
-	size_t hicann_enum;
-
-	/// enum id of analog output channel for membrane recording
-	size_t analog_enum;
-
 	/// inter spike interval (isi) of background generators used for locking in HICANN clk cycles
 	/// hence the frequency of the background generators is given by: pll_freq/bkg_gen_isi
 	/// default: 500

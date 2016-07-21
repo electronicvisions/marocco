@@ -1,18 +1,27 @@
 #include "marocco/mapping.h"
-#include "marocco/Logger.h"
 
 #include <cstdlib>
+#include <memory>
 #include <stdexcept>
+#include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 
 #include "redman/backend/Backend.h"
 #include "redman/backend/Library.h"
 #include "redman/backend/MockBackend.h"
 #include "redman/resources/Wafer.h"
+#include "sthal/DontProgramFloatingGatesHICANNConfigurator.h"
+#include "sthal/ESSHardwareDatabase.h"
+#include "sthal/ESSRunner.h"
+#include "sthal/ExperimentRunner.h"
+#include "sthal/HICANNConfigurator.h"
+#include "sthal/HICANNv4Configurator.h"
+#include "sthal/MagicHardwareDatabase.h"
 
-#include "control/Control.h"
+#include "marocco/Logger.h"
+#include "marocco/Mapper.h"
 #include "marocco/experiment/AnalogOutputsConfigurator.h"
-#include "marocco/experiment/ReadResults.h"
+#include "marocco/experiment/Experiment.h"
 
 using namespace HMF::Coordinate;
 
@@ -47,6 +56,29 @@ boost::shared_ptr<redman::backend::Backend> load_redman_backend(pymarocco::Defec
 	throw std::runtime_error("defects backend not implemented");
 }
 
+std::string create_temporary_directory(char const* tpl) {
+	using namespace boost::filesystem;
+	path tmp_dir;
+	bool success = false;
+	do {
+		tmp_dir = temp_directory_path() / unique_path(tpl);
+		success = create_directory(tmp_dir);
+	} while (!success);
+	return tmp_dir.native();
+}
+
+struct DeleteRecursivelyOnScopeExit {
+	std::string path;
+
+	~DeleteRecursivelyOnScopeExit()
+	{
+		namespace bfs = boost::filesystem;
+		if (!path.empty()) {
+			// Delete recursively if path exists.
+			bfs::remove_all(bfs::path(path));
+		}
+	}
+};
 
 } // namespace
 
@@ -83,6 +115,8 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	auto const wafer = *wafers.begin();
 
+	//  ——— LOAD DEFECT DATA ———————————————————————————————————————————————————
+
 	resource_manager_t resources{load_redman_backend(mi->defects)};
 
 	{
@@ -105,6 +139,8 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	hardware_system_t hw{};
 	hw[wafer]; // FIXME: hack to allocate one wafer
 
+	//  ——— RUN MAPPING ————————————————————————————————————————————————————————
+
 	Mapper mapper{hw, resources, mi};
 
 	if (mi->skip_mapping) {
@@ -122,11 +158,16 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	// Even when skip_mapping is true we need to setup the bio graph.
 	// (Alternatively the bio graph could be persisted to the mapping results object, too).
 	mapper.run(*store);
+	mi->setStats(mapper.getStats());
 
-	// pyoneer doesn't work currently
-	// auto pyoneer = objectstore->getMetaData<HMF::PyOneer>("pyoneer");
+	//  ——— CONFIGURE HARDWARE —————————————————————————————————————————————————
 
-	// C O N F I G U R E   H A R D W A R E
+	static const double ms_to_s = 1e-3;
+
+	experiment::parameters::Experiment exp_params;
+	exp_params.speedup(mi->speedup);
+	exp_params.offset_in_s(mi->experiment_time_offset);
+	exp_params.bio_duration_in_s(store->getDuration() * ms_to_s);
 
 	auto const& results = mapper.results();
 
@@ -136,38 +177,78 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		analog_outputs.configure(hw[wafer]);
 	}
 
-	// backend None is handled gracefully within Control
-	control::Control control{hw, resources, *mi};
-
-	// calculate duration of hw experiment
-	const double duration_in_ms = store->getDuration();
-	static const double ms_to_s = 1e-3;
-	const double hw_duration =
-	    duration_in_ms * ms_to_s / mi->speedup + mi->experiment_time_offset;
-	control.run(hw_duration);
-
-	PyMarocco::Backend backend = mi->backend;
-	if (backend != PyMarocco::Backend::None) {
-		// HMF::Handle::get_pyoneer().startESS(1000);
-
-		// R E A D   R E S U L T S   B A C K
-		// TODO: implement runtime data object
-
-		// R E V E R S E   M A P P I N G
-		// TODO: translate hw data back to bio data
-		// TODO: merge results and send it back to user
-
-		experiment::ReadResults reader(
-			*mi, hw, mapper.results().placement, mapper.bio_graph(), wafer);
-		reader.run(*store);
+	// Dump sthal configuration container.
+	if (!mi->wafer_cfg.empty()) {
+		hw[wafer].dump(mi->wafer_cfg.c_str(), /*overwrite=*/true);
 	}
 
-	mi->setStats(mapper.getStats());
-
-	MappingResult result{};
-
+	MappingResult result;
 	result.error = 0;
 	result.store = store;
+
+	//  ——— RUN EXPERIMENT —————————————————————————————————————————————————————
+
+	if (mi->backend == PyMarocco::Backend::None) {
+		return result;
+	}
+
+	DeleteRecursivelyOnScopeExit cleanup;
+	std::unique_ptr<sthal::ExperimentRunner> runner;
+	std::unique_ptr<sthal::HardwareDatabase> hwdb;
+	std::unique_ptr<sthal::HICANNConfigurator> configurator;
+
+	switch (mi->backend) {
+		case PyMarocco::Backend::ESS: {
+#ifdef HAVE_ESS
+			LOG4CXX_INFO(
+				logger, "Backend: ESS " << exp_params.hardware_duration_in_s() << "s");
+			std::string ess_dir = mi->ess_temp_directory;
+			if (ess_dir.empty()) {
+				ess_dir = create_temporary_directory("ess_%%%%-%%%%-%%%%-%%%%");
+				cleanup.path = ess_dir;
+			}
+			hwdb.reset(new sthal::ESSHardwareDatabase(ess_dir));
+			runner.reset(new sthal::ESSRunner(exp_params.hardware_duration_in_s()));
+#else  // HAVE_ESS
+			throw std::runtime_error("ESS not available (compile with ESS)");
+#endif // HAVE_ESS
+			break;
+		}
+		case PyMarocco::Backend::Hardware: {
+			LOG4CXX_INFO(
+				logger, "Backend: Hardware " << exp_params.hardware_duration_in_s() << "s");
+			hwdb.reset(new sthal::MagicHardwareDatabase());
+			runner.reset(new sthal::ExperimentRunner(exp_params.hardware_duration_in_s()));
+			break;
+		}
+		default:
+			throw std::runtime_error("unknown backend");
+	}
+
+	switch(mi->hicann_configurator) {
+		case PyMarocco::HICANNCfg::HICANNConfigurator:
+			configurator.reset(new sthal::HICANNConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::HICANNv4Configurator:
+			configurator.reset(new sthal::HICANNv4Configurator());
+			break;
+		case PyMarocco::HICANNCfg::DontProgramFloatingGatesHICANNConfigurator:
+			configurator.reset(new sthal::DontProgramFloatingGatesHICANNConfigurator());
+			break;
+		default:
+			throw std::runtime_error("unknown configurator");
+	}
+
+	experiment::Experiment experiment(
+		hw[wafer], mapper.results(), mapper.bio_graph(), exp_params, *mi, *runner, *hwdb,
+		*configurator);
+
+	hw[wafer].commonFPGASettings()->setPLL(mi->pll_freq);
+	experiment.run();
+
+	//  ——— EXTRACT RESULTS ————————————————————————————————————————————————————
+
+	experiment.extract_results(*store);
 
 	return result;
 }
