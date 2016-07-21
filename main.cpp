@@ -10,6 +10,9 @@
 #include <memory>
 #include <signal.h>
 
+// ESTER MPI header
+#include "mpi/config.h"
+
 #include "marocco/mapping.h"
 #include "marocco/Logger.h"
 
@@ -165,7 +168,7 @@ int main(int argc, char** argv)
 	//        reference to hardware)
 	//   returns pynn/mapping-graph
 
-	auto result = mapping::run(objectstore, comm);
+	auto result = mapping::run(objectstore);
 
 	// TODO: implement something meaningful
 	// signal ester server results and state

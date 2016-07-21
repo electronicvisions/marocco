@@ -21,15 +21,11 @@ struct HICANNManager;
 }}
 #endif
 
-#include "mpi/config.h"
-
 namespace marocco {
 
 typedef sthal::System hardware_system_t;
 
 typedef marocco::resource::HICANNManager resource_manager_t;
-
-typedef MPI::Intracomm comm_t;
 
 } // marocco
 

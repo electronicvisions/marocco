@@ -5,9 +5,6 @@
 #include <utility>
 #include <memory>
 
-// ESTER MPI header
-#include "mpi/config.h"
-
 #include "marocco/BioGraph.h"
 #include "marocco/config.h"
 #include "marocco/results/Marocco.h"
@@ -21,18 +18,12 @@ public:
 	/// hardware type
 	typedef hardware_system_t             hardware_type;
 
-	typedef MPI::Intracomm                comm_type;
-
 	Mapper(hardware_type& hw,
 		   resource_manager_t& mgr,
-		   comm_type const& /*comm*/,
 		   boost::shared_ptr<pymarocco::PyMarocco> const& p = {});
 	virtual ~Mapper() {}
 
 	void run(ObjectStore const& pynn);
-
-	comm_type&       getComm();
-	comm_type const& getComm() const;
 
 	hardware_type&       getHardware();
 	hardware_type const& getHardware() const;
@@ -53,9 +44,6 @@ private:
 
 	// and a references to the hw
 	hardware_type& mHW;
-
-	// communicator of participating mapping processes
-	comm_type mComm;
 
 	boost::shared_ptr<pymarocco::PyMarocco> mPyMarocco;
 

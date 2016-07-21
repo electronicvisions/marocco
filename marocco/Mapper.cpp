@@ -31,12 +31,10 @@ size_t num_neurons(Graph const& g)
 
 Mapper::Mapper(hardware_type& hw,
 			   resource_manager_t& mgr,
-			   comm_type const& comm,
 			   boost::shared_ptr<PyMarocco> const& pymarocco) :
 	mBioGraph(),
 	mMgr(mgr),
 	mHW(hw),
-	mComm(comm),
 	mPyMarocco(pymarocco),
 	m_results(new results::Marocco())
 {
@@ -47,16 +45,6 @@ Mapper::Mapper(hardware_type& hw,
 
 void Mapper::run(ObjectStore const& pynn)
 {
-	// quit early if this process is in the second communicator
-	if (MPI::COMM_WORLD.Get_rank() != getComm().Get_rank())
-		return;
-
-	// DEBUG output
-	if (getComm().Get_rank() == MASTER_PROCESS)
-	{
-		debug() << pynn;
-	}
-
 	auto start = std::chrono::system_clock::now();
 
 	// B U I L D   G R A P H
@@ -154,17 +142,6 @@ void Mapper::run(ObjectStore const& pynn)
 		MAROCCO_INFO("Saving results to " << mPyMarocco->persist);
 		m_results->save(mPyMarocco->persist.c_str(), true);
 	}
-}
-
-Mapper::comm_type&
-Mapper::getComm()
-{
-	return mComm;
-}
-Mapper::comm_type const&
-Mapper::getComm() const
-{
-	return mComm;
 }
 
 Mapper::hardware_type&

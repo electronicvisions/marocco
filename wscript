@@ -102,7 +102,6 @@ def build(bld):
             'ZTL',
             'rant',
             'euter',
-            'mpiconfig', # adds MPI includes, linkflags, ...
             'halbe',
             'sthal',
             'hmf_calibration',
@@ -168,6 +167,7 @@ def build(bld):
         install_path    = 'bin',
         use             = [
             'marocco',
+            'mpiconfig', # adds MPI includes, linkflags, ...
         ],
         post_task = [
             'ester',

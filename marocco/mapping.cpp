@@ -65,8 +65,7 @@ std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
 	return wafers;
 }
 
-MappingResult run(boost::shared_ptr<ObjectStore> store,
-                  Mapper::comm_type const& comm) {
+MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	using pymarocco::PyMarocco;
 
 	log4cxx::LoggerPtr const logger = log4cxx::Logger::getLogger("marocco");
@@ -105,7 +104,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store,
 	hardware_system_t hw{};
 	hw[wafer]; // FIXME: hack to allocate one wafer
 
-	Mapper mapper{hw, resources, comm, mi};
+	Mapper mapper{hw, resources, mi};
 
 	if (mi->skip_mapping) {
 		if (mi->wafer_cfg.empty() || mi->persist.empty()) {
