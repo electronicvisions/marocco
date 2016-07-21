@@ -97,6 +97,46 @@ bool Experiment::extract_spikes(PopulationPtr population, placement_item_type co
 	return true;
 }
 
+bool Experiment::extract_membrane(PopulationPtr population, placement_item_type const& item) const
+{
+	auto const& logical_neuron = item.logical_neuron();
+	if (logical_neuron.is_external()) {
+		return false;
+	}
+
+	auto it = m_analog_recorders.find(logical_neuron);
+	if (it == m_analog_recorders.end()) {
+		return false;
+	}
+
+	auto const& recorder = it->second;
+	auto const voltages = recorder.trace();
+	auto const times = recorder.getTimestamps();
+
+	auto& trace = population->getMembraneVoltageTrace(item.neuron_index());
+
+	static double const s_to_ms = 1e3;
+	static double const V_to_mV = 1e3;
+	double const shift_v = m_pymarocco.param_trafo.shift_v;
+	double const alpha_v = m_pymarocco.param_trafo.alpha_v;
+	double const offset_in_s = m_parameters.offset_in_s();
+	double const speedup = m_parameters.speedup();
+
+	auto v_it = voltages.begin();
+	auto const v_eit = voltages.end();
+	auto t_it = times.begin();
+	auto const t_eit = voltages.end();
+
+	trace.reserve(times.size());
+	for (; v_it != v_eit && t_it != t_eit; ++v_it, ++t_it) {
+		trace.push_back(
+		    std::make_pair(
+		        (*t_it - offset_in_s) * speedup * s_to_ms, (*v_it - shift_v) * V_to_mV / alpha_v));
+	}
+
+	return true;
+}
+
 void Experiment::extract_results(ObjectStore& objectstore) const
 {
 	// In principle we could just access populations via the bio graph.  But as we store
@@ -105,6 +145,7 @@ void Experiment::extract_results(ObjectStore& objectstore) const
 	for (auto const& population : objectstore.populations()) {
 		for (auto const& item : m_results.placement.find(population->id())) {
 			extract_spikes(population, item);
+			extract_membrane(population, item);
 		}
 	}
 }

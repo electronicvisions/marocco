@@ -42,6 +42,8 @@ public:
 private:
 	bool extract_spikes(PopulationPtr population, placement_item_type const& item) const;
 
+	bool extract_membrane(PopulationPtr population, placement_item_type const& item) const;
+
 	sthal::Wafer& m_hardware;
 	results::Marocco const& m_results;
 	BioGraph const& m_bio_graph;
