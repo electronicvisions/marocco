@@ -20,6 +20,11 @@ size_t synapse_switch_period(VLineOnHICANN const& line)
 namespace marocco {
 namespace routing {
 
+VLineUsage::VLineUsage()
+	: m_usage()
+{
+}
+
 void VLineUsage::increment(
     HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VLineOnHICANN const& vline)
 {

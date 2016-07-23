@@ -22,7 +22,9 @@ class VLineUsage {
 	    array_type;
 
 public:
-	constexpr size_t max() const
+	VLineUsage();
+
+	static constexpr size_t max()
 	{
 		static_assert(
 		    HMF::Coordinate::SynapseSwitchOnHICANN::per_column / 2 == 14,
