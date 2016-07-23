@@ -196,6 +196,36 @@ class TestResults(utils.TestWithResults):
 
         pynn.end()
 
+    def test_synapses(self):
+        pynn.setup(marocco=self.marocco)
+
+        target = pynn.Population(1, pynn.IF_cond_exp, {})
+        source = pynn.Population(
+            2, pynn.SpikeSourceArray, {'spike_times': [1.]})
+
+        proj = pynn.Projection(
+            source, target, pynn.AllToAllConnector(weights=0.004))
+
+        pynn.run(0)
+        pynn.end()
+
+        results = self.load_results()
+
+        synapses = results.synapse_routing.synapses()
+        self.assertEqual(2, synapses.size())
+        self.assertEqual(2, len(list(synapses)))
+
+        target_item, = results.placement.find(target[0])
+
+        for neuron in source:
+            # Return all synapses connecting the specified neurons.
+            items = synapses.find(neuron, target[0])
+            self.assertTrue(isinstance(items, list))
+            self.assertEqual(1, len(items))
+            self.assertIn(
+                items[0].hardware_synapse().toNeuronOnWafer(),
+                list(target_item.logical_neuron()))
+
 
 if __name__ == '__main__':
     unittest.main()

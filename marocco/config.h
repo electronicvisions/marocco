@@ -4,7 +4,7 @@
 #include "hal/Coordinate/geometry.h"
 #include "hal/FPGAContainer.h"
 
-#if !defined(PYPLUSPLUS ) && !defined(PYROQT)
+#ifndef PYPLUSPLUS
 #include "sthal/System.h"
 #else
 namespace sthal {
@@ -13,7 +13,7 @@ struct HICANN;
 }
 #endif
 
-#if !defined(PYPLUSPLUS ) && !defined(PYROQT)
+#ifndef PYPLUSPLUS
 #include "marocco/resource/HICANNManager.h"
 #else
 namespace marocco { namespace resource {

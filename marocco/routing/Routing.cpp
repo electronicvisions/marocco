@@ -8,9 +8,10 @@
 #include "marocco/routing/HandleSynapseLoss.h"
 #include "marocco/routing/L1Routing.h"
 #include "marocco/routing/SynapseLoss.h"
+#include "marocco/routing/SynapseRoutingConfigurator.h"
 #include "marocco/util/guess_wafer.h"
 
-#include "tools/roqt/bindings/pyroqt.h"
+#include <boost/make_shared.hpp>
 
 namespace marocco {
 namespace routing {
@@ -29,10 +30,8 @@ Routing::Routing(
 {
 }
 
-std::unique_ptr<Result> Routing::run(results::L1Routing& l1_routing_result)
+void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting& synapse_routing_result)
 {
-	std::unique_ptr<Result> result(new Result);
-
 	m_synapse_loss = boost::make_shared<SynapseLoss>(m_graph.graph());
 
 	{
@@ -84,23 +83,29 @@ std::unique_ptr<Result> Routing::run(results::L1Routing& l1_routing_result)
 	}
 
 	MAROCCO_INFO("Configuring L1 routes");
-	auto& wafer = m_hardware[guess_wafer(m_resource_manager)];
+	auto& wafer_config = m_hardware[guess_wafer(m_resource_manager)];
 	for (auto const& item : l1_routing_result) {
-		configure(wafer, item.route());
+		configure(wafer_config, item.route());
 	}
 
 	HICANNRouting local_router(
-		m_graph, m_hardware, m_resource_manager, m_pymarocco, m_neuron_placement,
+		m_graph, wafer_config, m_resource_manager, m_pymarocco, m_neuron_placement,
 		l1_routing_result, m_synapse_loss);
-	result->synapse_routing = local_router.run();
+	local_router.run(synapse_routing_result);
 
-	// Remove PyRoQt as soon as all results are integrated into marocco_results.
-	if (!m_pymarocco.roqt.empty()) {
-		PyRoQt pyroqt(l1_routing_result, result->synapse_routing);
-		pyroqt.store(m_pymarocco.roqt);
+	SynapseRoutingConfigurator configurator(wafer_config);
+
+	for (auto const& hicann : m_resource_manager.allocated()) {
+		if (!synapse_routing_result.has(hicann)) {
+			MAROCCO_DEBUG(
+			    "no synapse routing result for " << hicann
+			    << "\nThis is ok, if there are no neurons placed on this HICANN or no routes "
+			    "could be realized to connect to neurons on this chip");
+			continue;
+		}
+
+		configurator.run(hicann, synapse_routing_result[hicann]);
 	}
-
-	return result;
 }
 
 boost::shared_ptr<SynapseLoss> Routing::getSynapseLoss() const

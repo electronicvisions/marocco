@@ -33,7 +33,7 @@ module load mongo
 module load yaml-cpp/0.5.3
 
 ./waf configure --no-ester
-./waf install --test-execnone --target=pyhmf,pyroqt,test-marocco,pymarocco
+./waf install --test-execnone --target=pyhmf,test-marocco,pymarocco
 
 # broken mpi lib
 export LD_PRELOAD=/usr/lib/openmpi/lib/libmpi.so

@@ -1,7 +1,8 @@
-#include "marocco/routing/SynapseTargetVisitor.h"
+#include "marocco/routing/internal/SynapseTargetVisitor.h"
 
 namespace marocco {
 namespace routing {
+namespace internal {
 
 SynapseTargetVisitor::return_type SynapseTargetVisitor::generate_n_targets(size_t n)
 {
@@ -44,5 +45,6 @@ operator()(cell_t<CellType::IF_multicond_exp> const& v, size_t nrn) const
 	return generate_n_targets(num_tau_syn);
 }
 
+} // namespace internal
 } // namespace routing
 } // namespace marocco

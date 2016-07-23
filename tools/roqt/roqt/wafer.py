@@ -48,9 +48,8 @@ class Wafer(object):
                 self.draw_switches, coord)
         return self._hicanns[coord]
 
-    def draw_from_pyroqt(self, results):
+    def draw(self, results):
         from pymarocco.coordinates import L1Route
-        import pymarocco.results
 
         def tail_with_drivers(base, hicann, drivers):
             route = L1Route()
@@ -63,32 +62,28 @@ class Wafer(object):
             route = route_item.route()
             brush = self.draw_route(route)
 
-            is_adjacent = route.target_hicann() != route_item.target()
             vline = route.back()
-            for dr in results.synapse_routing.at(
-                    route_item.target()).driver_result:
-                if dr.line() != vline or dr.from_adjacent() != is_adjacent:
-                    continue
+            synapse_switches = results.synapse_routing[
+                route_item.target()][vline]
+            for item in synapse_switches:
+                connected_drivers = item.connected_drivers()
+                primary = connected_drivers.primary_driver()
+                drivers = list(connected_drivers.drivers())
 
-                for primary in dr.drivers().keys():
-                    drivers = list(dr.drivers()[primary])
-                    if not drivers:
-                        continue
+                before = []
+                while drivers[0] != primary:
+                    before.insert(0, drivers.pop(0))
+                before.insert(0, primary)
+                after = drivers
 
-                    before = []
-                    while drivers[0] != primary:
-                        before.insert(0, drivers.pop(0))
-                    before.insert(0, primary)
-                    after = drivers
-
-                    self.draw_route(
-                        tail_with_drivers(
-                            route, route_item.target(), before),
-                        brush)
-                    self.draw_route(
-                        tail_with_drivers(
-                            route, route_item.target(), after),
-                        brush)
+                self.draw_route(
+                    tail_with_drivers(
+                        route, route_item.target(), before),
+                    brush)
+                self.draw_route(
+                    tail_with_drivers(
+                        route, route_item.target(), after),
+                    brush)
 
         self.draw_connections_between_hicanns()
 

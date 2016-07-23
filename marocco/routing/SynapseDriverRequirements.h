@@ -9,11 +9,12 @@
 
 #include "hal/Coordinate/HMFGeometry.h"
 #include "hal/HICANN/L1Address.h"
-#include "marocco/routing/SynapseTargetMapping.h"
+#include "marocco/routing/results/SynapticInputs.h"
 #include "marocco/placement/results/Placement.h"
 #include "marocco/routing/STPMode.h"
-#include "marocco/routing/SynapseType.h"
+#include "marocco/coordinates/SynapseType.h"
 #include "marocco/test.h"
+#include "marocco/graph.h"
 
 namespace marocco {
 namespace routing {
@@ -155,7 +156,7 @@ public:
 	SynapseDriverRequirements(
 		HMF::Coordinate::HICANNOnWafer const& hicann,
 		placement::results::Placement const& placement_result,
-		SynapseTargetMapping const& syn_tgt_mapping);
+		results::SynapticInputs const& syn_tgt_mapping);
 
 	/// calculate the number of required synapse drivers for connections from the
 	/// specified sources.
@@ -225,7 +226,7 @@ private:
 	/// synaptic input circuits of the hardware neurons
 	static std::unordered_map<HMF::Coordinate::NeuronOnHICANN, Side_Parity_count_per_synapse_type>
 	calc_target_synapses_per_synaptic_input_granularity(
-		NeuronWidth const& neuron_width, SynapseTargetMapping const& syn_tgt_mapping);
+		NeuronWidth const& neuron_width, results::SynapticInputs const& syn_tgt_mapping);
 
 	/// calculate for all used compound hardware neurons the connected synapse
 	/// columns per synaptic input granularity per biological synapse type.
@@ -239,7 +240,7 @@ private:
 	static std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
 							  std::map<SynapseType, SynapseColumnsMap> >
 	calc_synapse_type_to_synapse_columns_map(
-		NeuronWidth const& neuron_width, SynapseTargetMapping const& syn_tgt_mapping);
+		NeuronWidth const& neuron_width, results::SynapticInputs const& syn_tgt_mapping);
 
 	/// counts for each synaptic input granularity (column parity, input side)
 	/// the number of half synapse rows that are required to realize / the
@@ -481,7 +482,7 @@ private:
 
 	/// mapping of biological synapse types onto the synaptic input circuits of
 	/// the hardware neurons
-	SynapseTargetMapping const& mSynapseTargetMapping;
+	results::SynapticInputs const& mSynapseTargetMapping;
 
 	/// the neuron width for all used compound neurons, each represented by the
 	/// coordinate of the top left neuron.

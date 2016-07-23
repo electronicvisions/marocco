@@ -85,7 +85,7 @@ void Mapper::run(ObjectStore const& pynn)
 	// 2.  R O U T I N G
 	routing::Routing router(
 		mBioGraph, mHW, mMgr, *mPyMarocco, m_results->placement);
-	auto routing = router.run(m_results->l1_routing);
+	router.run(m_results->l1_routing, m_results->synapse_routing);
 	auto synapse_loss = router.getSynapseLoss();
 
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
@@ -93,8 +93,8 @@ void Mapper::run(ObjectStore const& pynn)
 	for (auto const& hicann : mMgr.allocated()) {
 		auto& chip = mHW[hicann];
 		parameter::HICANNParameters hicann_parameters(
-			mBioGraph, chip, *mPyMarocco, result_cast<placement::Result>(*placement),
-			result_cast<routing::Result>(*routing), pynn.getDuration());
+			mBioGraph, chip, *mPyMarocco, m_results->placement, m_results->synapse_routing,
+			pynn.getDuration());
 		hicann_parameters.run();
 	}
 

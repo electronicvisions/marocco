@@ -1,10 +1,11 @@
 #pragma once
 
 #include "euter/typedcellparametervector.h"
-#include "marocco/routing/SynapseType.h"
+#include "marocco/coordinates/SynapseType.h"
 
 namespace marocco {
 namespace routing {
+namespace internal {
 
 /**
  * Extracts the synapse targets (synapse types) of a neuron.
@@ -70,5 +71,6 @@ private:
 	static return_type generate_n_targets(size_t n);
 };
 
+} // namespace internal
 } // namespace routing
 } // namespace marocco

@@ -36,7 +36,7 @@ std::ostream& operator<<(std::ostream& os, TriParity p)
 SynapseDriverRequirements::SynapseDriverRequirements(
 	HMF::Coordinate::HICANNOnWafer const& hicann,
 	placement::results::Placement const& placement_result,
-	SynapseTargetMapping const& syn_tgt_mapping)
+	results::SynapticInputs const& syn_tgt_mapping)
 	: mHICANN(hicann),
 	  mPlacementResult(placement_result),
 	  mSynapseTargetMapping(syn_tgt_mapping),
@@ -364,7 +364,7 @@ SynapseDriverRequirements::NeuronWidth SynapseDriverRequirements::extract_neuron
 std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
 				   SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
 SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
-	NeuronWidth const& neuron_width, SynapseTargetMapping const& syn_tgt_mapping)
+	NeuronWidth const& neuron_width, results::SynapticInputs const& syn_tgt_mapping)
 {
 
 	std::unordered_map<HMF::Coordinate::NeuronOnHICANN, Side_Parity_count_per_synapse_type> rv;
@@ -380,7 +380,7 @@ SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
 			auto const& inputs_on_neuron = syn_tgt_mapping[nrn_addr];
 			for (auto side : iter_all<SideHorizontal>()) {
 				SynapseType syn_type = inputs_on_neuron[side];
-				if (syn_type != SynapseType::None) {
+				if (syn_type != SynapseType::none) {
 					targets_per_input[syn_type][Side_Parity(side, p)]++;
 				}
 			}
@@ -392,7 +392,7 @@ SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
 std::unordered_map<NeuronOnHICANN,
 				   std::map<SynapseType, SynapseDriverRequirements::SynapseColumnsMap> >
 SynapseDriverRequirements::calc_synapse_type_to_synapse_columns_map(
-	NeuronWidth const& neuron_width, SynapseTargetMapping const& syn_tgt_mapping)
+	NeuronWidth const& neuron_width, results::SynapticInputs const& syn_tgt_mapping)
 {
 	std::unordered_map<NeuronOnHICANN, std::map<SynapseType, SynapseColumnsMap> > rv;
 
@@ -409,7 +409,7 @@ SynapseDriverRequirements::calc_synapse_type_to_synapse_columns_map(
 			auto const& inputs_on_neuron = syn_tgt_mapping[nrn_addr];
 			for (auto side : iter_all<SideHorizontal>()) {
 				SynapseType syn_type = inputs_on_neuron[side];
-				if (syn_type != SynapseType::None) {
+				if (syn_type != SynapseType::none) {
 					synapse_columns_map_per_syntype[syn_type][Side_Parity(side, p)].push_back(
 						SynapseColumnOnHICANN(nrn_addr.x()));
 				}

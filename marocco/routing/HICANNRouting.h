@@ -1,11 +1,13 @@
 #pragma once
 
+#include "sthal/Wafer.h"
 #include "marocco/config.h"
 
 #include "marocco/BioGraph.h"
 #include "marocco/placement/results/Placement.h"
 #include "marocco/routing/L1RoutingGraph.h"
-#include "marocco/routing/Result.h"
+#include "marocco/routing/SynapseRowSource.h"
+#include "marocco/routing/results/SynapseRouting.h"
 #include "marocco/routing/results/L1Routing.h"
 #include "pymarocco/PyMarocco.h"
 
@@ -17,43 +19,24 @@ class SynapseLoss;
 class HICANNRouting
 {
 public:
-	typedef hardware_system_t hardware_type;
-	typedef chip_type<hardware_type>::type chip_type;
+	typedef sthal::Wafer hardware_type;
 
 	HICANNRouting(
 		BioGraph const& bio_graph,
-		hardware_system_t& hardware,
+		hardware_type& hardware,
 		resource_manager_t& resource_manager,
 		pymarocco::PyMarocco const& pymarocco,
 		placement::results::Placement const& neuron_placement,
 		results::L1Routing const& l1_routing,
 		boost::shared_ptr<SynapseLoss> const& synapse_loss);
 
-	SynapseRoutingResult run();
+	void run(results::SynapseRouting& result);
 
 private:
-	void run(HMF::Coordinate::HICANNGlobal const& hicann, SynapseRoutingResult& result);
-
-	void configure_hardware(routing::SynapseRoutingResult const& syndrvrouting);
-
-	void setSynapseSwitch(
-		HMF::Coordinate::VLineOnHICANN const& vline,
-		HMF::Coordinate::SynapseSwitchRowOnHICANN const& row,
-		chip_type& chip);
-
-	void setSynapseDriver(
-		DriverResult const& d,
-		chip_type& chip);
-
-	template<typename RAIter>
-	void connectSynapseDriver(
-		HMF::Coordinate::SynapseDriverOnHICANN const& primary,
-		RAIter const first,
-		RAIter const last,
-		chip_type& chip);
+	void run(HMF::Coordinate::HICANNGlobal const& hicann, results::SynapseRouting& result);
 
 	BioGraph const& m_bio_graph;
-	hardware_system_t& m_hardware;
+	hardware_type& m_hardware;
 	resource_manager_t& m_resource_manager;
 	pymarocco::PyMarocco const& m_pymarocco;
 	placement::results::Placement const& m_neuron_placement;

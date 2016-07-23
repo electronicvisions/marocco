@@ -1,7 +1,7 @@
 import sys
 import os
 import argparse
-from PySide import QtGui, QtCore, QtUiTools, QtSvg
+from PySide import QtGui, QtSvg
 from roqt import Wafer, WaferView
 
 
@@ -31,17 +31,19 @@ def save_figure(scene, fname):
         invoke_painter(scene, img)
         img.save(fname)
 
+
 def valid_file(arg):
     if not os.path.isfile(arg):
         raise argparse.ArgumentTypeError(
             "{!r} does not exist".format(arg))
     return arg
 
+
 def main():
     app = QtGui.QApplication(sys.argv)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=valid_file, help='pyroqt routing data')
+    parser.add_argument('file', type=valid_file, help='marocco results file')
     parser.add_argument('-o', type=str, default=None,
             help='write rendering to file, e.g.: *.png, *.svg')
     parser.add_argument('--switches', action='store_true',
@@ -62,10 +64,8 @@ def main():
             obj = [obj]
         wafer.draw_routes(obj)
     else:
-        import pyroqt
-        _pyroqt = pyroqt.PyRoQt()
-        _pyroqt.load(args.file)
-        wafer.draw_from_pyroqt(_pyroqt)
+        from pymarocco.results import Marocco
+        wafer.draw(Marocco.from_file(args.file))
 
     if args.o:
         save_figure(scene, args.o)

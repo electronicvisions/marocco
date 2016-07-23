@@ -15,7 +15,7 @@
 
 #include "marocco/parameter/detail.h"
 
-#include "marocco/routing/SynapseTargetMapping.h"
+#include "marocco/routing/results/SynapticInputs.h"
 
 namespace marocco {
 namespace parameter {
@@ -90,7 +90,7 @@ struct TransformNeurons
 	typedef chip_type<hardware_system_t>::type chip_t;
 	typedef HMF::NeuronCollection calib_t;
 	typedef HMF::Coordinate::NeuronOnHICANN neuron_t;
-	typedef routing::SynapseTargetMapping synapse_targets_t;
+	typedef routing::results::SynapticInputs synapse_targets_t;
 
 	template <CellType N>
 		using cell_t = TypedCellParameterVector<N>;
@@ -162,7 +162,7 @@ void transform_analog_neuron(
 	Population const& pop,
 	size_t neuron_bio_id,
 	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id,
-	routing::SynapseTargetMapping const& synapse_targets,
+	routing::results::SynapticInputs const& synapse_targets,
 	TransformNeurons& visitor,
 	chip_type<hardware_system_t>::type& chip);
 

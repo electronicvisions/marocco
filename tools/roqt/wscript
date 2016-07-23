@@ -4,7 +4,7 @@ from waflib.extras import symwaf2ic
 from waflib import Utils
 
 def depends(dep):
-    dep('marocco', 'tools/roqt/bindings')
+    pass
 
 def options(opt):
     pass

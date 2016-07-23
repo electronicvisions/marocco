@@ -258,11 +258,11 @@ TEST(SynapseDriverRequirements, count_drivers)
 TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputSimple)
 {
 	SynapseDriverRequirements::NeuronWidth neuron_width;
-	SynapseTargetMapping syn_target_mapping;
+	results::SynapticInputs synaptic_inputs;
 
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
-		syn_target_mapping[nrn][geometry::left] = SynapseType::excitatory;
-		syn_target_mapping[nrn][geometry::right] = SynapseType::inhibitory;
+		synaptic_inputs[nrn][geometry::left] = SynapseType::excitatory;
+		synaptic_inputs[nrn][geometry::right] = SynapseType::inhibitory;
 	}
 
 	neuron_width[NeuronOnHICANN(Enum(0))] = 2;
@@ -276,7 +276,7 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputSimple)
 	neuron_width[NeuronOnHICANN(Enum(16))] = 8;
 
 	auto targets = SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
-		neuron_width, syn_target_mapping);
+		neuron_width, synaptic_inputs);
 
 
 	ASSERT_EQ(
@@ -319,16 +319,16 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputSimple)
 TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputAdvanced)
 {
 	SynapseDriverRequirements::NeuronWidth neuron_width;
-	SynapseTargetMapping syn_target_mapping;
+	results::SynapticInputs synaptic_inputs;
 
 	// 3 time constants
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
 		if (nrn.x() % 2 == 0) {
-			syn_target_mapping[nrn][geometry::left] = SynapseType(0);
-			syn_target_mapping[nrn][geometry::right] = SynapseType(1);
+			synaptic_inputs[nrn][geometry::left] = SynapseType(0);
+			synaptic_inputs[nrn][geometry::right] = SynapseType(1);
 		} else {
-			syn_target_mapping[nrn][geometry::left] = SynapseType(0);
-			syn_target_mapping[nrn][geometry::right] = SynapseType(2);
+			synaptic_inputs[nrn][geometry::left] = SynapseType(0);
+			synaptic_inputs[nrn][geometry::right] = SynapseType(2);
 		}
 	}
 
@@ -339,7 +339,7 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputAdvanced)
 	neuron_width[NeuronOnHICANN(Enum(7))] = 3;
 
 	auto targets = SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
-		neuron_width, syn_target_mapping);
+		neuron_width, synaptic_inputs);
 
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(0)))
@@ -399,11 +399,11 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputAdvanced)
 TEST(SynapseDriverRequirements, _calc)
 {
 	SynapseDriverRequirements::NeuronWidth neuron_width;
-	SynapseTargetMapping syn_target_mapping;
+	results::SynapticInputs synaptic_inputs;
 
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
-		syn_target_mapping[nrn][geometry::left] = SynapseType::excitatory;
-		syn_target_mapping[nrn][geometry::right] = SynapseType::inhibitory;
+		synaptic_inputs[nrn][geometry::left] = SynapseType::excitatory;
+		synaptic_inputs[nrn][geometry::right] = SynapseType::inhibitory;
 	}
 	//  NeuronSize = 4 -> neuron_width = 2, 1 row = 2 inputs.
 	for (size_t xx = 0; xx < NeuronOnHICANN::x_type::end; xx += 2) {
@@ -414,7 +414,7 @@ TEST(SynapseDriverRequirements, _calc)
 					   SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
 		target_synapses_per_synaptic_input_granularity =
 			SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
-				neuron_width, syn_target_mapping);
+				neuron_width, synaptic_inputs);
 
 	SynapseCounts sc;
 
@@ -565,11 +565,11 @@ size_t count_drivers_from_synrow_histogram(
 TEST(SynapseDriverRequirements, Issue2115_minimal)
 {
 	SynapseDriverRequirements::NeuronWidth neuron_width;
-	SynapseTargetMapping syn_target_mapping;
+	results::SynapticInputs synaptic_inputs;
 
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
-		syn_target_mapping[nrn][geometry::left] = SynapseType::excitatory;
-		syn_target_mapping[nrn][geometry::right] = SynapseType::inhibitory;
+		synaptic_inputs[nrn][geometry::left] = SynapseType::excitatory;
+		synaptic_inputs[nrn][geometry::right] = SynapseType::inhibitory;
 	}
 	//  NeuronSize = 4 -> neuron_width = 2, 1 row = 2 inputs.
 	for (size_t xx = 0; xx < NeuronOnHICANN::x_type::end; xx += 2) {
@@ -580,7 +580,7 @@ TEST(SynapseDriverRequirements, Issue2115_minimal)
 		SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
 			target_synapses_per_synaptic_input_granularity =
 			SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
-					neuron_width, syn_target_mapping);
+					neuron_width, synaptic_inputs);
 
 	SynapseCounts sc;
 	// neuron 0: 3 half rows -> 3 synapses

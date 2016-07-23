@@ -55,7 +55,7 @@ void transform_analog_neuron(
 	Population const& pop,
 	size_t const neuron_bio_id,
 	NeuronOnHICANN const& hw_neuron_id,
-	routing::SynapseTargetMapping const& synapse_targets,
+	routing::results::SynapticInputs const& synapse_targets,
 	TransformNeurons& visitor,
 	chip_type<hardware_system_t>::type& chip)
 {
@@ -68,7 +68,7 @@ void TransformNeurons::assert_synapse_target_mapping_is_default(
 	synapse_targets_t::value_type const& targets)
 {
 	static const synapse_targets_t::value_type default_mapping =
-		{{routing::SynapseType::excitatory, routing::SynapseType::inhibitory}};
+		{SynapseType::excitatory, SynapseType::inhibitory};
 	assert(targets == default_mapping);
 }
 

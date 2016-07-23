@@ -71,7 +71,8 @@ void Marocco::serialize(Archiver& ar, const unsigned int /* version */)
 	ar & make_nvp("analog_outputs", analog_outputs)
 	   & make_nvp("spike_times", spike_times)
 	   & make_nvp("placement", placement)
-	   & make_nvp("l1_routing", l1_routing);
+	   & make_nvp("l1_routing", l1_routing)
+	   & make_nvp("synapse_routing", synapse_routing);
 	// clang-format on
 }
 

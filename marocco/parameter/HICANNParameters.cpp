@@ -10,6 +10,7 @@
 #include "marocco/parameter/CMVisitor.h"
 #include "marocco/parameter/NeuronVisitor.h"
 #include "marocco/parameter/SpikeInputVisitor.h"
+#include "marocco/routing/util.h"
 
 using namespace HMF::Coordinate;
 
@@ -20,27 +21,23 @@ HICANNParameters::HICANNParameters(
     BioGraph const& bio_graph,
     chip_type& chip,
     pymarocco::PyMarocco const& pymarocco,
-    placement::Result const& placement,
-    routing::Result const& routing,
+    placement::results::Placement const& neuron_placement,
+    routing::results::SynapseRouting const& synapse_routing,
     double duration)
     : m_bio_graph(bio_graph),
       m_chip(chip),
       m_pymarocco(pymarocco),
-      m_placement(placement),
-      m_routing(routing),
+      m_neuron_placement(neuron_placement),
+      m_synapse_routing(synapse_routing),
       m_duration(duration)
 {
 }
 
 void HICANNParameters::run()
 {
-	auto const& neuron_placement = m_placement.neuron_placement;
-
-	// assuming that neurons are always read out
-	bool const local_neurons =
-		m_placement.internal.address_assignment.at(m_chip.index()).has_output();
-
-	bool const local_routes = m_routing.synapse_routing.exists(m_chip.index());
+	auto const& hicann = m_chip.index();
+	bool const local_neurons = !m_neuron_placement.find(hicann).empty();
+	bool const local_routes = m_synapse_routing.has(hicann);
 
 	// switch on BackgroundGenerators for locking
 	background_generators(m_pymarocco.bkg_gen_isi);
@@ -59,12 +56,11 @@ void HICANNParameters::run()
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1543
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(m_pymarocco.speedup);
-		auto const& synapse_routing = m_routing.synapse_routing.at(m_chip.index());
+		auto const& hicann_synapse_routing = m_synapse_routing[hicann];
 
 		{
 			// 3. transform individual analog parameters
-			v_reset =
-			    neurons(*neuron_calib, neuron_placement, synapse_routing.synapse_target_mapping);
+			v_reset = neurons(*neuron_calib);
 
 			if(local_routes) {
 				// transform synapses
@@ -78,7 +74,7 @@ void HICANNParameters::run()
 					synapse_row_calib->setDefaults();
 				}
 
-				synapses(*synapse_row_calib, synapse_routing, neuron_placement);
+				synapses(*synapse_row_calib);
 			}
 		}
 	}
@@ -118,10 +114,7 @@ void HICANNParameters::neuron_config(neuron_calib_type const& /*unused*/)
 	//config.fast_I_gl      = 0x0;
 }
 
-double HICANNParameters::neurons(
-	neuron_calib_type const& calib,
-	placement::results::Placement const& neuron_placement,
-	routing::SynapseTargetMapping const& synapse_target_mapping)
+double HICANNParameters::neurons(neuron_calib_type const& calib)
 {
 	// GLOBAL DIGITAL Neuron Paramets
 	neuron_config(calib);
@@ -136,7 +129,7 @@ double HICANNParameters::neurons(
 	 *
 	 */
 	NeuronSharedParameterRequirements shared_parameter_visitor;
-	for (auto const& item : neuron_placement.find(hicann)) {
+	for (auto const& item : m_neuron_placement.find(hicann)) {
 		auto const& params = graph[item.population()]->parameters();
 		for (NeuronOnHICANN nrn : item.logical_neuron()) {
 			visitCellParameterVector(
@@ -147,8 +140,10 @@ double HICANNParameters::neurons(
 	// INDIVIDUAL Neuron Parameters
 	TransformNeurons visitor{m_pymarocco.param_trafo.alpha_v, m_pymarocco.param_trafo.shift_v};
 
+	auto const& synaptic_inputs = m_synapse_routing[m_chip.index()].synaptic_inputs();
+
 	MAROCCO_INFO("Configuring neuron parameters");
-	for (auto const& item : neuron_placement.find(hicann)) {
+	for (auto const& item : m_neuron_placement.find(hicann)) {
 		auto const& pop = *(graph[item.population()]);
 		auto const& logical_neuron = item.logical_neuron();
 
@@ -157,7 +152,7 @@ double HICANNParameters::neurons(
 			MAROCCO_DEBUG("configuring analog parameters for " << nrn);
 
 			transform_analog_neuron(
-				calib, pop, item.neuron_index(), nrn, synapse_target_mapping,
+				calib, pop, item.neuron_index(), nrn, synaptic_inputs,
 				visitor, m_chip);
 		}
 
@@ -235,94 +230,97 @@ void HICANNParameters::shared_parameters(
 	}
 }
 
-void HICANNParameters::synapses(
-	synapse_row_calib_type const& calib,
-	routing::synapse_driver_mapping_t::result_type const&
-		synapse_routing, // TODO change this to pass std::vector<DriverResult>
-	placement::results::Placement const& neuron_placement)
+void HICANNParameters::synapses(synapse_row_calib_type const& calib)
 {
-	HMF::Coordinate::typed_array<double, NeuronOnHICANN> const weight_scale =
-		weight_scale_array(neuron_placement);
+	HMF::Coordinate::typed_array<double, NeuronOnHICANN> const weight_scales = weight_scale_array();
 
-	for (routing::DriverResult const& driver_res : synapse_routing.driver_result) {
-		for (auto synrow : driver_res.rows() ) {
-			auto const & synrow_addr = synrow.first;
-			auto const & synrow_source = synrow.second;
-			auto const & synapse_mapping = synrow_source.synapses();  // array of synapse mapping (1 row)
-			auto synrow_proxy = m_chip.synapses[synrow_addr];
-
-			std::array<double , NeuronOnHICANN::x_type::size> scaled_weights{{}}; // array storing scaled weights in nanoSiemens, 0. if not used
+	auto const& hicann = m_chip.index();
+	auto const& synapses = m_synapse_routing.synapses();
+	for (auto const row : iter_all<SynapseRowOnHICANN>()) {
+		// array storing scaled weights in nanoSiemens, 0. if not used
+		std::array<double, NeuronOnHICANN::x_type::size> scaled_weights{{}};
 #ifndef MAROCCO_NDEBUG
-			std::array<double , NeuronOnHICANN::x_type::size> bio_weights{{}}; // array storing bio weights in micro Siemens, 0. if not used
+		// array storing bio weights in micro Siemens, 0. if not used
+		std::array<double, NeuronOnHICANN::x_type::size> bio_weights{{}};
 #endif // MAROCCO_NDEBUG
 
-			// individual synapses
-			for (size_t col = 0; col < synapse_mapping.size(); ++col) {
-				routing::SynapseSource const& synapse_source = synapse_mapping[col];
-				if (!synapse_source.empty()) {
-					// get bio weight
-					auto & proj_view = synapse_source.projection_view();
-					double bio_weight = proj_view->getWeights()(synapse_source.src(), synapse_source.tgt()); // getWeights returns just a view, no copy
+		// Collect scaled weights for synapses in current row
+		// Note: In the future, multiple hardware synapses per bio synapse might be used
+		// to extend the dynamic range.
+		for (auto const& item : synapses.find(hicann, row)) {
+			auto const synapse = item.hardware_synapse();
+			assert(synapse != boost::none);
 
-					// get weight scale
-					SynapseOnHICANN syn_addr(synrow_addr, SynapseColumnOnHICANN(col));
-					double const w_scale = weight_scale[ syn_addr.toNeuronOnHICANN() ];
-					assert ( w_scale > 0. ); // check for inconsistency between routing and placement
+			auto const edge = m_bio_graph.edge_from_id(item.projection());
+			auto const& proj_view = m_bio_graph.graph()[edge];
 
-					// scale and transform
-					scaled_weights[col] = bio_weight*w_scale*1000. /*uS to nS*/;
+			size_t const src_neuron_in_proj_view = routing::to_relative_index(
+				proj_view.pre().mask(), item.source_neuron().neuron_index());
+			size_t const trg_neuron_in_proj_view = routing::to_relative_index(
+				proj_view.post().mask(), item.target_neuron().neuron_index());
+
+			double const bio_weight =
+				proj_view.getWeights()(src_neuron_in_proj_view, trg_neuron_in_proj_view);
+
+			double const w_scale = weight_scales[synapse->toNeuronOnHICANN()];
+			assert(w_scale > 0.); // check for inconsistency between routing and placement
+
+			size_t const col = synapse->x().value();
+			// scale and transform
+			scaled_weights[col] = bio_weight * w_scale * 1000. /*uS to nS*/;
+#ifndef MAROCCO_NDEBUG
+			bio_weights[col] = bio_weight;
+#endif // MAROCCO_NDEBUG
+		}
+
+		// compute max weight and find best gmax configuration
+		double const max_weight = *(std::max_element(scaled_weights.cbegin(), scaled_weights.cend()));
+
+		// get copy and not const ref, because findBestGmaxConfig is not const.
+		HMF::SynapseRowCalibration row_calib =
+		    *boost::dynamic_pointer_cast<HMF::SynapseRowCalibration const>(calib.at(row));
+
+		HMF::GmaxConfig const gc = row_calib.findBestGmaxConfig(max_weight);
+		auto const& synapse_trafo = row_calib.at(gc);
+
+		auto row_config_proxy = m_chip.synapses[row]; // proxy object that holds references
+		for (size_t col = 0; col < scaled_weights.size(); ++col) {
+			if (scaled_weights[col] > 0.) {
+				double const scaled_weight = scaled_weights[col];
+				HMF::HICANN::SynapseWeight const hw_weight =
+				    synapse_trafo->getDigitalWeight(scaled_weight);
+				// store weight
+				row_config_proxy.weights[col] = hw_weight;
 
 #ifndef MAROCCO_NDEBUG
-					// DEBUG
-					bio_weights[col] = bio_weight;
+				SynapseOnHICANN syn_addr(row, SynapseColumnOnHICANN(col));
+				double clipped_weight = synapse_trafo->getAnalogWeight(hw_weight);
+				clipped_weight = clipped_weight / weight_scales[syn_addr.toNeuronOnHICANN()] /
+				                 1000. /*nS to uS*/;
+				MAROCCO_DEBUG(
+					"synapse weight of " << syn_addr << " set to " << hw_weight << ", bio weight "
+				    << bio_weights[col] << ", clipped bio weight " << clipped_weight);
 #endif // MAROCCO_NDEBUG
-				}
-			} // all synapses of a row
-
-			// compute max weight and find best gmax configuration
-			double max_weight =  * (std::max_element(scaled_weights.cbegin(), scaled_weights.cend()));
-
-			// get copy and not const ref, because findBestGmaxConfig is not const.
-			HMF::SynapseRowCalibration row_calib = * boost::dynamic_pointer_cast< HMF::SynapseRowCalibration const > ( calib.at(synrow_addr) );
-
-			HMF::GmaxConfig gc = row_calib.findBestGmaxConfig(max_weight);
-			auto const& synapse_trafo = row_calib.at(gc);
-
-			for (size_t col = 0; col < scaled_weights.size(); ++col) {
-				if (scaled_weights[col] > 0.) {
-					const double scaled_weight = scaled_weights[col];
-					const HMF::HICANN::SynapseWeight hwweight = synapse_trafo->getDigitalWeight(scaled_weight);
-					// store weight
-					synrow_proxy.weights [col] = hwweight;
-
-#ifndef MAROCCO_NDEBUG
-					SynapseOnHICANN syn_addr(synrow_addr, SynapseColumnOnHICANN(col));
-					double clipped_weight = synapse_trafo->getAnalogWeight(hwweight);
-					clipped_weight = clipped_weight/weight_scale[syn_addr.toNeuronOnHICANN()]/1000. /*nS to uS*/;
-					MAROCCO_DEBUG("synapse weight of " << syn_addr << " set to " << hwweight
-						<< ", bio weight " << bio_weights[col] << ", clipped bio weight " << clipped_weight);
-#endif // MAROCCO_NDEBUG
-				}
 			}
+		}
 
-			// store gmax config
-			auto& driver = m_chip.synapses[synrow_addr.toSynapseDriverOnHICANN()];
-			HMF::HICANN::RowConfig& config = driver[synrow_addr.toRowOnSynapseDriver()];
+		// store gmax config
+		auto& driver_config = m_chip.synapses[row.toSynapseDriverOnHICANN()];
+		HMF::HICANN::RowConfig& driver_row_config = driver_config[row.toRowOnSynapseDriver()];
 
-			// selects 1 of 4 V_max values from global FGs
-			config.set_gmax(gc.get_sel_Vgmax());
+		// selects 1 of 4 V_max values from global FGs
+		driver_row_config.set_gmax(gc.get_sel_Vgmax());
 
-			// gmax divider [1..15]
-			// use same config for left and right synaptic input
-			config.set_gmax_div(left,  gc.get_gmax_div() );
-			config.set_gmax_div(right, gc.get_gmax_div() );
-		} // all rows assigned to an input
-	} // all inputs
-	// TODO: store V_gmax, depending on ESS or not ESS
+		// gmax divider [1..15]
+		// use same config for left and right synaptic input
+		driver_row_config.set_gmax_div(left, gc.get_gmax_div());
+		driver_row_config.set_gmax_div(right, gc.get_gmax_div());
+
+		// TODO (BV): store V_gmax, depending on ESS or not ESS
+	}
 }
 
-HMF::Coordinate::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_scale_array(
-	placement::results::Placement const& neuron_placement) const
+HMF::Coordinate::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_scale_array() const
 {
 	CMVisitor const cm_visitor{};
 	HMF::Coordinate::typed_array<double, NeuronOnHICANN> rv;
@@ -336,7 +334,7 @@ HMF::Coordinate::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_sc
 	auto const& graph = m_bio_graph.graph();
 
 	// We need to calculate the scaling factor for each logical neuron.
-	for (auto const& item : neuron_placement.find(m_chip.index())) {
+	for (auto const& item : m_neuron_placement.find(m_chip.index())) {
 		auto const& params = graph[item.population()]->parameters();
 		auto const& logical_neuron = item.logical_neuron();
 

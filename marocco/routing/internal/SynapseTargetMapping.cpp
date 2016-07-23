@@ -1,19 +1,13 @@
-#include "marocco/routing/SynapseTargetMapping.h"
-
-#include <iomanip>
-#include <boost/serialization/nvp.hpp>
+#include "marocco/routing/internal/SynapseTargetMapping.h"
 
 #include "hal/Coordinate/iter_all.h"
-#include "marocco/placement/Result.h"
-#include "marocco/routing/SynapseTargetVisitor.h"
-#include "marocco/util/chunked.h"
-
+#include "marocco/routing/internal/SynapseTargetVisitor.h"
 
 using namespace HMF::Coordinate;
-using namespace HMF;
 
 namespace marocco {
 namespace routing {
+namespace internal {
 
 namespace {
 
@@ -25,12 +19,12 @@ namespace {
  *
  * @param[in] required_targets required synapse targets
  * @param[in] neurons hardware neurons of the compound neuron.
- * @param[out] target_mapping synapse target mapping filled by this function
+ * @param[out] synaptic_inputs synapse target mapping filled by this function
  */
 void map_targets(
 	std::vector<SynapseType> const& required_targets,
 	std::vector<NeuronOnHICANN> const& neurons,
-	SynapseTargetMapping& target_mapping)
+	results::SynapticInputs& synaptic_inputs)
 {
 	if (required_targets.size() == 0)
 		return;
@@ -55,7 +49,7 @@ void map_targets(
 	}
 
 	// TODO: Should we check if it was already assigned, i.e. str == ""?
-	if (required_targets.size() > top_neurons.size() * HICANN::RowConfig::num_syn_ins) {
+	if (required_targets.size() > top_neurons.size() * SynapticInputOnNeuron::size) {
 		throw std::runtime_error(
 			"Neuron has more synaptic time constants than provided by placement. \
 					HardwareNeuronSize should be >= nr of synaptic time constants.");
@@ -106,45 +100,25 @@ void map_targets(
 	}
 
 	for (auto const& nrn : neurons) {
-		// odd columns
 		if (nrn.x() % 2) {
-			target_mapping[nrn][left] = target_odd_left;
-			target_mapping[nrn][right] = target_odd_right;
-		}
-		// even columns
-		else {
-			target_mapping[nrn][left] = target_even_left;
-			target_mapping[nrn][right] = target_even_right;
+			// odd columns
+			synaptic_inputs[nrn][left] = target_odd_left;
+			synaptic_inputs[nrn][right] = target_odd_right;
+		} else {
+			// even columns
+			synaptic_inputs[nrn][left] = target_even_left;
+			synaptic_inputs[nrn][right] = target_even_right;
 		}
 	}
 }
 
 } // namespace
 
-SynapseTargetMapping::SynapseTargetMapping()
-{
-	// initialize all synapse targets to SynapseType::None
-	for (auto const& noh : iter_all<NeuronOnHICANN>()) {
-		for (auto const& side : iter_all<SideHorizontal>()) {
-			m_mapping[noh][side] = SynapseType::None;
-		}
-	}
-}
-
-auto SynapseTargetMapping::operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) -> value_type&
-{
-	return m_mapping[neuron];
-}
-
-auto SynapseTargetMapping::operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) const -> value_type const&
-{
-	return m_mapping[neuron];
-}
-
 void SynapseTargetMapping::simple_mapping(
-    HMF::Coordinate::HICANNOnWafer const& hicann,
-    placement::results::Placement const& neuron_placement,
-    graph_t const& graph)
+	HMF::Coordinate::HICANNOnWafer const& hicann,
+	placement::results::Placement const& neuron_placement,
+	graph_t const& graph,
+	results::SynapticInputs& synaptic_inputs)
 {
 	SynapseTargetVisitor const syn_tgt_visitor{};
 
@@ -161,7 +135,7 @@ void SynapseTargetMapping::simple_mapping(
 			assert(logical_neuron.size() % NeuronOnNeuronBlock::y_type::size == 0);
 			size_t const neuron_width =
 				logical_neuron.size() / NeuronOnNeuronBlock::y_type::size;
-			if (synapse_targets.size() > neuron_width * HICANN::RowConfig::num_syn_ins) {
+			if (synapse_targets.size() > neuron_width * SynapticInputOnNeuron::size) {
 				throw std::runtime_error(
 					"Neuron has more synaptic time constants than provided by placement. "
 					"HardwareNeuronSize should be >= # of synaptic time constants.");
@@ -174,82 +148,10 @@ void SynapseTargetMapping::simple_mapping(
 			connected_neurons.push_back(nrn);
 		}
 
-		map_targets(synapse_targets, connected_neurons, *this);
+		map_targets(synapse_targets, connected_neurons, synaptic_inputs);
 	}
 }
 
-bool SynapseTargetMapping::check_top_and_bottom_are_equal() const
-{
-	for (auto xx : iter_all<NeuronOnHICANN::x_type>()) {
-		const NeuronOnHICANN nt(xx, top);
-		const NeuronOnHICANN nb(xx, bottom);
-		if ((m_mapping[nt][left] != m_mapping[nb][left]) ||
-		    (m_mapping[nt][right] != m_mapping[nb][right])) {
-			return false;
-		}
-	}
-	return true;
-}
-
-std::ostream& operator<<(std::ostream& os, SynapseTargetMapping const& target_mapping)
-{
-	std::string const horizontal_line(NeuronOnNeuronBlock::x_type::size * 4 + 9, '-');
-	os << horizontal_line << "\n";
-
-	// Print mapping by Neuron blocks
-	for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {
-		os << "|  NB(" << size_t(nb) << ") ";
-		for (auto xx : iter_all<NeuronOnNeuronBlock::x_type>()) {
-			os << "|" << std::setw(3) << std::setfill(' ') << size_t(xx);
-		}
-		os << "|\n";
-
-		// For each neuron print the first character of synapse type, i.e.:
-		// 'e' -> excitatory, 'i' -> inhibitory, '0' -> target 0 etc.
-		for (auto yy : iter_all<NeuronOnNeuronBlock::y_type>()) {
-			os << "| " << (yy == top ? "   top" : "bottom") << " ";
-
-			for (auto xx : iter_all<NeuronOnNeuronBlock::x_type>()) {
-				auto const nrn = NeuronOnNeuronBlock(xx, yy).toNeuronOnHICANN(nb);
-				os << "|";
-				SynapseType target_left = target_mapping[nrn][left];
-				if (target_left != SynapseType::None) {
-					std::stringstream ss;
-					ss << target_left;
-					os << ss.str()[0];
-				} else {
-					os << " ";
-				}
-
-				os << " ";
-
-				SynapseType target_right = target_mapping[nrn][right];
-				if (target_right != SynapseType::None) {
-					std::stringstream ss;
-					ss << target_right;
-					os << ss.str()[0];
-				} else {
-					os << " ";
-				}
-			}
-			os << "|\n";
-		}
-		os << horizontal_line << "\n";
-	}
-	return os;
-}
-
-template <typename Archiver>
-void SynapseTargetMapping::serialize(Archiver& ar, unsigned int const /*version*/)
-{
-	using namespace boost::serialization;
-	ar & make_nvp("mapping", m_mapping);
-}
-
+} // namespace internal
 } // namespace routing
 } // namespace marocco
-
-BOOST_CLASS_EXPORT_IMPLEMENT(::marocco::routing::SynapseTargetMapping)
-
-#include "boost/serialization/serialization_helper.tcc"
-EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::marocco::routing::SynapseTargetMapping)

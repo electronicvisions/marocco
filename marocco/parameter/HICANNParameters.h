@@ -9,8 +9,8 @@
 #include "hal/Coordinate/typed_array.h"
 
 #include "marocco/BioGraph.h"
-#include "marocco/placement/Result.h"
-#include "marocco/routing/Result.h"
+#include "marocco/placement/results/Placement.h"
+#include "marocco/routing/results/SynapseRouting.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace marocco {
@@ -32,18 +32,15 @@ public:
 		BioGraph const& bio_graph,
 		chip_type& chip,
 		pymarocco::PyMarocco const& pymarocco,
-		placement::Result const& placement,
-		routing::Result const& routing,
+		placement::results::Placement const& neuron_placement,
+		routing::results::SynapseRouting const& synapse_routing,
 		double duration);
 
 	void run();
 
 private:
 	// returns mean v_reset in bio mV
-	double neurons(
-		neuron_calib_type const& calib,
-		placement::results::Placement const& neuron_placement,
-		routing::SynapseTargetMapping const& synapse_target_mapping);
+	double neurons(neuron_calib_type const& calib);
 
 	void connect_denmems(
 		HMF::Coordinate::NeuronOnHICANN const& topleft_neuron,
@@ -59,15 +56,12 @@ private:
 	void shared_parameters(shared_calib_type const& calib, double v_reset);
 
 	void synapses(
-		synapse_row_calib_type const& calib,
-		routing::synapse_driver_mapping_t::result_type const& synapse_routing,
-		placement::results::Placement const& neuron_placement);
+		synapse_row_calib_type const& calib);
 
 	/// returns an array with the weight scale factor for each neuron on the hicann.
 	/// The factor to scale biological to hardware weights is calculated as: speedup * cm_hw/ cm_bio
 	/// where cm_hw is the sum of the capacitances of all interconnected hw-neurons
-	HMF::Coordinate::typed_array<double, HMF::Coordinate::NeuronOnHICANN> weight_scale_array(
-		placement::results::Placement const& neuron_placement) const;
+	HMF::Coordinate::typed_array<double, HMF::Coordinate::NeuronOnHICANN> weight_scale_array() const;
 
 	boost::shared_ptr<calib_type> getCalibrationData();
 
@@ -77,8 +71,8 @@ private:
 	BioGraph const& m_bio_graph;
 	chip_type& m_chip;
 	pymarocco::PyMarocco const& m_pymarocco;
-	placement::Result const& m_placement;
-	routing::Result const& m_routing;
+	placement::results::Placement const& m_neuron_placement;
+	routing::results::SynapseRouting const& m_synapse_routing;
 	double m_duration;
 
 	HMF::Coordinate::typed_array<std::vector<sthal::Spike>, HMF::Coordinate::DNCMergerOnHICANN> m_spikes;

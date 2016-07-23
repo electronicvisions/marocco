@@ -1,25 +1,12 @@
 #pragma once
 
-#include <array>
-#include <boost/serialization/export.hpp>
-
-#include "hal/Coordinate/Neuron.h"
-#include "hal/Coordinate/typed_array.h"
-#include "hal/HICANN/RowConfig.h"
-#include "pywrap/compat/array.hpp"
-
 #include "marocco/graph.h"
 #include "marocco/placement/results/Placement.h"
-#include "marocco/routing/SynapseType.h"
-
-namespace boost {
-namespace serialization {
-class access;
-} // namespace serialization
-} // namespace boost
+#include "marocco/routing/results/SynapticInputs.h"
 
 namespace marocco {
 namespace routing {
+namespace internal {
 
 /**
  * Mapping of synapse targets (synapse types) to the synaptic input circuits of
@@ -28,45 +15,9 @@ namespace routing {
  * The mapping of synapse targets to inputs is required for routing of synapses
  * on the HICANN and for the parameter transformation of synaptic conductance
  * parameters.
- *
- * This class provides the data structure for storing this mapping, and
- * furthermore offers a method for a simple synapse target mapping for the
- * neuron mapped onto a HICANN, cf. method. simple_mapping().
  */
 struct SynapseTargetMapping
 {
-public:
-	/**
-	 * Synapse targets (synapse types) mapped to the two synaptic inputs of a
-	 * hardware neuron.
-	 *
-	 * Usage:
-	 * \code
-	 *  // IF_cond_exp etc ..
-	 * 	syn_tgts[left] = SynapseType::excitatory
-	 * 	syn_tgts[right] = SynapseType::inhibitory
-	 *
-	 *  // IF_multi_cond_exp with 4 time constants
-	 *  // Leftmost denmem
-	 *  syn_tgts[left] = SynapseType(0)
-	 *  syn_tgts[right] = SynapseType(1)
-	 *  //2nd denmem
-	 *  syn_tgts[left] = SynapseType(2)
-	 *  syn_tgts[right] = SynapseType(3)
-	 *  \endcode
-	 */
-	typedef std::array<SynapseType, HMF::HICANN::RowConfig::num_syn_ins> value_type;
-	typedef HMF::Coordinate::typed_array<value_type, HMF::Coordinate::NeuronOnHICANN> mapping_type;
-
-	/** constructor.
-	 *  sets all synapse targets to SynapseType::None
-	 */
-	SynapseTargetMapping();
-
-	value_type& operator[](HMF::Coordinate::NeuronOnHICANN const& neuron);
-
-	value_type const& operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) const;
-
 	/**
 	 * creates a simple mapping of synapse targets onto the synaptic inputs
 	 * from the neurons mapped onto the HICANN.
@@ -132,30 +83,18 @@ public:
 	 * per Population might be also provided via pymarocco.  These might e.g.
 	 * consider the fan-in per synapse type.
 	 *
-	 * @param hicann HICANN to operate on
-	 * @param neuron_placement result of the neuron placement step
-	 * @param graph the PyNN graph of populations and projections
+	 * @param[in] hicann HICANN to operate on
+	 * @param[in] neuron_placement result of the neuron placement step
+	 * @param[in] graph the PyNN graph of populations and projections
+	 * @param[out] synaptic_inputs
 	 */
-	void simple_mapping(
-	    HMF::Coordinate::HICANNOnWafer const& hicann,
-	    placement::results::Placement const& neuron_placement,
-	    graph_t const& graph);
-
-	/// returns true, if synapse target mapping is equal on top and bottom neurons.
-	bool check_top_and_bottom_are_equal() const;
-
-private:
-	mapping_type m_mapping;
-
-	friend class boost::serialization::access;
-	template <typename Archiver>
-	void serialize(Archiver& ar, unsigned int const /*version*/);
+	static void simple_mapping(
+		HMF::Coordinate::HICANNOnWafer const& hicann,
+		placement::results::Placement const& neuron_placement,
+		graph_t const& graph,
+		results::SynapticInputs& synaptic_inputs);
 }; // SynapseTargetMapping
 
-std::ostream& operator<<(std::ostream& os, SynapseTargetMapping const& target_mapping);
-
+} // namespace internal
 } // namespace routing
 } // namespace marocco
-
-
-BOOST_CLASS_EXPORT_KEY(::marocco::routing::SynapseTargetMapping)

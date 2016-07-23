@@ -105,9 +105,6 @@ public:
 	/// parameters for the transformation of neuron and synapse parameters
 	ParamTrafo param_trafo;
 
-	/// path to output file for routing visualizer (RoQt). No roqt output if unset
-	std::string roqt;
-
 	/** Default wafer to fall back to when no manual placement or defects were specified.
 	 *  @note: This will go away in the long run. Do \b NOT use this anywhere but rely
 	 *  on \c HICANNManager.wafers() instead.

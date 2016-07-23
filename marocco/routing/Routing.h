@@ -5,9 +5,9 @@
 #include "marocco/BioGraph.h"
 #include "marocco/config.h"
 #include "marocco/placement/results/Placement.h"
-#include "marocco/routing/Result.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/results/L1Routing.h"
+#include "marocco/routing/results/SynapseRouting.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace marocco {
@@ -23,7 +23,8 @@ public:
 		pymarocco::PyMarocco& pymarocco,
 		placement::results::Placement const& neuron_placement);
 
-	std::unique_ptr<Result> run(results::L1Routing& l1_routing_result);
+	void run(
+	    results::L1Routing& l1_routing_result, results::SynapseRouting& synapse_routing_result);
 	boost::shared_ptr<SynapseLoss> getSynapseLoss() const;
 
 private:

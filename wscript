@@ -97,7 +97,6 @@ def build(bld):
             'LOG4CXXMAROCCO',
             'TBB4MAROCCO',
             'marocco_inc',
-            'pyroqt_obj',
             'logger_obj',
             'ZTL',
             'rant',
@@ -175,7 +174,6 @@ def build(bld):
             'ester',
             'pyhmf',
             'pyester',
-            'pyroqt',
             'pyredman',
             ],
         cxxflags=cxxflags)

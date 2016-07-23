@@ -16,7 +16,7 @@
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/SynapseManager.h"
-#include "marocco/routing/SynapseTargetMapping.h"
+#include "marocco/routing/internal/SynapseTargetMapping.h"
 #include "marocco/routing/util.h"
 
 // NOTE: always use clear vertex and maybe edge lists, rather than vectors,
@@ -38,12 +38,13 @@ using by_vline_type = std::unordered_map<VLineOnHICANN, T>;
 SynapseRouting::SynapseRouting(
 	HMF::Coordinate::HICANNGlobal const& hicann,
 	BioGraph const& bio_graph,
-	hardware_system_t& hardware,
+	hardware_type& hardware,
 	resource_manager_t& resource_manager,
 	parameters::SynapseRouting const& parameters,
 	placement::results::Placement const& neuron_placement,
 	results::L1Routing const& l1_routing,
-	boost::shared_ptr<SynapseLoss> const& synapse_loss)
+	boost::shared_ptr<SynapseLoss> const& synapse_loss,
+	results::SynapseRouting& result)
 	: m_hicann(hicann),
 	  m_bio_graph(bio_graph),
 	  m_hardware(hardware),
@@ -51,7 +52,8 @@ SynapseRouting::SynapseRouting(
 	  m_parameters(parameters),
 	  m_neuron_placement(neuron_placement),
 	  m_l1_routing(l1_routing),
-	  m_synapse_loss(synapse_loss)
+	  m_synapse_loss(synapse_loss),
+	  m_result(result)
 {
 }
 
@@ -64,15 +66,16 @@ void SynapseRouting::run()
 	tagDefectSynapses();
 
 	// mapping of synapse targets (excitatory, inhibitory) to synaptic inputs of denmems
-	SynapseTargetMapping& syn_tgt_mapping = m_result.synapse_target_mapping;
+	results::SynapticInputs& synaptic_inputs = m_result[m_hicann].synaptic_inputs();
 
-	syn_tgt_mapping.simple_mapping(m_hicann, m_neuron_placement, m_bio_graph.graph());
-	assert(syn_tgt_mapping.check_top_and_bottom_are_equal());
-	MAROCCO_DEBUG("SynapseTargetMapping:\n" << syn_tgt_mapping);
+	internal::SynapseTargetMapping::simple_mapping(
+		m_hicann, m_neuron_placement, m_bio_graph.graph(), synaptic_inputs);
+	assert(synaptic_inputs.is_horizontally_symmetrical());
+	MAROCCO_DEBUG("SynapticInputs:\n" << synaptic_inputs);
 
 	MAROCCO_INFO("calc synapse driver requirements for hicann " << m_hicann);
 
-	SynapseDriverRequirements drivers_required(m_hicann, m_neuron_placement, syn_tgt_mapping);
+	SynapseDriverRequirements drivers_required(m_hicann, m_neuron_placement, synaptic_inputs);
 
 	// Helper to handle synapse loss for whole routes.
 	HandleSynapseLoss handle_synapse_loss(
@@ -202,29 +205,22 @@ void SynapseRouting::run()
 			HICANNOnWafer const route_source_hicann = route.source_hicann();
 			assert(route_item.target() == m_hicann);
 			MAROCCO_TRACE(
-			    "======================================================================"
+			    "======================================================================\n"
 			    "route from "
 			    << route_source_merger << " to " << route.back() << " on "
 			    << route.target_hicann());
 
 			SynapseManager::SynapsesOnVLine synapses_on_vline =
 				syn_manager.getSynapses(vline, synapse_type_to_synapse_columns_map);
+			syn_manager.check(chain_length);
 
 			////////////////////////////////////////
 			// S T O R E   D R I V E R   C O N F I G
 			////////////////////////////////////////
 
-			// generate routing result for the current route
-			DriverResult driver_res(vline);
-
-			// first insert primary and adjacent drivers
-			for (auto const& connected_drivers : entry.second) {
-				auto const& drivers = connected_drivers.drivers();
-				driver_res.drivers()[connected_drivers.primary_driver()].assign(
-					drivers.begin(), drivers.end());
+			for (results::ConnectedSynapseDrivers const& connected_drivers : entry.second) {
+				m_result[m_hicann].add_synapse_switch(vline, connected_drivers);
 			}
-
-			syn_manager.check(chain_length);
 
 			// insert synapse row configuration
 			auto const& hw_prop_to_syn_row_assignment = syn_manager.get(vline);
@@ -240,42 +236,36 @@ void SynapseRouting::run()
 				DriverDecoder decoder;
 				STPMode stp;
 				std::tie(side, parity, decoder, stp) = item.first;
+				SynapticInputOnNeuron synaptic_input(side);
 
-				for(auto const& row : rows)
-				{
-					{
-						// set stp
+				if (m_parameters.only_allow_background_events()) {
+					decoder = DriverDecoder(0);
+				}
+
+				for (auto const& row : rows) {
+					{ // set stp mode
 						SynapseDriverOnHICANN const driver = row.toSynapseDriverOnHICANN();
-						auto it_stp = driver_res.stp_settings().find(driver);
-						// it there already exists a config, check for equality
-						// otherwise insert it
-						if (it_stp != driver_res.stp_settings().end()) {
-							if (it_stp->second != stp)
+						// if there already exists a config, check for equality
+						if (m_result[m_hicann].has(driver)) {
+							if (m_result[m_hicann][driver].stp_mode() != stp) {
 								throw std::runtime_error(
-									"different stp settings requested on one synapse driver");
-						} else {
-							driver_res.stp_settings()[driver] = stp;
+								    "different stp settings requested on one synapse driver");
+							}
 						}
+						m_result[m_hicann][driver].set_stp_mode(stp);
 					}
 
-					{
-						// side and decoder
-						// it there already exists a SynapseRowSource config, check for equality of
-						// side
-						// otherwise insert it
-						auto it = driver_res.rows().find(row);
-						if (it != driver_res.rows().end()) {
-							if (it->second.synaptic_input() != side)
+					{ // set synaptic input and L1 address decoder mask
+						if (m_result[m_hicann].has(row)) {
+							if (m_result[m_hicann][row].synaptic_input() != synaptic_input) {
 								throw std::runtime_error(
-									"different synaptic input side settings "
-									"requested on one synapse row");
-						} else {
-							std::tie(it, std::ignore) = driver_res.rows().insert(
-								std::make_pair(row, SynapseRowSource(side)));
+								    "different synaptic input side settings "
+								    "requested on one synapse row");
+							}
 						}
-						it->second.prefix(static_cast<size_t>(parity)) =
-							m_parameters.only_allow_background_events() ? DriverDecoder(0)
-							                                            : decoder;
+						auto& row_config = m_result[m_hicann][row];
+						row_config.set_synaptic_input(synaptic_input);
+						row_config.set_address(parity, decoder);
 					}
 				}
 			}
@@ -403,17 +393,13 @@ void SynapseRouting::run()
 							syn_loss_proxy.addRealized();
 
 							// store synapse mapping
-							auto it = driver_res.rows().find(syn_addr.toSynapseRowOnHICANN());
-							assert(it != driver_res.rows().end());
-							it->second.synapses().at(syn_addr.toSynapseColumnOnHICANN()) =
-							    SynapseSource(
-							        proj_view, src_neuron_in_proj_view, trg_neuron_in_proj_view);
+							m_result.synapses().add(
+								proj_item.projection(), source_item.bio_neuron(),
+								target_item.bio_neuron(), SynapseOnWafer(syn_addr, m_hicann));
 						}
 					}
 				}
 			}
-
-			m_result.driver_result.push_back(std::move(driver_res));
 		} // synapse driver assignments
 
 		MAROCCO_DEBUG(syn_manager); // print row usage stats
@@ -421,16 +407,6 @@ void SynapseRouting::run()
 	} // left/right driver bank
 
 	disableDefectSynapes();
-}
-
-SynapseRouting::Result const& SynapseRouting::getResult() const
-{
-	return m_result;
-}
-
-SynapseRouting::Result& SynapseRouting::getResult()
-{
-	return m_result;
 }
 
 void SynapseRouting::invalidateSynapseDecoder()

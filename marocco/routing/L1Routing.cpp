@@ -6,6 +6,8 @@
 #include "marocco/routing/L1BackboneRouter.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/routing/VLineUsage.h"
+#include "marocco/routing/internal/SynapseTargetMapping.h"
+#include "marocco/routing/results/SynapticInputs.h"
 #include "marocco/util/algorithm.h"
 
 using namespace HMF::Coordinate;
@@ -123,9 +125,9 @@ L1Routing::targets_for_source(DNCMergerOnWafer const& merger) const
 	for (auto it = result.begin(), eit = result.end(); it != eit;) {
 		// TODO(#1594): determination whether route has synapes to target does not
 		// need to count the total number of synapses.
-		SynapseTargetMapping syn_tgt_mapping;
-		syn_tgt_mapping.simple_mapping(it->first, m_neuron_placement, graph);
-		SynapseDriverRequirements requirements(it->first, m_neuron_placement, syn_tgt_mapping);
+		results::SynapticInputs synaptic_inputs;
+		internal::SynapseTargetMapping::simple_mapping(it->first, m_neuron_placement, graph, synaptic_inputs);
+		SynapseDriverRequirements requirements(it->first, m_neuron_placement, synaptic_inputs);
 		auto const num = requirements.calc(merger, graph);
 
 		if (num.first == 0u) {
