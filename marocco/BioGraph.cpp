@@ -50,14 +50,14 @@ auto BioGraph::graph() const -> graph_type const&
 	return m_graph;
 }
 
-size_t BioGraph::edge_to_id(edge_descriptor const& edge) const
+routing::results::Edge BioGraph::edge_to_id(edge_descriptor const& edge) const
 {
-	return m_edges.left.at(edge);
+	return routing::results::Edge(m_edges.left.at(edge));
 }
 
-auto BioGraph::edge_from_id(size_t const id) const -> edge_descriptor
+auto BioGraph::edge_from_id(routing::results::Edge const& id) const -> edge_descriptor
 {
-	return m_edges.right.at(id);
+	return m_edges.right.at(id.value());
 }
 
 void BioGraph::write_graphviz(std::string const& filename) const

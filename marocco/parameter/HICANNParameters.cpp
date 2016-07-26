@@ -251,7 +251,7 @@ void HICANNParameters::synapses(synapse_row_calib_type const& calib)
 			auto const synapse = item.hardware_synapse();
 			assert(synapse != boost::none);
 
-			auto const edge = m_bio_graph.edge_from_id(item.projection());
+			auto const edge = m_bio_graph.edge_from_id(item.edge());
 			auto const& proj_view = m_bio_graph.graph()[edge];
 
 			size_t const src_neuron_in_proj_view = routing::to_relative_index(

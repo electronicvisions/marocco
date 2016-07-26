@@ -19,6 +19,10 @@ def _patch_methods():
                 # Convert PyID to BioNeuron coordinate.
                 if isinstance(arg, pyhmf.PyID):
                     return coordinates.BioNeuron(arg)
+
+                # Convert Projection to euter id.
+                if isinstance(arg, pyhmf.Projection):
+                    return arg.euter_id()
                 return arg
 
             args = [convert(v) for v in args]

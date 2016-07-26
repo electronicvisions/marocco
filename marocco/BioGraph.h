@@ -17,6 +17,7 @@ class ProjectionView {};
 #endif // !PYPLUSPLUS
 
 #include "marocco/util/iterable.h"
+#include "marocco/routing/results/Edge.h"
 
 namespace marocco {
 
@@ -51,9 +52,9 @@ public:
 	graph_type& graph();
 	graph_type const& graph() const;
 
-	size_t edge_to_id(edge_descriptor const& edge) const;
+	routing::results::Edge edge_to_id(edge_descriptor const& edge) const;
 
-	edge_descriptor edge_from_id(size_t id) const;
+	edge_descriptor edge_from_id(routing::results::Edge const& id) const;
 
 	/**
 	 * @brief Export graph in graphviz format.

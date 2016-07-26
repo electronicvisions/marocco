@@ -10,6 +10,7 @@
 #include "hal/Coordinate/L1.h"
 
 #include "marocco/coordinates/L1Route.h"
+#include "marocco/routing/results/Edge.h"
 #include "marocco/util/iterable.h"
 
 namespace boost {
@@ -25,15 +26,7 @@ namespace results {
 class L1Routing {
 public:
 	typedef size_t vertex_descriptor;
-	/**
-	 * @brief ID of edge in bio graph, used to implement lookup by projection.
-	 * @attention This does not correspond to the euter ID of the projection, as
-	 *            projections are flattened into projection views by marocco.  Each edge
-	 *            in the bio graph corresponds to one such projection view and has a
-	 *            unique ID.  Thus multiple edge IDs may correspond to the same euter
-	 *            projection ID.
-	 * @todo Implement lookup by euter ID for pynn access.
-	 */
+	typedef Edge edge_type;
 	typedef size_t projection_type;
 	typedef HMF::Coordinate::DNCMergerOnWafer source_type;
 	typedef HMF::Coordinate::HICANNOnWafer target_type;
@@ -80,13 +73,16 @@ public:
 		projection_item_type(
 			source_type const& source,
 			target_type const& target,
+			edge_type const& edge,
 			projection_type const& projection);
 
+		edge_type const& edge() const;
 		projection_type const& projection() const;
 		source_type const& source() const;
 		target_type const& target() const;
 
 	private:
+		edge_type m_edge;
 		projection_type m_projection;
 		source_type m_source;
 		target_type m_target;
@@ -124,8 +120,8 @@ public:
 				boost::multi_index::composite_key<
 					projection_item_type,
 					boost::multi_index::const_mem_fun<projection_item_type,
-					                                  projection_type const&,
-					                                  &projection_item_type::projection>,
+					                                  edge_type const&,
+					                                  &projection_item_type::edge>,
 					boost::multi_index::const_mem_fun<projection_item_type,
 					                                  source_type const&,
 					                                  &projection_item_type::source>,
@@ -143,6 +139,11 @@ public:
 					                                  target_type const&,
 					                                  &projection_item_type::target> > >,
 			boost::multi_index::hashed_non_unique<
+				boost::multi_index::tag<edge_type>,
+				boost::multi_index::const_mem_fun<projection_item_type,
+				                                  edge_type const&,
+				                                  &projection_item_type::edge> >,
+			boost::multi_index::hashed_non_unique<
 				boost::multi_index::tag<projection_type>,
 				boost::multi_index::const_mem_fun<projection_item_type,
 				                                  projection_type const&,
@@ -151,13 +152,18 @@ public:
 	typedef routes_type::index<source_and_target_type>::type routes_by_projection_type;
 	typedef routes_type::index<source_type>::type routes_by_source_type;
 	typedef routes_type::index<target_type>::type routes_by_target_type;
+	typedef projections_type::index<edge_type>::type projections_by_edge_type;
 	typedef projections_type::index<projection_type>::type projections_by_projection_type;
 	typedef projections_type::index<source_and_target_type>::type projections_by_route_type;
 	typedef routes_type::iterator iterator;
 	typedef routes_type::iterator const_iterator;
 
 	route_item_type const& add(L1Route const& route, target_type const& target);
-	projection_item_type const& add(route_item_type const& route, projection_type const& projection);
+	projection_item_type const& add(
+		route_item_type const& route, edge_type const& edge, projection_type const& projection);
+
+	iterable<projections_by_edge_type::iterator> find_projections(
+		edge_type const& edge) const;
 
 	/**
 	 * @brief Return all projection items corresponding to this euter projection id.
@@ -165,7 +171,7 @@ public:
 	 * may be returned here.
 	 */
 	iterable<projections_by_projection_type::iterator> find_projections(
-		projection_type projection) const;
+		projection_type const& projection) const;
 
 	iterable<projections_by_route_type::iterator> find_projections(
 		route_item_type const& route) const;
@@ -198,6 +204,7 @@ private:
 	void serialize(Archiver& ar, const unsigned int /* version */);
 }; // L1Routing
 
+PYPP_INSTANTIATE(iterable<L1Routing::projections_by_edge_type::iterator>)
 PYPP_INSTANTIATE(iterable<L1Routing::projections_by_projection_type::iterator>)
 PYPP_INSTANTIATE(iterable<L1Routing::projections_by_route_type::iterator>)
 PYPP_INSTANTIATE(iterable<L1Routing::routes_by_projection_type::iterator>)

@@ -226,6 +226,81 @@ class TestResults(utils.TestWithResults):
                 items[0].hardware_synapse().toNeuronOnWafer(),
                 list(target_item.logical_neuron()))
 
+            # Should also work if we explicitly specify the projection.
+            items = synapses.find(proj, neuron, target[0])
+            self.assertTrue(isinstance(items, list))
+            self.assertEqual(1, len(items))
+            self.assertIn(
+                items[0].hardware_synapse().toNeuronOnWafer(),
+                list(target_item.logical_neuron()))
+
+            # There should be no results for the wrong direction.
+            items = synapses.find(target[0], neuron)
+            self.assertTrue(isinstance(items, list))
+            self.assertEqual(0, len(items))
+
+        # Return all synapses that represent the given projection.
+        items = synapses.find(proj)
+        self.assertTrue(isinstance(items, list))
+        self.assertEqual(2, len(items))
+
+    def test_projections(self):
+        pynn.setup(marocco=self.marocco)
+
+        target = pynn.Population(1, pynn.IF_cond_exp, {})
+        pop_a = pynn.Population(
+            2, pynn.SpikeSourceArray, {'spike_times': [1.]})
+        pop_b = pynn.Population(
+            1, pynn.SpikeSourceArray, {'spike_times': [2.]})
+        pop_ab = pynn.Assembly()
+        pop_ab += pop_a
+        pop_ab += pop_b
+
+        con = pynn.AllToAllConnector(weights=0.004)
+        proj_a = pynn.Projection(pop_a, target, con)
+        proj_b = pynn.Projection(pop_b, target, con)
+        proj_ab = pynn.Projection(pop_ab, target, con)
+
+        pynn.run(0)
+        pynn.end()
+
+        results = self.load_results()
+        synapses = results.synapse_routing.synapses()
+
+        items_a = synapses.find(proj_a)
+        self.assertEqual(2, len(items_a))
+
+        items_b = synapses.find(proj_b)
+        self.assertEqual(1, len(items_b))
+
+        items_ab = synapses.find(proj_ab)
+        self.assertEqual(3, len(items_ab))
+
+        def to_hw_synapses(items):
+            hw_synapses = set()
+            for item in items:
+                synapse = item.hardware_synapse()
+                if synapse:
+                    hw_synapses.add(synapse)
+            return hw_synapses
+
+        hw_a = to_hw_synapses(items_a)
+        hw_b = to_hw_synapses(items_b)
+        hw_ab = to_hw_synapses(items_ab)
+        self.assertTrue(hw_a.isdisjoint(hw_b))
+        self.assertTrue(hw_a.isdisjoint(hw_ab))
+        self.assertTrue(hw_b.isdisjoint(hw_ab))
+
+        for source_neuron in pop_a:
+            items = synapses.find(proj_ab, source_neuron, target[0])
+            self.assertEqual(1, len(items))
+            self.assertTrue(hw_ab.issuperset(to_hw_synapses(items)))
+
+        for source_neuron in pop_b:
+            items = synapses.find(proj_ab, source_neuron, target[0])
+            self.assertEqual(1, len(items))
+            self.assertTrue(hw_ab.issuperset(to_hw_synapses(items)))
+
 
 if __name__ == '__main__':
     unittest.main()

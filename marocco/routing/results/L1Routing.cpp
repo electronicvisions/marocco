@@ -62,9 +62,17 @@ L1Routing::projection_item_type::projection_item_type()
 }
 
 L1Routing::projection_item_type::projection_item_type(
-	source_type const& source, target_type const& target, projection_type const& projection)
-	: m_projection(projection), m_source(source), m_target(target)
+	source_type const& source,
+	target_type const& target,
+	edge_type const& edge,
+	projection_type const& projection)
+	: m_edge(edge), m_projection(projection), m_source(source), m_target(target)
 {
+}
+
+auto L1Routing::projection_item_type::edge() const -> edge_type const&
+{
+	return m_edge;
 }
 
 auto L1Routing::projection_item_type::projection() const -> projection_type const&
@@ -91,18 +99,25 @@ auto L1Routing::add(L1Route const& route, target_type const& target) -> route_it
 	return *(res.first);
 }
 
-auto L1Routing::add(route_item_type const& route, projection_type const& projection)
+auto L1Routing::add(
+	route_item_type const& route, edge_type const& edge, projection_type const& projection)
 	-> projection_item_type const&
 {
-	auto const res =
-		m_projections.insert(projection_item_type(route.source(), route.target(), projection));
+	auto const res = m_projections.insert(
+		projection_item_type(route.source(), route.target(), edge, projection));
 	if (!res.second) {
 		throw std::runtime_error("conflicting projection when adding L1 routing result");
 	}
 	return *(res.first);
 }
 
-auto L1Routing::find_projections(projection_type projection) const
+auto L1Routing::find_projections(edge_type const& edge) const
+	-> iterable<projections_by_edge_type::iterator>
+{
+	return make_iterable(get<edge_type>(m_projections).equal_range(edge));
+}
+
+auto L1Routing::find_projections(projection_type const& projection) const
 	-> iterable<projections_by_projection_type::iterator>
 {
 	return make_iterable(get<projection_type>(m_projections).equal_range(projection));
@@ -170,7 +185,8 @@ void L1Routing::projection_item_type::serialize(Archiver& ar, const unsigned int
 {
 	using namespace boost::serialization;
 	// clang-format off
-	ar & make_nvp("projection", m_projection)
+	ar & make_nvp("edge", m_edge)
+	   & make_nvp("projection", m_projection)
 	   & make_nvp("source", m_source)
 	   & make_nvp("target", m_target);
 	// clang-format on

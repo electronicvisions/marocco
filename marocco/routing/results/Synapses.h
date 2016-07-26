@@ -11,6 +11,7 @@
 #include "hal/Coordinate/Synapse.h"
 
 #include "marocco/coordinates/BioNeuron.h"
+#include "marocco/routing/results/Edge.h"
 #include "marocco/util/iterable.h"
 
 namespace boost {
@@ -25,6 +26,7 @@ namespace results {
 
 class Synapses {
 public:
+	typedef Edge edge_type;
 	typedef size_t projection_type;
 	typedef HMF::Coordinate::SynapseOnWafer hardware_synapse_type;
 	typedef boost::optional<hardware_synapse_type> optional_hardware_synapse_type;
@@ -50,22 +52,26 @@ public:
 		 * @param projection Euter ID of biological projection.
 		 */
 		item_type(
-			projection_type projection,
+			edge_type const& edge,
+			projection_type const& projection,
 			BioNeuron const& source_neuron,
 			BioNeuron const& target_neuron,
 			hardware_synapse_type const& hardware_synapse);
 
 		item_type(
-			projection_type projection,
+			edge_type const& edge,
+			projection_type const& projection,
 			BioNeuron const& source_neuron,
 			BioNeuron const& target_neuron);
 
-		projection_type projection() const;
+		edge_type const& edge() const;
+		projection_type const& projection() const;
 		BioNeuron const& source_neuron() const;
 		BioNeuron const& target_neuron() const;
 		optional_hardware_synapse_type const& hardware_synapse() const;
 
 	private:
+		edge_type m_edge;
 		projection_type m_projection;
 		BioNeuron m_source_neuron;
 		BioNeuron m_target_neuron;
@@ -88,10 +94,14 @@ public:
 	                                              &item_type::hardware_synapse> >,
 	        boost::multi_index::hashed_non_unique<
 	            boost::multi_index::tag<projection_type>,
+	            boost::multi_index::
+	                const_mem_fun<item_type, projection_type const&, &item_type::projection> >,
+	        boost::multi_index::hashed_non_unique<
+	            boost::multi_index::tag<item_type>,
 	            boost::multi_index::composite_key<
 	                item_type,
 	                boost::multi_index::
-	                    const_mem_fun<item_type, projection_type, &item_type::projection>,
+	                    const_mem_fun<item_type, projection_type const&, &item_type::projection>,
 	                boost::multi_index::
 	                    const_mem_fun<item_type, BioNeuron const&, &item_type::source_neuron>,
 	                boost::multi_index::
@@ -107,21 +117,30 @@ public:
 	                                                  &item_type::target_neuron> > > > >
 	    container_type;
 	typedef container_type::index<BioNeuron>::type by_neurons_type;
-	typedef container_type::index<projection_type>::type by_projection_and_neurons_type;
+	typedef container_type::index<projection_type>::type by_projection_type;
+	typedef container_type::index<item_type>::type by_projection_and_neurons_type;
 	typedef container_type::index<hardware_synapse_type>::type by_hardware_synapse_type;
 	typedef container_type::iterator iterator;
 	typedef container_type::iterator const_iterator;
 
 	void add(
-		projection_type projection,
+		edge_type const& edge,
+		projection_type const& projection,
 		BioNeuron const& source_neuron,
 		BioNeuron const& target_neuron,
 		hardware_synapse_type const& hardware_synapse);
 
 	void add_unrealized_synapse(
-		projection_type projection,
+		edge_type const& edge,
+		projection_type const& projection,
 		BioNeuron const& source_neuron,
 		BioNeuron const& target_neuron);
+
+	/**
+	 * @brief Find all synapses belonging to the given projection.
+	 */
+	iterable<by_projection_type::iterator> find(
+		projection_type const& projection) const;
 
 	/**
 	 * @brief Find all synapses connecting the given bio neurons.
@@ -164,9 +183,10 @@ private:
 	void serialize(Archiver& ar, const unsigned int /* version */);
 }; // Synapses
 
+PYPP_INSTANTIATE(iterable<Synapses::by_hardware_synapse_type::iterator>)
 PYPP_INSTANTIATE(iterable<Synapses::by_neurons_type::iterator>)
 PYPP_INSTANTIATE(iterable<Synapses::by_projection_and_neurons_type::iterator>)
-PYPP_INSTANTIATE(iterable<Synapses::by_hardware_synapse_type::iterator>)
+PYPP_INSTANTIATE(iterable<Synapses::by_projection_type::iterator>)
 
 } // namespace results
 } // namespace routing

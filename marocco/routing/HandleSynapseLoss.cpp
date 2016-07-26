@@ -25,7 +25,7 @@ void HandleSynapseLoss::operator()(results::L1Routing::route_item_type const& ro
 	DNCMergerOnWafer const source_merger = route_item.source();
 	HICANNOnWafer const target_hicann = route_item.target();
 	for (auto const& proj_item : m_l1_routing.find_projections(route_item)) {
-		auto edge = m_bio_graph.edge_from_id(proj_item.projection());
+		auto edge = m_bio_graph.edge_from_id(proj_item.edge());
 		operator()(source_merger, target_hicann, edge);
 	}
 }

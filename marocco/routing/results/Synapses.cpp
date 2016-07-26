@@ -11,16 +11,18 @@ namespace routing {
 namespace results {
 
 Synapses::item_type::item_type()
-    : m_projection(0u), m_source_neuron(), m_target_neuron(), m_hardware_synapse()
+	: m_edge(), m_projection(0u), m_source_neuron(), m_target_neuron(), m_hardware_synapse()
 {
 }
 
 Synapses::item_type::item_type(
-	projection_type projection,
+	edge_type const& edge,
+	projection_type const& projection,
 	BioNeuron const& source_neuron,
 	BioNeuron const& target_neuron,
 	hardware_synapse_type const& hardware_synapse)
-	: m_projection(projection),
+	: m_edge(edge),
+	  m_projection(projection),
 	  m_source_neuron(source_neuron),
 	  m_target_neuron(target_neuron),
 	  m_hardware_synapse(hardware_synapse)
@@ -28,16 +30,23 @@ Synapses::item_type::item_type(
 }
 
 Synapses::item_type::item_type(
-	projection_type projection,
+	edge_type const& edge,
+	projection_type const& projection,
 	BioNeuron const& source_neuron,
 	BioNeuron const& target_neuron)
-	: m_projection(projection),
+	: m_edge(edge),
+	  m_projection(projection),
 	  m_source_neuron(source_neuron),
 	  m_target_neuron(target_neuron)
 {
 }
 
-auto Synapses::item_type::projection() const -> projection_type
+auto Synapses::item_type::edge() const -> edge_type const&
+{
+	return m_edge;
+}
+
+auto Synapses::item_type::projection() const -> projection_type const&
 {
 	return m_projection;
 }
@@ -58,7 +67,8 @@ auto Synapses::item_type::hardware_synapse() const -> optional_hardware_synapse_
 }
 
 void Synapses::add(
-	projection_type projection,
+	edge_type const& edge,
+	projection_type const& projection,
 	BioNeuron const& source_neuron,
 	BioNeuron const& target_neuron,
 	hardware_synapse_type const& hardware_synapse)
@@ -71,26 +81,28 @@ void Synapses::add(
 		throw std::runtime_error("hardware synapse already in use");
 	}
 
-	if (!m_container.insert(item_type(projection, source_neuron, target_neuron, hardware_synapse))
+	if (!m_container.insert(item_type(edge, projection, source_neuron, target_neuron, hardware_synapse))
 		.second) {
 		throw std::runtime_error("error when adding synapse routing result");
 	}
 }
 
 void Synapses::add_unrealized_synapse(
-	projection_type projection,
+	edge_type const& edge,
+	projection_type const& projection,
 	BioNeuron const& source_neuron,
 	BioNeuron const& target_neuron)
 {
 	// Check if this connection already has associated hardware synapses.
-	auto const& by_projection_and_neurons = get<projection_type>(m_container);
+	// FIXME: use edge instead of euter id?
+	auto const& by_projection_and_neurons = get<item_type>(m_container);
 	if (by_projection_and_neurons.find(
 			boost::make_tuple(projection, source_neuron, target_neuron)) !=
 		by_projection_and_neurons.end()) {
 		throw std::runtime_error("conflict when adding synapse loss");
 	}
 
-	if (!m_container.insert(item_type(projection, source_neuron, target_neuron)).second) {
+	if (!m_container.insert(item_type(edge, projection, source_neuron, target_neuron)).second) {
 		throw std::runtime_error("error when adding synapse loss");
 	}
 }
@@ -102,13 +114,19 @@ auto Synapses::find(BioNeuron const& source_neuron, BioNeuron const& target_neur
 		get<BioNeuron>(m_container).equal_range(boost::make_tuple(source_neuron, target_neuron)));
 }
 
+auto Synapses::find(projection_type const& projection) const
+	-> iterable<by_projection_type::iterator>
+{
+	return make_iterable(get<projection_type>(m_container).equal_range(projection));
+}
+
 auto Synapses::find(
 	projection_type projection,
 	BioNeuron const& source_neuron,
 	BioNeuron const& target_neuron) const -> iterable<by_projection_and_neurons_type::iterator>
 {
 	return make_iterable(
-		get<projection_type>(m_container)
+		get<item_type>(m_container)
 			.equal_range(boost::make_tuple(projection, source_neuron, target_neuron)));
 }
 

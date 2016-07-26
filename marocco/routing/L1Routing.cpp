@@ -239,8 +239,9 @@ bool L1Routing::store_result(
 	MAROCCO_TRACE("found route to " << request.target);
 	auto const route = with_dnc_merger_prefix(toL1Route(m_l1_graph.graph(), path), request.source);
 	auto const& item = m_result.add(route, request.target);
+	auto const& graph = m_bio_graph.graph();
 	for (auto const& edge : request.projections) {
-		m_result.add(item, m_bio_graph.edge_to_id(edge));
+		m_result.add(item, m_bio_graph.edge_to_id(edge), graph[edge].projection()->id());
 	}
 
 	return true;

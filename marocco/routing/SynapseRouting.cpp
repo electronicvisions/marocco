@@ -275,7 +275,7 @@ void SynapseRouting::run()
 			//////////////////////////////////
 
 			for (auto const& proj_item : m_l1_routing.find_projections(route_item)) {
-				auto const edge = m_bio_graph.edge_from_id(proj_item.projection());
+				auto const edge = m_bio_graph.edge_from_id(proj_item.edge());
 				auto const source = boost::source(edge, m_bio_graph.graph());
 				auto const target = boost::target(edge, m_bio_graph.graph());
 
@@ -394,6 +394,7 @@ void SynapseRouting::run()
 
 							// store synapse mapping
 							m_result.synapses().add(
+								results::Synapses::edge_type(proj_item.edge()),
 								proj_item.projection(), source_item.bio_neuron(),
 								target_item.bio_neuron(), SynapseOnWafer(syn_addr, m_hicann));
 						}
