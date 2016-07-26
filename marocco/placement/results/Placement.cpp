@@ -3,6 +3,9 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/optional.hpp>
 
+// definition of `hash_value(boost::optional<T> const&)` from lib-boost-patches (c/1573)
+#include "boost/optional/hash_value.tcc"
+
 using namespace HMF::Coordinate;
 using boost::multi_index::get;
 
