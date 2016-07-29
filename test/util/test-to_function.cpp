@@ -60,7 +60,7 @@ TEST(ToFunction, WorksForBindingMemFun)
 	auto f1 = to_function(&ClassWithMemberFuns::b, cl, _1);
 	ASSERT_TRUE(f1(42));
 	auto f2 = to_function(&ClassWithMemberFuns::b, &cl, _1);
-	ASSERT_FALSE(f2(2));
+	ASSERT_TRUE(f2(42));
 }
 
 } // namespace marocco

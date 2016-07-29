@@ -2,7 +2,7 @@ import copy, unittest, random
 import numpy as np
 from pymarocco import *
 from pyhalbe.Coordinate import *
-from pyhmf import *
+import pyhmf as pynn
 
 """
 This test is supposed to test the number of SynapseDrivers allocated for a
@@ -35,37 +35,37 @@ class TestSynapseRouting(unittest.TestCase):
 
     def test_TwoNeuron(self):
         if True:
-            setup(marocco=self.marocco)
+            pynn.setup(marocco=self.marocco)
 
             # create neuron with v_rest below v_thresh
-            target = Population(1, EIF_cond_exp_isfa_ista)
+            target = pynn.Population(1, pynn.EIF_cond_exp_isfa_ista)
 
             N = 16            # number of source populations
             NEURON_SIZE = 4   # default neuron size
 
             self.marocco.neuron_placement.default_neuron_size(NEURON_SIZE)
 
-            p = [ Population(1, EIF_cond_exp_isfa_ista) for i in range(N) ]
+            p = [ pynn.Population(1, pynn.EIF_cond_exp_isfa_ista) for i in range(N) ]
 
             # place target on HICANN 0
             target_chip = self.chip(0)
             self.marocco.manual_placement.on_hicann(target, target_chip)
 
-            connector = AllToAllConnector(
+            connector = pynn.AllToAllConnector(
                     allow_self_connections=True,
                     weights=1.)
 
 
             for pop in p:
-                proj = Projection(pop, target, connector, target='excitatory')
+                proj = pynn.Projection(pop, target, connector, target='excitatory')
 
                 # place source neuron
                 target_chip = self.chip(1)
                 self.marocco.manual_placement.on_hicann(pop, target_chip)
 
             # start simulation
-            run(10) # in ms
-            end()
+            pynn.run(10) # in ms
+            pynn.end()
 
             # expected number of needed SynapseDrivers is given by the number
             # of source neurons divided by half the neuron size (half the

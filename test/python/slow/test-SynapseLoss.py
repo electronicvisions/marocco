@@ -3,7 +3,7 @@ import numpy as np
 #from ester import Ester
 from pymarocco import *
 from pyhalbe.Coordinate import *
-from pyhmf import *
+import pyhmf as pynn
 
 import pylogging, pyhalbe
 pyhalbe.Debug.change_loglevel(0)
@@ -17,7 +17,7 @@ class TestSynapseLoss(unittest.TestCase):
         self.marocco.neuron_placement.default_neuron_size(2)
 
     def tearDown(self):
-        reset() # pynn reset
+        pynn.reset() # pynn reset
         del self.marocco
 
     def test_Normal(self):
@@ -41,7 +41,7 @@ class TestSynapseLoss(unittest.TestCase):
         self.assertEqual(synapses, stats.getSynapseLoss()+stats.getSynapsesSet())
 
     def big_network(self):
-        setup(marocco=self.marocco)
+        pynn.setup(marocco=self.marocco)
 
         synapses = 0
         numberOfPopulations = random.randint(100, 150)
@@ -51,36 +51,36 @@ class TestSynapseLoss(unittest.TestCase):
         # FIXME: spuouriously fails, why?
         #pops = [ Population(random.randint(50, 85), EIF_cond_exp_isfa_ista) for x in
                 #range(numberOfPopulations) ]
-        pops = [ Population(80, EIF_cond_exp_isfa_ista) for x in
+        pops = [ pynn.Population(80, pynn.EIF_cond_exp_isfa_ista) for x in
                 range(numberOfPopulations) ]
 
         for idx, pop in enumerate(pops):
 
-            connectorE = FixedProbabilityConnector(
+            connectorE = pynn.FixedProbabilityConnector(
                     p_connect=0.20,
                     allow_self_connections=True,
                     weights=1.)
 
-            connectorI = FixedProbabilityConnector(
+            connectorI = pynn.FixedProbabilityConnector(
                     p_connect=0.10,
                     allow_self_connections=True,
                     weights=1.)
 
             # build ring like network topology
-            proj = Projection(pop, pops[(idx+1)%len(pops)], connectorE, target='excitatory')
+            proj = pynn.Projection(pop, pops[(idx+1)%len(pops)], connectorE, target='excitatory')
             synapses += np.count_nonzero(proj.getWeights())
 
-            proj = Projection(pop, pops[(idx+1)%len(pops)], connectorI, target='inhibitory')
+            proj = pynn.Projection(pop, pops[(idx+1)%len(pops)], connectorI, target='inhibitory')
             synapses += np.count_nonzero(proj.getWeights())
 
             # add poisson stimulus
-            source = Population(1, SpikeSourcePoisson, {'rate' : 2})
+            source = pynn.Population(1, pynn.SpikeSourcePoisson, {'rate' : 2})
 
-            proj = Projection(source, pop, connectorE, target='excitatory')
+            proj = pynn.Projection(source, pop, connectorE, target='excitatory')
             synapses += np.count_nonzero(proj.getWeights())
 
-        run(100)
-        end()
+        pynn.run(100)
+        pynn.end()
 
         logging.debug("synapses counted in python: ", synapses)
         return synapses

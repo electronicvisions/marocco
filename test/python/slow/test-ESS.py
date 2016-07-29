@@ -1,7 +1,7 @@
 import copy, unittest, random
 from pymarocco import *
 from pyhalbe.Coordinate import *
-from pyhmf import *
+import pyhmf as pynn
 
 class TestESS(unittest.TestCase):
 
@@ -23,10 +23,10 @@ class TestESS(unittest.TestCase):
 
     def test_TwoNeuron(self):
         if True:
-            setup(marocco=self.marocco)
+            pynn.setup(marocco=self.marocco)
 
             # create neuron with v_rest below v_thresh
-            source = Population(1, EIF_cond_exp_isfa_ista, {
+            source = pynn.Population(1, pynn.EIF_cond_exp_isfa_ista, {
                      'v_rest': -50.,
                      'v_thresh': -60.,
                      'v_reset': -70.6,
@@ -34,7 +34,7 @@ class TestESS(unittest.TestCase):
 
             N = 8 # number of target populations
 
-            p = [ Population(1, EIF_cond_exp_isfa_ista) for i in range(N) ]
+            p = [ pynn.Population(1, pynn.EIF_cond_exp_isfa_ista) for i in range(N) ]
 
             # place source on HICANN 0
             source_hicann = self.chip(0)
@@ -49,20 +49,20 @@ class TestESS(unittest.TestCase):
                 self.marocco.manual_placement.on_hicann(pop, hicann)
                 print pop, hicann
 
-            connector = AllToAllConnector(
+            connector = pynn.AllToAllConnector(
                     allow_self_connections=True,
                     weights=1.)
 
             store = []
             # connect source to targets
             for trg in p:
-                proj = Projection(source, trg, connector, target='excitatory')
+                proj = pynn.Projection(source, trg, connector, target='excitatory')
                 weights = copy.deepcopy(proj.getWeights())
                 store.append((proj, weights))
 
             # start simulation
-            run(10) # in ms
-            end()
+            pynn.run(10) # in ms
+            pynn.end()
 
             # make sure we have no synapse loss
             self.assertEqual(0, self.marocco.stats.getSynapseLoss())

@@ -1,7 +1,7 @@
 import unittest, random, exceptions
 from pymarocco import *
 from pyhalbe.Coordinate import *
-from pyhmf import *
+import pyhmf as pynn
 
 class TestPyMarocco(unittest.TestCase):
 
@@ -13,15 +13,15 @@ class TestPyMarocco(unittest.TestCase):
 
         pops = []
         for ii in range(N):
-            p = Population(random.randint(1, 10), EIF_cond_exp_isfa_ista)
+            p = pynn.Population(random.randint(1, 10), pynn.EIF_cond_exp_isfa_ista)
             marocco.manual_placement.on_hicann(p, HICANNOnWafer())
             pops.append(p)
 
-        connector = AllToAllConnector(
+        connector = pynn.AllToAllConnector(
                 allow_self_connections=True,
                 weights=1.)
 
-        proj = Projection(pops[0], pops[1], connector, target='excitatory')
+        proj = pynn.Projection(pops[0], pops[1], connector, target='excitatory')
 
         with self.assertRaises(exceptions.IndexError) as e:
             marocco.stats.getWeights(proj)

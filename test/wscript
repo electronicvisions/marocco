@@ -25,6 +25,7 @@ def build(bld):
         test_main       = 'main.cpp',
         source          = bld.path.ant_glob('**/test-*.cpp', excl=['coordinates/**/*']),
         install_path    = os.path.join('bin', 'tests'),
+        test_timeout    = 60,
         use             = [
             'marocco',
             'sthal_inc',
@@ -52,6 +53,7 @@ def build(bld):
     bld(target='marocco-pytest-quick',
         features='pytest',
         tests=bld.path.ant_glob('python/quick/test*.py'),
+        test_timeout=60,
         use=['pyhmf', 'marocco', 'pymarocco', 'pysthal'])
 
     bld(target='marocco-pytest-slow',
@@ -59,14 +61,6 @@ def build(bld):
         tests=bld.path.ant_glob('python/slow/test*.py'),
         test_timeout=180,
         use=['pyhmf', 'marocco', 'pymarocco', 'pysthal'])
-
-    bld(tests           = [
-            'test-scaling.py'
-            ],
-        disable         = True , # don't run automatically, but with `--test-execall`
-        features        = 'pytest',
-        use             = ['marocco', 'pymarocco'],
-        install_path    = os.path.join('bin', 'tests'))
 
     from waflib.extras.gtest import summary
     bld.add_post_fun(summary)
