@@ -67,29 +67,29 @@ MergerTreeGraph::MergerTreeGraph() : m_graph()
 
 auto MergerTreeGraph::operator[](DNCMergerOnHICANN const& merger) const -> vertex_descriptor
 {
-	return {merger.value()};
+	return vertex_descriptor(merger.value());
 }
 
 auto MergerTreeGraph::operator[](Merger3OnHICANN const& merger) const -> vertex_descriptor
 {
-	return {DNCMergerOnHICANN::size + merger.value()};
+	return vertex_descriptor(DNCMergerOnHICANN::size + merger.value());
 }
 
 auto MergerTreeGraph::operator[](Merger2OnHICANN const& merger) const -> vertex_descriptor
 {
-	return {DNCMergerOnHICANN::size + Merger3OnHICANN::size + merger.value()};
+	return vertex_descriptor(DNCMergerOnHICANN::size + Merger3OnHICANN::size + merger.value());
 }
 
 auto MergerTreeGraph::operator[](Merger1OnHICANN const& merger) const -> vertex_descriptor
 {
-	return {DNCMergerOnHICANN::size + Merger3OnHICANN::size + Merger2OnHICANN::size +
-	        merger.value()};
+	return vertex_descriptor(DNCMergerOnHICANN::size + Merger3OnHICANN::size + Merger2OnHICANN::size +
+			merger.value());
 }
 
 auto MergerTreeGraph::operator[](Merger0OnHICANN const& merger) const -> vertex_descriptor
 {
-	return {DNCMergerOnHICANN::size + Merger3OnHICANN::size + Merger2OnHICANN::size +
-	        Merger1OnHICANN::size + merger.value()};
+	return vertex_descriptor(DNCMergerOnHICANN::size + Merger3OnHICANN::size + Merger2OnHICANN::size +
+			Merger1OnHICANN::size + merger.value());
 }
 
 auto MergerTreeGraph::graph() -> graph_type&

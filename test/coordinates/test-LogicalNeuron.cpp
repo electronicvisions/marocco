@@ -13,7 +13,7 @@ using namespace HMF::Coordinate;
 TEST(LogicalNeuron, checksOverlap)
 {
 	typedef NeuronOnNeuronBlock N;
-	NeuronBlockOnWafer nb;
+	NeuronBlockOnWafer const nb{};
 
 	EXPECT_ANY_THROW({ LogicalNeuron::on(nb).add(N(X(0), Y(0)), 3).add(N(X(1), Y(0)), 3).done(); })
 		<< "Second chunk lies within first chunk.";
@@ -28,7 +28,7 @@ TEST(LogicalNeuron, checksOverlap)
 TEST(LogicalNeuron, checksSize)
 {
 	typedef NeuronOnNeuronBlock N;
-	NeuronBlockOnWafer nb;
+	NeuronBlockOnWafer const nb{};
 
 	EXPECT_ANY_THROW({ LogicalNeuron::on(nb).done(); })
 		<< "No chunks.";
@@ -40,7 +40,7 @@ TEST(LogicalNeuron, checksSize)
 TEST(LogicalNeuron, checksConnectedness)
 {
 	typedef NeuronOnNeuronBlock N;
-	NeuronBlockOnWafer nb;
+	NeuronBlockOnWafer const nb{};
 
 	EXPECT_ANY_THROW({
 		// |###  ###
@@ -166,7 +166,7 @@ TEST(LogicalNeuron, checksConnectedness)
 TEST(LogicalNeuron, backInserter)
 {
 	typedef NeuronOnNeuronBlock N;
-	NeuronBlockOnWafer nb;
+	NeuronBlockOnWafer const nb{};
 	auto builder = LogicalNeuron::on(nb);
 	std::vector<LogicalNeuron::chunk_type> chunks{std::make_pair(N(X(0), Y(0)), 8),
 	                                              std::make_pair(N(X(2), Y(1)), 4)};
@@ -177,7 +177,7 @@ TEST(LogicalNeuron, backInserter)
 
 TEST(LogicalNeuron, canBeIterated)
 {
-	NeuronBlockOnWafer const nb;
+	NeuronBlockOnWafer const nb{};
 	auto logical_neuron = LogicalNeuron::on(nb)
 		.add(NeuronOnNeuronBlock(X(0), Y(0)), 3)
 		.add(NeuronOnNeuronBlock(X(5), Y(0)), 3)
@@ -205,7 +205,7 @@ TEST(LogicalNeuron, hasFrontAndBack)
 	EXPECT_ANY_THROW(LogicalNeuron::external(42).front());
 	EXPECT_ANY_THROW(LogicalNeuron::external(42).back());
 
-	NeuronBlockOnWafer const nb;
+	NeuronBlockOnWafer const nb{};
 	auto const logical_neuron = LogicalNeuron::on(nb)
 		.add(NeuronOnNeuronBlock(X(0), Y(0)), 3)
 		.add(NeuronOnNeuronBlock(X(5), Y(0)), 3)
@@ -219,7 +219,7 @@ TEST(LogicalNeuron, hasFrontAndBack)
 TEST(LogicalNeuron, canBeCheckedForRectangularity)
 {
 	typedef NeuronOnNeuronBlock N;
-	NeuronBlockOnWafer nb;
+	NeuronBlockOnWafer const nb{};
 
 	auto nrn = LogicalNeuron::external(42);
 	EXPECT_ANY_THROW(nrn.is_rectangular());

@@ -27,8 +27,8 @@ public:
 	}
 
 	float angle(T const& val) const {
-		constexpr float cos = std::cos(-M_PI/4.);
-		constexpr float sin = std::sin(-M_PI/4.);
+		static const float cos = std::cos(-M_PI/4.);
+		static const float sin = std::sin(-M_PI/4.);
 		float x_ = x(val) * cos - y(val) * sin;
 		float y_ = x(val) * sin + y(val) * cos;
 

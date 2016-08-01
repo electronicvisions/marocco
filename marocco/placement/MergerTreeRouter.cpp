@@ -160,7 +160,7 @@ MergerTreeRouter::mergeable(
 
 	// to the LEFT
 	for (int pos = main_nb.value() - 1; pos >= 0; --pos) {
-		NeuronBlockOnHICANN const nb{size_t(pos)};
+		NeuronBlockOnHICANN const nb{NeuronBlockOnHICANN::value_type(pos)};
 		if (bio_neurons_count + m_neurons[nb] <= internal::L1AddressPool::capacity() && merge(nb)) {
 			bio_neurons_count += m_neurons[nb];
 		} else {

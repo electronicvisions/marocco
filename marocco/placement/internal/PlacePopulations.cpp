@@ -47,7 +47,7 @@ void PlacePopulations::sort_neuron_blocks()
 	// in descending order but nevertheless processed small-to-big.
 	// If neuron blocks on the same HICANN have the same size, they shall be processed from left to
 	// right. Therefore, these neuron blocks are sorted from right to left.
-	const spiral_ordering<HICANNOnWafer> ordering;
+	spiral_ordering<HICANNOnWafer> ordering;
 	std::sort(
 		m_neuron_blocks.begin(), m_neuron_blocks.end(),
 		[&available, &ordering](NeuronBlockOnWafer const& a, NeuronBlockOnWafer const& b) {

@@ -129,7 +129,7 @@ void SynapseTargetMapping::simple_mapping(
     placement::results::Placement const& neuron_placement,
     graph_t const& graph)
 {
-	SynapseTargetVisitor const syn_tgt_visitor;
+	SynapseTargetVisitor const syn_tgt_visitor{};
 
 	for (auto const& item : neuron_placement.find(hicann)) {
 		Population const& pop = *(graph[item.population()]);
