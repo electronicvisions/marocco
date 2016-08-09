@@ -306,6 +306,51 @@ bool LogicalNeuron::is_rectangular() const
 	return true;
 }
 
+bool LogicalNeuron::shares_denmems_with(LogicalNeuron const& other) const
+{
+	if (is_external() || other.is_external()) {
+		throw std::runtime_error("external neuron does not have denmems");
+	}
+
+	if (m_block != other.m_block) {
+		return false;
+	}
+
+	auto a_it = m_chunks.begin();
+	auto b_it = other.m_chunks.begin();
+	auto const a_eit = m_chunks.end();
+	auto const b_eit = other.m_chunks.end();
+
+	while (a_it != a_eit && b_it != b_eit) {
+		auto const& a_nrn = a_it->first;
+		auto const& b_nrn = b_it->first;
+
+		if (a_nrn.y() == b_nrn.y()) {
+			auto* left = &a_it;
+			auto const* right = &b_it;
+
+			if (a_nrn.x() > b_nrn.x()) {
+				left = &b_it;
+				right = &a_it;
+			}
+
+			if (((*right)->first.x() - (*left)->first.x()) >= (*left)->second) {
+				// right chunk has no overlap with left chunk.
+				++(*left);
+				continue;
+			}
+
+			return true;
+		} else if (a_nrn.y() < b_nrn.y()) {
+			++a_it;
+		} else {
+			++b_it;
+		}
+	}
+
+	return false;
+}
+
 size_t LogicalNeuron::hash() const
 {
 	size_t hash = 0;

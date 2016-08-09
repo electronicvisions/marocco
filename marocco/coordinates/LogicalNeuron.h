@@ -215,6 +215,11 @@ public:
 	 */
 	bool is_rectangular() const;
 
+	/**
+	 * @brief Checks whether two logical neurons have common denmems, i.e. are in conflict.
+	 */
+	bool shares_denmems_with(LogicalNeuron const& other) const;
+
 	size_t hash() const;
 
 private:

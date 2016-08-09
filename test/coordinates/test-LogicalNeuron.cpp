@@ -321,4 +321,91 @@ TEST(LogicalNeuron, canBeCheckedForRectangularity)
 	EXPECT_TRUE(nrn.is_rectangular());
 }
 
+TEST(LogicalNeuron, sharesDenmemsWith)
+{
+	typedef NeuronOnNeuronBlock N;
+	NeuronBlockOnWafer nb;
+
+	auto nrn_a = LogicalNeuron::external(42);
+	auto nrn_b = LogicalNeuron::external(45);
+	EXPECT_ANY_THROW(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_ANY_THROW(nrn_b.shares_denmems_with(nrn_a));
+
+	// |###
+	// |  ###
+	nrn_a = LogicalNeuron::on(nb).add(N(X(0), Y(0)), 3).add(N(X(2), Y(1)), 3).done();
+	EXPECT_ANY_THROW(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_ANY_THROW(nrn_b.shares_denmems_with(nrn_a));
+
+	// |  ###
+	// |###
+	nrn_b = LogicalNeuron::on(nb).add(N(X(0), Y(1)), 3).add(N(X(2), Y(0)), 3).done();
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_a));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_b));
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_a));
+
+	// |###  ###
+	// |  ####
+	nrn_a = LogicalNeuron::on(nb)
+		.add(N(X(0), Y(0)), 3)
+		.add(N(X(5), Y(0)), 3)
+		.add(N(X(2), Y(1)), 4)
+		.done();
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_a));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_b));
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_a));
+
+	// |   ##
+	// |
+	nrn_b = LogicalNeuron::on(nb)
+		.add(N(X(3), Y(0)), 2)
+		.done();
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_a));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_b.shares_denmems_with(nrn_a));
+
+	// |    ##
+	// |
+	nrn_a = LogicalNeuron::on(nb)
+		.add(N(X(4), Y(0)), 2)
+		.done();
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_a));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_b));
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_a));
+
+	// |  ##
+	// |
+	nrn_b = LogicalNeuron::on(nb)
+		.add(N(X(2), Y(0)), 2)
+		.done();
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_a));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_b.shares_denmems_with(nrn_a));
+
+	// |
+	// |  ##
+	nrn_a = LogicalNeuron::on(nb)
+		.add(N(X(2), Y(1)), 2)
+		.done();
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_a));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_b.shares_denmems_with(nrn_a));
+
+	// |
+	// |  ##
+	nrn_b = LogicalNeuron::on(NeuronBlockOnWafer(NeuronBlockOnHICANN(2)))
+		.add(N(X(2), Y(1)), 2)
+		.done();
+	EXPECT_TRUE(nrn_a.shares_denmems_with(nrn_a));
+	EXPECT_TRUE(nrn_b.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_a.shares_denmems_with(nrn_b));
+	EXPECT_FALSE(nrn_b.shares_denmems_with(nrn_a));
+}
+
 } // namespace marocco
