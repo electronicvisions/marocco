@@ -1,7 +1,7 @@
 #pragma once
 // neuron analog parameter transformation for the HMF System
 
-#include <type_traits>
+#include <sstream>
 #include <stdexcept>
 #include <random>
 
@@ -17,59 +17,43 @@ namespace parameter {
 struct SpikeInputVisitor
 {
 	typedef void return_type;
-	typedef size_t size_type;
-	typedef chip_type<hardware_system_t>::type chip_t;
-
-	typedef std::vector<sthal::Spike> SpikeList;
+	typedef std::vector<double> spikes_type;
 
 	template <CellType N>
 	using cell_t = TypedCellParameterVector<N>;
 
-	SpikeInputVisitor(
-			pymarocco::PyMarocco const& pymarocco,
-			SpikeList& spikes, int seed,
-			double experiment_duration //!< PyNN experiment duration in ms
-			);
-
 	template <CellType N>
-	return_type operator() (
-		cell_t<N> const& /*unused*/,
-		HMF::HICANN::L1Address const& /*unused*/,
-		size_t /*unused*/,
-		chip_t& /*unused*/)
+	void operator()(cell_t<N> const&, size_t const, size_t const, double const, spikes_type&) const
 	{
 		std::stringstream ss;
 		ss << "unsupported spike input " << getCellTypeName(N);
 		throw std::runtime_error(ss.str());
 	}
 
-	// Spike Source Array Transformation
-	return_type operator() (
+	void operator()(
 		cell_t<CellType::SpikeSourceArray> const& v,
-		HMF::HICANN::L1Address const& l1,
-		size_t neuron_id,
-		chip_t& chip);
+		size_t const neuron_id,
+		size_t const seed,
+		double const experiment_duration,
+		spikes_type& spikes) const;
 
-	// Spike Source Poisson Transformation
-	return_type operator() (
+	void operator()(
 		cell_t<CellType::SpikeSourcePoisson> const& v,
-		HMF::HICANN::L1Address const& l1,
-		size_t neuron_id,
-		chip_t& chip);
-
-	pymarocco::PyMarocco const& mPyMarocco;
-	SpikeList& mSpikes;
-	std::mt19937 mRNG;
-	double const mExperimentDuration; //!< PyNN experiment duration in ms
+		size_t const neuron_id,
+		size_t const seed,
+		double const experiment_duration,
+		spikes_type& spikes) const;
 };
 
-
-void transform_input_spikes(
+/**
+ * @brief Extract or calculate spike times from cell parameters.
+ * @param experiment_duration PyNN experiment duration in ms
+ */
+SpikeInputVisitor::spikes_type extract_input_spikes(
 	Population const& pop,
-	HMF::HICANN::L1Address const& l1,
-	size_t neuron_id,
-	chip_type<hardware_system_t>::type& chip,
-	SpikeInputVisitor& visitor);
+	size_t const neuron_id,
+	size_t const seed,
+	double const experiment_duration);
 
 } // namespace parameter
 } // namespace marocco

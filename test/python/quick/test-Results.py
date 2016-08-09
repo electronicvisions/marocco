@@ -3,8 +3,9 @@ import shutil
 import tempfile
 import unittest
 
-import pyhalbe.Coordinate as C
 from pymarocco.results import Marocco
+from pysthal.command_line_util import init_logger
+import pyhalbe.Coordinate as C
 import pyhmf as pynn
 import pylogging
 import pymarocco
@@ -14,10 +15,9 @@ import utils
 
 class TestResults(unittest.TestCase):
     def setUp(self):
-        pylogging.reset()
-        pylogging.default_config(pylogging.LogLevel.ERROR)
-        pylogging.set_loglevel(
-            pylogging.get("marocco"), pylogging.LogLevel.INFO)
+        init_logger("INFO", [
+            ("marocco", "DEBUG"),
+        ])
 
         self.log = pylogging.get(__name__)
         self.temporary_directory = tempfile.mkdtemp(prefix="marocco-test-")
@@ -139,6 +139,69 @@ class TestResults(unittest.TestCase):
             aout_item_ = results.analog_outputs.record(logical_neuron)
             self.assertEqual(aout_item.analog_output(), aout_item_.analog_output())
 
+    def test_spike_input(self):
+        self.marocco.wafer_cfg = os.path.join(
+            self.temporary_directory, "wafer_cfg.bin")
+        pynn.setup(marocco=self.marocco)
+
+        target = pynn.Population(1, pynn.IF_cond_exp, {})
+
+        params = [[1., 2., 3.], [4., 3., 2.]]
+        sources = [
+            pynn.Population(1, pynn.SpikeSourceArray, {'spike_times': times})
+            for times in params
+        ]
+        for source in sources:
+            pynn.Projection(
+                source, target, pynn.AllToAllConnector(weights=0.004))
+
+        pynn.run(1000.)
+
+        self.assertTrue(os.path.exists(self.marocco.persist))
+        results = Marocco.from_file(self.marocco.persist)
+
+        self.assertEqual(0, len(results.spike_times.get(target[0])))
+        for spike_times, pop in zip(params, sources):
+            self.assertSequenceEqual(
+                spike_times, results.spike_times.get(pop[0]))
+
+        spike_times.append(5.)
+        results.spike_times.add(pop[0], 5.)
+        self.assertSequenceEqual(spike_times, results.spike_times.get(pop[0]))
+
+        spike_times.extend([6., 7.])
+        results.spike_times.add(pop[0], [6., 7.])
+        self.assertSequenceEqual(spike_times, results.spike_times.get(pop[0]))
+
+        spike_times = [42., 123.]
+        results.spike_times.set(pop[0], spike_times)
+        self.assertSequenceEqual(spike_times, results.spike_times.get(pop[0]))
+
+        params[-1][:] = []
+        results.spike_times.clear(pop[0])
+        self.assertEqual(0, len(results.spike_times.get(pop[0])))
+
+        # Check that modifications are reflected in sthal config container
+
+        results.save(self.marocco.persist, overwrite=True)
+        self.marocco.skip_mapping = True
+        pynn.run(1000.)
+
+        import pysthal
+        wafer_cfg = pysthal.Wafer()
+        wafer_cfg.load(self.marocco.wafer_cfg)
+
+        for spike_times, pop in zip(params, sources):
+            item, = results.placement.find(pop[0])
+            address = item.address()
+            l1_address = address.toL1Address()
+            hicann_cfg = wafer_cfg[address.toHICANNOnWafer()]
+            raw_spikes = hicann_cfg.sentSpikes(
+                C.GbitLinkOnHICANN(address.toDNCMergerOnHICANN()))
+            raw_spikes = raw_spikes[raw_spikes[:, 1] == l1_address.value(), 0]
+            self.assertEqual(len(spike_times), len(raw_spikes))
+
+        pynn.end()
 
 if __name__ == '__main__':
     unittest.main()

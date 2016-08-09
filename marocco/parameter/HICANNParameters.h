@@ -35,7 +35,6 @@ public:
 		placement::Result const& placement,
 		routing::Result const& routing,
 		double duration);
-	~HICANNParameters();
 
 	void run();
 
@@ -51,9 +50,6 @@ private:
 		size_t hw_neurons_size);
 
 	void neuron_config(neuron_calib_type const& calib);
-
-	void spike_input(
-		placement::results::Placement const& neuron_placement);
 
 	void background_generators(uint32_t isi=500);
 

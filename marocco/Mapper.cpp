@@ -8,6 +8,7 @@
 #include "marocco/Result.h"
 #include "marocco/parameter/AnalogOutputs.h"
 #include "marocco/parameter/CurrentSources.h"
+#include "marocco/parameter/SpikeTimes.h"
 #include "marocco/parameter/HICANNParameters.h"
 #include "marocco/placement/Placement.h"
 #include "marocco/routing/Routing.h"
@@ -125,6 +126,9 @@ void Mapper::run(ObjectStore const& pynn)
 
 	parameter::AnalogOutputs aouts(mBioGraph, m_results->placement);
 	aouts.run(m_results->analog_outputs);
+
+	parameter::SpikeTimes spike_times(mBioGraph, pynn.getDuration());
+	spike_times.run(m_results->spike_times);
 
 	auto end = std::chrono::system_clock::now();
 	getStats().timeTotal =

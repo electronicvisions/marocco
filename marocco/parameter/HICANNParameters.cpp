@@ -32,21 +32,6 @@ HICANNParameters::HICANNParameters(
 {
 }
 
-HICANNParameters::~HICANNParameters()
-{
-	// finally, we need to give sthal the spikes. Note, that we don't have to
-	// sort them before hand, because they have to be reordered at the sthal
-	// level anyway. This is also why it makes no sense to move (by-rvalue) the
-	// spikes to sthal.
-	for (auto const& merger : iter_all<DNCMergerOnHICANN>())
-	{
-		auto const& spikes = m_spikes[merger];
-		if (!spikes.empty()) {
-			m_chip.sendSpikes(GbitLinkOnHICANN(merger), spikes);
-		}
-	}
-}
-
 void HICANNParameters::run()
 {
 	auto const& neuron_placement = m_placement.neuron_placement;
@@ -56,9 +41,6 @@ void HICANNParameters::run()
 		m_placement.internal.address_assignment.at(m_chip.index()).has_output();
 
 	bool const local_routes = m_routing.crossbar_routing.exists(m_chip.index());
-
-	// spike input sources
-	spike_input(neuron_placement);
 
 	// switch on BackgroundGenerators for locking
 	background_generators(m_pymarocco.bkg_gen_isi);
@@ -232,31 +214,6 @@ void HICANNParameters::background_generators(uint32_t isi)
 		bg.set_mode(false /*random*/, isi /*isi*/);
 
 		m_chip.layer1[addr] = bg;
-	}
-}
-
-void HICANNParameters::spike_input(
-	placement::results::Placement const& neuron_placement)
-{
-	HICANNOnWafer const hicann = m_chip.index();
-	auto const& graph = m_bio_graph.graph();
-	for (auto const dnc_merger : iter_all<DNCMergerOnHICANN>()) {
-		for (auto const& item : neuron_placement.find(DNCMergerOnWafer(dnc_merger, hicann))) {
-			if (!is_source(item.population(), graph)) {
-				continue;
-			}
-			auto const& address = item.address();
-			assert(address != boost::none);
-
-			SpikeInputVisitor visitor(
-			    m_pymarocco, m_spikes[dnc_merger], int(dnc_merger) * 209823 /*seed*/, m_duration);
-
-			Population const& pop = *(graph[item.population()]);
-
-			// configure input spike parameters
-			transform_input_spikes(
-			    pop, address->toL1Address(), item.neuron_index(), m_chip, visitor);
-		}
 	}
 }
 

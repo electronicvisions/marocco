@@ -22,6 +22,7 @@
 #include "marocco/Mapper.h"
 #include "marocco/experiment/AnalogOutputsConfigurator.h"
 #include "marocco/experiment/Experiment.h"
+#include "marocco/experiment/SpikeTimesConfigurator.h"
 
 using namespace HMF::Coordinate;
 
@@ -175,6 +176,16 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	{
 		experiment::AnalogOutputsConfigurator analog_outputs(results.analog_outputs);
 		analog_outputs.configure(hw[wafer]);
+	}
+
+	// Configure external spike input.
+	{
+		hw[wafer].clearSpikes();
+		experiment::SpikeTimesConfigurator spike_times_configurator(
+		    results.placement, results.spike_times, exp_params);
+		for (auto const& hicann : hw[wafer].getAllocatedHicannCoordinates()) {
+			spike_times_configurator.configure(hw[wafer], hicann);
+		}
 	}
 
 	// Dump sthal configuration container.
