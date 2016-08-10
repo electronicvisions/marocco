@@ -72,7 +72,8 @@ class TestResults(unittest.TestCase):
         self.assertEqual(sum(map(len, pops)), len(list(results.placement)))
         for pop in pops:
             for n in xrange(len(pop)):
-                items = list(results.placement.find(pop[n]))
+                items = results.placement.find(pop[n])
+                self.assertTrue(isinstance(items, list))
                 self.assertEqual(1, len(items))
                 item = items[0]
 
@@ -120,6 +121,8 @@ class TestResults(unittest.TestCase):
         pynn.end()
 
         results = Marocco.from_file(self.marocco.persist)
+        placement_item, = results.placement.find(pop[0])
+
         aouts = list(results.analog_outputs)
         self.assertEqual(num_recorded_populations, len(aouts))
 
