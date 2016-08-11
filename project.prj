@@ -30,7 +30,7 @@ export CXX_PYPP=g++
 export CXX=g++
 
 module load mongo
-module load yaml-cpp/0.5.2
+module load yaml-cpp/0.5.3
 
 ./waf configure --no-ester
 ./waf install --test-execnone --target=pyhmf,pyroqt,test-marocco,pymarocco
@@ -58,7 +58,7 @@ sw = SoftwareJob(
 if (PROJECT_NAME == 'marocco') {
     doc = DocumentationJob(
         htmldir     : "build/marocco/doc/html",
-        docshell    : "module load mongo\nmodule load yaml-cpp/0.5.2\n./waf configure --disable-doxygen pdf\n./waf doc"
+        docshell    : "module load mongo\nmodule load yaml-cpp/0.5.3\n./waf configure --disable-doxygen pdf\n./waf doc"
     )
 
     cov = CoverageJob(
