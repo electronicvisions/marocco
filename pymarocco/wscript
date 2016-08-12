@@ -69,6 +69,7 @@ def build(bld):
             'pymarocco_coordinates',
             'pymarocco_results',
             'pyredman',
+            'pysthal',
         ],
         install_path    = 'lib',
         **flags)
@@ -76,6 +77,43 @@ def build(bld):
     bld.install_files('lib',
             bld.path.ant_glob('pymarocco/**/*.py'),
             relative_trick=True)
+
+    bld(target='marocco_runtime_inc',
+        export_includes='..')
+
+    runtime_defines = []
+    if not bld.options.with_ester:
+        runtime_defines.append('__ESTER_BREACHED__')
+
+    bld(target='marocco_runtime',
+        features='cxx cxxshlib',
+        source=bld.path.ant_glob('runtime/*.cpp'),
+        defines=runtime_defines,
+        use=[
+            'BOOST4PYMAROCCO',
+            'euter_inc',
+            'marocco_results',
+            'marocco_runtime_inc',
+            'sthal',
+        ],
+        post_task='pymarocco_runtime',
+        install_path='lib',
+        **flags)
+
+    bld(target='pymarocco_runtime',
+        features='cxx cxxshlib pypp pyembed pyext post_task',
+        script='generate_runtime.py',
+        gen_defines='PYPLUSPLUS __STRICT_ANSI__',
+        defines=['PYBINDINGS'] + runtime_defines,
+        headers=bld.path.ant_glob('runtime/*.h'),
+        use=[
+            'BOOST4PYMAROCCO',
+            'euter_inc',
+            'marocco_runtime',
+        ],
+        post_task=['pysthal', 'pymarocco_results'],
+        install_path='lib',
+        **flags)
 
     bld(target='pymarocco_coordinates',
         features='cxx cxxshlib pypp pyembed pyext post_task',

@@ -1,10 +1,9 @@
 #pragma once
 #include <boost/shared_ptr.hpp>
 
+#include "hal/Coordinate/Wafer.h"
 #include "euter/objectstore.h"
 #include "mappingresult.h"
-
-#include "pymarocco/PyMarocco.h"
 
 namespace marocco {
 namespace mapping {

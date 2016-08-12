@@ -32,17 +32,19 @@ size_t num_neurons(Graph const& g)
 	return cnt;
 }
 
-Mapper::Mapper(hardware_type& hw,
-			   resource_manager_t& mgr,
-			   boost::shared_ptr<PyMarocco> const& pymarocco) :
-	mBioGraph(),
-	mMgr(mgr),
-	mHW(hw),
-	mPyMarocco(pymarocco),
-	m_results(new results::Marocco())
+Mapper::Mapper(
+	hardware_type& hw,
+	resource_manager_t& mgr,
+	boost::shared_ptr<PyMarocco> const& pymarocco,
+	boost::shared_ptr<results::Marocco> const& results)
+	: mBioGraph(), mMgr(mgr), mHW(hw), mPyMarocco(pymarocco), m_results(results)
 {
 	if (!mPyMarocco) {
 		mPyMarocco = PyMarocco::create();
+	}
+
+	if (!m_results) {
+		m_results = boost::make_shared<results::Marocco>();
 	}
 }
 
@@ -151,11 +153,6 @@ void Mapper::run(ObjectStore const& pynn)
 	// generate Hardware stats
 	HardwareUsage usage(mHW, mMgr, *placement);
 	usage.fill(getStats());
-
-	if (!mPyMarocco->persist.empty()) {
-		MAROCCO_INFO("Saving results to " << mPyMarocco->persist);
-		m_results->save(mPyMarocco->persist.c_str(), true);
-	}
 }
 
 Mapper::hardware_type&
@@ -185,14 +182,14 @@ BioGraph const& Mapper::bio_graph() const
 	return mBioGraph;
 }
 
-results::Marocco& Mapper::results()
+boost::shared_ptr<results::Marocco> Mapper::results()
 {
-	return *m_results;
+	return m_results;
 }
 
-results::Marocco const& Mapper::results() const
+boost::shared_ptr<results::Marocco const> Mapper::results() const
 {
-	return *m_results;
+	return m_results;
 }
 
 } // namespace marocco

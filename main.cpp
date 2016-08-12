@@ -26,7 +26,6 @@ bool hw_present;
 
 using namespace std;
 using namespace marocco;
-using namespace pymarocco;
 namespace mpi = boost::mpi;
 
 

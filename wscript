@@ -109,6 +109,7 @@ def build(bld):
             'marocco_parameters',
             'marocco_results',
             'pymarocco',
+            'pymarocco_runtime',
             ],
         cxxflags=cxxflags)
 

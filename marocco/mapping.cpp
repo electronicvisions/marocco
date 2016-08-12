@@ -23,6 +23,8 @@
 #include "marocco/experiment/AnalogOutputsConfigurator.h"
 #include "marocco/experiment/Experiment.h"
 #include "marocco/experiment/SpikeTimesConfigurator.h"
+#include "pymarocco/PyMarocco.h"
+#include "pymarocco/runtime/Runtime.h"
 
 using namespace HMF::Coordinate;
 
@@ -107,14 +109,41 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	auto mi = store->getMetaData<PyMarocco>("marocco");
 	auto wafers = wafers_used_in(store);
 
-	if (wafers.empty()) {
-		LOG4CXX_INFO(logger, "Could not deduce wafer, will use " << mi->default_wafer << ".");
-		wafers.insert(mi->default_wafer);
-	} else if (wafers.size() > 1) {
-		throw std::runtime_error("Currently only a single wafer is supported.");
+	if (wafers.size() > 1) {
+		throw std::runtime_error("currently only a single wafer is supported.");
 	}
 
-	auto const wafer = *wafers.begin();
+	// When marocco lives inside the same process as pyhmf, the user may pass in a wafer
+	// config pointer to work around the overhead of dumping / loading the configuration
+	// and connecting / resetting the hardware in “in the loop”-style experiments.
+	// Yes, this is heavy frickelei.
+	auto runtime_container = store->getMetaData<pymarocco::runtime::Runtime>("marocco_runtime");
+
+	Wafer wafer;
+	boost::shared_ptr<sthal::Wafer> hardware;
+	boost::shared_ptr<results::Marocco> results;
+
+	if (!runtime_container) {
+		if (wafers.empty()) {
+			LOG4CXX_INFO(logger, "Could not deduce wafer, will use " << mi->default_wafer << ".");
+			wafers.insert(mi->default_wafer);
+		}
+
+		wafer = *wafers.begin();
+		hardware = boost::make_shared<sthal::Wafer>(wafer);
+		results = boost::make_shared<results::Marocco>();
+	} else if (!runtime_container->wafer() || !runtime_container->results()) {
+		throw std::runtime_error("passed-in data structures are invalid");
+	} else {
+		hardware = runtime_container->wafer();
+		results = runtime_container->results();
+		wafer = hardware->index();
+
+		if (!wafers.empty() && wafer != *wafers.begin()) {
+			throw std::runtime_error(
+			    "wafer provided via marocco_runtime object has wrong coordinate");
+		}
+	}
 
 	//  ——— LOAD DEFECT DATA ———————————————————————————————————————————————————
 
@@ -137,22 +166,24 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		resources.inject(res);
 	}
 
-	sthal::Wafer hardware(wafer);
-
 	//  ——— RUN MAPPING ————————————————————————————————————————————————————————
 
-	Mapper mapper{hardware, resources, mi};
+	Mapper mapper{*hardware, resources, mi, results};
 
 	if (mi->skip_mapping) {
-		if (mi->wafer_cfg.empty() || mi->persist.empty()) {
-			throw std::runtime_error(
-			    "wafer_cfg and persist must be set for skip_mapping option to work");
+		if (!runtime_container) {
+			if (mi->persist.empty()) {
+				throw std::runtime_error("persist must be set for skip_mapping option to work");
+			}
+			LOG4CXX_INFO(logger, "Loading mapping results from " << mi->persist);
+			mapper.results()->load(mi->persist.c_str());
+			if (mi->wafer_cfg.empty()) {
+				throw std::runtime_error("wafer_cfg must be set for skip_mapping option to work");
+			}
+			LOG4CXX_INFO(logger, "Loading hardware configuration from " << mi->wafer_cfg);
+			hardware->load(mi->wafer_cfg.c_str());
 		}
 		LOG4CXX_INFO(logger, "Mapping will be skipped");
-		LOG4CXX_INFO(logger, "Loading wafer configuration from " << mi->wafer_cfg);
-		hardware.load(mi->wafer_cfg.c_str());
-		LOG4CXX_INFO(logger, "Loading mapping results from " << mi->persist);
-		mapper.results().load(mi->persist.c_str());
 	}
 
 	// Even when skip_mapping is true we need to setup the bio graph.
@@ -169,27 +200,34 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	exp_params.offset_in_s(mi->experiment_time_offset);
 	exp_params.bio_duration_in_s(store->getDuration() * ms_to_s);
 
-	auto const& results = mapper.results();
+	results = mapper.results();
 
 	// Configure analog outputs.
 	{
-		experiment::AnalogOutputsConfigurator analog_outputs(results.analog_outputs);
-		analog_outputs.configure(hardware);
+		experiment::AnalogOutputsConfigurator analog_outputs(results->analog_outputs);
+		analog_outputs.configure(*hardware);
 	}
 
 	// Configure external spike input.
 	{
-		hardware.clearSpikes();
+		hardware->clearSpikes();
 		experiment::SpikeTimesConfigurator spike_times_configurator(
-		    results.placement, results.spike_times, exp_params);
-		for (auto const& hicann : hardware.getAllocatedHicannCoordinates()) {
-			spike_times_configurator.configure(hardware, hicann);
+		    results->placement, results->spike_times, exp_params);
+		for (auto const& hicann : hardware->getAllocatedHicannCoordinates()) {
+			spike_times_configurator.configure(*hardware, hicann);
 		}
 	}
 
-	// Dump sthal configuration container.
-	if (!mi->wafer_cfg.empty()) {
-		hardware.dump(mi->wafer_cfg.c_str(), /*overwrite=*/true);
+	if (!runtime_container) {
+		// Dump sthal configuration container.
+		if (!mi->wafer_cfg.empty()) {
+			hardware->dump(mi->wafer_cfg.c_str(), /*overwrite=*/true);
+		}
+
+		if (!mi->persist.empty()) {
+			LOG4CXX_INFO(logger, "Saving results to " << mi->persist);
+			results->save(mi->persist.c_str(), true);
+		}
 	}
 
 	MappingResult result;
@@ -250,10 +288,21 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	}
 
 	experiment::Experiment experiment(
-		hardware, mapper.results(), mapper.bio_graph(), exp_params, *mi, *runner, *hwdb,
-		*configurator);
+		*hardware, *results, mapper.bio_graph(), exp_params, *mi, *runner);
 
-	hardware.commonFPGASettings()->setPLL(mi->pll_freq);
+	hardware->commonFPGASettings()->setPLL(mi->pll_freq);
+
+	switch(mi->hicann_configurator) {
+		case PyMarocco::HICANNCfg::HICANNConfigurator:
+		case PyMarocco::HICANNCfg::HICANNv4Configurator:
+		case PyMarocco::HICANNCfg::DontProgramFloatingGatesHICANNConfigurator:
+			hardware->connect(*hwdb);
+			hardware->configure(*configurator);
+			break;
+		default:
+			throw std::runtime_error("unknown configurator");
+	}
+
 	experiment.run();
 
 	//  ——— EXTRACT RESULTS ————————————————————————————————————————————————————

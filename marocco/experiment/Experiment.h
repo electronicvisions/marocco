@@ -27,9 +27,7 @@ public:
 	    BioGraph const& bio_graph,
 		parameters::Experiment const& parameters,
 		pymarocco::PyMarocco const& pymarocco,
-		sthal::ExperimentRunner& experiment_runner,
-		sthal::HardwareDatabase& hardware_database,
-		sthal::HICANNConfigurator& configurator);
+		sthal::ExperimentRunner& experiment_runner);
 
 	void run();
 
@@ -51,8 +49,6 @@ private:
 	pymarocco::PyMarocco const& m_pymarocco;
 
 	sthal::ExperimentRunner& m_experiment_runner;
-	sthal::HardwareDatabase& m_hardware_database;
-	sthal::HICANNConfigurator& m_configurator;
 	std::unordered_map<LogicalNeuron, sthal::AnalogRecorder> m_analog_recorders;
 };
 

@@ -25,25 +25,18 @@ Experiment::Experiment(
 	BioGraph const& bio_graph,
 	parameters::Experiment const& parameters,
 	pymarocco::PyMarocco const& pymarocco,
-	sthal::ExperimentRunner& experiment_runner,
-	sthal::HardwareDatabase& hardware_database,
-	sthal::HICANNConfigurator& configurator)
+	sthal::ExperimentRunner& experiment_runner)
 	: m_hardware(hardware),
 	  m_results(results),
 	  m_bio_graph(bio_graph),
 	  m_parameters(parameters),
 	  m_pymarocco(pymarocco),
-	  m_experiment_runner(experiment_runner),
-	  m_hardware_database(hardware_database),
-	  m_configurator(configurator)
+	  m_experiment_runner(experiment_runner)
 {
 }
 
 void Experiment::run()
 {
-	m_hardware.connect(m_hardware_database);
-	m_hardware.configure(m_configurator);
-
 	double record_duration_in_s = m_parameters.hardware_duration_in_s();
 
 	// additional record time of 1000us cf. c/1449 and c/1584

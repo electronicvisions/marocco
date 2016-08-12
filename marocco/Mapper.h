@@ -3,7 +3,6 @@
 #include <set>
 #include <map>
 #include <utility>
-#include <memory>
 
 #include "marocco/BioGraph.h"
 #include "marocco/config.h"
@@ -17,10 +16,11 @@ class Mapper
 public:
 	typedef sthal::Wafer hardware_type;
 
-	Mapper(hardware_type& hw,
-		   resource_manager_t& mgr,
-		   boost::shared_ptr<pymarocco::PyMarocco> const& p = {});
-	virtual ~Mapper() {}
+	Mapper(
+		hardware_type& hw,
+		resource_manager_t& mgr,
+		boost::shared_ptr<pymarocco::PyMarocco> const& pymarocco,
+		boost::shared_ptr<results::Marocco> const& results);
 
 	void run(ObjectStore const& pynn);
 
@@ -32,8 +32,8 @@ public:
 
 	BioGraph const& bio_graph() const;
 
-	results::Marocco& results();
-	results::Marocco const& results() const;
+	boost::shared_ptr<results::Marocco> results();
+	boost::shared_ptr<results::Marocco const> results() const;
 
 private:
 	BioGraph mBioGraph;
@@ -46,7 +46,7 @@ private:
 
 	boost::shared_ptr<pymarocco::PyMarocco> mPyMarocco;
 
-	std::unique_ptr<results::Marocco> m_results;
+	boost::shared_ptr<results::Marocco> m_results;
 };
 
 } // namespace marocco
