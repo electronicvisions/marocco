@@ -34,7 +34,7 @@ fg_clip voltage2fg(double voltage_in_mV)
 }
 
 HMF::NeuronCalibrationParameters calibration_parameters_for_neuron(
-	chip_type<hardware_system_t>::type const& chip,
+	sthal::HICANN const& chip,
 	double const alphaV,
 	double const shiftV,
 	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id)
@@ -57,7 +57,7 @@ void transform_analog_neuron(
 	NeuronOnHICANN const& hw_neuron_id,
 	routing::results::SynapticInputs const& synapse_targets,
 	TransformNeurons& visitor,
-	chip_type<hardware_system_t>::type& chip)
+	sthal::HICANN& chip)
 {
 	// configure analog neuron parameters
 	visitCellParameterVector(

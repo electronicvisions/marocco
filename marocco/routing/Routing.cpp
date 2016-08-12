@@ -9,7 +9,6 @@
 #include "marocco/routing/L1Routing.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/SynapseRoutingConfigurator.h"
-#include "marocco/util/guess_wafer.h"
 
 #include <boost/make_shared.hpp>
 
@@ -18,7 +17,7 @@ namespace routing {
 
 Routing::Routing(
 	BioGraph const& graph,
-	hardware_system_t& hardware,
+	sthal::Wafer& hardware,
 	resource_manager_t& resource_manager,
 	pymarocco::PyMarocco& pymarocco,
 	placement::results::Placement const& neuron_placement)
@@ -83,7 +82,7 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 	}
 
 	MAROCCO_INFO("Configuring L1 routes");
-	auto& wafer_config = m_hardware[guess_wafer(m_resource_manager)];
+	auto& wafer_config = m_hardware;
 	for (auto const& item : l1_routing_result) {
 		configure(wafer_config, item.route());
 	}

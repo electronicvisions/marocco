@@ -137,12 +137,11 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		resources.inject(res);
 	}
 
-	hardware_system_t hw{};
-	hw[wafer]; // FIXME: hack to allocate one wafer
+	sthal::Wafer hardware(wafer);
 
 	//  ——— RUN MAPPING ————————————————————————————————————————————————————————
 
-	Mapper mapper{hw, resources, mi};
+	Mapper mapper{hardware, resources, mi};
 
 	if (mi->skip_mapping) {
 		if (mi->wafer_cfg.empty() || mi->persist.empty()) {
@@ -151,7 +150,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		}
 		LOG4CXX_INFO(logger, "Mapping will be skipped");
 		LOG4CXX_INFO(logger, "Loading wafer configuration from " << mi->wafer_cfg);
-		hw[wafer].load(mi->wafer_cfg.c_str());
+		hardware.load(mi->wafer_cfg.c_str());
 		LOG4CXX_INFO(logger, "Loading mapping results from " << mi->persist);
 		mapper.results().load(mi->persist.c_str());
 	}
@@ -175,22 +174,22 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	// Configure analog outputs.
 	{
 		experiment::AnalogOutputsConfigurator analog_outputs(results.analog_outputs);
-		analog_outputs.configure(hw[wafer]);
+		analog_outputs.configure(hardware);
 	}
 
 	// Configure external spike input.
 	{
-		hw[wafer].clearSpikes();
+		hardware.clearSpikes();
 		experiment::SpikeTimesConfigurator spike_times_configurator(
 		    results.placement, results.spike_times, exp_params);
-		for (auto const& hicann : hw[wafer].getAllocatedHicannCoordinates()) {
-			spike_times_configurator.configure(hw[wafer], hicann);
+		for (auto const& hicann : hardware.getAllocatedHicannCoordinates()) {
+			spike_times_configurator.configure(hardware, hicann);
 		}
 	}
 
 	// Dump sthal configuration container.
 	if (!mi->wafer_cfg.empty()) {
-		hw[wafer].dump(mi->wafer_cfg.c_str(), /*overwrite=*/true);
+		hardware.dump(mi->wafer_cfg.c_str(), /*overwrite=*/true);
 	}
 
 	MappingResult result;
@@ -251,10 +250,10 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	}
 
 	experiment::Experiment experiment(
-		hw[wafer], mapper.results(), mapper.bio_graph(), exp_params, *mi, *runner, *hwdb,
+		hardware, mapper.results(), mapper.bio_graph(), exp_params, *mi, *runner, *hwdb,
 		*configurator);
 
-	hw[wafer].commonFPGASettings()->setPLL(mi->pll_freq);
+	hardware.commonFPGASettings()->setPLL(mi->pll_freq);
 	experiment.run();
 
 	//  ——— EXTRACT RESULTS ————————————————————————————————————————————————————

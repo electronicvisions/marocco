@@ -9,8 +9,8 @@ using namespace HMF::Coordinate;
 
 namespace marocco {
 
-HardwareUsage::HardwareUsage(Hardware const& hw, Resource const& r, BaseResult const& pl)
-	: mHW(hw),
+HardwareUsage::HardwareUsage(sthal::Wafer const& hardware, Resource const& r, BaseResult const& pl)
+	: mHW(hardware),
 	  mResource(r),
 	  mNeuronPlacement(result_cast<placement::Result>(pl).neuron_placement)
 {}

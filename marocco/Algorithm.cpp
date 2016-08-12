@@ -4,7 +4,7 @@ namespace marocco {
 
 Algorithm::Algorithm(
 	graph_t const& graph,
-	hardware_system_t& hw,
+	sthal::Wafer& hw,
 	resource_manager_t& mgr) :
 		mGraph(graph),
 		mHW(hw),
@@ -19,12 +19,12 @@ Algorithm::getGraph() const
 	return mGraph;
 }
 
-hardware_system_t&
+sthal::Wafer&
 Algorithm::getHardware()
 {
 	return mHW;
 }
-hardware_system_t const&
+sthal::Wafer const&
 Algorithm::getHardware() const
 {
 	return mHW;

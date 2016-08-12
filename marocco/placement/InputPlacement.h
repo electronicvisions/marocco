@@ -59,7 +59,7 @@ public:
 		parameters::L1AddressAssignment const& l1_address_assignment,
 		MergerRoutingResult const& merger_routing,
 		double speedup,
-		hardware_system_t& hw,
+		sthal::Wafer& hw,
 		resource_manager_t& mgr);
 
 	/**
@@ -96,7 +96,7 @@ private:
 	parameters::L1AddressAssignment const& m_l1_address_assignment;
 	MergerRoutingResult const& m_merger_routing;
 	double const m_speedup;
-	hardware_system_t&       mHW;
+	sthal::Wafer& mHW;
 	resource_manager_t&      mMgr;
 
 	////////////////////////////

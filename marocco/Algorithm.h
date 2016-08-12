@@ -12,7 +12,7 @@ public:
 	typedef BaseResult result_type;
 
 	Algorithm(graph_t const& graph,
-			  hardware_system_t& hw,
+	          sthal::Wafer& hw,
 			  resource_manager_t& mgr);
 	virtual ~Algorithm();
 
@@ -22,15 +22,15 @@ public:
 protected:
 	graph_t const& getGraph() const;
 
-	hardware_system_t&       getHardware();
-	hardware_system_t const& getHardware() const;
+	sthal::Wafer&       getHardware();
+	sthal::Wafer const& getHardware() const;
 
 	resource_manager_t&       getManager();
 	resource_manager_t const& getManager() const;
 
 private:
 	graph_t const&       mGraph;
-	hardware_system_t&   mHW;
+	sthal::Wafer&   mHW;
 	resource_manager_t&  mMgr;
 };
 

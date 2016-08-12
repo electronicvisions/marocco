@@ -15,8 +15,7 @@ namespace marocco {
 class Mapper
 {
 public:
-	/// hardware type
-	typedef hardware_system_t             hardware_type;
+	typedef sthal::Wafer hardware_type;
 
 	Mapper(hardware_type& hw,
 		   resource_manager_t& mgr,

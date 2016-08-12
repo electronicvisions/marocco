@@ -1,5 +1,7 @@
 #pragma once
 
+#include "sthal/Wafer.h"
+
 #include "marocco/placement/Result.h"
 #include "marocco/graph.h"
 #include "pymarocco/MappingStats.h"
@@ -9,11 +11,10 @@ namespace marocco {
 class HardwareUsage
 {
 public:
-	typedef hardware_system_t Hardware;
 	typedef resource_manager_t Resource;
 	typedef HMF::Coordinate::HICANNGlobal Index;
 
-	HardwareUsage(Hardware const& hw,
+	HardwareUsage(sthal::Wafer const& hardware,
 				  Resource const& r,
 				  BaseResult const& pl);
 
@@ -36,8 +37,7 @@ public:
 private:
 	sthal::HICANN const& getChip(Index const& hicann) const;
 
-	/// references the complete hardware system in use
-	Hardware const& mHW;
+	sthal::Wafer const& mHW;
 
 	/// reference to resource manager
 	Resource const& mResource;

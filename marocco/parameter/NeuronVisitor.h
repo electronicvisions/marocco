@@ -87,7 +87,7 @@ struct TransformNeurons
 {
 	typedef void return_type;
 	typedef size_t size_type;
-	typedef chip_type<hardware_system_t>::type chip_t;
+	typedef sthal::HICANN chip_t;
 	typedef HMF::NeuronCollection calib_t;
 	typedef HMF::Coordinate::NeuronOnHICANN neuron_t;
 	typedef routing::results::SynapticInputs synapse_targets_t;
@@ -164,7 +164,7 @@ void transform_analog_neuron(
 	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id,
 	routing::results::SynapticInputs const& synapse_targets,
 	TransformNeurons& visitor,
-	chip_type<hardware_system_t>::type& chip);
+	sthal::HICANN& chip);
 
 } // namespace parameter
 } // namespace marocco

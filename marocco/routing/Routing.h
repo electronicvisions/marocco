@@ -18,7 +18,7 @@ class Routing
 public:
 	Routing(
 		BioGraph const& graph,
-		hardware_system_t& hardware,
+		sthal::Wafer& hardware,
 		resource_manager_t& resource_manager,
 		pymarocco::PyMarocco& pymarocco,
 		placement::results::Placement const& neuron_placement);
@@ -29,7 +29,7 @@ public:
 
 private:
 	BioGraph const& m_graph;
-	hardware_system_t& m_hardware;
+	sthal::Wafer& m_hardware;
 	resource_manager_t& m_resource_manager;
 	pymarocco::PyMarocco& m_pymarocco;
 	placement::results::Placement const& m_neuron_placement;

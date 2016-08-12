@@ -39,7 +39,7 @@ void handle_defects(
 Placement::Placement(
     pymarocco::PyMarocco& pymarocco,
     graph_t const& graph,
-    hardware_system_t& hardware,
+    sthal::Wafer& hardware,
     resource_manager_t& resource_manager)
     : m_graph(graph),
       m_hardware(hardware),

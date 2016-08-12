@@ -43,7 +43,7 @@ InputPlacement::InputPlacement(
 	parameters::L1AddressAssignment const& l1_address_assignment,
 	MergerRoutingResult const& merger_routing,
 	double speedup,
-	hardware_system_t& hw,
+	sthal::Wafer& hw,
 	resource_manager_t& mgr)
 	: mGraph(graph),
 	  m_parameters(parameters),

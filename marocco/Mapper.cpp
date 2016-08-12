@@ -13,7 +13,6 @@
 #include "marocco/placement/Placement.h"
 #include "marocco/routing/Routing.h"
 #include "marocco/routing/SynapseLoss.h"
-#include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 
 using namespace pymarocco;
@@ -120,7 +119,7 @@ void Mapper::run(ObjectStore const& pynn)
 		"Transformed " << pynn.current_sources().size() << " current sources into "
 		<< bio_current_sources.size() << " single-neuron items");
 
-	auto& wafer_config = mHW[guess_wafer(mMgr)];
+	auto& wafer_config = mHW;
 	parameter::CurrentSources current_sources(wafer_config, m_results->placement);
 	current_sources.run(bio_current_sources);
 
@@ -150,7 +149,7 @@ void Mapper::run(ObjectStore const& pynn)
 	info(this) << getStats();
 
 	// generate Hardware stats
-	HardwareUsage usage(getHardware(), mMgr, *placement);
+	HardwareUsage usage(mHW, mMgr, *placement);
 	usage.fill(getStats());
 
 	if (!mPyMarocco->persist.empty()) {
