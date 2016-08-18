@@ -7,6 +7,7 @@
 
 #include "hal/Coordinate/iter_all.h"
 #include "hal/Coordinate/typed_array.h"
+
 #include "marocco/Logger.h"
 #include "marocco/util.h"
 #include "marocco/util/chunked.h"
@@ -15,6 +16,9 @@
 using namespace HMF::Coordinate;
 using marocco::placement::internal::NeuronPlacementRequest;
 using marocco::placement::internal::PlacePopulations;
+
+namespace marocco {
+namespace placement {
 
 namespace {
 
@@ -50,12 +54,14 @@ public:
 	{
 		m_neuron_blocks = blocks;
 	}
+
+	void operator()(std::vector<LogicalNeuron> const&)
+	{
+		assert(false);
+	}
 };
 
 } // anonymous
-
-namespace marocco {
-namespace placement {
 
 NeuronPlacement::NeuronPlacement(
 	graph_t const& graph,
@@ -178,6 +184,55 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 		auto it = mapping.find(pop.id());
 		if (it != mapping.end()) {
 			auto const& entry = it->second;
+
+			{ // A population may be explicitly placed to a set of logical neurons.
+				std::vector<LogicalNeuron> const* logical_neurons =
+				    boost::get<std::vector<LogicalNeuron> >(&entry.locations);
+
+				if (logical_neurons) {
+					if (logical_neurons->size() != pop.size()) {
+						throw std::runtime_error(
+							"number of logical neurons does not match size of population");
+					}
+
+					size_t neuron_id = 0;
+					std::vector<NeuronOnWafer> placements;
+					for (auto const& logical_neuron : *logical_neurons) {
+						if (logical_neuron.is_external()) {
+							throw std::runtime_error(
+								"external neuron used in manual placement request");
+						}
+
+						auto const neuron = logical_neuron.front();
+						size_t const size = logical_neuron.size();
+
+						if (size < 2 || size % 2 != 0 || !logical_neuron.is_rectangular()) {
+							throw std::runtime_error(
+								"manual placement only supports rectangular neurons");
+						}
+
+						NeuronPlacementRequest const placement{
+							assignment::PopulationSlice{v, neuron_id, 1}, size};
+						auto& onb = m_denmem_assignment.at(
+							neuron.toHICANNOnWafer())[neuron.toNeuronBlockOnHICANN()];
+						auto it = onb.add(neuron.toNeuronOnNeuronBlock().x(), placement);
+						if (it == onb.end()) {
+							throw std::runtime_error(
+								"specified denmems are occupied or marked as defect");
+						}
+						placements.push_back(neuron);
+
+						++neuron_id;
+					}
+
+					post_process(placements);
+					continue;
+				}
+			}
+
+			// Else manual placement requests specify candidate neuron blocks that can be
+			// used to place a population.
+
 			NeuronPlacementRequest const placement{
 			    assignment::PopulationSlice{v, pop},
 			    entry.hw_neuron_size > 0 ? entry.hw_neuron_size : default_hw_neuron_size};

@@ -1,13 +1,21 @@
 #pragma once
 
-#include <map>
+#ifndef PYPLUSPLUS
+#include <unordered_map>
+#endif // !PYPLUSPLUS
 #include <vector>
-#include <boost/variant.hpp>
+
 #include <boost/serialization/export.hpp>
+#include <boost/variant.hpp>
+
+#ifndef PYPLUSPLUS
+#include "boost/serialization/unordered_map.h"
+#endif // !PYPLUSPLUS
 
 #include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/Neuron.h"
 
+#include "marocco/coordinates/LogicalNeuron.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
 
 namespace boost {
@@ -28,7 +36,8 @@ public:
 	struct Location
 	{
 		boost::variant<std::vector<HMF::Coordinate::HICANNOnWafer>,
-		               std::vector<HMF::Coordinate::NeuronBlockOnWafer> >
+		               std::vector<HMF::Coordinate::NeuronBlockOnWafer>,
+		               std::vector<LogicalNeuron> >
 			locations;
 		/// Size of hardware neuron.  0 ≙ default neuron size.
 		size_type hw_neuron_size;
@@ -39,8 +48,9 @@ public:
 		void serialize(Archive& ar, unsigned int const /* version */);
 	};
 
-	// TODO: Change to unordered_map, once boost::serialize version is new enough.
-	typedef std::map<population_type, Location> mapping_type;
+#ifndef PYPLUSPLUS
+	typedef std::unordered_map<population_type, Location> mapping_type;
+#endif // !PYPLUSPLUS
 
 	/**
 	 * @brief Request a manual placement of a whole population.
@@ -60,6 +70,8 @@ public:
 	    population_type pop,
 	    std::vector<HMF::Coordinate::NeuronBlockOnWafer> const& blocks,
 	    size_type size = 0);
+	void on_neuron(population_type pop, LogicalNeuron const& neuron);
+	void on_neuron(population_type pop, std::vector<LogicalNeuron> const& neurons);
 	void with_size(population_type pop, size_type size);
 
 #ifndef PYPLUSPLUS

@@ -40,7 +40,7 @@ def _patch_ManualPlacement():
         return wrapper
 
     for (name, fun) in inspect.getmembers(ManualPlacement, inspect.ismethod):
-        if name not in ['on_hicann', 'on_neuron_block', 'with_size']:
+        if name not in ['on_hicann', 'on_neuron_block', 'on_neuron', 'with_size']:
             continue
         setattr(ManualPlacement, name, wrap(fun))
 

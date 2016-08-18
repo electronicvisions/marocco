@@ -95,6 +95,29 @@ auto OnNeuronBlock::add(NeuronPlacementRequest const& value) -> iterator {
 	return end();
 }
 
+auto OnNeuronBlock::add(
+	neuron_coordinate::x_type const& column, NeuronPlacementRequest const& value) -> iterator
+{
+	size_t const size = value.size();
+
+	auto const begin = mAssignment[column].begin();
+	auto const END = mAssignment.end()->begin();
+
+	{
+		auto end = std::find_if(begin, END, assigned_p);
+		size_t available = std::distance(begin, end);
+		if (size <= available) {
+			end = begin;
+			std::advance(end, size);
+			std::fill(begin, end, std::make_shared<NeuronPlacementRequest>(value));
+			mSize += size;
+			return {begin, mAssignment.cend()->begin(), defect_marker()};
+		}
+	}
+
+	return end();
+}
+
 auto OnNeuronBlock::operator[](neuron_coordinate const& nrn) const -> value_type {
 	auto ptr = mAssignment[nrn.x()][nrn.y()];
 	if (ptr != defect_marker()) {

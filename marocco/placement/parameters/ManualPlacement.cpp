@@ -42,6 +42,19 @@ void ManualPlacement::on_neuron_block(
 	m_mapping[pop] = Location{blocks, size};
 }
 
+void ManualPlacement::on_neuron(population_type pop, LogicalNeuron const& neuron)
+{
+	on_neuron(pop, std::vector<LogicalNeuron>{neuron});
+}
+
+void ManualPlacement::on_neuron(population_type pop, std::vector<LogicalNeuron> const& neurons)
+{
+	if (neurons.empty()) {
+		throw std::invalid_argument("at least one neuron has to be specified");
+	}
+	m_mapping[pop] = Location{neurons, 0};
+}
+
 void ManualPlacement::with_size(population_type pop, size_type size)
 {
 	if (size == 0u) {

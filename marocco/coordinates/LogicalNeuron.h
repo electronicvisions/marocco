@@ -232,6 +232,7 @@ private:
 	detail::operator<<(std::ostream& os, detail::pretty_printer<LogicalNeuron> pr);
 	friend bool operator==(LogicalNeuron const& lhs, LogicalNeuron const& rhs);
 
+#ifndef PYPLUSPLUS
 	/// Optional identifier of external neuron.
 	size_t m_external_identifier;
 	union {
@@ -242,6 +243,7 @@ private:
 	};
 	neuron_block_type m_block;
 	container_type m_chunks;
+#endif // !PYPLUSPLUS
 
 	friend class boost::serialization::access;
 	template <typename Archiver>

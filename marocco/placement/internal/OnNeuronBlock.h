@@ -22,7 +22,7 @@ class neuron_iterator;
 } // namespace detail
 
 /**
- * @brief Manages the assignment of populations to the denmems of a neuron block.
+ * @brief Manages the assignment of population slices to the denmems of a neuron block.
  */
 class OnNeuronBlock {
 public:
@@ -45,8 +45,8 @@ public:
 	void add_defect(neuron_coordinate const& nrn);
 
 	/**
-	 * @brief Place population on this neuron block.
-	 * @return Iterator pointing at the assigned population if successful
+	 * @brief Place population slice on this neuron block.
+	 * @return Iterator pointing at the assigned population slice if successful
 	 *         or past-the-end iterator if not.
 	 * @note
 	 * - Assignments will always start at the top neuron row.
@@ -59,12 +59,21 @@ public:
 	iterator add(NeuronPlacementRequest const& value);
 
 	/**
-	 * @brief Return the population assigned to a denmem.
+	 * @brief Place population slice on this neuron block, starting at the upper denmem of
+	 *        the given column.
+	 * @return Iterator pointing at the assigned population slice if successful
+	 *         or past-the-end iterator if not.
+	 * @see Only a continuous block of the correct size will be considered.
+	 */
+	iterator add(neuron_coordinate::x_type const& column, NeuronPlacementRequest const& value);
+
+	/**
+	 * @brief Return the population slice assigned to a denmem.
 	 */
 	value_type operator[](neuron_coordinate const& nrn) const;
 
 	/**
-	 * @brief Return an iterator pointing at the population assigned to a denmem.
+	 * @brief Return an iterator pointing at the population slice assigned to a denmem.
 	 * @note Returns a past-the-end iterator if the denmem is defect
 	 *       or does not have an assigned population.
 	 */
@@ -91,16 +100,16 @@ public:
 	size_t restrict(size_t max_denmems);
 
 	/**
-	 * @brief Iterate over assigned populations.
-	 * Every population will appear exactly once.
-	 * @note Iterators can be passed in to #neurons() to iterate over
-	 *       the denmems of a population.
+	 * @brief Iterate over assigned population slices.
+	 * Every population slice will appear exactly once.
+	 * @note Iterators can be passed in to #neurons() to iterate over the denmems assigned
+	 *       to a given population slice.
 	 */
 	iterator begin() const;
 	iterator end() const;
 
 	/**
-	 * @brief Iterate over the denmems of a population.
+	 * @brief Iterate over the denmems of a population slice.
 	 * @note Iteration starts at the top-left neuron and follows the
 	 *       pattern of assignment described in #add():
 	 *       \code
@@ -174,8 +183,8 @@ private:
 };
 
 /**
- * @brief Iterates over the denmems of a population.
- * @note This assumes that the neurons of a population are assigned
+ * @brief Iterates over the denmems of a population slice.
+ * @note This assumes that the neurons of a population slice are assigned
  *       to consecutive denmems with no interspersed defects.
  * @note Dereferencing the iterator does not return a reference but a value!
  */
