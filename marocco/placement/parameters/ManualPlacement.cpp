@@ -19,6 +19,9 @@ void ManualPlacement::on_hicann(population_type pop, HICANNOnWafer const& hicann
 void ManualPlacement::on_hicann(
     population_type pop, std::vector<HICANNOnWafer> const& hicanns, size_type size)
 {
+	if (hicanns.empty()) {
+		throw std::invalid_argument("at least one HICANN has to be specified");
+	}
 	check_neuron_size(size);
 	m_mapping[pop] = Location{hicanns, size};
 }
@@ -32,6 +35,9 @@ void ManualPlacement::on_neuron_block(
 void ManualPlacement::on_neuron_block(
     population_type pop, std::vector<NeuronBlockOnWafer> const& blocks, size_type size)
 {
+	if (blocks.empty()) {
+		throw std::invalid_argument("at least one neuron block has to be specified");
+	}
 	check_neuron_size(size);
 	m_mapping[pop] = Location{blocks, size};
 }

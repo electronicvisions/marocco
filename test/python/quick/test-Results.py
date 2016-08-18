@@ -1,36 +1,13 @@
 import os
-import shutil
-import tempfile
 import unittest
 
-from pymarocco.results import Marocco
-from pysthal.command_line_util import init_logger
 import pyhalbe.Coordinate as C
 import pyhmf as pynn
-import pylogging
-import pymarocco
 
 import utils
 
 
-class TestResults(unittest.TestCase):
-    def setUp(self):
-        init_logger("INFO", [
-            ("marocco", "DEBUG"),
-        ])
-
-        self.log = pylogging.get(__name__)
-        self.temporary_directory = tempfile.mkdtemp(prefix="marocco-test-")
-
-        self.marocco = pymarocco.PyMarocco()
-        self.marocco.backend = pymarocco.PyMarocco.None
-        self.marocco.persist = os.path.join(
-            self.temporary_directory, "results.bin")
-
-    def tearDown(self):
-        shutil.rmtree(self.temporary_directory, ignore_errors=True)
-        del self.marocco
-
+class TestResults(utils.TestWithResults):
     @utils.parametrize([".xml", ".bin", ".xml.gz", ".bin.gz"])
     def test_file_format(self, extension):
         self.marocco.persist = (
@@ -43,9 +20,7 @@ class TestResults(unittest.TestCase):
         pynn.run(0)
         pynn.end()
 
-        self.assertTrue(os.path.exists(self.marocco.persist))
-        results = Marocco.from_file(self.marocco.persist)
-
+        results = self.load_results()
         self.assertEqual(1, len(list(results.placement)))
 
     @utils.parametrize([2, 4, 6, 8])
@@ -66,8 +41,7 @@ class TestResults(unittest.TestCase):
         pynn.run(0)
         pynn.end()
 
-        self.assertTrue(os.path.exists(self.marocco.persist))
-        results = Marocco.from_file(self.marocco.persist)
+        results = self.load_results()
 
         self.assertEqual(sum(map(len, pops)), len(list(results.placement)))
         for pop in pops:
@@ -120,7 +94,7 @@ class TestResults(unittest.TestCase):
         pynn.run(0)
         pynn.end()
 
-        results = Marocco.from_file(self.marocco.persist)
+        results = self.load_results()
         placement_item, = results.placement.find(pop[0])
 
         aouts = list(results.analog_outputs)
@@ -157,8 +131,7 @@ class TestResults(unittest.TestCase):
 
         pynn.run(1000.)
 
-        self.assertTrue(os.path.exists(self.marocco.persist))
-        results = Marocco.from_file(self.marocco.persist)
+        results = self.load_results()
 
         self.assertEqual(0, len(results.spike_times.get(target[0])))
         for spike_times, pop in zip(params, sources):
@@ -202,6 +175,7 @@ class TestResults(unittest.TestCase):
             self.assertEqual(len(spike_times), len(raw_spikes))
 
         pynn.end()
+
 
 if __name__ == '__main__':
     unittest.main()

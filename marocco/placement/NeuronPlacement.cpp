@@ -187,6 +187,12 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 				boost::apply_visitor(vis, entry.locations);
 			}
 
+			if (neuron_blocks.empty()) {
+				// `with_size` placement request.
+				auto_placements.push_back(placement);
+				continue;
+			}
+
 			// As PlacePopulations starts at the back of neuron_blocks for
 			// placing neurons, the order of neuron blocks is reversed, so that
 			// the order specified by the user is complied with.
