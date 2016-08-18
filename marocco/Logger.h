@@ -99,6 +99,17 @@ MAROCCO_LOGGER_SINK(trace)
 #define MAROCCO_TRACE(...)
 #endif
 
+#define __MAROCCO_LOGGER_ENABLED(LEVEL)                                                            \
+	(log4cxx::Logger::getLogger(marocco::Logger::getLogger(this))->is##LEVEL##Enabled())
+
+#ifndef MAROCCO_NDEBUG
+#define MAROCCO_DEBUG_ENABLED() __MAROCCO_LOGGER_ENABLED(Debug)
+#define MAROCCO_TRACE_ENABLED() __MAROCCO_LOGGER_ENABLED(Trace)
+#else
+#define MAROCCO_DEBUG_ENABLED() false
+#define MAROCCO_TRACE_ENABLED() false
+#endif // !MAROCCO_NDEBUG
+
 
 template<typename T>
 std::ostream& Logger::operator<< (T const& t)

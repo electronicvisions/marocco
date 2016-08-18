@@ -190,6 +190,9 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 				    boost::get<std::vector<LogicalNeuron> >(&entry.locations);
 
 				if (logical_neurons) {
+					MAROCCO_DEBUG(
+						"population " << v << " will be placed on manually specified neurons");
+
 					if (logical_neurons->size() != pop.size()) {
 						throw std::runtime_error(
 							"number of logical neurons does not match size of population");
@@ -202,6 +205,8 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 							throw std::runtime_error(
 								"external neuron used in manual placement request");
 						}
+
+						MAROCCO_TRACE(logical_neuron);
 
 						auto const neuron = logical_neuron.front();
 						size_t const size = logical_neuron.size();
@@ -248,6 +253,14 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 				continue;
 			}
 
+			MAROCCO_DEBUG(placement.population_slice() << " will be placed manually");
+
+			if (MAROCCO_TRACE_ENABLED()) {
+				for (auto const& nb : neuron_blocks) {
+					MAROCCO_TRACE("  on " << nb);
+				}
+			}
+
 			// As PlacePopulations starts at the back of neuron_blocks for
 			// placing neurons, the order of neuron blocks is reversed, so that
 			// the order specified by the user is complied with.
@@ -261,6 +274,17 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 			// The population (or parts of it) may not have been placed successfully.
 #if 1
 			if (!queue.empty()) {
+				MAROCCO_ERROR("unable to implement manual placement request for population " << pop.id());
+				size_t neurons = 0;
+				size_t denmems = 0;
+				for (auto const& request : queue) {
+					auto const& slice = request.population_slice();
+					neurons += slice.size();
+					denmems += slice.size() * request.neuron_size();
+					MAROCCO_DEBUG(
+						"remaining " << slice << " with neuron size " << request.neuron_size());
+				}
+				MAROCCO_INFO(neurons << " neurons (" << denmems << " denmems) could not be placed");
 				throw ResourceExhaustedError("unable to implement manual placement request");
 			}
 #else
