@@ -113,6 +113,26 @@ class TestResults(utils.TestWithResults):
             aout_item_ = results.analog_outputs.record(logical_neuron)
             self.assertEqual(aout_item.analog_output(), aout_item_.analog_output())
 
+    def test_analog_outputs_manually(self):
+        pynn.setup(marocco=self.marocco)
+
+        pop = pynn.Population(1, pynn.IF_cond_exp, {})
+
+        pynn.run(0)
+        pynn.end()
+
+        results = self.load_results()
+        self.assertTrue(results.analog_outputs.empty())
+
+        placement_item, = results.placement.find(pop[0])
+        logical_neuron = placement_item.logical_neuron()
+
+        results.analog_outputs.record(logical_neuron)
+        self.assertFalse(results.analog_outputs.empty())
+
+        results.analog_outputs.unrecord(logical_neuron)
+        self.assertTrue(results.analog_outputs.empty())
+
     def test_spike_input(self):
         self.marocco.wafer_cfg = os.path.join(
             self.temporary_directory, "wafer_cfg.bin")

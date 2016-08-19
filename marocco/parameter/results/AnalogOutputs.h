@@ -113,6 +113,13 @@ public:
 	 */
 	item_type const& record(LogicalNeuron const& logical_neuron);
 
+	/**
+	 * @brief Cancel a request for the membrane of the specified neuron to be recorded.
+	 * @note This removes the request from the container, accessing eventual references
+	 *       previously returned by #record() will lead to undefined behavior.
+	 */
+	bool unrecord(LogicalNeuron const& logical_neuron);
+
 	bool empty() const;
 
 	size_t size() const;

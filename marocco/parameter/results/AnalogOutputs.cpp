@@ -4,6 +4,8 @@
 
 #include "hal/Coordinate/iter_all.h"
 
+#include "marocco/util/iterable.h"
+
 using namespace HMF::Coordinate;
 using boost::multi_index::get;
 
@@ -72,6 +74,27 @@ auto AnalogOutputs::record(LogicalNeuron const& logical_neuron) -> item_type con
 	}
 
 	throw ResourceExhaustedError("no analog outputs left");
+}
+
+bool AnalogOutputs::unrecord(LogicalNeuron const& logical_neuron)
+{
+	if (logical_neuron.is_external()) {
+		throw std::invalid_argument("external neurons cannot be recorded");
+	}
+
+	auto const hicann = logical_neuron.front().toHICANNOnWafer();
+
+	iterator it, eit;
+	std::tie(it, eit) = get<hicann_type>(m_container).equal_range(hicann);
+
+	for (; it != eit; ++it) {
+		if (it->logical_neuron() == logical_neuron) {
+			get<hicann_type>(m_container).erase(it);
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool AnalogOutputs::empty() const
