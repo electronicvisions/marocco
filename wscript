@@ -80,7 +80,7 @@ def build(bld):
         export_includes = '.')
 
     bld(target          = 'marocco',
-        features        = 'cxx cxxshlib post_task',
+        features        = 'cxx cxxshlib post_task pyembed',
         source          =
             bld.path.ant_glob(
                 'marocco/**/*.cpp',
