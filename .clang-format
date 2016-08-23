@@ -4,7 +4,7 @@ BasedOnStyle: Mozilla
 AccessModifierOffset: -4
 AlignAfterOpenBracket: AlwaysBreak
 AllowAllParametersOfDeclarationOnNextLine: true
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Inline
 BinPackArguments: true
 BinPackParameters: false
 AlwaysBreakAfterDefinitionReturnType: None
@@ -30,24 +30,30 @@ Cpp11BracedListStyle: true
 #    etc.
 #    | boost should have its own group and not be interspersed with
 #    | other system headers.
-# 3. #include "halbe/hal/Coordinate.h"
+# 3. #include <yaml-cpp/yaml.h>
+#    etc.
+#    | other libraries searched via system include path.
+# 4. #include "halbe/hal/Coordinate.h"
 #    #include "sthal/HICANN.h"
 #    etc.
 #    | Includes from other projects should come before includes from
 #    | the current project.
-# 4. #include "marocco/placement/NeuronPlacement.h"
+# 5. #include "marocco/placement/NeuronPlacement.h"
 #    etc.
 IncludeCategories:
-  # Group boost headers after std and other system headers.
-  - Regex:           '^<boost'
-    Priority:        2
-  - Regex:           '^<'
+  # standard library
+  - Regex:           '^<[^/]+>$'
     Priority:        1
+  - Regex:           '^<boost/'
+    Priority:        2
+  # other system headers
+  - Regex:           '^<'
+    Priority:        3
   # Group marocco headers after other local includes.
   - Regex:           '^"(py)?marocco/'
-    Priority:        4
+    Priority:        5
   - Regex:           '.*'
-    Priority:        3
+    Priority:        4
 IndentWidth: 4
 KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 2
