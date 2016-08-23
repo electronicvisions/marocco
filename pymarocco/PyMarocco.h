@@ -58,7 +58,9 @@ public:
 	PYPP_CLASS_ENUM(HICANNCfg) {
 		HICANNConfigurator,
 		HICANNv4Configurator,
-		DontProgramFloatingGatesHICANNConfigurator
+		DontProgramFloatingGatesHICANNConfigurator,
+		NoFGConfigurator,
+		NoResetNoFGConfigurator
 	};
 
 	/// choose emulation backend

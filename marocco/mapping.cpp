@@ -16,6 +16,8 @@
 #include "sthal/ExperimentRunner.h"
 #include "sthal/HICANNConfigurator.h"
 #include "sthal/HICANNv4Configurator.h"
+#include "sthal/NoResetNoFGConfigurator.h"
+#include "sthal/NoFGConfigurator.h"
 #include "sthal/MagicHardwareDatabase.h"
 
 #include "marocco/Logger.h"
@@ -283,6 +285,12 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		case PyMarocco::HICANNCfg::DontProgramFloatingGatesHICANNConfigurator:
 			configurator.reset(new sthal::DontProgramFloatingGatesHICANNConfigurator());
 			break;
+		case PyMarocco::HICANNCfg::NoFGConfigurator:
+			configurator.reset(new sthal::NoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::NoResetNoFGConfigurator:
+			configurator.reset(new sthal::NoResetNoFGConfigurator());
+			break;
 		default:
 			throw std::runtime_error("unknown configurator");
 	}
@@ -296,6 +304,8 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		case PyMarocco::HICANNCfg::HICANNConfigurator:
 		case PyMarocco::HICANNCfg::HICANNv4Configurator:
 		case PyMarocco::HICANNCfg::DontProgramFloatingGatesHICANNConfigurator:
+		case PyMarocco::HICANNCfg::NoFGConfigurator:
+		case PyMarocco::HICANNCfg::NoResetNoFGConfigurator:
 			hardware->connect(*hwdb);
 			hardware->configure(*configurator);
 			break;
