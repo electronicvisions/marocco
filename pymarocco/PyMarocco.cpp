@@ -70,6 +70,7 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("hicann_configurator", hicann_configurator)
 	   & make_nvp("speedup", speedup)
 	   & make_nvp("experiment_time_offset", experiment_time_offset)
+	   & make_nvp("ess_config", ess_config)
 	   & make_nvp("ess_temp_directory", ess_temp_directory);
 	// clang-format on
 }

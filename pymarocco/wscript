@@ -49,6 +49,7 @@ def build(bld):
             'euter_inc',
             'redman',
             'halbe_coordinate',
+            'sthal',
         ],
         post_task='_pymarocco',
         install_path='lib',

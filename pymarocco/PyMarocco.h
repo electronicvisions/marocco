@@ -19,6 +19,8 @@
 #include "marocco/placement/parameters/MergerRouting.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
 
+#include "sthal/ESSConfig.h"
+
 namespace pymarocco {
 
 /// The high-level interface to the maroccco framework
@@ -170,6 +172,9 @@ public:
 	/// can be injected into the L1 routing at time 0. of the real experiment
 	/// Hence, when using the ESS as backend, a value of 5e-7 is sufficient.
 	double experiment_time_offset;
+
+	/// ESS config
+	sthal::ESSConfig ess_config;
 
 	/// specifies the directory name where all temporary files are stored during ESS simulation.
 	/// If not specified a temp directory below "/tmp" is created which will be removed at the end of the program.
