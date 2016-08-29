@@ -3,7 +3,6 @@
 #include "HMF/NeuronCalibration.h"
 #include "HMF/SynapseRowCalibration.h"
 #include "calibtic/backend/Backend.h"
-#include "calibtic/backend/Library.h"
 #include "hal/Coordinate/iter_all.h"
 
 #include "marocco/Logger.h"
@@ -23,12 +22,14 @@ HICANNParameters::HICANNParameters(
     pymarocco::PyMarocco const& pymarocco,
     placement::results::Placement const& neuron_placement,
     routing::results::SynapseRouting const& synapse_routing,
+    boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
     double duration)
     : m_bio_graph(bio_graph),
       m_chip(chip),
       m_pymarocco(pymarocco),
       m_neuron_placement(neuron_placement),
       m_synapse_routing(synapse_routing),
+      m_calib_backend(calib_backend),
       m_duration(duration)
 {
 }
@@ -37,7 +38,9 @@ void HICANNParameters::run()
 {
 	auto const& hicann = m_chip.index();
 	bool const local_neurons = !m_neuron_placement.find(hicann).empty();
-	bool const local_routes = m_synapse_routing.has(hicann);
+	bool const local_synapses =
+		m_synapse_routing.has(hicann) && !m_synapse_routing[hicann].synapse_switches().empty();
+	bool const external_input_or_transit_only = !local_neurons;
 
 	// switch on BackgroundGenerators for locking
 	background_generators(m_pymarocco.bkg_gen_isi);
@@ -45,7 +48,7 @@ void HICANNParameters::run()
 	// load calibration data from DB
 	// const auto calib = getCalibrationData();
 	// FIXME: get const calibration not possible, because we need to set speedup. see #1543
-	auto calib = getCalibrationData();
+	auto calib = getCalibrationData(/*fallback_to_defaults=*/external_input_or_transit_only);
 
 	// v reset for all FG blocks in bio mV
 	double v_reset = 0;
@@ -62,7 +65,7 @@ void HICANNParameters::run()
 			// 3. transform individual analog parameters
 			v_reset = neurons(*neuron_calib);
 
-			if(local_routes) {
+			if (local_synapses) {
 				// transform synapses
 				auto synapse_row_calib = calib->atSynapseRowCollection();
 
@@ -79,7 +82,6 @@ void HICANNParameters::run()
 		}
 	}
 
-	if (local_neurons || local_routes)
 	{
 		const auto& shared_calib = calib->atBlockCollection();
 
@@ -360,43 +362,36 @@ HMF::Coordinate::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_sc
 }
 
 boost::shared_ptr<HICANNParameters::calib_type>
-HICANNParameters::getCalibrationData()
+HICANNParameters::getCalibrationData(bool fallback_to_defaults)
 {
 	using pymarocco::PyMarocco;
 
-	MAROCCO_DEBUG("Hardware backend: " << int(m_pymarocco.backend));
-	MAROCCO_DEBUG("Calibration backend: " << int(m_pymarocco.calib_backend));
+	auto calib = boost::make_shared<calib_type>();
+	if (!m_calib_backend) {
+		calib->setDefaults();
+	} else {
+		calibtic::MetaData md;
 
-	boost::shared_ptr<calib_type> calib(new calib_type);
+		const size_t hicann_id = m_chip.index().toHICANNOnWafer().id().value();
+		std::stringstream calib_file;
+		calib_file << "w" << size_t(m_chip.index().toWafer()) << "-h";
+		calib_file << hicann_id;
+		const std::string calib_file_string = calib_file.str();
 
-	switch(m_pymarocco.calib_backend) {
-
-		case PyMarocco::CalibBackend::XML: {
-			calibtic::MetaData md;
-			auto backend = getCalibticBackend();
-
-			const int hicann_id = m_chip.index().toHICANNOnWafer().id().value();
-			std::stringstream calib_file;
-			calib_file << "w" << int(m_chip.index().toWafer()) << "-h";
-			calib_file << hicann_id;
-			const std::string calib_file_string = calib_file.str();
-
-			MAROCCO_INFO("loading calibration file: " << m_pymarocco.calib_path+"/"+calib_file_string << ".xml");
-			backend->load(calib_file_string, md, *calib);
-
-			break;
-		}
-
-		case PyMarocco::CalibBackend::Default: {
+		MAROCCO_INFO(
+			"loading calibration file: "
+			<< m_pymarocco.calib_path + "/" + calib_file_string << ".xml");
+		try {
+			m_calib_backend->load(calib_file_string, md, *calib);
+		} catch (std::runtime_error const& err) {
+			if (!fallback_to_defaults) {
+				throw;
+			}
+			MAROCCO_WARN(err.what());
+			MAROCCO_INFO("Will use default calibtration");
 			calib->setDefaults();
-			break;
 		}
-
-		default:
-			throw std::runtime_error("unknown calibration backend type");
-
-	} // switch calib backend
-
+	}
 
 	if(calib->getPLLFrequency() != m_pymarocco.pll_freq) {
 		MAROCCO_WARN("PLL stored in HICANNCollection "
@@ -405,44 +400,6 @@ HICANNParameters::getCalibrationData()
 	}
 
 	return calib;
-}
-
-boost::shared_ptr<calibtic::backend::Backend>
-HICANNParameters::getCalibticBackend()
-{
-	using namespace calibtic;
-	using namespace calibtic::backend;
-
-	switch(m_pymarocco.calib_backend) {
-
-	case pymarocco::PyMarocco::CalibBackend::XML: {
-		auto lib = loadLibrary("libcalibtic_xml.so");
-		auto backend = loadBackend(lib);
-
-		if (!backend) {
-			throw std::runtime_error("unable to load xml backend");
-		}
-
-		std::string calib_path = m_pymarocco.calib_path;
-		if (std::getenv("MAROCCO_CALIB_PATH") != nullptr) {
-			if (!calib_path.empty())
-				// we break hard, if the user specified via both ways...
-				throw std::runtime_error(
-					"colliding settings: environment variable and pymarocco.calib_path both set");
-			calib_path = std::string(std::getenv("MAROCCO_CALIB_PATH"));
-		}
-
-		backend->config("path", calib_path); // search in calib_path for calibration xml files
-		backend->init();
-		return backend;
-	}
-
-	default:
-
-		throw std::runtime_error("unknown backend type");
-
-	}
-
 }
 
 } // namespace parameter

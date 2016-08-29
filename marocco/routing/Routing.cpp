@@ -12,6 +12,8 @@
 
 #include <boost/make_shared.hpp>
 
+using namespace HMF::Coordinate;
+
 namespace marocco {
 namespace routing {
 
@@ -104,6 +106,18 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 		}
 
 		configurator.run(hicann, synapse_routing_result[hicann]);
+	}
+
+	// Allocate all HICANNs used in L1 routes s.t. shared parameters will be configured later.
+	for (auto const& item : l1_routing_result) {
+		for (auto const& segment : item.route().segments()) {
+			if (auto const* hicann = boost::get<HICANNOnWafer>(&segment)) {
+				HICANNGlobal const resource(*hicann, m_hardware.index());
+				if (m_resource_manager.available(resource)) {
+					m_resource_manager.allocate(resource);
+				}
+			}
+		}
 	}
 }
 

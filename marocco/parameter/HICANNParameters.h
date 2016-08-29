@@ -13,6 +13,14 @@
 #include "marocco/routing/results/SynapseRouting.h"
 #include "pymarocco/PyMarocco.h"
 
+namespace calibtic {
+namespace backend {
+
+class Backend;
+
+} // namespace backend
+} // namespace calibtic
+
 namespace marocco {
 namespace parameter {
 
@@ -34,6 +42,7 @@ public:
 		pymarocco::PyMarocco const& pymarocco,
 		placement::results::Placement const& neuron_placement,
 		routing::results::SynapseRouting const& synapse_routing,
+		boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
 		double duration);
 
 	void run();
@@ -63,16 +72,14 @@ private:
 	/// where cm_hw is the sum of the capacitances of all interconnected hw-neurons
 	HMF::Coordinate::typed_array<double, HMF::Coordinate::NeuronOnHICANN> weight_scale_array() const;
 
-	boost::shared_ptr<calib_type> getCalibrationData();
-
-	boost::shared_ptr<calibtic::backend::Backend>
-	getCalibticBackend();
+	boost::shared_ptr<calib_type> getCalibrationData(bool fallback_to_defaults);
 
 	BioGraph const& m_bio_graph;
 	chip_type& m_chip;
 	pymarocco::PyMarocco const& m_pymarocco;
 	placement::results::Placement const& m_neuron_placement;
 	routing::results::SynapseRouting const& m_synapse_routing;
+	boost::shared_ptr<calibtic::backend::Backend> m_calib_backend;
 	double m_duration;
 
 	HMF::Coordinate::typed_array<std::vector<sthal::Spike>, HMF::Coordinate::DNCMergerOnHICANN> m_spikes;

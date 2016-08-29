@@ -35,6 +35,12 @@ void HICANNRouting::run(results::SynapseRouting& result)
 void HICANNRouting::run(
 	HMF::Coordinate::HICANNGlobal const& hicann, results::SynapseRouting& result)
 {
+	if (m_neuron_placement.find(hicann).empty()) {
+		// No local neurons, we can skip synapse routing for this HICANN.  This is the
+		// case for transit-only HICANNs or HICANNs exclusively used for external input.
+		return;
+	}
+
 	// synapse routing has to be run no matter there are routes ending at this
 	// chip or not, because we need the synapse target mapping for param trafo
 	SynapseRouting synapse_routing(

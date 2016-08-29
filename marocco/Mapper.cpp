@@ -2,6 +2,9 @@
 #include <unordered_map>
 #include <chrono>
 
+#include "calibtic/backend/Backend.h"
+#include "calibtic/backend/Library.h"
+
 #include "marocco/HardwareUsage.h"
 #include "marocco/Logger.h"
 #include "marocco/Mapper.h"
@@ -19,6 +22,8 @@ using namespace pymarocco;
 
 namespace marocco {
 
+namespace {
+
 template<typename Graph>
 size_t num_neurons(Graph const& g)
 {
@@ -31,6 +36,31 @@ size_t num_neurons(Graph const& g)
 	}
 	return cnt;
 }
+
+boost::shared_ptr<calibtic::backend::Backend>
+load_calibtic_xml_backend(std::string calib_path)
+{
+	auto lib = calibtic::backend::loadLibrary("libcalibtic_xml.so");
+	auto backend = calibtic::backend::loadBackend(lib);
+
+	if (!backend) {
+		throw std::runtime_error("unable to load xml backend");
+	}
+
+	if (std::getenv("MAROCCO_CALIB_PATH") != nullptr) {
+		if (!calib_path.empty())
+			// we break hard, if the user specified via both ways...
+			throw std::runtime_error(
+			    "colliding settings: environment variable and pymarocco.calib_path both set");
+		calib_path = std::string(std::getenv("MAROCCO_CALIB_PATH"));
+	}
+
+	backend->config("path", calib_path); // search in calib_path for calibration xml files
+	backend->init();
+	return backend;
+}
+
+} // namespace
 
 Mapper::Mapper(
 	hardware_type& hw,
@@ -91,11 +121,22 @@ void Mapper::run(ObjectStore const& pynn)
 
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
 
+	boost::shared_ptr<calibtic::backend::Backend> calib_backend;
+	switch (mPyMarocco->calib_backend) {
+		case pymarocco::PyMarocco::CalibBackend::XML:
+			calib_backend = load_calibtic_xml_backend(mPyMarocco->calib_path);
+			break;
+		case pymarocco::PyMarocco::CalibBackend::Default:
+			break;
+		default:
+			throw std::runtime_error("unknown calibration backend type");
+	}
+
 	for (auto const& hicann : mMgr.allocated()) {
 		auto& chip = mHW[hicann];
 		parameter::HICANNParameters hicann_parameters(
 			mBioGraph, chip, *mPyMarocco, m_results->placement, m_results->synapse_routing,
-			pynn.getDuration());
+			calib_backend, pynn.getDuration());
 		hicann_parameters.run();
 	}
 
