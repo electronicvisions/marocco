@@ -44,8 +44,12 @@ void Experiment::run()
 	m_hardware.connect(m_hardware_database);
 	m_hardware.configure(m_configurator);
 
+	double record_duration_in_s = m_parameters.hardware_duration_in_s();
+
 	// additional record time of 1000us cf. c/1449 and c/1584
-	double const record_duration_in_s = m_parameters.hardware_duration_in_s() + 1000e-6;
+	if (m_pymarocco.backend == pymarocco::PyMarocco::Backend::Hardware) {
+		record_duration_in_s += 1000e-6;
+	}
 
 	// Set up analog recorders.
 	for (auto const& item : m_results.analog_outputs) {
