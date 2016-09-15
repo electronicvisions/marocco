@@ -289,27 +289,28 @@ void SynapseLossImpl::fill(pymarocco::MappingStats& stats) const
 		try {
 			auto const& sl_weights = getWeights(*it);
 
-			size_t pre_cnt=0;
+			size_t pre_cnt = 0;
 			for (PopulationView const& view : proj.pre()) {
-				if (view != proj_view.pre()) {
-					pre_cnt+=view.size();
+				if (view == proj_view.pre()) {
+					break;
+				} else {
+					pre_cnt += view.size();
 				}
 			}
 
-			size_t post_cnt=0;
+			size_t post_cnt = 0;
 			for (PopulationView const& view : proj.post()) {
-				if (view != proj_view.post()) {
-					post_cnt+=view.size();
+				if (view == proj_view.post()) {
+					break;
+				} else {
+					post_cnt += view.size();
 				}
 			}
 
 			// now we have the offsets
-			for (size_t i1=0; i1<proj_view.pre().size(); ++i1)
-			{
-				for (size_t i2=0; i2<proj_view.post().size(); ++i2)
-				{
-					weights(pre_cnt+i1, post_cnt+i2) =
-						sl_weights(i1, i2);
+			for (size_t i1 = 0; i1 < proj_view.pre().size(); ++i1) {
+				for (size_t i2 = 0; i2 < proj_view.post().size(); ++i2) {
+					weights(pre_cnt + i1, post_cnt + i2) = sl_weights(i1, i2);
 				}
 			}
 		} catch (std::out_of_range const&) {
