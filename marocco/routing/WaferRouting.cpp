@@ -412,6 +412,10 @@ void WaferRouting::handleSynapseLoss(
 			graph_t::vertex_descriptor target_pop = boost::target(edge, getGraph());
 			auto const proj_view = getGraph()[edge];
 
+			if (proj_view.pre().mask()[source_item.neuron_index()] == false) {
+				continue;
+			}
+
 			for (auto const& item : neuron_placement.find(target_pop)) {
 				auto neuron_block = item.neuron_block();
 				assert(neuron_block != boost::none);
@@ -421,12 +425,22 @@ void WaferRouting::handleSynapseLoss(
 				if (it == unreachable.end()) {
 					continue;
 				}
+
+				if (proj_view.post().mask()[item.neuron_index()] == false) {
+					continue;
+				}
+
 				size_t const src_neuron_in_proj_view =
 					getPopulationViewOffset(source_item.neuron_index(), proj_view.pre().mask());
 				size_t const trg_neuron_in_proj_view =
 					getPopulationViewOffset(item.neuron_index(), proj_view.post().mask());
-				mSynapseLoss->addLoss(
-					edge, source_hicann, hicann, src_neuron_in_proj_view, trg_neuron_in_proj_view);
+				auto const w =
+				    proj_view.getWeights()(src_neuron_in_proj_view, trg_neuron_in_proj_view);
+				if (SynapseLossProxy::isRealWeight(w)) {
+					mSynapseLoss->addLoss(
+					    edge, source_hicann, hicann, src_neuron_in_proj_view,
+					    trg_neuron_in_proj_view);
+				}
 			}
 		} // all out_edges
 	} // all sources

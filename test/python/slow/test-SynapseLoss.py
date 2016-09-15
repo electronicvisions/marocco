@@ -4,10 +4,13 @@ import numpy as np
 from pymarocco import *
 from pyhalbe.Coordinate import *
 import pyhmf as pynn
+import pyredman
+
+import utils
 
 import pylogging, pyhalbe
 pyhalbe.Debug.change_loglevel(0)
-pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.TRACE)
+pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.INFO)
 
 class TestSynapseLoss(unittest.TestCase):
 
@@ -84,6 +87,60 @@ class TestSynapseLoss(unittest.TestCase):
 
         logging.debug("synapses counted in python: ", synapses)
         return synapses
+
+    @utils.parametrize(["PopulationView", "Population", "Assembly"])
+    def test_loss_in_wafer_routing(self, mode):
+        h0 = HICANNGlobal(Enum(0))
+        h1 = HICANNGlobal(Enum(1))
+
+        # disable all horizontal buses on h0
+        hicann = pyredman.Hicann()
+        for hbus in iter_all(HLineOnHICANN):
+            hicann.hbuses().disable(hbus)
+        self.marocco.defects.inject(h0, hicann)
+
+        pynn.setup(marocco=self.marocco)
+        n1 = 100
+        n2 = 100
+        p1 = pynn.Population(n1, pynn.EIF_cond_exp_isfa_ista)
+        p2 = pynn.Population(n2, pynn.EIF_cond_exp_isfa_ista)
+
+        self.marocco.manual_placement.on_hicann(p1, h0)
+        self.marocco.manual_placement.on_hicann(p2, h1)
+
+        n_post = 10
+        if mode == "Population":
+            src = p1
+            tgt = p2
+            exp_loss = len(src)*n_post
+        elif mode == "PopulationView":
+            src = p1[n1/2:n1]
+            tgt = p2[n2/2:n2]
+            exp_loss = len(src)*n_post
+        elif mode == "Assembly":
+            src = pynn.Assembly(p1,p2)
+            tgt = p2
+            exp_loss = len(p1)*n_post
+
+        conn = pynn.FixedNumberPostConnector(n_post,
+                allow_self_connections=True, weights=1.)
+        proj = pynn.Projection(src, tgt, conn, target='excitatory')
+
+        pynn.run(100)
+        pynn.end()
+
+        # check stats
+        self.assertEqual(exp_loss,
+                self.marocco.stats.getSynapseLossAfterWaferRouting())
+        self.assertEqual(exp_loss,
+                self.marocco.stats.getSynapseLoss())
+
+        # check weight matrices
+        orig_weights = proj.getWeights(format="array")
+        mapped_weights = self.marocco.stats.getWeights(proj)
+        lost_syns = np.logical_and(np.isfinite(orig_weights), np.isnan(mapped_weights))
+        self.assertEqual(exp_loss, np.count_nonzero(lost_syns))
+
 
 if __name__ == '__main__':
     unittest.main()

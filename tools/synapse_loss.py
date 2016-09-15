@@ -62,7 +62,7 @@ def main():
     overall synapse loss returnd by the mapping stats.
     """
     marocco = PyMarocco()
-    marocco.placement.setDefaultNeuronSize(4)
+    marocco.neuron_placement.default_neuron_size(4)
     marocco.routing.syndriver_chain_length = 5
 
     pynn.setup(marocco=marocco)
