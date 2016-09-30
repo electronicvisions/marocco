@@ -70,11 +70,13 @@ void HICANNParameters::run()
 				// transform synapses
 				auto synapse_row_calib = calib->atSynapseRowCollection();
 
-				// FIXME: remove next lines when synapse calibration exists for real hardware (#1584)
-				if ( m_pymarocco.param_trafo.use_ess_synapse_trafo )
-					synapse_row_calib->setEssDefaults();
-				else
+				// set default synapse calibration if not existing
+				if (synapse_row_calib->size() == 0) {
+					MAROCCO_WARN(
+					    "No synapse calibration available on "
+					    << m_chip << ". The default synapse trafo will be used instead");
 					synapse_row_calib->setDefaults();
+				}
 
 				synapses(*synapse_row_calib, synapse_routing, neuron_placement);
 			}
@@ -368,11 +370,6 @@ HICANNParameters::getCalibrationData()
 	MAROCCO_DEBUG("Calibration backend: " << int(m_pymarocco.calib_backend));
 
 	boost::shared_ptr<calib_type> calib(new calib_type);
-
-	if (m_pymarocco.backend == PyMarocco::Backend::ESS &&
-	    m_pymarocco.calib_backend != PyMarocco::CalibBackend::Default)
-		throw std::runtime_error(
-		    "Using the ESS with calib_backend != CalibBackend::Default is currently not supported");
 
 	switch(m_pymarocco.calib_backend) {
 
