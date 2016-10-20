@@ -18,6 +18,7 @@ namespace detail {
 	};
 
 HAS_PARAMETER(record_v)
+HAS_PARAMETER(record_spikes)
 HAS_PARAMETER(v_reset)
 
 #undef HAS_PARAMETER

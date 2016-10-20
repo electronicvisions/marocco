@@ -13,6 +13,7 @@
 #include "sthal/MagicHardwareDatabase.h"
 
 #include "marocco/Logger.h"
+#include "marocco/experiment/RecordSpikesVisitor.h"
 
 using namespace HMF::Coordinate;
 
@@ -136,12 +137,21 @@ bool Experiment::extract_membrane(PopulationPtr population, placement_item_type 
 
 void Experiment::extract_results(ObjectStore& objectstore) const
 {
+	MAROCCO_INFO("Extracting experiment results");
+
 	// In principle we could just access populations via the bio graph.  But as we store
 	// pointers to const populations and the result / graph classes are provided to this
 	// class via const-ref, it would not be obvious that populations are modified here.
 	for (auto const& population : objectstore.populations()) {
+		auto const& parameters = population->parameters();
+
 		for (auto const& item : m_results.placement.find(population->id())) {
-			extract_spikes(population, item);
+			if (record_spikes(parameters, item.neuron_index())) {
+				extract_spikes(population, item);
+			}
+			// As PyNN 0.7 does not provide any way to undo record_v(), we always try to
+			// extract the membrane trace as recording could have been (de-)activated by
+			// the user via the `analog_outputs` results object.
 			extract_membrane(population, item);
 		}
 	}
