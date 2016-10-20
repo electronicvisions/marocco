@@ -3,9 +3,10 @@
 #include <array>
 #include <memory>
 
+#include "marocco/assignment/PopulationSlice.h"
 #include "marocco/config.h"
 #include "marocco/graph.h"
-#include "marocco/assignment/PopulationSlice.h"
+#include "marocco/placement/MergerRoutingResult.h"
 #include "marocco/placement/internal/Result.h"
 #include "marocco/placement/parameters/InputPlacement.h"
 #include "marocco/placement/parameters/L1AddressAssignment.h"
@@ -56,6 +57,7 @@ public:
 		parameters::ManualPlacement const& manual_placement,
 		parameters::NeuronPlacement const& neuron_placement_parameters,
 		parameters::L1AddressAssignment const& l1_address_assignment,
+		MergerRoutingResult const& merger_routing,
 		double speedup,
 		hardware_system_t& hw,
 		resource_manager_t& mgr);
@@ -75,7 +77,11 @@ private:
 		HMF::Coordinate::HICANNGlobal const& hicann,
 		internal::L1AddressAssignment& address_assignment);
 
-	/** input spikes (bio) are inserted on free output buffers on target_hicann
+	/**
+	 * @brief Place as many neurons as possible on the DNC mergers of the given HICANN.
+	 * @param[in,out] bio Population slice whose neurons should be placed.
+	 * @note The caller of this function has to check for remaining neurons in the
+	 *       passed-in population slice.
 	 */
 	void insertInput(
 		HMF::Coordinate::HICANNOnWafer const& target_hicann,
@@ -88,6 +94,7 @@ private:
 	parameters::ManualPlacement const& m_manual_placement;
 	parameters::NeuronPlacement const& m_neuron_placement_parameters;
 	parameters::L1AddressAssignment const& m_l1_address_assignment;
+	MergerRoutingResult const& m_merger_routing;
 	double const m_speedup;
 	hardware_system_t&       mHW;
 	resource_manager_t&      mMgr;

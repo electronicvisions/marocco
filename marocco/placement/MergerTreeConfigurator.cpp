@@ -4,6 +4,8 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/variant.hpp>
 
+#include "hal/Coordinate/iter_all.h"
+
 using namespace HMF::Coordinate;
 
 namespace marocco {
@@ -36,11 +38,29 @@ merger_variant_type coordinate(MergerTreeGraph::vertex_type const& merger)
 
 MergerTreeConfigurator::MergerTreeConfigurator(
 	sthal::Layer1& layer1,
-	MergerTreeGraph const& graph,
-	MergerTreeRouter::result_type const& mapping)
-	: m_layer1(layer1), m_graph(graph), m_mapping(mapping)
+	MergerTreeGraph const& graph)
+	: m_layer1(layer1), m_graph(graph)
 {
 	std::fill(m_configured.begin(), m_configured.end(), false);
+}
+
+void MergerTreeConfigurator::run(MergerRoutingResult::mapped_type const& mapping)
+{
+	DNCMergerOnHICANN last_merger(0);
+	for (auto const& dnc : mapping) {
+		if (dnc < last_merger) {
+			throw std::runtime_error("DNC mergers should be monotonically increasing");
+		}
+		last_merger = dnc;
+	}
+
+	for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {
+		connect(nb, mapping[nb]);
+	}
+}
+
+void MergerTreeConfigurator::run(MergerTreeRouter::result_type const& mapping)
+{
 	DNCMergerOnHICANN last_merger(0);
 	for (auto const& item : mapping) {
 		if (item.second < last_merger) {
@@ -48,11 +68,7 @@ MergerTreeConfigurator::MergerTreeConfigurator(
 		}
 		last_merger = item.second;
 	}
-}
-
-void MergerTreeConfigurator::run()
-{
-	for (auto const& item : m_mapping) {
+	for (auto const& item : mapping) {
 		connect(item.first, item.second);
 	}
 }

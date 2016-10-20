@@ -16,8 +16,8 @@ public:
 		auto router = build_router();
 		router.run();
 		mapping = router.result();
-		MergerTreeConfigurator configurator(layer1, graph, mapping);
-		configurator.run();
+		MergerTreeConfigurator configurator(layer1, graph);
+		configurator.run(mapping);
 	}
 
 	sthal::Layer1 layer1;
@@ -112,8 +112,8 @@ TEST_F(AMergerTreeConfigurator, producesRightConfigForMaxSPL1Case)
 	mapping[NeuronBlockOnHICANN(5)] = DNCMergerOnHICANN(5);
 	mapping[NeuronBlockOnHICANN(6)] = DNCMergerOnHICANN(6);
 
-	MergerTreeConfigurator configurator(layer1, graph, mapping);
-	configurator.run();
+	MergerTreeConfigurator configurator(layer1, graph);
+	configurator.run(mapping);
 
 	EXPECT_EQ(sthal::Layer1(), layer1);
 }
@@ -129,8 +129,8 @@ TEST_F(AMergerTreeConfigurator, disallowsCrossingAssignments)
 	mapping[NeuronBlockOnHICANN(1)] = DNCMergerOnHICANN(1);
 
 	ASSERT_ANY_THROW({
-		MergerTreeConfigurator configurator(layer1, graph, mapping);
-		configurator.run();
+		MergerTreeConfigurator configurator(layer1, graph);
+		configurator.run(mapping);
 	});
 }
 
@@ -140,8 +140,8 @@ TEST_F(AMergerTreeConfigurator, disallowsImpossibleMappings)
 	mapping[NeuronBlockOnHICANN(0)] = DNCMergerOnHICANN(7);
 
 	ASSERT_ANY_THROW({
-		MergerTreeConfigurator configurator(layer1, graph, mapping);
-		configurator.run();
+		MergerTreeConfigurator configurator(layer1, graph);
+		configurator.run(mapping);
 	});
 }
 

@@ -1,5 +1,7 @@
 #include "marocco/placement/Placement.h"
 
+#include "hal/Coordinate/iter_all.h"
+
 #include "marocco/Logger.h"
 #include "marocco/placement/InputPlacement.h"
 #include "marocco/placement/MergerRouting.h"
@@ -90,22 +92,28 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 		{
 			auto& chip = m_hardware[hicann];
 
-			MergerTreeConfigurator configurator(chip.layer1, merger_graph, merger_mapping);
-			configurator.run();
+			MergerTreeConfigurator configurator(chip.layer1, merger_graph);
+			configurator.run(merger_mapping);
 		}
 
 		// Assign and store L1 addresses.
 		auto& address_assignment = result->internal.address_assignment[hicann];
-		for (auto const& it : merger_mapping)
-		{
-			NeuronBlockOnWafer const neuron_block(it.first, hicann);
-			DNCMergerOnWafer const dnc(it.second, hicann);
+		for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {
+			NeuronBlockOnWafer const neuron_block(nb, hicann);
+			DNCMergerOnWafer const dnc(merger_mapping[nb], hicann);
+
+			auto neurons_on_nb = neuron_placement.find(neuron_block);
+
+			if (neurons_on_nb.empty()) {
+				// Connected DNC merger can be used for DNC input.
+				continue;
+			}
 
 			// set this SPL1 merger to output
 			address_assignment.set_mode(dnc, internal::L1AddressAssignment::Mode::output);
 			auto& pool = address_assignment.available_addresses(dnc);
 
-			for (auto const& item : neuron_placement.find(neuron_block)) {
+			for (auto const& item : neurons_on_nb) {
 				auto const address = pool.pop(m_pymarocco.l1_address_assignment.strategy());
 				auto const& logical_neuron = item.logical_neuron();
 				neuron_placement.set_address(
@@ -117,8 +125,8 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 	// placement of externals, eg spike inputs
 	InputPlacement input_placement(
 	    m_graph, m_pymarocco.input_placement, m_pymarocco.manual_placement,
-	    m_pymarocco.neuron_placement, m_pymarocco.l1_address_assignment, m_pymarocco.speedup,
-	    m_hardware, m_resource_manager);
+	    m_pymarocco.neuron_placement, m_pymarocco.l1_address_assignment,
+	    result->merger_routing, m_pymarocco.speedup, m_hardware, m_resource_manager);
 	input_placement.run(neuron_placement, result->internal.address_assignment);
 
 	return { std::move(result) };

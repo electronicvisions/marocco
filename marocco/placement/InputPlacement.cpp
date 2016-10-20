@@ -41,6 +41,7 @@ InputPlacement::InputPlacement(
 	parameters::ManualPlacement const& manual_placement,
 	parameters::NeuronPlacement const& neuron_placement_parameters,
 	parameters::L1AddressAssignment const& l1_address_assignment,
+	MergerRoutingResult const& merger_routing,
 	double speedup,
 	hardware_system_t& hw,
 	resource_manager_t& mgr)
@@ -49,6 +50,7 @@ InputPlacement::InputPlacement(
 	  m_manual_placement(manual_placement),
 	  m_neuron_placement_parameters(neuron_placement_parameters),
 	  m_l1_address_assignment(l1_address_assignment),
+	  m_merger_routing(merger_routing),
 	  m_speedup(speedup),
 	  mHW(hw),
 	  mMgr(mgr)
@@ -202,77 +204,104 @@ void InputPlacement::insertInput(
 	internal::L1AddressAssignment& address_assignment,
 	PopulationSlice& bio)
 {
-	// 7 must be first to allow for use_output_buffer7_for_dnc_input_and_bg_hack
+	// We need events with L1 address zero for locking repeaters and synapse drivers.  In
+	// principle those events could be provided through the DNC input; But as this sets in
+	// too late and/or is too short, the current approach is to use the background generator
+	// of the corresponding neuron block and forward it 1-to-1 to the DNC merger.
+
+	MergerRoutingResult::mapped_type merger_mapping;
+	auto const it = m_merger_routing.find(target_hicann);
+	if (it != m_merger_routing.end()) {
+		merger_mapping = it->second;
+	} else {
+		for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {
+			merger_mapping[nb] = DNCMergerOnHICANN(nb);
+		}
+	}
+
+	// As this special handling used to be done only for DNCMergerOnHICANN(7) they are
+	// processed in reverse order here to be backwards compatible with that mode of
+	// operation (c.f. restrict_rightmost_neuron_blocks() option).
 	for (auto const& dnc :
 	     {DNCMergerOnHICANN(7), DNCMergerOnHICANN(6), DNCMergerOnHICANN(5), DNCMergerOnHICANN(4),
-	      DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)})
+	      DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)}) {
+		if (address_assignment.mode(dnc) != internal::L1AddressAssignment::Mode::input) {
+			continue;
+		}
+
+		auto& pool = address_assignment.available_addresses(dnc);
+		size_t const left_space = pool.size();
+		if (!left_space) {
+			continue;
+		}
+
+		// Check whether this 1-to-1 connection is possible and whether we would mute any
+		// neurons by only selecting the background from the corresponding neuron block.
 		{
-			auto& pool = address_assignment.available_addresses(dnc);
-			if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::input)
-				{
-					size_t const left_space = pool.size();
-					if (!left_space) {
-						continue;
-					}
+			NeuronBlockOnHICANN bg_block(dnc);
+			if (merger_mapping[bg_block] != dnc) {
+				// No route from BG to this DNC merger.
+				continue;
+			}
 
-					debug(this) << " found insertion point with space: " << left_space << " on: "
-								<< target_hicann << " " << dnc;
+			// There should be no neurons placed to this neuron block.
+			if (!neuron_placement.find(NeuronBlockOnWafer(bg_block, target_hicann)).empty()) {
+				// This should always be true given a 1-to-1 connection, as we check for
+				// the L1AddressAssignment mode above.
+				assert(false);
+				continue;
+			}
+		}
 
-					// this is the most we get, because available resources are
-					// sorted by size already.
-					size_t n = std::min(bio.size(), left_space);
+		MAROCCO_TRACE(
+			"Found insertion point with " << left_space
+			<< " addresses on " << dnc << " of " << target_hicann);
 
-					rate_type used_rate;
+		size_t neuron_count = std::min(bio.size(), left_space);
 
-					if (m_parameters.consider_firing_rate()) {
+		if (m_parameters.consider_firing_rate()) {
+			rate_type used_rate;
+			rate_type available_rate = availableRate(target_hicann);
 
-						rate_type available_rate = availableRate(target_hicann);
+			std::tie(neuron_count, used_rate) =
+				neuronsFittingIntoAvailableRate(bio, neuron_count, available_rate);
 
-						std::tie(n, used_rate) =
-							neuronsFittingIntoAvailableRate(
-								bio, n, available_rate);
+			if (neuron_count == 0) {
+				MAROCCO_TRACE(
+					"Skipping " << target_hicann << " due to bandwidth limit of "
+					<< available_rate << " Hz");
+				return;
+			}
 
-						if (n == 0) {
-							debug(this) << " cannot place input on this Hicann"
-								<< " would exceed bandwidth limit.\n"
-								<< "available: " << available_rate << " Hz,"
-								<< " HICANN: " << target_hicann;
-							return;
-						}
-					}
+			allocateRate(target_hicann, used_rate);
+		}
 
-					// make sure to tag HICANN as used
-					{
-						HICANNGlobal hicann(target_hicann, guess_wafer(mMgr));
-						if (mMgr.available(hicann)) {
-							mMgr.allocate(hicann);
-						}
-					}
+		// make sure to tag HICANN as used
+		{
+			HICANNGlobal hicann(target_hicann, guess_wafer(mMgr));
+			if (mMgr.available(hicann)) {
+				mMgr.allocate(hicann);
+			}
+		}
 
-					// we found an empty slot, insert the assignment
-					auto population_slice = bio.slice_back(n);
-					for (size_t ii = 0; ii < n; ++ii) {
-						auto const address = pool.pop(m_l1_address_assignment.strategy());
-						size_t const neuron_index = population_slice.offset() + ii;
-						auto const logical_neuron = LogicalNeuron::external(
-							mGraph[population_slice.population()]->id(), neuron_index);
-						BioNeuron bio_neuron(population_slice.population(), neuron_index);
-						neuron_placement.add(bio_neuron, logical_neuron);
-						neuron_placement.set_address(
-							logical_neuron,
-							L1AddressOnWafer(DNCMergerOnWafer(dnc, target_hicann), address));
-					}
+		// we found an empty slot, insert the assignment
+		auto population_slice = bio.slice_back(neuron_count);
+		for (size_t ii = 0; ii < neuron_count; ++ii) {
+			auto const address = pool.pop(m_l1_address_assignment.strategy());
+			size_t const neuron_index = population_slice.offset() + ii;
+			auto const logical_neuron =
+				LogicalNeuron::external(mGraph[population_slice.population()]->id(), neuron_index);
+			BioNeuron bio_neuron(population_slice.population(), neuron_index);
+			neuron_placement.add(bio_neuron, logical_neuron);
+			neuron_placement.set_address(
+				logical_neuron, L1AddressOnWafer(DNCMergerOnWafer(dnc, target_hicann), address));
+		}
 
-					// mark rate as used
-					if (m_parameters.consider_firing_rate()) {
-						allocateRate(target_hicann, used_rate);
-					}
-
-					if (!bio.size()) {
-						return;
-					}
-				}
-		} // for all output buffer
+		if (!bio.size()) {
+			// No need to check further DNC mergers if all neurons were placed successfully.
+			return;
+		}
+	}
 }
 
 
@@ -308,31 +337,23 @@ void InputPlacement::configureGbitLinks(
 			// slow only works if merger is set to MERGE
 			chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
 			chip.layer1[dnc].slow = true;
-
 		} else if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::input) {
 			// input from external FPGAs
 			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_HICANN;
-			chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
-			chip.layer1[dnc].slow = false;
 
-			// HACK: We need events with L1 address zero for locking repeaters
-			// and synapse drivers. In principle those events could be provided
-			// through the DNC input; But as this sets in too late and/or is too
-			// short, the current approach is to use the background generator
-			// connected to this output buffer (which is forwarded 1-to-1 to
-			// DNC merger 7).
-			if (m_neuron_placement_parameters.restrict_rightmost_neuron_blocks() &&
-			    dnc == DNCMergerOnHICANN(DNCMergerOnHICANN::max)) {
-				Merger0OnHICANN const m(dnc.value());
-				// Select (only) background generator, necessitating a hack in
-				// HICANNPlacement.cpp that prevents placing neurons there.
-				chip.layer1[m] = HMF::HICANN::Merger::LEFT_ONLY;
-				// slow only works if merger is set to MERGE
-				chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
-				chip.layer1[dnc].slow = true;
+			// We only place inputs on DNC mergers that have a 1-to-1 connection to neuron
+			// blocks without neurons, thus it is save to only select the background
+			// generator and discard events from the neuron block.
+			// Configuration of the rest of the merger tree is handled in MergerTreeConfigurator.
+			Merger0OnHICANN const m(dnc.value());
+			chip.layer1[m] = HMF::HICANN::Merger::LEFT_ONLY;
+			chip.layer1[dnc] = HMF::HICANN::DNCMerger::MERGE;
+			chip.layer1[dnc].slow = true;
 
-				MAROCCO_WARN("Neurons from right most block won't work");
-			}
+			// As soon as we can use the DNC input to provide events with L1 address zero
+			// early enough for locking of repeaters (e.g. via pbmem), we can go back to:
+			//     chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
+			//     chip.layer1[dnc].slow = false;
 		} else {
 			throw std::runtime_error("unknown mode");
 		}
@@ -377,7 +398,7 @@ InputPlacement::neuronsFittingIntoAvailableRate(
 
 	internal::FiringRateVisitor fr_visitor(m_speedup);
 
-	debug(this) << " available_rate: " <<  available_rate;
+	MAROCCO_TRACE("Available_rate: " << available_rate);
 	rate_type summed_rate = 0;
 	size_t i = 0;
 	for (; i < max_neurons; ++i) {
@@ -388,8 +409,8 @@ InputPlacement::neuronsFittingIntoAvailableRate(
 			fr_visitor,
 			bio.offset() + id_in_slice
 			);
-		debug(this) << " exptected rate for " << id_in_slice
-			<< " (ID in slice): " << rate;
+		MAROCCO_TRACE(
+			"Expected rate for neuron " << id_in_slice << " of slice: " << rate);
 		if (rate + summed_rate < available_rate)
 			summed_rate += rate;
 		else

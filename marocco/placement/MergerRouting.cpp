@@ -26,7 +26,10 @@ MergerRouting::MergerRouting(
 void MergerRouting::run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnWafer const& hicann)
 {
 	auto& merger_mapping = m_result[hicann];
-	merger_mapping.clear();
+
+	for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {
+		merger_mapping[nb] = DNCMergerOnHICANN(nb);
+	}
 
 	switch(m_parameters.strategy()) {
 		case parameters::MergerRouting::Strategy::minimize_number_of_sending_repeaters: {
@@ -34,23 +37,22 @@ void MergerRouting::run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnW
 			// overall use of SPL1 outputs is minimized.  Every unused SPL1 output can
 			// then be used for external input.
 
-			MergerTreeRouter router(graph, m_denmem_assignment.at(hicann));
+			auto const& denmem_assignment = m_denmem_assignment.at(hicann);
+			MergerTreeRouter router(graph, denmem_assignment);
 			router.run();
-			merger_mapping = router.result();
+
+			// If there is no entry in the merger mapping result, the corresponding neuron
+			// block has not been merged with any other blocks and thus a 1-to-1
+			// connection should be possible (only adjacent blocks are merged!).
+			for (auto const& item : router.result()) {
+				merger_mapping[item.first] = item.second;
+			}
+
 			break;
-		} // case minSPL1
+		}
 		case parameters::MergerRouting::Strategy::one_to_one: {
-			// TODO: Instead of only reserving DNCMergerOnHICANN(7) for external input,
-			// only insert neuron blocks that have neurons placed to them.
-			merger_mapping[NeuronBlockOnHICANN(0)] = DNCMergerOnHICANN(0);
-			merger_mapping[NeuronBlockOnHICANN(1)] = DNCMergerOnHICANN(1);
-			merger_mapping[NeuronBlockOnHICANN(2)] = DNCMergerOnHICANN(2);
-			merger_mapping[NeuronBlockOnHICANN(3)] = DNCMergerOnHICANN(3);
-			merger_mapping[NeuronBlockOnHICANN(4)] = DNCMergerOnHICANN(4);
-			merger_mapping[NeuronBlockOnHICANN(5)] = DNCMergerOnHICANN(5);
-			merger_mapping[NeuronBlockOnHICANN(6)] = DNCMergerOnHICANN(6);
 			break;
-		} // case maxSPL1
+		}
 		default:
 			throw std::runtime_error("unknown merger tree strategy");
 	} // switch merger tree strategy

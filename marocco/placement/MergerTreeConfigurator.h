@@ -3,6 +3,7 @@
 #include <array>
 
 #include "sthal/Layer1.h"
+#include "marocco/placement/MergerRoutingResult.h"
 #include "marocco/placement/MergerTreeGraph.h"
 #include "marocco/placement/MergerTreeRouter.h"
 
@@ -21,10 +22,10 @@ class MergerTreeConfigurator {
 public:
 	MergerTreeConfigurator(
 		sthal::Layer1& layer1,
-		MergerTreeGraph const& graph,
-		MergerTreeRouter::result_type const& mapping);
+		MergerTreeGraph const& graph);
 
-	void run();
+	void run(MergerRoutingResult::mapped_type const& mapping);
+	void run(MergerTreeRouter::result_type const& mapping);
 
 private:
 	void connect(HMF::Coordinate::NeuronBlockOnHICANN const& nb, HMF::Coordinate::DNCMergerOnHICANN const& dnc_merger);
@@ -32,7 +33,6 @@ private:
 
 	sthal::Layer1& m_layer1;
 	MergerTreeGraph const& m_graph;
-	MergerTreeRouter::result_type const& m_mapping;
 	/// Keep track of mergers that were explicitly configured to use input from one side.
 	/// As soon as we see them a second time, we know that we have to merge both inputs.
 	std::array<bool, MergerTreeGraph::vertices_count()> m_configured;

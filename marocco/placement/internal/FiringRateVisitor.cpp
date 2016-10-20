@@ -15,8 +15,6 @@ FiringRateVisitor::operator() (
 	cell_t<CellType::SpikeSourceArray> const& v,
 	size_t neuron_id)
 {
-	MAROCCO_TRACE("SpikeSourceArray");
-
 	auto const& param = v.parameters()[neuron_id];
 	auto const& sts = param.spike_times;
 
@@ -45,8 +43,6 @@ FiringRateVisitor::operator() (
 	cell_t<CellType::SpikeSourcePoisson> const& v,
 	size_t neuron_id)
 {
-	MAROCCO_TRACE("SpikeSourcePoisson");
-
 	auto const& param = v.parameters()[neuron_id];
 
 	return param.rate * m_speedup; // PyNN rate is in Hz.

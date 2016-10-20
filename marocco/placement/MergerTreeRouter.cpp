@@ -41,6 +41,10 @@ void MergerTreeRouter::run()
 		}
 	}
 
+	if (pending.empty()) {
+		return;
+	}
+
 	// Mergers are not all equally expensive. Those in the center and on
 	// higher levels (closer to the DNCMergers) are more expensive. If one
 	// wastes them, some neuron blocks in the center might become
