@@ -6,7 +6,6 @@
 #include "marocco/Logger.h"
 #include "marocco/routing/Fieres.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
-#include "marocco/routing/SynapseDriverSA.h"
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/SynapseManager.h"
 #include "marocco/routing/SynapseTargetMapping.h"
@@ -112,9 +111,10 @@ void SynapseRouting::run(placement::Result const& placement,
 	// in the following, find synapse driver assignments for driver on left and
 	// right side.
 
+	typedef std::vector<DriverInterval> IntervalList;
 	// generate two lists, of LocalRoutes seperated into vlines on left and
 	// right side of hicann.
-	std::array<DriverConfigurationState::IntervalList, 2> lists;
+	std::array<IntervalList, 2> lists;
 
 	// two mappings of VLines to route iterators, for drivers on left and right
 	// side.
@@ -171,22 +171,10 @@ void SynapseRouting::run(placement::Result const& placement,
 	for (auto const& side : iter_all<SideHorizontal>())
 	{
 		// if list is empty, there is nothing to optimize
-		DriverConfigurationState::IntervalList const& list = lists[side];
+		IntervalList const& list = lists[side];
 		if (list.empty()) {
 			continue;
 		}
-
-		// do the actual optimization. Use simulated annealing to minimize the
-		// synapse driver overlap in favor of larger assignments.
-		//DriverConfigurationState state(list, side, chain_length, 42[>seed<]);
-		//Annealer<DriverConfigurationState> annealer(state);
-		//annealer.run(60000);
-
-		//MAROCCO_DEBUG(annealer.iterations() << " annealing iterations");
-
-		//DriverConfigurationState result_state = *annealer.get();
-		//std::vector<VLineOnHICANN> const rejected = result_state.postProcess();
-		//auto const result = result_state.result(hicann());
 
 		// prepare defect list first.
 		std::vector<SynapseDriverOnHICANN> defect_list;

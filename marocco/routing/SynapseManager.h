@@ -14,10 +14,9 @@ namespace routing {
  * address, and STP setting
  *
  * The SynapseManager is constructed with the result of the Driver Assignment
- * algorithm (Fieres or SynapseDriverSA).  Then, the information about
- * originally required half synrows and synapses hw property is added with the
- * init(...) method, which also distributes and allocates available resources
- * to the different hardware synapse properties.
+ * algorithm (Fieres).  Then, the information about originally required half synrows and
+ * synapses hw property is added with the #init() method, which also distributes and
+ * allocates available resources to the different hardware synapse properties.
  */
 class SynapseManager
 {

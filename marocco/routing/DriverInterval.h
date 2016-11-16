@@ -4,16 +4,12 @@
 #include <array>
 #include <iosfwd>
 #include <set>
-#include <unordered_map>
 #include <unordered_set>
 
 #include <boost/icl/interval_map.hpp>
-#include <boost/shared_ptr.hpp>
 
-#include "marocco/config.h"
-#include "marocco/annealer.h"
-#include "marocco/RNG.h"
-#include "marocco/routing/DriverAssignment.h"
+#include "hal/Coordinate/L1.h"
+#include "hal/Coordinate/Synapse.h"
 
 namespace marocco {
 namespace routing {
@@ -94,8 +90,6 @@ bool operator== (Entry const& lhs, Entry const& rhs)
         && lhs.refs == rhs.refs;
 }
 
-
-
 struct DriverInterval
 {
 	typedef boost::icl::discrete_interval<int> Interval;
@@ -121,85 +115,6 @@ struct DriverInterval
 	Vector intervals;
 
 	friend std::ostream& operator<<(std::ostream& os, DriverInterval const& i);
-};
-
-
-
-struct DriverConfigurationState :
-	public StateBase<DriverConfigurationState>
-{
-	typedef boost::icl::interval_map<int, Entry> IntervalMap;
-	typedef DriverInterval::Interval Interval;
-	typedef std::vector<DriverInterval> IntervalList;
-	typedef RNG::result_type Seed;
-
-	DriverConfigurationState(IntervalList const& list,
-							 HMF::Coordinate::Side const& side,
-							 size_t max_chain_length=5,
-							 Seed s=0);
-
-	static size_t length(Interval const& i);
-
-	std::pair<HMF::Coordinate::SynapseSwitchRowOnHICANN, std::pair<Interval, Entry> >
-	random_interval(HMF::Coordinate::VLineOnHICANN const& vline,
-					size_t length, size_t pos, size_t psel);
-
-	void next();
-	static double temperature(size_t /*iter*/);
-	double energy() const;
-	static double thresh();
-
-	/// Counts the amount of over-subscribed synapse drivers
-	size_t countOverlap() const;
-
-	/// Counts the total number of synapse driver which are scheduled for
-	/// optimization. Can be less than initially requested, due to maximal chain
-	/// length constraints.
-	size_t countDrivers() const;
-
-	/// Total number of requested synapse drivers, idependent of chain length
-	/// limitations.
-	size_t countRequested() const;
-
-	/**
-	 * post process driver assignment:
-	 *  * resove overlaps
-	 *  * assign yet unassigned drivers
-	 *
-	 *  @return returns list of rejected vlines
-	 **/
-	std::vector<HMF::Coordinate::VLineOnHICANN>
-	postProcess();
-
-	typedef std::unordered_map<
-			HMF::Coordinate::VLineOnHICANN,
-			std::vector<DriverAssignment>
-		> Result;
-	Result result(HMF::Coordinate::HICANNGlobal const& hicann) const;
-
-	friend std::ostream& operator<<(std::ostream& os, DriverConfigurationState d);
-
-private:
-	int relative(HMF::Coordinate::SynapseSwitchRowOnHICANN const& s) const;
-	IntervalMap& select(HMF::Coordinate::SynapseSwitchRowOnHICANN const& s);
-	size_t driver(HMF::Coordinate::SynapseSwitchRowOnHICANN const& s) const;
-
-	bool is_adjacent(HMF::Coordinate::VLineOnHICANN const& vline) const;
-
-	void insertIntervals();
-
-	size_t const MAX_CHAIN_LENGTH;
-
-	IntervalList mIntervals;
-
-	HMF::Coordinate::Side const mSide;
-	double mSynapses;
-
-	/// interval map for top and bottom synapse drivers. Left and right can be
-	/// optimized indipendently.
-	std::array<IntervalMap, 2> mIntMaps;
-
-	boost::shared_ptr<RNG> mRNG;
 };
 
 } // namespace routing

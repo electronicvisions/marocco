@@ -11,10 +11,8 @@
 #include <boost/shared_ptr.hpp>
 
 #include "marocco/config.h"
-#include "marocco/annealer.h"
-#include "marocco/RNG.h"
 #include "marocco/routing/DriverAssignment.h"
-#include "marocco/routing/SynapseDriverSA.h"
+#include "marocco/routing/DriverInterval.h"
 
 namespace marocco {
 namespace routing {
