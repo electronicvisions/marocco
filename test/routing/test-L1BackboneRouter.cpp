@@ -1,5 +1,6 @@
 #include "test/common.h"
 
+#include <iostream>
 #include <algorithm>
 #include <iterator>
 
@@ -298,7 +299,6 @@ TEST_F(AL1BackboneRouter, doesNotCreateCircularPredecessorMapWhenNearEdgeOfWafer
 	}
 }
 
-
 TEST_F(AL1BackboneRouter, use_only_one_switch_per_hline_right)
 {
 	/**
@@ -437,6 +437,105 @@ TEST_F(AL1BackboneRouter, use_only_one_switch_per_hline_left)
 	}
 }
 
+TEST_F(AL1BackboneRouter, noCyclesWhenSourceTargetAndDetourInTheSameColumn)
+{
+	// Routing from {12, 1} to [12, 0] and [11, 2]:
+	//                      [12, 0]   (13, 0)
+	//                         ^
+	//                      {12, 1}   (13, 1)
+	//                         v
+	//  (10, 2)   [11, 2] < (12, 2)   (13, 2)
+	// Due to the wafer edge, a detour has to be taken to reach (11, 2). Note
+	// that the column where the detour has to be taken, contains the source
+	// and a target HICANN.
+	HICANNOnWafer const source_hicann(X(12), Y(1));
+	auto hline = SendingRepeaterOnHICANN(3).toHLineOnHICANN();
+	auto source = routing_graph[source_hicann][hline];
+
+	std::vector<HICANNOnWafer> targets = {HICANNOnWafer(X(11), Y(2)), HICANNOnWafer(X(12), Y(0))};
+
+	auto const& graph = routing_graph.graph();
+
+	L1GraphWalker walker(graph);
+	L1BackboneRouter backbone(walker, source);
+
+	for (auto const& target : targets) {
+		backbone.add_target(target);
+	}
+
+	backbone.run();
+
+	for (auto const& target : targets) {
+		auto path = backbone.path_to(target);
+		EXPECT_FALSE(path.empty()) << target;
+		EXPECT_EQ(source, path.front()); // check for cycle
+	}
+}
+
+TEST_F(AL1BackboneRouter, validConfigWhenTargetAndDetourInDefectiveColumn)
+{
+	// Routing from {14, 0} to [12, 1] and [13, 3]:
+	// ¦12, 0¦   (13, 0) < {14, 0}
+	//              v
+	// [12, 1] < (13, 1)   (14, 1)
+	//              v
+	// (12, 2)   ¦13, 2¦   (14, 2)
+	//              v
+	// (12, 3)   [13, 3]   (14, 3)
+	// Defects:
+	//  - on ¦12, 0¦ the hline connected to the source l1 bus
+	//  - on ¦13, 2¦ 7 of 8 vlines connected to the source l1 bus via (13, 0)
+	// Difficulty:
+	// A detour is needed to reach HICANN [12, 1], and in the column of the
+	// detour there are defective vlines, so that there is only one vertical
+	// route in that column to reach the other target HICANN.
+	// Test:
+	// 1.) The router must not connect one hline to several vlines on a HICANN (mandatory)
+	// 2.) Both targets should be reached (optionally).
+	HICANNOnWafer const source_hicann(X(14), Y(0));
+	auto hline = SendingRepeaterOnHICANN(3).toHLineOnHICANN();
+
+	L1RoutingGraph restricted_routing_graph = routing_graph;
+	restricted_routing_graph.remove(source_hicann.west().west(), hline.west().west());
+
+	auto vlines = hline.west().toVLineOnHICANN();
+	ASSERT_EQ(vlines.size(), 8);
+	// remove all but last vline from HICANN (13, 2)
+	for (size_t i = 0; i < 7; ++i) {
+		restricted_routing_graph.remove(
+		    source_hicann.west().south().south(), vlines[i].south().south());
+	}
+
+	auto const& graph = restricted_routing_graph.graph();
+
+	auto source = routing_graph[source_hicann][hline];
+	std::vector<HICANNOnWafer> targets = {HICANNOnWafer(X(12), Y(1)), HICANNOnWafer(X(13), Y(3))};
+
+	L1GraphWalker walker(graph);
+	L1BackboneRouter backbone(walker, source);
+
+	for (auto const& target : targets) {
+		backbone.add_target(target);
+	}
+
+	backbone.run();
+
+	sthal::Wafer wafer;
+
+	// TODO: we currently check that both targets are reached. This might be attenuated to check
+	// that at least one target is reached.
+	for (auto const& target : targets) {
+		auto path = backbone.path_to(target);
+		EXPECT_FALSE(path.empty()) << target;
+		EXPECT_EQ(source, path.front()); // check for cycle
+
+		configure(wafer, toL1Route(graph, path));
+	}
+
+	for (auto hc : wafer.getAllocatedHicannCoordinates()) {
+		EXPECT_NO_THROW(wafer[hc].crossbar_switches.check_exclusiveness(1,1, std::cerr)) << hc;
+	}
+}
 
 } // routing
 } // marocco
