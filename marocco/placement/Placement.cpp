@@ -110,6 +110,8 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 			}
 
 			// set this SPL1 merger to output
+			// check that merger is either unused or already set to output
+			assert(address_assignment.mode(dnc) != internal::L1AddressAssignment::Mode::input);
 			address_assignment.set_mode(dnc, internal::L1AddressAssignment::Mode::output);
 			auto& pool = address_assignment.available_addresses(dnc);
 

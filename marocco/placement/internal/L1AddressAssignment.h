@@ -10,8 +10,8 @@ namespace placement {
 namespace internal {
 
 /**
- * @brief Keeps track of available L1 addresses and modes (input/output) for the DNC
- *        mergers of a single HICANN.
+ * @brief Keeps track of available L1 addresses and modes (input/output/unused)
+ *        for the DNC mergers of a single HICANN.
  */
 class L1AddressAssignment
 {
@@ -22,7 +22,8 @@ public:
 
 	enum class Mode {
 		input,
-		output
+		output,
+		unused
 	};
 
 	L1AddressPool const& available_addresses(index_type const& merger) const;
@@ -34,11 +35,6 @@ public:
 	Mode mode(index_type const& merger) const;
 
 	/**
-	 * @brief Checks whether any address has been removed from the corresponding pool.
-	 */
-	bool is_unused(index_type const& merger) const;
-
-	/**
 	 * @brief Checks whether any DNC merger has been set to output.
 	 */
 	bool has_output() const;
@@ -46,8 +42,7 @@ public:
 private:
 	/**
 	 * @brief Mode of DNC mergers.
-	 * Any mergers not set to \c Mode::output will be used to place external input,
-	 * thus \c Mode::input is used as the default value.
+	 * \c Mode::unused is the default value.
 	 */
 	HMF::Coordinate::typed_array<Mode, index_type> m_mode;
 

@@ -6,7 +6,7 @@ namespace internal {
 
 L1AddressAssignment::L1AddressAssignment()
 {
-	std::fill(m_mode.begin(), m_mode.end(), Mode::input);
+	std::fill(m_mode.begin(), m_mode.end(), Mode::unused);
 }
 
 L1AddressPool& L1AddressAssignment::available_addresses(index_type const& merger)
@@ -27,10 +27,6 @@ void L1AddressAssignment::set_mode(index_type const& merger, Mode const value)
 auto L1AddressAssignment::mode(index_type const& merger) const -> Mode
 {
 	return m_mode[merger];
-}
-
-bool L1AddressAssignment::is_unused(index_type const& merger) const {
-	return m_address_pools[merger].size() == L1AddressPool::capacity();
 }
 
 bool L1AddressAssignment::has_output() const {

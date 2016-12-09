@@ -225,7 +225,7 @@ void InputPlacement::insertInput(
 	for (auto const& dnc :
 	     {DNCMergerOnHICANN(7), DNCMergerOnHICANN(6), DNCMergerOnHICANN(5), DNCMergerOnHICANN(4),
 	      DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)}) {
-		if (address_assignment.mode(dnc) != internal::L1AddressAssignment::Mode::input) {
+		if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::output) {
 			continue;
 		}
 
@@ -283,6 +283,9 @@ void InputPlacement::insertInput(
 				mMgr.allocate(hicann);
 			}
 		}
+
+		// mark DNC Merger to be used for external input
+		address_assignment.set_mode(dnc, internal::L1AddressAssignment::Mode::input);
 
 		// we found an empty slot, insert the assignment
 		auto population_slice = bio.slice_back(neuron_count);
@@ -354,6 +357,12 @@ void InputPlacement::configureGbitLinks(
 			// early enough for locking of repeaters (e.g. via pbmem), we can go back to:
 			//     chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
 			//     chip.layer1[dnc].slow = false;
+		} else if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::unused) {
+			// set gbit_link and DNC merger to external input to avoid unwanted transmission of
+			// events from neuron blocks
+			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_HICANN;
+			chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
+			chip.layer1[dnc].slow = false;
 		} else {
 			throw std::runtime_error("unknown mode");
 		}
