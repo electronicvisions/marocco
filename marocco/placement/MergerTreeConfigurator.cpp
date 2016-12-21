@@ -5,6 +5,7 @@
 #include <boost/variant.hpp>
 
 #include "hal/Coordinate/iter_all.h"
+#include "marocco/Logger.h"
 
 using namespace HMF::Coordinate;
 
@@ -75,6 +76,7 @@ void MergerTreeConfigurator::run(MergerTreeRouter::result_type const& mapping)
 
 void MergerTreeConfigurator::connect(NeuronBlockOnHICANN const& nb, DNCMergerOnHICANN const& dnc_merger)
 {
+	MAROCCO_TRACE("connecting " << nb << " to " << dnc_merger);
 	auto const& graph = m_graph.graph();
 	Merger0OnHICANN const top_merger(nb.value());
 	auto const source_merger_vertex = m_graph[top_merger];

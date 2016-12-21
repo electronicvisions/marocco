@@ -94,6 +94,31 @@ void MergerTreeRouter::run()
 			}
 		}
 
+		// As #mergeable() returns as many adjacent neuron blocks as possible, an additional check
+		// is necessary that the leftmost/rightmost neuron block actually contains any neurons.
+		// If this is not the case, the corresponding column remains available for external input
+		// (which needs a one-to-one connection to the background generators).
+		// Note that we always keep NeuronBlockOnHICANN(3), since this column contains mergers
+		// relevant for connecting neuron blocks from both the left and right side of the HICANN.
+
+		// Delete leading neuron blocks with zero placed neurons.
+		for (auto it = adjacent_nbs.begin(); it != adjacent_nbs.end();
+		     it = adjacent_nbs.erase(it)) {
+			if (m_neurons[*it] > 0 || *it > NeuronBlockOnHICANN(2)) {
+				break;
+			}
+			MAROCCO_TRACE("removing " << *it << " from the left");
+		}
+
+		// Delete trailing neuron blocks with zero placed neurons.
+		for (auto it = adjacent_nbs.rbegin(); it != adjacent_nbs.rend();
+		     it = decltype(it){adjacent_nbs.erase(std::next(it).base())}) {
+			if (m_neurons[*it] > 0 || *it < NeuronBlockOnHICANN(4)) {
+				break;
+			}
+			MAROCCO_TRACE("removing " << *it << " from the right");
+		}
+
 		auto& graph = m_graph.graph();
 		auto dnc_merger_vertex = m_graph[dnc_merger];
 		for (auto& adjacent_nb : adjacent_nbs) {
