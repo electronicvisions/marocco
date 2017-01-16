@@ -18,6 +18,9 @@
 #include "sthal/HICANNv4Configurator.h"
 #include "sthal/NoResetNoFGConfigurator.h"
 #include "sthal/NoFGConfigurator.h"
+#include "sthal/ParallelHICANNNoFGConfigurator.h"
+#include "sthal/ParallelHICANNNoResetNoFGConfigurator.h"
+#include "sthal/OnlyNeuronNoResetNoFGConfigurator.h"
 #include "sthal/MagicHardwareDatabase.h"
 
 #include "marocco/Logger.h"
@@ -296,6 +299,15 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		case PyMarocco::HICANNCfg::NoResetNoFGConfigurator:
 			configurator.reset(new sthal::NoResetNoFGConfigurator());
 			break;
+		case PyMarocco::HICANNCfg::OnlyNeuronNoResetNoFGConfigurator:
+			configurator.reset(new sthal::OnlyNeuronNoResetNoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::ParallelHICANNNoFGConfigurator:
+			configurator.reset(new sthal::ParallelHICANNNoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::ParallelHICANNNoResetNoFGConfigurator:
+			configurator.reset(new sthal::ParallelHICANNNoResetNoFGConfigurator());
+			break;
 		default:
 			throw std::runtime_error("unknown configurator");
 	}
@@ -305,18 +317,8 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	hardware->commonFPGASettings()->setPLL(mi->pll_freq);
 
-	switch(mi->hicann_configurator) {
-		case PyMarocco::HICANNCfg::HICANNConfigurator:
-		case PyMarocco::HICANNCfg::HICANNv4Configurator:
-		case PyMarocco::HICANNCfg::DontProgramFloatingGatesHICANNConfigurator:
-		case PyMarocco::HICANNCfg::NoFGConfigurator:
-		case PyMarocco::HICANNCfg::NoResetNoFGConfigurator:
-			hardware->connect(*hwdb);
-			hardware->configure(*configurator);
-			break;
-		default:
-			throw std::runtime_error("unknown configurator");
-	}
+	hardware->connect(*hwdb);
+	hardware->configure(*configurator);
 
 	experiment.run();
 
@@ -324,6 +326,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	experiment.extract_results(*store);
 
+	LOG4CXX_INFO(logger, "Finished");
 	return result;
 }
 

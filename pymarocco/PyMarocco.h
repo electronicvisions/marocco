@@ -61,7 +61,10 @@ public:
 		HICANNv4Configurator,
 		DontProgramFloatingGatesHICANNConfigurator,
 		NoFGConfigurator,
-		NoResetNoFGConfigurator
+		NoResetNoFGConfigurator,
+		ParallelHICANNNoFGConfigurator,
+		ParallelHICANNNoResetNoFGConfigurator,
+		OnlyNeuronNoResetNoFGConfigurator
 	};
 
 	/// choose emulation backend
