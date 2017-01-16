@@ -189,6 +189,7 @@ class TestResults(utils.TestWithResults):
             address = item.address()
             l1_address = address.toL1Address()
             hicann_cfg = wafer_cfg[address.toHICANNOnWafer()]
+            hicann_cfg.sortSpikes()
             raw_spikes = hicann_cfg.sentSpikes(
                 C.GbitLinkOnHICANN(address.toDNCMergerOnHICANN()))
             raw_spikes = raw_spikes[raw_spikes[:, 1] == l1_address.value(), 0]
