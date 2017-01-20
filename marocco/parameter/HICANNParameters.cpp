@@ -72,8 +72,8 @@ void HICANNParameters::run()
 				// set default synapse calibration if not existing
 				if (synapse_row_calib->size() == 0) {
 					MAROCCO_WARN(
-					    "No synapse calibration available on "
-					    << m_chip << ". The default synapse trafo will be used instead");
+						"No synapse calibration available on " << hicann
+						<< ". The default synapse trafo will be used instead");
 					synapse_row_calib->setDefaults();
 				}
 
