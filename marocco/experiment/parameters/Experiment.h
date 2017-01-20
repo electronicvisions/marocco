@@ -42,10 +42,21 @@ public:
 	void offset_in_s(double seconds);
 	double offset_in_s() const;
 
+	/**
+	 * @brief Specify whether background events should be read out from hardware.
+	 * As background events (L1 address zero) are not available via the PyNN interface
+	 * they are discarded by default.  This switch allows to enable read out of
+	 * background events, so they can be accessed via the sthal interface,
+	 * e.g. for debugging purposes.
+	 */
+	void discard_background_events(bool enable);
+	bool discard_background_events() const;
+
 private:
 	double m_bio_duration_in_s;
 	double m_speedup;
 	double m_offset_in_s;
+	bool m_discard_background_events;
 
 	friend class boost::serialization::access;
 	template <typename Archive>

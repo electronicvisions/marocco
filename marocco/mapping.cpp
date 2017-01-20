@@ -268,7 +268,9 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 			LOG4CXX_INFO(
 				logger, "Backend: Hardware " << exp_params.hardware_duration_in_s() << "s");
 			hwdb.reset(new sthal::MagicHardwareDatabase());
-			runner.reset(new sthal::ExperimentRunner(exp_params.hardware_duration_in_s()));
+			runner.reset(new sthal::ExperimentRunner(
+				exp_params.hardware_duration_in_s(),
+				exp_params.discard_background_events()));
 			break;
 		}
 		default:
