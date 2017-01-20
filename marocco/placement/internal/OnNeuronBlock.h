@@ -1,8 +1,10 @@
 #pragma once
 
 #include <array>
-#include <boost/iterator/iterator_adaptor.hpp>
+#include <iosfwd>
 #include <memory>
+
+#include <boost/iterator/iterator_adaptor.hpp>
 
 #include "hal/Coordinate/HMFGeometry.h"
 #include "marocco/util/iterable.h"
@@ -66,6 +68,11 @@ public:
 	 * @see Only a continuous block of the correct size will be considered.
 	 */
 	iterator add(neuron_coordinate::x_type const& column, NeuronPlacementRequest const& value);
+
+	/**
+	 * @brief Return whether the given denmem is marked as defect.
+	 */
+	bool is_defect(neuron_coordinate const& nrn) const;
 
 	/**
 	 * @brief Return the population slice assigned to a denmem.
@@ -163,6 +170,11 @@ private:
 	 */
 	size_t mCeiling;
 };
+
+std::ostream& print(
+	std::ostream& os,
+	OnNeuronBlock const& onb,
+	HMF::Coordinate::NeuronBlockOnHICANN const& nb);
 
 namespace detail {
 namespace on_neuron_block {

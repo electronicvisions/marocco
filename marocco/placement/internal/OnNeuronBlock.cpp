@@ -1,10 +1,15 @@
 #include "marocco/placement/internal/OnNeuronBlock.h"
 
 #include <algorithm>
+#include <iostream>
 #include <limits>
 #include <stdexcept>
 
+#include "hal/Coordinate/iter_all.h"
+
 #include "marocco/util.h"
+
+using namespace HMF::Coordinate;
 
 namespace marocco {
 namespace placement {
@@ -118,6 +123,11 @@ auto OnNeuronBlock::add(
 	return end();
 }
 
+bool OnNeuronBlock::is_defect(neuron_coordinate const& nrn) const
+{
+	return mAssignment[nrn.x()][nrn.y()] == defect_marker();
+}
+
 auto OnNeuronBlock::operator[](neuron_coordinate const& nrn) const -> value_type {
 	auto ptr = mAssignment[nrn.x()][nrn.y()];
 	if (ptr != defect_marker()) {
@@ -164,6 +174,45 @@ size_t OnNeuronBlock::restrict(size_t max_denmems)
 
 	mCeiling = std::min(mCeiling, max_denmems);
 	return mCeiling;
+}
+
+std::ostream& print(
+	std::ostream& os,
+	OnNeuronBlock const& onb,
+	NeuronBlockOnHICANN const& nb)
+{
+	os << "|  NB(" << size_t(nb) << ") ";
+	for (auto xx : iter_all<NeuronOnNeuronBlock::x_type>()) {
+		os << "|" << std::setw(3) << std::setfill(' ') << size_t(xx);
+	}
+	os << "|\n";
+
+	for (auto yy : iter_all<NeuronOnNeuronBlock::y_type>()) {
+		os << "| " << (yy == top ? "   top" : "bottom") << " ";
+
+		OnNeuronBlock::value_type prev = nullptr;
+		size_t index = 0;
+		for (auto xx : iter_all<NeuronOnNeuronBlock::x_type>()) {
+			auto const nrn = NeuronOnNeuronBlock(xx, yy);
+			auto const val = onb[nrn];
+
+			os << "|";
+			if (val != nullptr) {
+				if (val != prev) {
+					++index;
+					prev = val;
+				}
+				os << std::setw(3) << std::setfill('#') << index;
+			} else if (onb.is_defect(nrn)) {
+				os << "---";
+			} else {
+				os << "   ";
+			}
+		}
+		os << "|\n";
+	}
+
+	return os;
 }
 
 namespace detail {

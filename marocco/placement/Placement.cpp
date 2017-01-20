@@ -1,5 +1,7 @@
 #include "marocco/placement/Placement.h"
 
+#include <sstream>
+
 #include "hal/Coordinate/iter_all.h"
 
 #include "marocco/Logger.h"
@@ -68,6 +70,19 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 	}
 
 	nrn_placement.run();
+
+	{
+		std::string const horizontal_line(NeuronOnNeuronBlock::x_type::size * 4 + 10, '-');
+		for (auto const& item : result->internal.denmem_assignment) {
+			std::ostringstream table;
+			table << horizontal_line << "\n";
+			for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {
+				print(table, item.second[nb], nb);
+				table << horizontal_line << "\n";
+			}
+			MAROCCO_DEBUG("Neuron placement on " << item.first << "\n" << table.str());
+		}
+	}
 
 	MergerRouting merger_routing(
 		m_pymarocco.merger_routing, result->internal.denmem_assignment, result->merger_routing);
