@@ -47,7 +47,7 @@ void HICANNParameters::run()
 
 	// load calibration data from DB
 	// const auto calib = getCalibrationData();
-	// FIXME: get const calibration not possible, because we need to set speedup. see #1543
+	// FIXME: get const calibration not possible, because we need to set speedup. see #1542
 	auto calib = getCalibrationData(/*fallback_to_defaults=*/external_input_or_transit_only);
 
 	// v reset for all FG blocks in bio mV
@@ -56,7 +56,7 @@ void HICANNParameters::run()
 	if (local_neurons)
 	{
 		//const auto& neuron_calib = calib->atNeuronCollection();
-		// FIXME: get const calibration not possible, because we need to set speedup. see #1543
+		// FIXME: get const calibration not possible, because we need to set speedup. see #1542
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(m_pymarocco.speedup);
 		auto const& hicann_synapse_routing = m_synapse_routing[hicann];
