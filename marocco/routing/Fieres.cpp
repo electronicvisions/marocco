@@ -61,6 +61,8 @@ void Assignment::insert(
 	std::fill(top_it, bottom_it, ival);
 }
 
+namespace {
+
 /// Auxiliary structure to keep track of possible insertion options
 struct Option {
 	    Option(SynapseDriverOnQuadrant drv, SideVertical side, size_t n)
@@ -83,6 +85,8 @@ struct Option {
 		}
 	}
 };
+
+} // namespace
 
 bool Assignment::add(InboundRoute const& route) {
 	// We look at all synapse drivers reachable from the
