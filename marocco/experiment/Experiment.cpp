@@ -108,6 +108,12 @@ bool Experiment::extract_membrane(PopulationPtr population, placement_item_type 
 	}
 
 	auto const& recorder = it->second;
+
+	if (!recorder.hasTriggered()) {
+		MAROCCO_WARN(recorder << " failed to trigger while recording " << logical_neuron);
+		return false;
+	}
+
 	auto const voltages = recorder.trace();
 	auto const times = recorder.getTimestamps();
 
