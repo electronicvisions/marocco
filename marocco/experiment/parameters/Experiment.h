@@ -45,6 +45,20 @@ public:
 	double offset_in_s() const;
 
 	/**
+	 * @brief Specify whether membrane traces should be truncated to the experiment
+	 *        duration specified via PyNN.
+	 */
+	void truncate_membrane_traces(bool enable);
+	bool truncate_membrane_traces() const;
+
+	/**
+	 * @brief Specify whether spike times should be truncated to the experiment duration
+	 *        specified via PyNN.
+	 */
+	void truncate_spike_times(bool enable);
+	bool truncate_spike_times() const;
+
+	/**
 	 * @brief Specify whether background events should be read out from hardware.
 	 * As background events (L1 address zero) are not available via the PyNN interface
 	 * they are discarded by default.  This switch allows to enable read out of
@@ -58,6 +72,8 @@ private:
 	double m_bio_duration_in_s;
 	double m_speedup;
 	double m_offset_in_s;
+	bool m_truncate_membrane_traces;
+	bool m_truncate_spike_times;
 	bool m_discard_background_events;
 
 	friend class boost::serialization::access;

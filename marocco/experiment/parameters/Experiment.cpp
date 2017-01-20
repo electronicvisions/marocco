@@ -11,6 +11,8 @@ Experiment::Experiment()
 	: m_bio_duration_in_s(0.),
 	  m_speedup(1e4),
 	  m_offset_in_s(20e-6),
+	  m_truncate_membrane_traces(true),
+	  m_truncate_spike_times(true),
 	  m_discard_background_events(true)
 {
 }
@@ -59,6 +61,26 @@ double Experiment::offset_in_s() const
 	return m_offset_in_s;
 }
 
+void Experiment::truncate_membrane_traces(bool enable)
+{
+	m_truncate_membrane_traces = enable;
+}
+
+bool Experiment::truncate_membrane_traces() const
+{
+	return m_truncate_membrane_traces;
+}
+
+void Experiment::truncate_spike_times(bool enable)
+{
+	m_truncate_spike_times = enable;
+}
+
+bool Experiment::truncate_spike_times() const
+{
+	return m_truncate_spike_times;
+}
+
 void Experiment::discard_background_events(bool enable)
 {
 	m_discard_background_events = enable;
@@ -77,6 +99,8 @@ void Experiment::serialize(Archive& ar, unsigned int const /* version */)
 	ar & make_nvp("bio_duration_in_s", m_bio_duration_in_s)
 	   & make_nvp("speedup", m_speedup)
 	   & make_nvp("offset_in_s", m_offset_in_s)
+	   & make_nvp("truncate_membrane_traces", m_truncate_membrane_traces)
+	   & make_nvp("truncate_spike_times", m_truncate_spike_times)
 	   & make_nvp("discard_background_events", m_discard_background_events);
 	// clang-format on
 }

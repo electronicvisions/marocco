@@ -1,6 +1,7 @@
 #include "marocco/experiment/Experiment.h"
 
 #include <fstream>
+#include <initializer_list>
 #include <memory>
 #include <boost/filesystem.hpp>
 
@@ -80,15 +81,27 @@ bool Experiment::extract_spikes(PopulationPtr population, placement_item_type co
 	double const offset_in_s = m_parameters.offset_in_s();
 	double const speedup = m_parameters.speedup();
 
-	for (auto const& spike : received_spikes) {
-		if (spike.addr == l1_address) {
-			spikes.push_back((spike.time - offset_in_s) * speedup);
+	if (m_parameters.truncate_spike_times()) {
+		float exp_duration = m_parameters.bio_duration_in_s();
+		for (auto const& in_spikes : {received_spikes, sent_spikes}) {
+			for (auto const& spike : in_spikes) {
+				if (spike.addr != l1_address) {
+					continue;
+				}
+				float time = (spike.time - offset_in_s) * speedup;
+				if (time < 0 || time > exp_duration) {
+					continue;
+				}
+				spikes.push_back(time);
+			}
 		}
-	}
-
-	for (auto const& spike : sent_spikes) {
-		if (spike.addr == l1_address) {
-			spikes.push_back((spike.time - offset_in_s) * speedup);
+	} else {
+		for (auto const& in_spikes : {received_spikes, sent_spikes}) {
+			for (auto const& spike : in_spikes) {
+				if (spike.addr == l1_address) {
+					spikes.push_back((spike.time - offset_in_s) * speedup);
+				}
+			}
 		}
 	}
 
@@ -132,10 +145,21 @@ bool Experiment::extract_membrane(PopulationPtr population, placement_item_type 
 	auto const t_eit = voltages.end();
 
 	trace.reserve(times.size());
-	for (; v_it != v_eit && t_it != t_eit; ++v_it, ++t_it) {
-		trace.push_back(
-		    std::make_pair(
-		        (*t_it - offset_in_s) * speedup * s_to_ms, (*v_it - shift_v) * V_to_mV / alpha_v));
+	if (m_parameters.truncate_membrane_traces()) {
+		float const exp_duration_in_ms = m_parameters.bio_duration_in_s() * s_to_ms;
+		for (; v_it != v_eit && t_it != t_eit; ++v_it, ++t_it) {
+			float time = (*t_it - offset_in_s) * speedup * s_to_ms;
+			if (time < 0 || time > exp_duration_in_ms) {
+				continue;
+			}
+			trace.push_back(std::make_pair(time, (*v_it - shift_v) * V_to_mV / alpha_v));
+		}
+	} else {
+		for (; v_it != v_eit && t_it != t_eit; ++v_it, ++t_it) {
+			trace.push_back(
+				std::make_pair(
+					(*t_it - offset_in_s) * speedup * s_to_ms, (*v_it - shift_v) * V_to_mV / alpha_v));
+		}
 	}
 
 	return true;
