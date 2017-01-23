@@ -31,7 +31,7 @@ class TestSynapseLoss(unittest.TestCase):
         synapses = self.big_network()
 
         stats = self.marocco.getStats()
-        logging.debug("synapse loss: ", stats.getSynapseLoss())
+        logging.debug("synapse loss: {}".format(stats.getSynapseLoss()))
         self.assertEqual(synapses, stats.getSynapses())
 
         # at least one synapse should be released, come on...
@@ -82,7 +82,7 @@ class TestSynapseLoss(unittest.TestCase):
         pynn.run(100)
         pynn.end()
 
-        logging.debug("synapses counted in python: ", synapses)
+        logging.debug("synapses counted in python: %d", synapses)
         return synapses
 
     @utils.parametrize(["PopulationView", "Population", "Assembly"])
