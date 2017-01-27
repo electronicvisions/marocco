@@ -197,9 +197,12 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	static const double ms_to_s = 1e-3;
 
-	experiment::parameters::Experiment exp_params;
-	exp_params.speedup(mi->speedup);
-	exp_params.offset_in_s(mi->experiment_time_offset);
+	experiment::parameters::Experiment exp_params = mi->experiment;
+	if (exp_params.bio_duration_in_s() != 0.) {
+		LOG4CXX_WARN(
+			logger, "Discarded experiment duration set via mapping parameters "
+			"in favor of duration specified via argument to pynn.run()");
+	}
 	exp_params.bio_duration_in_s(store->getDuration() * ms_to_s);
 
 	results = mapper.results();

@@ -127,8 +127,8 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 	// placement of externals, eg spike inputs
 	InputPlacement input_placement(
 	    m_graph, m_pymarocco.input_placement, m_pymarocco.manual_placement,
-	    m_pymarocco.neuron_placement, m_pymarocco.l1_address_assignment,
-	    result->merger_routing, m_pymarocco.speedup, m_hardware, m_resource_manager);
+	    m_pymarocco.neuron_placement, m_pymarocco.l1_address_assignment, result->merger_routing,
+	    m_pymarocco.experiment.speedup(), m_hardware, m_resource_manager);
 	input_placement.run(neuron_placement, result->internal.address_assignment);
 
 	return { std::move(result) };

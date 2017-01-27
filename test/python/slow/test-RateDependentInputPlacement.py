@@ -22,7 +22,7 @@ pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.DEBUG)
 def default_marocco():
     marocco = pymarocco.PyMarocco()
     marocco.neuron_placement.default_neuron_size(4)
-    marocco.speedup = 10000.
+    marocco.experiment.speedup(10000.)
     return marocco
 
 class TestRateDependentInputPlacement(unittest.TestCase):
@@ -101,7 +101,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         marocco.input_placement.consider_firing_rate(True)
         marocco.input_placement.bandwidth_utilization(1.0)
 
-        total_rate = 1.05*self.hicann_bw / marocco.speedup
+        total_rate = 1.05*self.hicann_bw / marocco.experiment.speedup()
         poisson_rate = 100.
         n_stim = int(np.ceil(total_rate/poisson_rate))
         r = self.run_experiment(marocco, n_stim, poisson_rate)
@@ -110,7 +110,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         # For the total rate 2 HICANNs are needed
         self.assertEqual(2, len(hicanns))
 
-        max_stim_per_hicann = int(self.hicann_bw / marocco.speedup / poisson_rate)
+        max_stim_per_hicann = int(self.hicann_bw / marocco.experiment.speedup() / poisson_rate)
         # max_stim_per_hicann fit onto the first hicanns, the rest should be on other hicann
         self.assertEqual(set(hicanns.values()), set((max_stim_per_hicann, n_stim-max_stim_per_hicann)))
 
@@ -121,7 +121,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         marocco.input_placement.bandwidth_utilization(1.0)
 
         poisson_rate = 100.
-        total_rate = 1.05*self.fpga_bw / marocco.speedup
+        total_rate = 1.05*self.fpga_bw / marocco.experiment.speedup()
         n_stim = int(np.ceil(total_rate/poisson_rate))
         r = self.run_experiment(marocco, n_stim, poisson_rate)
 
@@ -138,12 +138,12 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         marocco.input_placement.consider_firing_rate(True)
         marocco.input_placement.bandwidth_utilization(1.0)
 
-        total_rate = 1.05*self.hicann_bw / marocco.speedup
+        total_rate = 1.05*self.hicann_bw / marocco.experiment.speedup()
         poisson_rate = 100.
         n_stim = int(np.ceil(total_rate/poisson_rate))
 
         # reduce speedup
-        marocco.speedup = 5000.
+        marocco.experiment.speedup(5000.)
         r = self.run_experiment(marocco, n_stim, poisson_rate)
 
         # with reduced speedup, 1 hicann is sufficient
@@ -159,7 +159,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         marocco.input_placement.consider_firing_rate(True)
         marocco.input_placement.bandwidth_utilization(0.5)
 
-        total_rate = 1.05*self.hicann_bw / marocco.speedup
+        total_rate = 1.05*self.hicann_bw / marocco.experiment.speedup()
         poisson_rate = 100.
         n_stim = int(np.ceil(total_rate/poisson_rate))
 
@@ -175,7 +175,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         marocco.input_placement.consider_firing_rate(True)
         marocco.input_placement.bandwidth_utilization(1.0)
 
-        total_rate = 1.05*self.hicann_bw / marocco.speedup
+        total_rate = 1.05*self.hicann_bw / marocco.experiment.speedup()
         rate = 100.
         n_stim = int(np.ceil(total_rate/rate))
         r = self.run_experiment(marocco, n_stim, rate, poisson=False)
@@ -184,7 +184,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         # For the total rate 2 HICANNs are needed
         self.assertEqual(2, len(hicanns))
 
-        max_stim_per_hicann = int(self.hicann_bw / marocco.speedup / rate)
+        max_stim_per_hicann = int(self.hicann_bw / marocco.experiment.speedup() / rate)
         # max_stim_per_hicann fit onto the first hicanns, the rest should be on other hicann
         self.assertEqual(set(hicanns.values()), set((max_stim_per_hicann, n_stim-max_stim_per_hicann)))
 
@@ -195,7 +195,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         marocco.input_placement.consider_firing_rate(True)
         marocco.input_placement.bandwidth_utilization(1.0)
 
-        total_rate = 1.05*self.hicann_bw / marocco.speedup
+        total_rate = 1.05*self.hicann_bw / marocco.experiment.speedup()
         rate = 100.
         n_stim = int(np.ceil(total_rate/rate))
         r = self.run_experiment(marocco, n_stim, rate, poisson=False,
@@ -205,7 +205,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         # For the total rate 2 HICANNs are needed
         self.assertEqual(2, len(hicanns))
 
-        max_stim_per_hicann = int(self.hicann_bw / marocco.speedup / rate)
+        max_stim_per_hicann = int(self.hicann_bw / marocco.experiment.speedup() / rate)
         # max_stim_per_hicann fit onto the first hicanns, the rest should be on other hicann
         self.assertEqual(set(hicanns.values()), set((max_stim_per_hicann, n_stim-max_stim_per_hicann)))
 

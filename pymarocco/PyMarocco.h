@@ -11,6 +11,7 @@
 #include "pymarocco/Defects.h"
 #include "pymarocco/ParamTrafo.h"
 
+#include "marocco/experiment/parameters/Experiment.h"
 #include "marocco/placement/parameters/InputPlacement.h"
 #include "marocco/placement/parameters/L1AddressAssignment.h"
 #include "marocco/placement/parameters/ManualPlacement.h"
@@ -97,6 +98,7 @@ public:
 	marocco::placement::parameters::L1AddressAssignment l1_address_assignment;
 	marocco::routing::parameters::L1Routing l1_routing;
 	marocco::routing::parameters::SynapseRouting synapse_routing;
+	marocco::experiment::parameters::Experiment experiment;
 
 	/// python property to access mapping stats
 	MappingStats stats;
@@ -149,20 +151,6 @@ public:
 	/// choose HICANN configurator
 	/// one of: [HICANNConfigurator, DontProgramFloatingGatesHICANNConfigurator]
 	HICANNCfg hicann_configurator;
-
-
-	/// speedup of emulation on hardware compared to biological experiment definition
-	/// default: 10000.
-	double speedup;
-
-	/// time offset in seconds after which the real experiment on the hardware starts.
-	/// this experiment offset is required for the Layer 1 repeater to lock their PLLs.
-	/// default: 20e-6;
-	///
-	/// furthermore, a minimal delay around 500 nS is required so that external pulses
-	/// can be injected into the L1 routing at time 0. of the real experiment
-	/// Hence, when using the ESS as backend, a value of 5e-7 is sufficient.
-	double experiment_time_offset;
 
 	/// ESS config
 	sthal::ESSConfig ess_config;

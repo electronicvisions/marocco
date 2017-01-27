@@ -58,7 +58,7 @@ void HICANNParameters::run()
 		//const auto& neuron_calib = calib->atNeuronCollection();
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1542
 		auto neuron_calib = calib->atNeuronCollection();
-		neuron_calib->setSpeedup(m_pymarocco.speedup);
+		neuron_calib->setSpeedup(m_pymarocco.experiment.speedup());
 		auto const& hicann_synapse_routing = m_synapse_routing[hicann];
 
 		{
@@ -352,7 +352,7 @@ HMF::Coordinate::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_sc
 		}
 
 		double const cm_bio = visitCellParameterVector(params, cm_visitor, item.neuron_index());
-		double const scale = m_pymarocco.speedup * cm_hw / cm_bio;
+		double const scale = m_pymarocco.experiment.speedup() * cm_hw / cm_bio;
 
 		for (auto cnrn : connected_neurons) {
 			rv[cnrn] = scale;

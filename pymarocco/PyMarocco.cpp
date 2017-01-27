@@ -32,9 +32,7 @@ PyMarocco::PyMarocco() :
 	skip_mapping(false),
 	bkg_gen_isi(500),
 	pll_freq(100e6),
-	hicann_configurator(HICANNCfg::HICANNConfigurator),
-	speedup(10000.),
-	experiment_time_offset(20e-6)
+	hicann_configurator(HICANNCfg::HICANNConfigurator)
 {}
 
 boost::shared_ptr<PyMarocco> PyMarocco::create()
@@ -54,6 +52,7 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("l1_address_assignment", l1_address_assignment)
 	   & make_nvp("l1_routing", l1_routing)
 	   & make_nvp("synapse_routing", synapse_routing)
+	   & make_nvp("experiment", experiment)
 	   & make_nvp("stats", stats)
 	   & make_nvp("defects", defects)
 	   & make_nvp("param_trafo", param_trafo)
@@ -65,8 +64,6 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("bkg_gen_isi", bkg_gen_isi)
 	   & make_nvp("pll_freq", pll_freq)
 	   & make_nvp("hicann_configurator", hicann_configurator)
-	   & make_nvp("speedup", speedup)
-	   & make_nvp("experiment_time_offset", experiment_time_offset)
 	   & make_nvp("ess_config", ess_config)
 	   & make_nvp("ess_temp_directory", ess_temp_directory);
 	// clang-format on

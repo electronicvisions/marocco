@@ -20,6 +20,8 @@ public:
 
 	/**
 	 * @brief Duration of experiment.
+	 * @note This property will be shadowed by the experiment duration specified via
+	 *       \c pynn.run() and should not be explicitly set.
 	 */
 	void bio_duration_in_s(double seconds);
 	double bio_duration_in_s() const;
