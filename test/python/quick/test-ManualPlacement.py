@@ -111,6 +111,22 @@ class TestManualPlacement(utils.TestWithResults):
         placement_item, = results.placement.find(pop[0])
         self.assertEqual(logical_neuron, placement_item.logical_neuron())
 
+    def test_on_rectangular_neuron(self):
+        pynn.setup(marocco=self.marocco)
+
+        pop = pynn.Population(1, pynn.IF_cond_exp, {})
+        topleft = C.NeuronOnWafer(C.NeuronOnHICANN(C.X(2), C.Y(0)))
+        logical_neuron = LogicalNeuron.rectangular(topleft, size=4)
+        self.marocco.manual_placement.on_neuron(pop, logical_neuron)
+
+        pynn.run(0)
+        pynn.end()
+
+        results = self.load_results()
+
+        placement_item, = results.placement.find(pop[0])
+        self.assertEqual(logical_neuron, placement_item.logical_neuron())
+
     @utils.parametrize([1, 2, 3])
     def test_on_neurons(self, pop_size):
         pynn.setup(marocco=self.marocco)

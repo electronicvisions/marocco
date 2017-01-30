@@ -3,19 +3,11 @@
 #include <boost/serialization/nvp.hpp>
 
 #include "hal/Coordinate/Neuron.h"
+#include "marocco/coordinates/LogicalNeuron.h"
 
 namespace marocco {
 namespace placement {
 namespace parameters {
-
-void check_neuron_size(size_t size)
-{
-	if (((size % 2) != 0) || (size > HMF::Coordinate::NeuronOnNeuronBlock::enum_type::size)) {
-		throw std::invalid_argument(
-		    "neuron size has to be multiple of two and must fit on neuron block");
-	}
-}
-
 
 NeuronPlacement::NeuronPlacement()
 	: m_default_neuron_size(4),

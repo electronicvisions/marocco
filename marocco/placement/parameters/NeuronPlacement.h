@@ -12,12 +12,6 @@ namespace marocco {
 namespace placement {
 namespace parameters {
 
-/**
- * @brief Ensure that the given neuron size is valid.
- * @throw std::invalid_argument If it does not fulfill the requirements.
- */
-void check_neuron_size(size_t size);
-
 class NeuronPlacement {
 public:
 	typedef size_t size_type;

@@ -25,6 +25,12 @@ std::ostream& operator<<(std::ostream& os, pretty_printer<LogicalNeuron> pr);
 } // namespace detail
 
 /**
+ * @brief Ensure that the given neuron size is valid.
+ * @throw std::invalid_argument If it does not fulfill the requirements.
+ */
+void check_neuron_size(size_t size);
+
+/**
  * @brief Hardware neuron corresponding to a biological neuron.
  * A LogicalNeuron represents either a collection of connected denmems implementing one
  * neuron of a biological population or an external input / neuron encoded by a unique
@@ -141,6 +147,13 @@ public:
 	 * @brief Constructs a logical neuron that represents a collection of denmems.
 	 */
 	static Builder on(neuron_block_type const& block);
+
+	/**
+	 * @brief Constructs a rectangular logical neuron spanning both rows.
+	 * @param size Number of contained denmems
+	 * @throw std::invalid_argument
+	 */
+	static LogicalNeuron rectangular(neuron_type const& topleft, size_t size);
 
 	/**
 	 * @brief Constructs a logical neuron that represents an external input.

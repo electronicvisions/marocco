@@ -15,6 +15,16 @@ using namespace HMF::Coordinate;
 
 namespace marocco {
 
+void check_neuron_size(size_t size)
+{
+	if (size == 0 || ((size % 2) != 0) ||
+	    (size > HMF::Coordinate::NeuronOnNeuronBlock::enum_type::size)) {
+		throw std::invalid_argument(
+		    "marocco requires multiple-of-two neuron size, must fit on neuron block");
+	}
+}
+
+
 LogicalNeuron::iterator::iterator(
 	neuron_block_type const& block, underlying_iterator const& chunk_iterator)
 	: m_block(block), m_chunk_iterator(chunk_iterator), m_offset(0u)
@@ -83,6 +93,9 @@ auto LogicalNeuron::Builder::squash() -> Builder&
 
 LogicalNeuron LogicalNeuron::Builder::done()
 {
+	if (m_chunks.empty()) {
+		throw std::invalid_argument("logical neuron needs at least one chunk");
+	}
 	LogicalNeuron ret(m_block, std::move(m_chunks));
 	m_chunks.clear();
 	return ret;
@@ -91,6 +104,20 @@ LogicalNeuron LogicalNeuron::Builder::done()
 auto LogicalNeuron::on(neuron_block_type const& block) -> Builder
 {
 	return Builder(block);
+}
+
+LogicalNeuron LogicalNeuron::rectangular(neuron_type const& topleft, size_t const size)
+{
+	if (topleft.y() != 0) {
+		throw std::invalid_argument("rectangular neuron has to start in top row");
+	}
+	check_neuron_size(size);
+
+	auto const column = topleft.toNeuronOnNeuronBlock().x();
+	return on(topleft.toNeuronBlockOnWafer())
+		.add(NeuronOnNeuronBlock(column, Y(0)), size - size / 2)
+		.add(NeuronOnNeuronBlock(column, Y(1)), size / 2)
+		.done();
 }
 
 LogicalNeuron LogicalNeuron::external(

@@ -22,7 +22,9 @@ void ManualPlacement::on_hicann(
 	if (hicanns.empty()) {
 		throw std::invalid_argument("at least one HICANN has to be specified");
 	}
-	check_neuron_size(size);
+	if (size != 0) {
+		check_neuron_size(size);
+	}
 	m_mapping[pop] = Location{hicanns, size};
 }
 
@@ -38,7 +40,9 @@ void ManualPlacement::on_neuron_block(
 	if (blocks.empty()) {
 		throw std::invalid_argument("at least one neuron block has to be specified");
 	}
-	check_neuron_size(size);
+	if (size != 0) {
+		check_neuron_size(size);
+	}
 	m_mapping[pop] = Location{blocks, size};
 }
 
@@ -60,7 +64,9 @@ void ManualPlacement::with_size(population_type pop, size_type size)
 	if (size == 0u) {
 		throw std::invalid_argument("neuron size has to be specified");
 	}
-	check_neuron_size(size);
+	if (size != 0) {
+		check_neuron_size(size);
+	}
 	m_mapping[pop] = Location{std::vector<HICANNOnWafer>{}, size};
 }
 

@@ -37,6 +37,36 @@ class LogicalNeuronTest(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             nrn.external_index()
 
+        with self.assertRaises(ValueError):
+            no_chunks_specified = (
+                LogicalNeuron.on(NeuronBlockOnWafer()).done())
+
+    def test_rectangular(self):
+        nrn = LogicalNeuron.rectangular(
+            NeuronOnWafer(NeuronOnHICANN(X(3), Y(0))), 4)
+        reference_denmems = [
+            NeuronOnWafer(NeuronOnHICANN(X(3), Y(0))),
+            NeuronOnWafer(NeuronOnHICANN(X(4), Y(0))),
+            NeuronOnWafer(NeuronOnHICANN(X(3), Y(1))),
+            NeuronOnWafer(NeuronOnHICANN(X(4), Y(1))),
+        ]
+        self.assertFalse(nrn.is_external())
+        self.assertEqual(4, nrn.size())
+        self.assertSequenceEqual(reference_denmems, list(nrn))
+        self.assertTrue(str(nrn).startswith('LogicalNeuron::on('))
+        with self.assertRaises(RuntimeError):
+            nrn.external_identifier()
+        with self.assertRaises(RuntimeError):
+            nrn.external_index()
+
+        with self.assertRaises(ValueError):
+            wrong_size = LogicalNeuron.rectangular(
+                NeuronOnWafer(NeuronOnHICANN(X(3), Y(0))), 5)
+
+        with self.assertRaises(ValueError):
+            wrong_row = LogicalNeuron.rectangular(
+                NeuronOnWafer(NeuronOnHICANN(X(3), Y(1))), 4)
+
     def test_denmems(self):
         # |  XXXX
         # |   XX

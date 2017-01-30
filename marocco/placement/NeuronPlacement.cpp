@@ -211,9 +211,11 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 						auto const neuron = logical_neuron.front();
 						size_t const size = logical_neuron.size();
 
-						if (size < 2 || size % 2 != 0 || !logical_neuron.is_rectangular()) {
+						if (!logical_neuron.is_rectangular() || logical_neuron.front().y() != 0 ||
+						    logical_neuron.back().y() != 1) {
 							throw std::runtime_error(
-								"manual placement only supports rectangular neurons");
+								"manual placement only supports rectangular neurons "
+								"spanning both rows");
 						}
 
 						NeuronPlacementRequest const placement{

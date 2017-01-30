@@ -14,8 +14,11 @@ class PlacementNeuronSize(unittest.TestCase):
         marocco = PyMarocco()
         p = marocco.neuron_placement
 
-        for s in range(0, 65):
-            # size zero == use default neuron size
+        # has to be larger than zero
+        self.assertRaises(ValueError, p.default_neuron_size, -1)
+        self.assertRaises(ValueError, p.default_neuron_size, 0)
+
+        for s in range(1, 65):
             if (s % 2 == 0):
                 p.default_neuron_size(s)
                 self.assertEqual(s, p.default_neuron_size())
