@@ -24,6 +24,13 @@ void AnalogOutputsConfigurator::configure(sthal::Wafer& hardware) const
 	// choosing which denmem of a logical neuron to record, as only denmems with different
 	// NeuronOnQuad coordinates can be recorded at the same time.
 
+	// First: disable all analog outputs of all allocated HICANNs
+	for (auto const& hc : hardware.getAllocatedHicannCoordinates()) {
+		hardware[hc].disable_aout();
+		hardware[hc].analog.disable(AnalogOnHICANN(0));
+		hardware[hc].analog.disable(AnalogOnHICANN(1));
+	}
+
 	// Analog output items are sorted by HICANN.
 	for (auto const& item : m_analog_outputs) {
 		auto const& logical_neuron = item.logical_neuron();
