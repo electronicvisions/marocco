@@ -41,7 +41,7 @@ void SpikeInputVisitor::operator()(
 
 	std::mt19937 rng(seed);
 	double time = param.start;
-	double const stop = time + experiment_duration;
+	double const stop = time + std::min(param.duration, experiment_duration);
 
 	spikes.reserve(2 * dist.lambda() * experiment_duration);
 	while (true) {
