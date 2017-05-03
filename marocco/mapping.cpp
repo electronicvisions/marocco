@@ -321,27 +321,29 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	hardware->connect(*hwdb);
 	hardware->configure(*configurator);
 
-	auto verify_configurator = sthal::VerifyConfigurator();
+	if(mi->backend == PyMarocco::Backend::Hardware) {
+		auto verify_configurator = sthal::VerifyConfigurator();
 
-	switch (mi->verification) {
-	case PyMarocco::Verification::Skip:
-		// do nothing
-		break;
-	case PyMarocco::Verification::VerifyButIgnore: {
-		hardware->configure(verify_configurator);
-		LOG4CXX_WARN(logger, verify_configurator);
-		break;
-	}
-	case PyMarocco::Verification::Verify: {
-		hardware->configure(verify_configurator);
-		LOG4CXX_ERROR(logger, verify_configurator);
-		if(verify_configurator.error_count() > 0) {
-			throw std::runtime_error("verification of configuration failed");
+		switch (mi->verification) {
+		case PyMarocco::Verification::Skip:
+			// do nothing
+			break;
+		case PyMarocco::Verification::VerifyButIgnore: {
+			hardware->configure(verify_configurator);
+			LOG4CXX_WARN(logger, verify_configurator);
+			break;
 		}
-		break;
-	}
-	default:
-		throw std::runtime_error("unknown verification mode");
+		case PyMarocco::Verification::Verify: {
+			hardware->configure(verify_configurator);
+			LOG4CXX_ERROR(logger, verify_configurator);
+			if(verify_configurator.error_count() > 0) {
+				throw std::runtime_error("verification of configuration failed");
+			}
+			break;
+		}
+		default:
+			throw std::runtime_error("unknown verification mode");
+		}
 	}
 
 	experiment.run();
