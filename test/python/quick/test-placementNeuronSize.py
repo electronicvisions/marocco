@@ -15,7 +15,7 @@ class PlacementNeuronSize(unittest.TestCase):
         p = marocco.neuron_placement
 
         # has to be larger than zero
-        self.assertRaises(ValueError, p.default_neuron_size, -1)
+        self.assertRaises(OverflowError, p.default_neuron_size, -1)
         self.assertRaises(ValueError, p.default_neuron_size, 0)
 
         for s in range(1, 65):
