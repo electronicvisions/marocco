@@ -18,6 +18,7 @@
 #include "sthal/HICANNv4Configurator.h"
 #include "sthal/NoResetNoFGConfigurator.h"
 #include "sthal/NoFGConfigurator.h"
+#include "sthal/ParallelHICANNv4Configurator.h"
 #include "sthal/ParallelHICANNNoFGConfigurator.h"
 #include "sthal/ParallelHICANNNoResetNoFGConfigurator.h"
 #include "sthal/OnlyNeuronNoResetNoFGConfigurator.h"
@@ -302,6 +303,9 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 			break;
 		case PyMarocco::HICANNCfg::OnlyNeuronNoResetNoFGConfigurator:
 			configurator.reset(new sthal::OnlyNeuronNoResetNoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::ParallelHICANNv4Configurator:
+			configurator.reset(new sthal::ParallelHICANNv4Configurator());
 			break;
 		case PyMarocco::HICANNCfg::ParallelHICANNNoFGConfigurator:
 			configurator.reset(new sthal::ParallelHICANNNoFGConfigurator());
