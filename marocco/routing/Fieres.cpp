@@ -1,9 +1,10 @@
 #include <algorithm>
 
+#include "hal/Coordinate/Quadrant.h"
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
-#include "marocco/util/algorithm.h"
 #include "marocco/routing/Fieres.h"
+#include "marocco/util/algorithm.h"
 
 using namespace HMF::Coordinate;
 

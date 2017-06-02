@@ -8,6 +8,7 @@
 #include <boost/variant.hpp>
 
 #include "hal/Coordinate/External.h"
+#include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/L1.h"
 #include "hal/Coordinate/Merger0OnHICANN.h"
 #include "hal/Coordinate/Merger1OnHICANN.h"

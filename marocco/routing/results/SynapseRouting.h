@@ -9,6 +9,7 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/serialization/export.hpp>
 
+#include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/L1.h"
 #include "hal/Coordinate/Synapse.h"
 #include "pywrap/compat/macros.hpp"

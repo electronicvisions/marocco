@@ -1,5 +1,6 @@
 #include "marocco/routing/L1GraphWalker.h"
 
+#include "hal/Coordinate/geometry.h"
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/util/iterable.h"
 

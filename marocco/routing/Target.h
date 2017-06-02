@@ -3,6 +3,7 @@
 #include <boost/operators.hpp>
 
 #include "hal/Coordinate/HICANN.h"
+#include "hal/Coordinate/Relations.h"
 
 namespace marocco {
 namespace routing {

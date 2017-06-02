@@ -1,3 +1,4 @@
+#include "hal/Coordinate/HMFGeometry.h"
 #include "test/common.h"
 #include "marocco/routing/SynapseManager.h"
 

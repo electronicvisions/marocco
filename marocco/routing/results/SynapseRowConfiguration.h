@@ -3,6 +3,7 @@
 #include <boost/serialization/export.hpp>
 
 #include "hal/Coordinate/Neuron.h"
+#include "hal/Coordinate/Relations.h"
 #ifndef PYPLUSPLUS
 #include "hal/Coordinate/typed_array.h"
 #endif // !PYPLUSPLUS

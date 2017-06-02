@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hal/Coordinate/HICANN.h"
+
 #include "marocco/placement/MergerRoutingResult.h"
 #include "marocco/placement/MergerTreeGraph.h"
 #include "marocco/placement/internal/Result.h"

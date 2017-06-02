@@ -2,11 +2,11 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-#include "hal/Coordinate/L1.h"
 #include "hal/Coordinate/Merger0OnHICANN.h"
 #include "hal/Coordinate/Merger1OnHICANN.h"
 #include "hal/Coordinate/Merger2OnHICANN.h"
 #include "hal/Coordinate/Merger3OnHICANN.h"
+#include "hal/Coordinate/Relations.h"
 
 namespace marocco {
 namespace placement {

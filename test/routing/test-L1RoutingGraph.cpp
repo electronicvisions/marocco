@@ -2,6 +2,7 @@
 
 #include <set>
 
+#include "hal/Coordinate/HMFGeometry.h"
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/routing/L1RoutingGraph.h"
 #include "marocco/routing/PathBundle.h"

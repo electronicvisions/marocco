@@ -8,6 +8,7 @@
 #include <boost/optional.hpp>
 #include <boost/serialization/export.hpp>
 
+#include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/Synapse.h"
 
 #include "marocco/coordinates/BioNeuron.h"

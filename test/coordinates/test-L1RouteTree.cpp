@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "hal/Coordinate/HMFGeometry.h"
 #include "marocco/coordinates/L1RouteTree.h"
 
 namespace marocco {

@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <string>
 
+#include "hal/Coordinate/Relations.h"
 #include "hal/Coordinate/iter_all.h"
 
 using namespace HMF::Coordinate;

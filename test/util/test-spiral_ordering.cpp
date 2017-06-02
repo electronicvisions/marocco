@@ -6,7 +6,7 @@
 #include <vector>
 #include <set>
 
-#include "hal/Coordinate/HICANN.h"
+#include "hal/Coordinate/HMFGeometry.h"
 #include "hal/Coordinate/iter_all.h"
 #include "hal/Coordinate/typed_array.h"
 

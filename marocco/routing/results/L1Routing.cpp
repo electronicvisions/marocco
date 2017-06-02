@@ -1,5 +1,7 @@
 #include "marocco/routing/results/L1Routing.h"
 
+#include "hal/Coordinate/Relations.h"
+
 #include <boost/serialization/nvp.hpp>
 
 using namespace HMF::Coordinate;

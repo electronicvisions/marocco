@@ -1,5 +1,6 @@
 #include "marocco/routing/internal/SynapseTargetMapping.h"
 
+#include "hal/Coordinate/Relations.h"
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/routing/internal/SynapseTargetVisitor.h"
 

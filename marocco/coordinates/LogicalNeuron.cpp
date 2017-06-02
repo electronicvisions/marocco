@@ -8,6 +8,7 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/utility.hpp>
 
+#include "hal/Coordinate/geometry.h"
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/coordinates/printers.h"
 

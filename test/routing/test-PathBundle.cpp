@@ -1,5 +1,6 @@
 #include "test/common.h"
 
+#include "hal/Coordinate/HMFGeometry.h"
 #include "marocco/routing/PathBundle.h"
 
 using namespace HMF::Coordinate;

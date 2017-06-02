@@ -4,6 +4,7 @@
 #include <iterator>
 #include <vector>
 
+#include "hal/Coordinate/HMFGeometry.h"
 #include "marocco/coordinates/LogicalNeuron.h"
 
 namespace marocco {
