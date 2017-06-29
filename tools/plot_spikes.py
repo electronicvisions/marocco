@@ -69,9 +69,11 @@ def plot(infilename, outfilename="", xlim=None, ylim=None, membrane_file="", neu
 
     plt.yticks(yticks)
 
-    if membrane_file and neuron_idx != None:
+    if membrane_file:
         membrane = np.loadtxt(membrane_file)
-        membrane_times, membrane_values  = membrane[:,0], membrane[:,1]
+        if neuron_idx == None:
+            neuron_idx = membrane[0,0]
+        membrane_times, membrane_values  = membrane[:,1], membrane[:,2]
 
         mean_membrane_values = np.mean(membrane_values)
         min_membrane_values = np.min(membrane_values)
