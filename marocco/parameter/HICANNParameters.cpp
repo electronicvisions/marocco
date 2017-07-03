@@ -41,9 +41,20 @@ void HICANNParameters::run()
 	bool const local_synapses =
 		m_synapse_routing.has(hicann) && !m_synapse_routing[hicann].synapse_switches().empty();
 	bool const external_input_or_transit_only = !local_neurons;
+	bool const external_input = ([&]() {
+		for (auto const& dnc_merger : iter_all<DNCMergerOnHICANN>()) {
+			if (!m_neuron_placement.find(DNCMergerOnWafer(dnc_merger, hicann)).empty()) {
+				return true;
+			}
+		}
+		return false;
+	})();
+	bool const transit_only = external_input_or_transit_only && !external_input;
 
-	// switch on BackgroundGenerators for locking
-	background_generators(m_pymarocco.bkg_gen_isi);
+	if (!transit_only) {
+		// switch on BackgroundGenerators for locking
+		background_generators(m_pymarocco.bkg_gen_isi);
+	}
 
 	// load calibration data from DB
 	// const auto calib = getCalibrationData();
