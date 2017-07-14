@@ -10,6 +10,7 @@ class ConfigureL1RouteVisitor : public boost::static_visitor<>
 {
 	sthal::Wafer& m_hardware;
 	HICANNOnWafer m_current_hicann;
+	bool m_enable_test_data_output;
 
 	sthal::HICANN& chip()
 	{
@@ -23,7 +24,9 @@ class ConfigureL1RouteVisitor : public boost::static_visitor<>
 
 public:
 	ConfigureL1RouteVisitor(sthal::Wafer& hw, HICANNOnWafer hicann)
-	    : m_hardware(hw), m_current_hicann(std::move(hicann))
+		: m_hardware(hw),
+		  m_current_hicann(std::move(hicann)),
+		  m_enable_test_data_output(false)
 	{
 	}
 
@@ -45,11 +48,27 @@ public:
 	void operator()(VLineOnHICANN const& current, HLineOnHICANN const& next)
 	{
 		chip().crossbar_switches.set(current, next, true);
+
+		if (m_enable_test_data_output) {
+			m_enable_test_data_output = false;
+			auto repeater = current.toVRepeaterOnHICANN();
+			auto direction = (repeater.toSideVertical() == top) ? bottom : top;
+			auto& repeater_config = chip(m_current_hicann).repeater[repeater];
+			repeater_config.setOutput(direction);
+		}
 	}
 
 	void operator()(HLineOnHICANN const& current, VLineOnHICANN const& next)
 	{
 		chip().crossbar_switches.set(next, current, true);
+
+		if (m_enable_test_data_output) {
+			m_enable_test_data_output = false;
+			auto repeater = current.toHRepeaterOnHICANN();
+			auto direction = (repeater.toSideHorizontal() == left) ? right : left;
+			auto& repeater_config = chip(m_current_hicann).repeater[repeater];
+			repeater_config.setOutput(direction);
+		}
 	}
 
 	//  ——— Sending Repeaters ——————————————————————————————————————————————————
@@ -68,6 +87,18 @@ public:
 		m_current_hicann = next;
 	}
 
+	//  ——— Test ports —————————————————————————————————————————————————————————
+
+	void operator()(RepeaterBlockOnHICANN const& /*current*/, HLineOnHICANN const& /*next*/)
+	{
+		m_enable_test_data_output = true;
+	}
+
+	void operator()(RepeaterBlockOnHICANN const& /*current*/, VLineOnHICANN const& /*next*/)
+	{
+		m_enable_test_data_output = true;
+	}
+
 	//  ——— Repeaters ——————————————————————————————————————————————————————————
 
 	void operator()(HLineOnHICANN const& current, HICANNOnWafer const& next)
@@ -83,6 +114,12 @@ public:
 		}
 
 		chip(hicann).repeater[repeater].setForwarding(direction);
+
+		// Enable test output to current bus
+		if (m_enable_test_data_output) {
+			m_enable_test_data_output = false;
+			chip(m_current_hicann).repeater[current.toHRepeaterOnHICANN()].setOutput(direction);
+		}
 
 		m_current_hicann = next;
 	}
@@ -100,6 +137,12 @@ public:
 		}
 
 		chip(hicann).repeater[repeater].setForwarding(direction);
+
+		// Enable test output to current bus
+		if (m_enable_test_data_output) {
+			m_enable_test_data_output = false;
+			chip(m_current_hicann).repeater[current.toVRepeaterOnHICANN()].setOutput(direction);
+		}
 
 		m_current_hicann = next;
 	}

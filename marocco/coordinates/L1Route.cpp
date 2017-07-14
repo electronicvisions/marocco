@@ -189,6 +189,18 @@ public:
 		return current.value() == next.value();
 	}
 
+	//  ——— Test ports —————————————————————————————————————————————————————————
+
+	bool operator()(RepeaterBlockOnHICANN const& current, HLineOnHICANN const& next)
+	{
+		return current == next.toHRepeaterOnHICANN().toRepeaterBlockOnHICANN();
+	}
+
+	bool operator()(RepeaterBlockOnHICANN const& current, VLineOnHICANN const& next)
+	{
+		return current == next.toVRepeaterOnHICANN().toRepeaterBlockOnHICANN();
+	}
+
 	//  ——— L1 buses ———————————————————————————————————————————————————————————
 
 	bool operator()(DNCMergerOnHICANN const& current, HLineOnHICANN const& next)

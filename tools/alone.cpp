@@ -44,7 +44,9 @@ void Alone::remove(
 }
 
 std::vector<L1Route> Alone::find_routes(
-	routing::L1BusOnWafer const& source, routing::Target const& target)
+	routing::L1BusOnWafer const& source,
+	routing::Target const& target,
+	bool connect_test_data_output)
 {
 	auto const& graph = m_routing_graph.graph();
 	routing::L1EdgeWeights weights(graph);
@@ -54,8 +56,25 @@ std::vector<L1Route> Alone::find_routes(
 	std::vector<L1Route> routes;
 	for (auto const& vertex : dijkstra.vertices_for(target)) {
 		auto path = dijkstra.path_to(vertex);
-		routes.push_back(toL1Route(m_routing_graph.graph(), path));
+		auto route = toL1Route(m_routing_graph.graph(), path);
+
+		if (connect_test_data_output) {
+			L1Route prefix;
+
+			if (source.is_horizontal()) {
+				prefix = {source.toHICANNOnWafer(),
+						  source.toHLineOnHICANN().toHRepeaterOnHICANN().toRepeaterBlockOnHICANN()};
+			} else {
+				prefix = {source.toHICANNOnWafer(),
+						  source.toVLineOnHICANN().toVRepeaterOnHICANN().toRepeaterBlockOnHICANN()};
+			}
+
+			route.prepend(prefix, L1Route::extend_mode::extend);
+		}
+
+		routes.push_back(route);
 	}
+
 	return routes;
 }
 

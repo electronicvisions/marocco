@@ -42,7 +42,15 @@ public:
 	                       HMF::Coordinate::Merger2OnHICANN,
 	                       HMF::Coordinate::Merger3OnHICANN,
 	                       HMF::Coordinate::GbitLinkOnHICANN,
+
+	                       // Events from merger tree/external input,
+	                       // to be sent via sending repeater.
 	                       HMF::Coordinate::DNCMergerOnHICANN,
+
+	                       // Events from test port on repeater block,
+	                       // can be sent to bus via corresponding repeater.
+	                       HMF::Coordinate::RepeaterBlockOnHICANN,
+
 	                       HMF::Coordinate::HLineOnHICANN,
 	                       HMF::Coordinate::VLineOnHICANN,
 	                       HMF::Coordinate::SynapseDriverOnHICANN,

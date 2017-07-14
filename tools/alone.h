@@ -49,9 +49,12 @@ public:
 	 *       \c VLineOnHICANN segments.  If you want a \c L1Route suitable for
 	 *       the configuration of sending repeaters, use the overload of this
 	 *       function that allows passing a \c DNCMergerOnHICANN as source.
+	 * @param connect_test_data_output Whether test data output from the repeater block
+	 *        should be sent to the originating bus.
 	 */
 	std::vector<L1Route> find_routes(
-		routing::L1BusOnWafer const& source, routing::Target const& target);
+		routing::L1BusOnWafer const& source, routing::Target const& target,
+		bool connect_test_data_output = false);
 
 	/**
 	 * @brief Return all possible routes from the given DNC merger to a bus

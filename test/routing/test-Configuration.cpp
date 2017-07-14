@@ -62,5 +62,31 @@ TEST(RoutingConfiguration, configureWorksForSimpleTree)
 	EXPECT_EQ(hicann2_ref, hw[hicann2]);
 }
 
+TEST(RoutingConfiguration, configureWithTestOutput)
+{
+	HLineOnHICANN const hline(0);
+	HICANNOnWafer const hicann1(Enum(92));
+	HICANNOnWafer const hicann2(Enum(93));
+	auto const repeater1 = hline.toHRepeaterOnHICANN();
+	auto const repeater2 = hline.east().toHRepeaterOnHICANN();
+
+	L1Route route{hicann1, repeater1.toRepeaterBlockOnHICANN(), hline, hicann2,
+	              hline.east()};
+
+	sthal::Wafer hw;
+	configure(hw, route);
+
+	std::vector<HICANNOnWafer> expected{hicann1, hicann2};
+	EXPECT_EQ(expected, hw.getAllocatedHicannCoordinates());
+
+	sthal::HICANN hicann1_ref;
+	sthal::HICANN hicann2_ref;
+	hicann1_ref.repeater[repeater1].setOutput(right);
+	hicann2_ref.repeater[repeater2].setForwarding(right);
+
+	EXPECT_EQ(hicann1_ref, hw[hicann1]);
+	EXPECT_EQ(hicann2_ref, hw[hicann2]);
+}
+
 } // namespace routing
 } // namespace marocco
