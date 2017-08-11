@@ -46,7 +46,7 @@ class AloneTest(unittest.TestCase):
         merger = DNCMergerOnHICANN(2)
         target = pyalone.Target(hicann_right, vertical)
         routes = alone.find_routes(hicann_left, merger, target)
-        self.assertGreater(len(routes), 1)
+        self.assertEqual(len(routes), 1)
         for route in routes:
             self.assertFalse(route.empty())
             self.assertEqual(hicann_left, route.source_hicann())
@@ -66,7 +66,7 @@ class AloneTest(unittest.TestCase):
         merger = DNCMergerOnHICANN(2)
         target = pyalone.Target(hicann_left, vertical)
         routes = alone.find_routes(hicann_right, merger, target)
-        self.assertGreater(len(routes), 1)
+        self.assertEqual(len(routes), 1)
         for route in routes:
             self.assertFalse(route.empty())
             self.assertEqual(hicann_right, route.source_hicann())

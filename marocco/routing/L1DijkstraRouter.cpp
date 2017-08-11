@@ -78,10 +78,10 @@ void L1DijkstraRouter::finish_vertex(vertex_descriptor const& vertex, graph_type
 	}
 
 	// We have to make sure that this target does not violate the constraint of using only
-	// one crossbar switch per vertical line on each HICANN.  We do this by keeping track
-	// of switches used in paths to registered targets.  Targets that would use a switch
-	// that is already in use are discarded.  Note that this prefers targets nearer to the
-	// source because of the traversal order in Dijkstra's algorithm.
+	// one crossbar switch per vertical or horizontal line on each HICANN.  We do this by
+	// keeping track of switches used in paths to registered targets.  Targets that would
+	// use a switch that is already in use are discarded.  Note that this prefers targets
+	// nearer to the source because of the traversal order in Dijkstra's algorithm.
 	// In the current hardware revision lines are swapped in such a way that for
 	// horizontal lines there is only one bus for each target HICANN that fulfills this
 	// constraint.
@@ -96,15 +96,17 @@ void L1DijkstraRouter::finish_vertex(vertex_descriptor const& vertex, graph_type
 		if (current_bus_is_vertical ^ previous_bus_is_vertical) {
 			auto const vertical = current_bus_is_vertical ? current : previous;
 			auto const horizontal = current_bus_is_vertical ? previous : current;
-			auto ret = m_used_switches.insert(std::make_pair(vertical, horizontal));
-			if (!ret.second) {
+			auto ret_h = m_used_switches.insert(std::make_pair(horizontal, vertical));
+			auto ret_v = m_used_switches.insert(std::make_pair(vertical, horizontal));
+			if (ret_h.second && ret_v.second) {
+				rollback.push_back(horizontal);
+				rollback.push_back(vertical);
+			} else {
 				// Switch is already in use ⇒ rollback changes and discard target.
 				for (auto const& vtx : rollback) {
 					m_used_switches.erase(vtx);
 				}
 				return;
-			} else {
-				rollback.push_back(vertical);
 			}
 		}
 
