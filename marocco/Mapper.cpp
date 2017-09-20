@@ -37,14 +37,25 @@ size_t num_neurons(Graph const& g)
 	return cnt;
 }
 
-boost::shared_ptr<calibtic::backend::Backend>
-load_calibtic_xml_backend(std::string calib_path)
-{
-	auto lib = calibtic::backend::loadLibrary("libcalibtic_xml.so");
+boost::shared_ptr<calibtic::backend::Backend> load_calibtic_backend(
+    std::string calib_path, pymarocco::PyMarocco::CalibBackend calib_backend) {
+	boost::shared_ptr<calibtic::backend::Library> lib;
+
+	switch (calib_backend) {
+		case pymarocco::PyMarocco::CalibBackend::XML:
+			lib = calibtic::backend::loadLibrary("libcalibtic_xml.so");
+			break;
+		case pymarocco::PyMarocco::CalibBackend::Binary:
+			lib = calibtic::backend::loadLibrary("libcalibtic_binary.so");
+			break;
+		default:
+			throw std::runtime_error("unknown calibration backend type");
+	}
+
 	auto backend = calibtic::backend::loadBackend(lib);
 
 	if (!backend) {
-		throw std::runtime_error("unable to load xml backend");
+		throw std::runtime_error("unable to load calib backend");
 	}
 
 	if (std::getenv("MAROCCO_CALIB_PATH") != nullptr) {
@@ -124,7 +135,9 @@ void Mapper::run(ObjectStore const& pynn)
 	boost::shared_ptr<calibtic::backend::Backend> calib_backend;
 	switch (mPyMarocco->calib_backend) {
 		case pymarocco::PyMarocco::CalibBackend::XML:
-			calib_backend = load_calibtic_xml_backend(mPyMarocco->calib_path);
+		case pymarocco::PyMarocco::CalibBackend::Binary:
+			calib_backend =
+			    load_calibtic_backend(mPyMarocco->calib_path, mPyMarocco->calib_backend);
 			break;
 		case pymarocco::PyMarocco::CalibBackend::Default:
 			break;
