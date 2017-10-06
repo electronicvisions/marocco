@@ -198,15 +198,16 @@ std::ostream& print(
 
 			os << "|";
 			if (val != nullptr) {
-				if (val != prev) {
-					++index;
-					prev = val;
-				}
 				os << std::setw(3) << std::setfill('#') << index;
 			} else if (onb.is_defect(nrn)) {
 				os << "---";
 			} else {
 				os << "   ";
+			}
+
+			if (val != prev) {
+				++index;
+				prev = val;
 			}
 		}
 		os << "|\n";
