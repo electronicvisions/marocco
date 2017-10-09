@@ -36,6 +36,10 @@ boost::shared_ptr<marocco::results::Marocco> Runtime::results()
 	return m_results;
 }
 
+void Runtime::clear_results() {
+	m_results.reset(new marocco::results::Marocco);
+}
+
 Runtime::Runtime()
 {
 }
