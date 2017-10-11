@@ -63,6 +63,7 @@ public:
 		DontProgramFloatingGatesHICANNConfigurator,
 		NoFGConfigurator,
 		NoResetNoFGConfigurator,
+		ParallelHICANNv4Configurator,
 		ParallelHICANNNoFGConfigurator,
 		ParallelHICANNNoResetNoFGConfigurator,
 		OnlyNeuronNoResetNoFGConfigurator
