@@ -30,8 +30,6 @@ public:
 	boost::shared_ptr<sthal::Wafer> wafer();
 	boost::shared_ptr<marocco::results::Marocco> results();
 
-	void clear_results();
-
 private:
 	Runtime();
 	Runtime(HMF::Coordinate::Wafer const& wafer);

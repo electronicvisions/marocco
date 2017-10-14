@@ -150,11 +150,6 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 			throw std::runtime_error(
 			    "wafer provided via marocco_runtime object has wrong coordinate");
 		}
-
-		// drop all results if mapping will run
-		if (!mi->skip_mapping) {
-			runtime_container->clear_results();
-		}
 	}
 
 	//  ——— LOAD DEFECT DATA ———————————————————————————————————————————————————
