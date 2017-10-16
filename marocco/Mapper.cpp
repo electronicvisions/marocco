@@ -204,6 +204,13 @@ void Mapper::run(ObjectStore const& pynn)
 	// and print them
 	info(this) << getStats();
 
+	if (synapse_loss && !mPyMarocco->continue_despite_synapse_loss &&
+	    synapse_loss->getTotalLoss() != 0) {
+		throw std::runtime_error("Synapses lost but synapse loss is not accepted. Set "
+		                         "PyMarocco continue_despite_synapse_loss to true to "
+		                         "continue with loss.");
+	}
+
 	// generate Hardware stats
 	HardwareUsage usage(mHW, mMgr, *placement);
 	usage.fill(getStats());

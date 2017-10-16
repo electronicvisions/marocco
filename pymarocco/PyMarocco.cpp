@@ -33,7 +33,8 @@ PyMarocco::PyMarocco() :
 	verification(Verification::Verify),
 	bkg_gen_isi(500),
 	pll_freq(100e6),
-	hicann_configurator(HICANNCfg::HICANNConfigurator)
+	hicann_configurator(HICANNCfg::HICANNConfigurator),
+	continue_despite_synapse_loss(false)
 {}
 
 boost::shared_ptr<PyMarocco> PyMarocco::create()
@@ -67,7 +68,8 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("pll_freq", pll_freq)
 	   & make_nvp("hicann_configurator", hicann_configurator)
 	   & make_nvp("ess_config", ess_config)
-	   & make_nvp("ess_temp_directory", ess_temp_directory);
+	   & make_nvp("ess_temp_directory", ess_temp_directory)
+	   & make_nvp("continue_despite_synapse_loss", continue_despite_synapse_loss);
 	// clang-format on
 }
 

@@ -180,6 +180,10 @@ public:
 	/// Instead, a user specified directory is not deleted.
 	std::string ess_temp_directory;
 
+	/// if true, the run continues although synapses were lost
+	/// default: false
+	bool continue_despite_synapse_loss;
+
 private:
 	PyMarocco();
 

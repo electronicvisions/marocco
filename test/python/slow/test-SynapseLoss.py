@@ -18,6 +18,7 @@ class TestSynapseLoss(unittest.TestCase):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
         self.marocco.neuron_placement.default_neuron_size(2)
+        self.marocco.continue_despite_synapse_loss = True
 
     def tearDown(self):
         pynn.reset() # pynn reset

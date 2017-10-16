@@ -41,6 +41,7 @@ class TrivialNetworkFixture(MaroccoFixture):
         self.chip = HICANNGlobal(Enum(3))
         self.marocco.manual_placement.on_hicann(target, self.chip)
         self.marocco.manual_placement.on_hicann(source, self.chip)
+        self.marocco.continue_despite_synapse_loss = True
 
         connector = sim.AllToAllConnector(
             allow_self_connections=True,
