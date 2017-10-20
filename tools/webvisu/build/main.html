@@ -1,0 +1,282 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <title>Wafer Visu</title>
+</head>
+	<script type="text/javascript" src="libraries/jquery-3.2.1.min.js"></script>
+	<script type="text/javascript" src="libraries/jquery-ui.js"></script>
+	<script type="text/javascript" src="libraries/jquery-ui-touch-punch.min.js"></script>
+	<script type="text/javascript" src="libraries/stats.min.js"></script>
+	<script type="text/javascript" src="libraries/cytoscape.min.js"></script>
+	<script type="text/javascript" src="libraries/cytoscape-graphml.js"></script>
+	<script type="text/javascript" src="libraries/pixi.min.js"></script>
+	<script type="text/javascript" src="main.js"></script>
+	<script>
+		/**
+		 * Emscriptens Module object and the onRuntimeInitialized callback function
+		 * need to be declared before loading Marocco.js
+		 */
+		var Module = {
+			onRuntimeInitialized: function() {
+				waitingForDOM();
+			}
+		}
+	</script>
+	<script type="text/javascript" src="Marocco.js"></script>
+	<link rel="stylesheet" type="text/css" href="jquery-ui.css"></script>
+  <link rel="stylesheet" type="text/css" href="main.css">
+<body>
+	<div id="waferVisu">
+		<div id="setupScreen">
+			<p id="caption"><span>W</span>AFER <span>V</span>ISU</p>
+			<div id="uploadScreen">
+				<p class="description">upload a marocco results file</p>
+				<div id="inputWrapper">
+					<label for="networkFile" id="choose">choose a file</label>
+					<label id="fileLabel">no file selected</label>
+					<input type="file" id="networkFile">
+				</div>
+				<p id="or">OR</p>
+				<div id="dropZone">
+					<p id="dropZoneText">drag & drop file here</p>
+				</div>
+				<button id="upload">upload</button>
+			</div>
+			<div id="loadingScreen">
+				<p class="description">loading network...</p>
+				<div class="loader"></div>
+			</div>
+		</div>
+		<div id="controlsContainer" class="unselectable">
+			<div id="leftInfoBox">
+				<div id="waferList">
+					<div class="listHeader">
+							<label>wafer list</label><br>
+							<button>go to</button>
+							<input class="textInput" placeholder="HICANN no">
+						</div>
+					<div id="elementsTree"></div>
+				</div>
+				<div id="routesList">
+					<div class="listHeader">
+							<label>routes list</label><br>
+							<button>go to</button>
+							<input class="textInput" placeholder="route no"><br>
+							<input type="checkbox" id="routes_0_check"><button id="allRoutes">display all routes</button>
+						</div>
+					<div id="routesTree"></div>
+				</div>
+			</div>
+			<div id="visuWindow">
+				<div id="routeInfoBox" class="infoBox">
+						<h1 id="routeNumber">Route Info</h1>
+				</div>
+				<div id="settingsBox" class="infoBox">
+					<h1>Settings</h1>
+					<div id="configurationContent">
+						<p class="settingsHeader">visu configuration</p>
+						<div>
+							<button id="reloadFile">reload</button>
+							<button id="saveConfig">save</button>
+							<button id="uploadConfig">upload</button>
+							<button id="resetConfig">reset</button>
+						</div>
+						<div class="settingDescription">
+							<p id="distanceKeeper"></p>
+							<p></p>
+							<div>
+								<div class="loader"></div>
+								<div id="checkSymbol"></div>
+							</div>
+						</div>
+					</div>
+					<div class="adjustSliders">
+						<p class="settingsHeader">graphic element adjustments</p>
+						<div>
+							<div id="routeWidthSlider"></div><label>l1 route width</label>
+						</div>
+						<div>
+							<div id="hBusWidthSlider"></div><label>straighten h-bus segment</label>
+						</div>
+						<div>
+							<div id="vBusWidthSlider"></div><label>straighten v-bus segment</label>
+						</div>
+					</div>
+					<div class="general">
+						<p class="settingsHeader">general</p>
+						<div id="numberHover">
+							<input id="numberHoverCheckbox" type="checkbox" checked>
+							<label for="numberHoverCheckbox"> show HICANN number on hover</label>
+						</div>
+					</div>
+					<div class="screenshot">
+						<p class="settingsHeader">screenshot</p>
+						<button id="captureScreenshot">capture</button>
+						<input id="screenshotResolution" class="textInput" placeholder="x resolution">
+					</div>
+				</div>
+				<div id="summaryBox" class="infoBox">
+					<h1>Summary</h1>
+					<div id="summaryContent">
+						<p>Total number of neurons on wafer: <span id="summaryNeurons"></span></p>
+						<p>Number of utilized HICANN chips: <span id="summaryHicanns"></span></p>
+						<p>Number of utilized FPGAs: <span id="summaryFpgas">-work in progress-</span></p>
+						<p>Total number of routes on wafer: <span id="summaryRoutes"></span></p>
+					</div>
+				</div>
+				<div id="fpsContainer"></div>
+			</div>
+			<div id="rightInfoBox">
+				<div id="infoButtonContainer">
+					<button id="routeInfo"></button>
+					<button id="summary"></button>
+					<button id="settings"></button>
+				</div>
+				<div id="hicannInfo">
+					<h1 id="hicannNumber" class="selectable">HICANN</h1>
+					<div id="hicannProperties">
+						<p class="propertyInfo">number of neurons: <span id="neuronsNumber"></span></p>
+						<div class="propertyGradient" id="neuronsGradient">
+							<p class="gradientMin" id="neuronsMin">0</p>
+							<p class="gradientMaxBlack" id="neuronsMax">1</p>
+						</div>
+						<p class="propertyInfo">number of inputs: <span id="inputsNumber"></span></p>
+						<div class="propertyGradient" id="inputsGradient">
+							<p class="gradientMin" id="inputsMin">0</p>
+							<p class="gradientMaxBlack" id="inputsMax">1</p>
+						</div>
+		
+						<p class="propertyInfo">number of routes</p>
+						<p class="propertyInfo">vertical left: <span id="leftBusesNumber"></span></p>
+						<div class="propertyGradient" id="leftBusesGradient">
+							<p class="gradientMin" id="leftBusesMin">0</p>
+							<p class="gradientMaxBlack" id="leftBusesMax">1</p>
+						</div>
+						<p class="propertyInfo">vertical right: <span id="rightBusesNumber"></span></p>
+						<div class="propertyGradient" id="rightBusesGradient">
+							<p class="gradientMin" id="rightBusesMin">0</p>
+							<p class="gradientMaxBlack" id="rightBusesMax">1</p>
+						</div>
+						<p class="propertyInfo">horizontal: <span id="horizontalBusesNumber"></span></p>
+						<div class="propertyGradient" id="horizontalBusesGradient">
+							<p class="gradientMin" id="horizontalBusesMin">0</p>
+							<p class="gradientMaxBlack" id="horizontalBusesMax">1</p>
+						</div>
+					</div>
+				</div>
+
+				<div id="checkboxWrapper">
+					<div class="elementsCheckbox">
+						<input id="allNumbersCheckbox" type=checkbox>
+						<label for="allNumbersCheckbox">HICANN numbers</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="waferImageCheckbox" type=checkbox checked>
+						<label for="waferImageCheckbox">HICANN images</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="reticlesCheckbox" type=checkbox checked>
+						<label for="reticlesCheckbox">reticle coordinates</label>
+					</div>
+				</div>
+
+				<div id="visuMode">
+					<button id="automode" class="selected">Auto</button>
+					<button id="manualmode" class="nonSelected">Manual</button>
+				</div>
+
+				<div id="automodeCheckboxes">
+					<div class="elementsCheckbox">
+						<input id="autoSynapsesCheckbox" type=checkbox>
+						<label for="autoSynapsesCheckbox">auto all synapse synapses</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="autoSynGridCheckbox" type=checkbox checked>
+						<label for="autoSynGridCheckbox">auto synapse grid</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="autoSynDriversCheckbox" type=checkbox checked>
+						<label for="autoSynDriversCheckbox">auto synapse drivers</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="autoNeuronsCheckbox" type=checkbox checked>
+						<label for="autoNeuronsCheckbox">auto neurons</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="autoLeftCheckbox" type=checkbox checked>
+						<label for="autoLeftCheckbox">auto left buses</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="autoRightCheckbox" type=checkbox checked>
+						<label for="autoRightCheckbox">auto right buses</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="autoHorizontalCheckbox" type=checkbox checked>
+						<label for="autoHorizontalCheckbox">auto horizontal buses</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="autoRepeatersCheckbox" type=checkbox checked>
+						<label for="autoRepeatersCheckbox">auto repeaters</label>
+					</div>
+				</div>
+
+				<div id="manualmodeCheckboxes">
+					<p>Overview</p>
+					<div class="elementsCheckbox">
+						<input id="numNeuronsCheckbox" type=checkbox checked>
+						<label for="numNeuronsCheckbox">number of neurons</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="numInputsCheckbox" type=checkbox checked>
+						<label for="numInputsCheckbox">number of inputs</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="verticalLeftCheckbox" type=checkbox checked>
+						<label for="verticalLeftCheckbox">vertical left routes</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="verticalRightCheckbox" type=checkbox checked>
+						<label for="verticalRightCheckbox">vertical right routes</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="horizontalCheckbox" type=checkbox checked>
+						<label for="horizontalCheckbox">horizontal routes</label>
+					</div>
+					<p>Detailview</p>
+					<div class="elementsCheckbox">
+						<input id="verticalLeftDetailsCheckbox" type=checkbox>
+						<label for="verticalLeftDetailsCheckbox">detailed vertical left routes</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="verticalRightDetailsCheckbox" type=checkbox>
+						<label for="verticalRightDetailsCheckbox">detailed vertical right routes</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="horizontalDetailsCheckbox" type=checkbox>
+						<label for="horizontalDetailsCheckbox">detailed horizontal routes</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="synDriverDetailsCheckbox" type=checkbox>
+						<label for="synDriverDetailsCheckbox">synapse drivers</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="synGridDetailsCheckbox" type=checkbox>
+						<label for="synGridDetailsCheckbox">synapse grids</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="neuronsDetailsCheckbox" type=checkbox>
+						<label for="neuronsDetailsCheckbox">neurons</label>
+					</div>
+					<div class="elementsCheckbox">
+						<input id="repeatersDetailsCheckbox" type=checkbox>
+						<label for="repeatersDetailsCheckbox">repeaters</label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--<div id="graphVisu"></div>-->
+</body>
+</html>

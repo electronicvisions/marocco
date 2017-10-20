@@ -1,0 +1,28 @@
+body {
+  font-family: 'Helvetica';
+  font-weight: bold;
+}
+
+
+#uploadWindow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: black;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem;
+}
+
+#fileBrowser {
+  background-color: white;
+  border-radius: 0.2rem;
+  margin: 0.1rem;
+}
+
+#upload {
+  background-color: white;
+  border-radius: 0.2rem;
+  margin: 0.1rem;
+}

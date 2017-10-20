@@ -1,0 +1,10 @@
+!*
+backup/
+MaroccoArchive/
+resultsFiles/
+.vscode/
+build/routes_*
+.DS_Store
+HBPColorPalette.pdf
+build/img/*.svg
+build/img/*.ai

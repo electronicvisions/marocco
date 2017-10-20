@@ -1,0 +1,3 @@
+# The typedoc documentation can be updated by running the following command from the root webvisu folder:
+
+typedoc --mode file --readme none --target es5 --name WebVisu --out ./doc/ ./src/
