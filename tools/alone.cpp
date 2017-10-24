@@ -46,11 +46,15 @@ void Alone::remove(
 std::vector<L1Route> Alone::find_routes(
 	routing::L1BusOnWafer const& source,
 	routing::Target const& target,
-	bool connect_test_data_output)
+	Options const options)
 {
 	auto const& graph = m_routing_graph.graph();
 	routing::L1EdgeWeights weights(graph);
-	routing::L1DijkstraRouter dijkstra(weights, m_routing_graph[source]);
+	routing::L1DijkstraRouter dijkstra(
+	    weights, m_routing_graph[source],
+	    (options & SWITCH_EXCLUSIVENESS_PER_ROUTE)
+	        ? routing::L1DijkstraRouter::SwitchExclusiveness::per_route
+	        : routing::L1DijkstraRouter::SwitchExclusiveness::global);
 	dijkstra.add_target(target);
 	dijkstra.run();
 	std::vector<L1Route> routes;
@@ -58,7 +62,7 @@ std::vector<L1Route> Alone::find_routes(
 		auto path = dijkstra.path_to(vertex);
 		auto route = toL1Route(m_routing_graph.graph(), path);
 
-		if (connect_test_data_output) {
+		if (options & CONNECT_TEST_DATA_OUTPUT) {
 			L1Route prefix;
 
 			if (source.is_horizontal()) {
@@ -81,10 +85,16 @@ std::vector<L1Route> Alone::find_routes(
 std::vector<L1Route> Alone::find_routes(
     HMF::Coordinate::HICANNOnWafer const& hicann,
     HMF::Coordinate::DNCMergerOnHICANN const& merger,
-    routing::Target const& target)
+    routing::Target const& target,
+	Options const options)
 {
-	auto routes =
-	    find_routes({hicann, merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()}, target);
+	if (options & CONNECT_TEST_DATA_OUTPUT) {
+		throw std::invalid_argument(
+		    "can not connect test data output for route starting from DNC merger");
+	}
+
+	auto routes = find_routes(
+	    {hicann, merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()}, target, options);
 	L1Route dnc_prefix{hicann, merger};
 	for (auto& route : routes) {
 		if (route.size() > 2) {

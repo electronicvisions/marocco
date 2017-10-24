@@ -28,13 +28,22 @@ public:
 	typedef Target target_type;
 	typedef std::unordered_set<vertex_descriptor> target_vertices_type;
 
- 	/**
+	enum class SwitchExclusiveness
+	{
+		global,
+		per_route
+	};
+
+	/**
  	 * @param weights Used to calculate egde weights to use in Dijkstra's algorithm.  A
  	 *               reference to the graph this algorithm operates on is extracted from
  	 *               this parameter.
  	 * @param source Vertex corresponding to the bus the route should start from.
 	 */
-	L1DijkstraRouter(L1EdgeWeights const& weights, vertex_descriptor const& source);
+	L1DijkstraRouter(
+	    L1EdgeWeights const& weights,
+	    vertex_descriptor const& source,
+	    SwitchExclusiveness exclusiveness = SwitchExclusiveness::global);
 
 	/**
 	 * @brief Adds target requirement.
@@ -78,6 +87,7 @@ private:
 	L1EdgeWeights const& m_weights;
 	graph_type const& m_graph;
 	vertex_descriptor m_source;
+	SwitchExclusiveness m_exclusiveness;
 	std::unordered_map<target_type, target_vertices_type> m_targets;
 	std::vector<vertex_descriptor> m_predecessors;
 	/**

@@ -13,10 +13,15 @@ namespace marocco {
 namespace routing {
 
 L1DijkstraRouter::L1DijkstraRouter(
-	L1EdgeWeights const& weights, vertex_descriptor const& source)
-	: m_weights(weights), m_graph(weights.graph()), m_source(source), m_targets()
-{
-}
+    L1EdgeWeights const& weights,
+    vertex_descriptor const& source,
+    SwitchExclusiveness exclusiveness)
+    : m_weights(weights)
+    , m_graph(weights.graph())
+    , m_source(source)
+    , m_exclusiveness(exclusiveness)
+    , m_targets()
+{}
 
 void L1DijkstraRouter::add_target(target_type const& target)
 {
@@ -85,6 +90,18 @@ void L1DijkstraRouter::finish_vertex(vertex_descriptor const& vertex, graph_type
 	// In the current hardware revision lines are swapped in such a way that for
 	// horizontal lines there is only one bus for each target HICANN that fulfills this
 	// constraint.
+
+	switch (m_exclusiveness) {
+		case SwitchExclusiveness::per_route:
+			// Switch constraints are only considered on a per-target / per-route basis.
+			m_used_switches.clear();
+			break;
+		case SwitchExclusiveness::global:
+			break;
+		default:
+			throw std::runtime_error("unknown switch exclusiveness");
+	}
+
 	std::vector<vertex_descriptor> rollback;
 	auto current = vertex;
 	while (true) {
@@ -103,10 +120,19 @@ void L1DijkstraRouter::finish_vertex(vertex_descriptor const& vertex, graph_type
 				rollback.push_back(vertical);
 			} else {
 				// Switch is already in use ⇒ rollback changes and discard target.
-				for (auto const& vtx : rollback) {
-					m_used_switches.erase(vtx);
+
+				switch (m_exclusiveness) {
+					case SwitchExclusiveness::global:
+						for (auto const& vtx : rollback) {
+							m_used_switches.erase(vtx);
+						}
+						return;
+					case SwitchExclusiveness::per_route:
+						// not necessary to rollback changes
+						return;
+					default:
+						throw std::runtime_error("unknown switch exclusiveness");
 				}
-				return;
 			}
 		}
 

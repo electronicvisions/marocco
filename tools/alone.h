@@ -28,6 +28,13 @@ class Alone
 public:
 	Alone();
 
+	enum Options
+	{
+		NONE = 0x0,
+		CONNECT_TEST_DATA_OUTPUT = 0x1,
+		SWITCH_EXCLUSIVENESS_PER_ROUTE = 0x2
+	};
+
 	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
 	void remove(
 		HMF::Coordinate::HICANNOnWafer const& hicann,
@@ -53,8 +60,7 @@ public:
 	 *        should be sent to the originating bus.
 	 */
 	std::vector<L1Route> find_routes(
-		routing::L1BusOnWafer const& source, routing::Target const& target,
-		bool connect_test_data_output = false);
+	    routing::L1BusOnWafer const& source, routing::Target const& target, Options options = NONE);
 
 	/**
 	 * @brief Return all possible routes from the given DNC merger to a bus
@@ -65,7 +71,8 @@ public:
 	std::vector<L1Route> find_routes(
 	    HMF::Coordinate::HICANNOnWafer const& hicann,
 	    HMF::Coordinate::DNCMergerOnHICANN const& merger,
-	    routing::Target const& target);
+	    routing::Target const& target,
+	    Options options = NONE);
 
 private:
 	routing::L1RoutingGraph m_routing_graph;

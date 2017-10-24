@@ -24,6 +24,35 @@ class AloneTest(unittest.TestCase):
             self.assertEqual(hicann2, route.target_hicann())
         return routes
 
+    def test_per_route_exclusiveness(self):
+        alone = pyalone.Alone()
+        hicann = HICANNOnWafer(X(5), Y(5))
+        alone.add(hicann)
+
+        source = pyalone.L1BusOnWafer(hicann, HLineOnHICANN(5))
+        target = pyalone.Target(hicann, vertical)
+        routes = alone.find_routes(source, target)
+        self.assertEqual(1, len(routes))
+        routes = alone.find_routes(
+            source, target, pyalone.Alone.SWITCH_EXCLUSIVENESS_PER_ROUTE)
+        self.assertEqual(8, len(routes))
+
+        source = pyalone.L1BusOnWafer(hicann, VLineOnHICANN(5))
+        target = pyalone.Target(hicann, horizontal)
+        routes = alone.find_routes(source, target)
+        self.assertEqual(1, len(routes))
+        routes = alone.find_routes(
+            source, target, pyalone.Alone.SWITCH_EXCLUSIVENESS_PER_ROUTE)
+        self.assertEqual(2, len(routes))
+
+        source = pyalone.L1BusOnWafer(hicann, VLineOnHICANN(5))
+        target = pyalone.Target(hicann, vertical)
+        routes = alone.find_routes(source, target)
+        self.assertEqual(1, len(routes))
+        routes = alone.find_routes(
+            source, target, pyalone.Alone.SWITCH_EXCLUSIVENESS_PER_ROUTE)
+        self.assertEqual(1, len(routes))
+
     def test_configure(self):
         route = L1Route()
         hicann = HICANNOnWafer(X(6), Y(5))
