@@ -75,7 +75,12 @@ class HICANNOnWaferProperties
 {
 public:
 	HICANNOnWaferProperties();
-	HICANNOnWaferProperties(size_t num_neurons, size_t num_inputs);
+	HICANNOnWaferProperties(
+		size_t num_neurons,
+		size_t num_inputs,
+		size_t num_horizontal_buses,
+		size_t num_left_buses,
+		size_t num_right_buses);
 
 	bool is_available() const;
 	bool is_transit_only() const;
@@ -83,11 +88,17 @@ public:
 	bool has_inputs() const;
 	size_t num_neurons() const;
 	size_t num_inputs() const;
+	size_t num_buses(halco::common::Orientation orientation) const;
+	size_t num_buses(halco::common::SideHorizontal side) const;
 
 private:
 	bool m_is_available;
 	size_t m_num_neurons;
 	size_t m_num_inputs;
+	size_t m_num_horizontal_buses;
+#ifndef PYPLUSPLUS
+	halco::common::typed_array<size_t, halco::common::SideHorizontal> m_num_vertical_buses;
+#endif // !PYPLUSPLUS
 }; // HICANNOnWaferProperties
 
 } // namespace results

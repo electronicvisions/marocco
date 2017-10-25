@@ -1,5 +1,7 @@
 #include "marocco/results/Marocco.h"
 
+#include <unordered_set>
+
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/xml_iarchive.hpp>
@@ -84,6 +86,8 @@ void Marocco::serialize(Archiver& ar, const unsigned int /* version */)
 
 HICANNOnWaferProperties Marocco::properties(halco::hicann::v2::HICANNOnWafer const& hicann) const
 {
+	// The current implementation is rather expensive... (rapid-prototyping)
+
 	if (!resources.has(hicann)) {
 		return {};
 	}
@@ -99,15 +103,59 @@ HICANNOnWaferProperties Marocco::properties(halco::hicann::v2::HICANNOnWafer con
 
 	size_t const num_inputs = num_injections - num_neurons;
 
-	return {num_neurons, num_inputs};
+	std::unordered_set<HLineOnHICANN> horizontal_buses;
+	std::unordered_set<VLineOnHICANN> vertical_buses;
+	typed_array<size_t, SideHorizontal> num_vertical_buses{{0, 0}};
+
+	// Record used buses on this HICANN
+	for (auto const& item : l1_routing) {
+		auto const& route = item.route();
+		HICANNOnWafer current_hicann;
+		for (auto const& segment : route) {
+			if (auto const* next_hicann = boost::get<HICANNOnWafer>(&segment)) {
+				current_hicann = *next_hicann;
+				continue;
+			}
+			if (current_hicann != hicann) {
+				continue;
+			}
+
+			if (auto const* hline = boost::get<HLineOnHICANN>(&segment)) {
+				horizontal_buses.insert(*hline);
+				continue;
+			}
+
+			if (auto const* vline = boost::get<VLineOnHICANN>(&segment)) {
+				if (vertical_buses.insert(*vline).second) {
+					num_vertical_buses[vline->toSideHorizontal()] += 1;
+				}
+			}
+		}
+	}
+
+	return {num_neurons, num_inputs, horizontal_buses.size(), num_vertical_buses[left],
+			num_vertical_buses[right]};
 }
 
 HICANNOnWaferProperties::HICANNOnWaferProperties()
-	: m_is_available(false), m_num_neurons(0), m_num_inputs(0)
+	: m_is_available(false),
+	  m_num_neurons(0),
+	  m_num_inputs(0),
+	  m_num_horizontal_buses(0),
+	  m_num_vertical_buses{{0, 0}}
 {}
 
-HICANNOnWaferProperties::HICANNOnWaferProperties(size_t num_neurons, size_t num_inputs)
-	: m_is_available(true), m_num_neurons(num_neurons), m_num_inputs(num_inputs)
+HICANNOnWaferProperties::HICANNOnWaferProperties(
+	size_t num_neurons,
+	size_t num_inputs,
+	size_t num_horizontal_buses,
+	size_t num_left_buses,
+	size_t num_right_buses)
+	: m_is_available(true),
+	  m_num_neurons(num_neurons),
+	  m_num_inputs(num_inputs),
+	  m_num_horizontal_buses(num_horizontal_buses),
+	  m_num_vertical_buses{{num_left_buses, num_right_buses}}
 {}
 
 bool HICANNOnWaferProperties::is_available() const
@@ -138,6 +186,19 @@ size_t HICANNOnWaferProperties::num_neurons() const
 size_t HICANNOnWaferProperties::num_inputs() const
 {
 	return m_num_inputs;
+}
+
+size_t HICANNOnWaferProperties::num_buses(halco::common::Orientation orientation) const
+{
+	if (orientation == horizontal) {
+		return m_num_horizontal_buses;
+	}
+	return m_num_vertical_buses[left] + m_num_vertical_buses[right];
+}
+
+size_t HICANNOnWaferProperties::num_buses(halco::common::SideHorizontal side) const
+{
+	return m_num_vertical_buses[side];
 }
 
 } // namespace results
