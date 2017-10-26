@@ -85,15 +85,6 @@ public:
 	/// default: Default
 	CalibBackend calib_backend;
 
-	/// choose mode for chip configuration verification
-	/// one of [Verify, Skip, VerifyButIgnore]
-	/// Verify: read back the written chip configuration and compare against wanted
-	/// Skip: no read back of configuration
-	/// VerfifyButIgnore: read back the written chip configuration and compare against wanted but
-	/// continue in the case of disagreement
-	/// default: Verify
-	Verification verification;
-
 	/// path to directory containing calibration data as xml-files
 	/// The calibration is looked up in xml files named w0-h84.xml, w0-h276.xml, etc.
 	/// Throws if the environment variable MAROCCO_CALIB_PATH is set
@@ -144,6 +135,15 @@ public:
 	 * Defaults to \c false.
 	 */
 	bool skip_mapping;
+
+	/// choose mode for chip configuration verification
+	/// one of [Verify, Skip, VerifyButIgnore]
+	/// Verify: read back the written chip configuration and compare against wanted
+	/// Skip: no read back of configuration
+	/// VerfifyButIgnore: read back the written chip configuration and compare against wanted but
+	/// continue in the case of disagreement
+	/// default: Verify
+	Verification verification;
 
 	/**
 	 * @brief Path to file to which is used to store wafer configuration.

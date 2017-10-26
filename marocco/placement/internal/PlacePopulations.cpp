@@ -80,7 +80,6 @@ bool PlacePopulations::place_one_population()
 
 	// We use the smallest possible neuron block, so we won't fragment the wafer too much.
 	auto nb = m_neuron_blocks.back();
-	auto hicann = nb.toHICANNOnWafer();
 	OnNeuronBlock& onb = on_neuron_block(nb);
 
 	NeuronPlacementRequest& placement = m_queue.back();

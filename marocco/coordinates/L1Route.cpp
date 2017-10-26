@@ -58,13 +58,13 @@ public:
 
 	//  ——— HICANN boundaries ——————————————————————————————————————————————————
 
-	bool operator()(HLineOnHICANN const& current, HICANNOnWafer const& next)
+	bool operator()(HLineOnHICANN const& current, HICANNOnWafer const& /*next*/)
 	{
 		m_previous_segment = current;
 		return true;
 	}
 
-	bool operator()(VLineOnHICANN const& current, HICANNOnWafer const& next)
+	bool operator()(VLineOnHICANN const& current, HICANNOnWafer const& /*next*/)
 	{
 		m_previous_segment = current;
 		return true;
