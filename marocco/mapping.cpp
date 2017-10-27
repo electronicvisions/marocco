@@ -30,6 +30,7 @@
 #include "marocco/experiment/AnalogOutputsConfigurator.h"
 #include "marocco/experiment/Experiment.h"
 #include "marocco/experiment/SpikeTimesConfigurator.h"
+#include "marocco/experiment/ReadRepeaterTestdata.h"
 #include "pymarocco/PyMarocco.h"
 #include "pymarocco/runtime/Runtime.h"
 
@@ -212,6 +213,13 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	results = mapper.results();
 
+	experiment::ReadRepeaterTestdata repeater_test(*results);
+
+	if (mi->checkl1locking == PyMarocco::CheckL1Locking::Check ||
+		mi->checkl1locking == PyMarocco::CheckL1Locking::CheckButIgnore) {
+		repeater_test.configure(*hardware);
+	}
+
 	// Configure analog outputs.
 	{
 		experiment::AnalogOutputsConfigurator analog_outputs(results->analog_outputs);
@@ -347,6 +355,43 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		}
 		default:
 			throw std::runtime_error("unknown verification mode");
+		}
+
+		std::map<HICANNOnWafer, sthal::Neurons> original_neuron_configuration;
+		auto only_neuron_no_reset_configurator = sthal::OnlyNeuronNoResetNoFGConfigurator();
+		if (mi->checkl1locking == PyMarocco::CheckL1Locking::Check ||
+		    mi->checkl1locking == PyMarocco::CheckL1Locking::CheckButIgnore) {
+			// disable L1 output of all neurons
+			for (auto hicann : hardware->getAllocatedHicannCoordinates()) {
+				original_neuron_configuration[hicann] = (*hardware)[hicann].neurons;
+				(*hardware)[hicann].disable_l1_output();
+			}
+
+			hardware->configure(only_neuron_no_reset_configurator);
+		}
+
+		switch (mi->checkl1locking) {
+			case PyMarocco::CheckL1Locking::SkipCheck:
+				// do nothing
+				break;
+			case PyMarocco::CheckL1Locking::Check:
+			case PyMarocco::CheckL1Locking::CheckButIgnore: {
+				auto const locked = repeater_test.check(*hardware, ::HMF::HICANN::BkgRegularISI(mi->bkg_gen_isi));
+				if (mi->checkl1locking == PyMarocco::CheckL1Locking::Check && !locked) {
+					LOG4CXX_ERROR(logger, "Aborting because L1 locking failed");
+					throw std::runtime_error("L1 locking failed");
+				}
+
+				// reenable L1 output of all neurons
+				for (auto hicann : hardware->getAllocatedHicannCoordinates()) {
+					(*hardware)[hicann].neurons = original_neuron_configuration[hicann];
+				}
+
+				hardware->configure(only_neuron_no_reset_configurator);
+				break;
+			}
+			default:
+				throw std::runtime_error("unknown l1 locking check mode");
 		}
 	}
 

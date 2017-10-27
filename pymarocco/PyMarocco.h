@@ -75,6 +75,13 @@ public:
 		VerifyButIgnore
 	};
 
+
+	PYPP_CLASS_ENUM(CheckL1Locking) {
+		Check,
+		SkipCheck,
+		CheckButIgnore
+	};
+
 	/// choose emulation backend
 	/// one of [None, ESS, Hardware]
 	/// default: None
@@ -144,6 +151,15 @@ public:
 	/// continue in the case of disagreement
 	/// default: Verify
 	Verification verification;
+
+	/**
+	* @brief: check l1 locking of horizontal and vertical repeaters
+	* one of [Check, SkipCheck, CheckButIgnore]
+	* Check: check if all repeaters accessible from all l1 routes are locked and abort if not
+	* SkipCheck: do not check for locked repeaters
+	* CheckButIgnore: perform checks but do not abort in case of errors
+	*/
+	CheckL1Locking checkl1locking;
 
 	/**
 	 * @brief Path to file to which is used to store wafer configuration.

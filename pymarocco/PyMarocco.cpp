@@ -31,6 +31,7 @@ PyMarocco::PyMarocco() :
 	calib_path(""),
 	skip_mapping(false),
 	verification(Verification::Verify),
+	checkl1locking(CheckL1Locking::Check),
 	bkg_gen_isi(500),
 	pll_freq(100e6),
 	hicann_configurator(HICANNCfg::HICANNConfigurator),
@@ -64,6 +65,7 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("wafer_cfg", wafer_cfg)
 	   & make_nvp("skip_mapping", skip_mapping)
 	   & make_nvp("verification", verification)
+	   & make_nvp("checkl1locking", checkl1locking)
 	   & make_nvp("bkg_gen_isi", bkg_gen_isi)
 	   & make_nvp("pll_freq", pll_freq)
 	   & make_nvp("hicann_configurator", hicann_configurator)
