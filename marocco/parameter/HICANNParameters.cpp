@@ -216,12 +216,15 @@ void HICANNParameters::background_generators(uint32_t isi)
 {
 	// configure ALL BackgroundGenerators for Repeater & SynapseDriver locking.
 	// They are NOT use for production neuron stimulation.
+
+	HMF::HICANN::BkgRegularISI mode(isi);
+
 	for (auto const addr : iter_all<BackgroundGeneratorOnHICANN>()) {
 		HMF::HICANN::BackgroundGenerator bg;
 		bg.enable(true);
 		bg.seed(0);
 		bg.address(HMF::HICANN::L1Address(0));
-		bg.set_mode(false /*random*/, isi /*isi*/);
+		bg.set_mode(mode);
 
 		m_chip.layer1[addr] = bg;
 	}
