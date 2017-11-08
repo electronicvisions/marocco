@@ -110,11 +110,11 @@ std::pair<size_t, TriParity> SynapseDriverRequirements::get_min_realizing_count_
 			count = c_even;
 			parity = TriParity::even;
 		}
+	} else if (c_odd > 0) {
+		count = c_odd;
+		parity = TriParity::odd;
 	} else {
-		if (c_odd > 0) {
-			count = c_odd;
-			parity = TriParity::odd;
-		}
+		parity = TriParity::any;
 	}
 	return {count, parity};
 }

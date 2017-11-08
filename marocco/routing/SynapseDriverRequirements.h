@@ -272,7 +272,7 @@ private:
 	/// with one half synapse row.
 	///
 	/// @return the count and associcated TriParity
-	/// @note if the returned count is 0, the return tri parity is undefined.
+	/// @note if the returned count is 0, the returned tri parity is "any".
 	static std::pair<size_t, TriParity> get_min_realizing_count_and_parity(
 		HMF::Coordinate::Side const& side, std::map<Side_Parity, size_t> const& map);
 
