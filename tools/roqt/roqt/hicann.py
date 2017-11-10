@@ -69,7 +69,7 @@ class HICANN(object):
 
                     try:
                         # there is a synapse driver:
-                        drv = row.driver()
+                        drv = row.toSynapseDriverOnHICANN()
                         B = X0+DIR*(DX+20)
                         line = self.scene.addLine(X0, yy, X0+DIR*(DX+20), yy)
                         line.hide()
