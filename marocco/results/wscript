@@ -1,0 +1,48 @@
+def configure(cfg):
+    cfg.find_program('em++', var='EMPP')
+    # TODO: find emscripted boost libraries here
+
+def build(bld):
+    # TODO: use deps from other tasks
+    file_patterns = [
+            bld.path.parent.parent.parent.ant_glob('halco/halco/hicann/v2/*.cpp', remove=False),
+            bld.path.parent.ant_glob('*/results/*.cpp', remove=False),
+            bld.path.parent.ant_glob('coordinates/*.cpp', remove=False),
+    ]
+    files = [x.relpath() for p in file_patterns for x in p]
+
+    # TODO: use {halco,...}_inc
+    include_options = []
+    for p in [
+              '../../../boost/boost_1_55_0',
+              '../../../marocco',
+              '../../../halbe',
+              '../../../halco',
+              '../../../lib-boost-patches',
+              '../../../pywrap/src',
+              '../../../ztl',
+              '../../../redman',
+              '../../../rant']:
+        include_options.append('-I ' + bld.path.find_dir(p).abspath())
+    include_options = ' '.join(include_options)
+    lib_options = '-L ../../../../boost/boost_1_55_0/bin.v2'
+
+    bld(rule='${EMPP} -O2 --bind -std=c++14 -o ${TGT} ${SRC}'
+        +' -s ASSERTIONS=1'
+        +' -s DEMANGLE_SUPPORT=1'
+        +' -s ERROR_ON_UNDEFINED_SYMBOLS=1'
+        +' ' + include_options
+        +' ' + lib_options
+        +' -l boost_serialization'
+        +' -l boost_filesystem'
+        +' -l boost_system'
+        +' -l boost_iostreams',
+        target='Marocco.html',
+        source=[
+            'Marocco.cpp',
+            'embind.cpp',
+            'Resources.cpp',
+            '../../../halco/halco/common/relations.cpp',
+            '../resource/HICANNManager.cpp'
+        ] + files,
+    )

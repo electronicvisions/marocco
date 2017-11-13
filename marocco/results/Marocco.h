@@ -33,7 +33,9 @@ public:
 	 * @brief Construct a new results object by loading mapping results from disk.
 	 * @see #load().
 	 */
-	static Marocco from_file(char const* filename);
+	static Marocco from_file(std::string const& filename);
+
+	Marocco();
 
 	/**
 	 * @brief Load mapping results from disk.
@@ -41,7 +43,7 @@ public:
 	 *                 format, e.g. `.xml`/`.bin` or `.xml.gz`/`.bin.gz`.
 	 * @see #save().
 	 */
-	void load(char const* filename);
+	void load(std::string const& filename);
 
 	/**
 	 * @brief Save mapping results to disk.
@@ -50,7 +52,7 @@ public:
 	 *                 `.gz` can be added to write results in compressed form,
 	 *                 e.g. `results.xml.gz`.
 	 */
-	void save(char const* filename, bool overwrite = false) const;
+	void save(std::string const& filename, bool overwrite = false) const;
 
 	Resources resources;
 	parameter::results::AnalogOutputs analog_outputs;

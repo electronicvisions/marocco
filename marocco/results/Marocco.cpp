@@ -20,15 +20,20 @@ using namespace halco::hicann::v2;
 namespace marocco {
 namespace results {
 
-Marocco Marocco::from_file(char const* filename)
+Marocco Marocco::from_file(std::string const& filename)
 {
 	Marocco result;
 	result.load(filename);
 	return result;
 }
 
-void Marocco::load(char const* filename)
+Marocco::Marocco()
 {
+}
+
+void Marocco::load(std::string const& filename_)
+{
+	char const* filename = filename_.c_str();
 	boost::filesystem::path path(filename);
 	if (!boost::filesystem::exists(path)) {
 		throw std::runtime_error("file not found");
@@ -48,8 +53,9 @@ void Marocco::load(char const* filename)
 	}
 }
 
-void Marocco::save(char const* filename, bool overwrite) const
+void Marocco::save(std::string const& filename_, bool overwrite) const
 {
+	char const* filename = filename_.c_str();
 	boost::filesystem::path path(filename);
 	if (boost::filesystem::exists(path) && !overwrite) {
 		throw std::runtime_error("file already exists");
