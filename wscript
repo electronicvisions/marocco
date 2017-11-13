@@ -153,7 +153,7 @@ def build(bld):
 
     bld(target='marocco_results',
         features='cxx cxxshlib',
-        source=bld.path.ant_glob('marocco/**/results/*.cpp'),
+        source=bld.path.ant_glob('marocco/**/results/*.cpp', excl='marocco/**/results/embind.cpp'),
         install_path='lib',
         use=[
             'marocco_results_inc',

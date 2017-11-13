@@ -14,7 +14,9 @@ for ns in ns_marocco.namespaces('results'):
     namespaces.extend_array_operators(ns)
     for cl in ns.classes(allow_empty=True):
         cl.include()
-        classes.add_pickle_suite(cl)
+        # dynamically generated classes which do not have serialize functions
+        if not cl.name.endswith("Properties"):
+            classes.add_pickle_suite(cl)
 
 for cl in ns_marocco.classes(allow_empty=True):
     # Where applicable expose iterator interface instead of raw

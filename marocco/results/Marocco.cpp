@@ -10,6 +10,11 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#include "halco/common/iter_all.h"
+
+using namespace halco::common;
+using namespace halco::hicann::v2;
+
 namespace marocco {
 namespace results {
 
@@ -68,12 +73,71 @@ void Marocco::serialize(Archiver& ar, const unsigned int /* version */)
 {
 	using namespace boost::serialization;
 	// clang-format off
-	ar & make_nvp("analog_outputs", analog_outputs)
+	ar & make_nvp("resources", resources)
+	   & make_nvp("analog_outputs", analog_outputs)
 	   & make_nvp("spike_times", spike_times)
 	   & make_nvp("placement", placement)
 	   & make_nvp("l1_routing", l1_routing)
 	   & make_nvp("synapse_routing", synapse_routing);
 	// clang-format on
+}
+
+HICANNOnWaferProperties Marocco::properties(halco::hicann::v2::HICANNOnWafer const& hicann) const
+{
+	if (!resources.has(hicann)) {
+		return {};
+	}
+
+	auto it = placement.find(hicann);
+	size_t const num_neurons = std::distance(it.begin(), it.end());
+
+	size_t num_injections = 0;
+	for (auto const dnc : iter_all<DNCMergerOnHICANN>()) {
+		auto it_ = placement.find(DNCMergerOnWafer(dnc, hicann));
+		num_injections += std::distance(it_.begin(), it_.end());
+	}
+
+	size_t const num_inputs = num_injections - num_neurons;
+
+	return {num_neurons, num_inputs};
+}
+
+HICANNOnWaferProperties::HICANNOnWaferProperties()
+	: m_is_available(false), m_num_neurons(0), m_num_inputs(0)
+{}
+
+HICANNOnWaferProperties::HICANNOnWaferProperties(size_t num_neurons, size_t num_inputs)
+	: m_is_available(true), m_num_neurons(num_neurons), m_num_inputs(num_inputs)
+{}
+
+bool HICANNOnWaferProperties::is_available() const
+{
+	return m_is_available;
+}
+
+bool HICANNOnWaferProperties::is_transit_only() const
+{
+	return m_is_available && m_num_neurons == 0 && m_num_inputs == 0;
+}
+
+bool HICANNOnWaferProperties::has_neurons() const
+{
+	return m_num_neurons > 0;
+}
+
+bool HICANNOnWaferProperties::has_inputs() const
+{
+	return m_num_inputs > 0;
+}
+
+size_t HICANNOnWaferProperties::num_neurons() const
+{
+	return m_num_neurons;
+}
+
+size_t HICANNOnWaferProperties::num_inputs() const
+{
+	return m_num_inputs;
 }
 
 } // namespace results

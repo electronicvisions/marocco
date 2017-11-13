@@ -118,6 +118,10 @@ void Mapper::run(ObjectStore const& pynn)
 		throw std::runtime_error("hardware capacity too low");
 	}
 
+	for (auto const hicann : mMgr.present()) {
+		m_results->resources.add(hicann);
+	}
+
 	// The 3 1/2-steps to complete happiness
 
 	// 1.  P L A C E M E N T

@@ -30,3 +30,10 @@ core
 # data
 *.xml
 test.*
+
+# emscripten stuff
+marocco/results/Marocco.html
+marocco/results/Marocco.html.mem
+marocco/results/Marocco.js
+marocco/results/Marocco.js.mem
+marocco/results/.symwaf2ic*
