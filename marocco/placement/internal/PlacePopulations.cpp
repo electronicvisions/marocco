@@ -47,6 +47,9 @@ void PlacePopulations::sort_neuron_blocks()
 	// in descending order but nevertheless processed small-to-big.
 	// If neuron blocks on the same HICANN have the same size, they shall be processed from left to
 	// right. Therefore, these neuron blocks are sorted from right to left.
+	// Furthermore, HICANNs shall be used starting from the center, spiralling
+	// outwards, if the neuron blocks have the same capacity. Hence, HICANNs
+	// are sorted in reversed spiral ordering.
 	spiral_ordering<HICANNOnWafer> ordering;
 	std::sort(
 		m_neuron_blocks.begin(), m_neuron_blocks.end(),
@@ -56,7 +59,7 @@ void PlacePopulations::sort_neuron_blocks()
 				(available[a] == available[b] &&
 				 ((a.toHICANNOnWafer() == b.toHICANNOnWafer())
 					  ? (a.toNeuronBlockOnHICANN() > b.toNeuronBlockOnHICANN())
-					  : ordering(a.toHICANNOnWafer(), b.toHICANNOnWafer()))));
+					  : !ordering(a.toHICANNOnWafer(), b.toHICANNOnWafer()))));
 		});
 }
 
