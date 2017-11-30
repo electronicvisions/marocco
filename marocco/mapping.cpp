@@ -334,27 +334,28 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	hardware->configure(*configurator);
 
 	if(mi->backend == PyMarocco::Backend::Hardware) {
-		auto verify_configurator = sthal::VerifyConfigurator();
 
-		switch (mi->verification) {
-		case PyMarocco::Verification::Skip:
-			// do nothing
-			break;
-		case PyMarocco::Verification::VerifyButIgnore: {
+		if (mi->verification != PyMarocco::Verification::Skip) {
+			auto verify_configurator = sthal::VerifyConfigurator();
 			hardware->configure(verify_configurator);
-			LOG4CXX_WARN(logger, verify_configurator);
-			break;
-		}
-		case PyMarocco::Verification::Verify: {
-			hardware->configure(verify_configurator);
-			LOG4CXX_ERROR(logger, verify_configurator);
-			if(verify_configurator.error_count() > 0) {
-				throw std::runtime_error("verification of configuration failed");
+
+			if (verify_configurator.error_count() == 0) {
+				LOG4CXX_INFO(logger, verify_configurator);
+			} else {
+				switch (mi->verification) {
+					case PyMarocco::Verification::Skip:
+						break;
+					case PyMarocco::Verification::VerifyButIgnore:
+						LOG4CXX_WARN(logger, verify_configurator);
+						break;
+					case PyMarocco::Verification::Verify:
+						LOG4CXX_ERROR(logger, verify_configurator);
+						throw std::runtime_error("verification of configuration failed");
+						break;
+					default:
+						throw std::runtime_error("unknown verification mode");
+				}
 			}
-			break;
-		}
-		default:
-			throw std::runtime_error("unknown verification mode");
 		}
 
 		std::map<HICANNOnWafer, sthal::Neurons> original_neuron_configuration;
