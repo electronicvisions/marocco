@@ -6,17 +6,19 @@
 #include "euter/nativerandomgenerator.h"
 #include <boost/make_shared.hpp>
 #include <iostream>
+#include <sstream>
 
 template<typename T>
-std::ostream& printWeights(std::ostream& os, T const& t)
+std::string printWeights(T const& t)
 {
+	std::ostringstream os;
 	for (size_t ii=0; ii<t.size1(); ++ii) {
 		for (size_t jj=0; jj<t.size2(); ++jj) {
 			os << t(ii, jj) << " ";
 		}
 		os << "\n";
 	}
-	return os;
+	return os.str();
 }
 
 TEST(ProjectionView, WeightAccess)
@@ -37,14 +39,14 @@ TEST(ProjectionView, WeightAccess)
 
 	auto weights0 = view.getWeights();
 
-	//printWeights(std::cout, weights0);
+	// std::cout << printWeights(weights0);
 
 	// change some weights
 	auto& weightsRef = proj0->getWeights().get();
 	weightsRef(0, 0) = 42.;
 
 	// make sure weights0 is just a view on the original weights
-	ASSERT_FLOAT_EQ(42., weights0(0, 0)) << printWeights(std::cout, weights0);
+	ASSERT_FLOAT_EQ(42., weights0(0, 0)) << printWeights(weights0);
 
 
 	// let's see how we can copy the weights
@@ -57,8 +59,8 @@ TEST(ProjectionView, WeightAccess)
 	// lets change some orignal weight and make sure, copied weights do not
 	// change.
 	weightsRef(0, 0) = 23.;
-	ASSERT_FLOAT_EQ(42., copy_weights(0, 0)) << printWeights(std::cout, weights0);
-	ASSERT_FLOAT_EQ(23., weights0(0, 0)) << printWeights(std::cout, weights0);
+	ASSERT_FLOAT_EQ(42., copy_weights(0, 0)) << printWeights(weights0);
+	ASSERT_FLOAT_EQ(23., weights0(0, 0)) << printWeights(weights0);
 }
 
 TEST(PopulationView, Dimensions)

@@ -3,6 +3,7 @@
 #include "hal/Coordinate/iter_all.h"
 
 #include <fstream>
+#include <numeric>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/unordered_map.h>
 
