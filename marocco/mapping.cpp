@@ -67,6 +67,7 @@ boost::shared_ptr<redman::backend::Backend> load_redman_backend(pymarocco::Defec
 	throw std::runtime_error("defects backend not implemented");
 }
 
+#ifdef HAVE_ESS
 std::string create_temporary_directory(char const* tpl) {
 	using namespace boost::filesystem;
 	path tmp_dir;
@@ -77,6 +78,7 @@ std::string create_temporary_directory(char const* tpl) {
 	} while (!success);
 	return tmp_dir.native();
 }
+#endif
 
 struct DeleteRecursivelyOnScopeExit {
 	std::string path;

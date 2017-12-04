@@ -221,17 +221,7 @@ SynapseManager::get(HMF::Coordinate::VLineOnHICANN const& vline) const
 
 void SynapseManager::check(size_t /*chain_length*/)
 {
-	for (auto const& entry : mAllocation) {
-		Assignment const& assign = entry.second;
-
-		// factors of two:
-		//	* two insertion points
-		//	* two rows per driver
-		//	* two independen assignments for odd and even synapse columns.
-		// if (cnt>max_chain_length*2*2*2) {
-		// throw std::runtime_error("too many synrows assigned");
-		//}
-	}
+	/* ECM(2017-12-04): look at history */
 }
 
 SynapseManager::SynapsesOnVLine SynapseManager::getSynapses(

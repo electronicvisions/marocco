@@ -70,7 +70,6 @@ void HICANNParameters::run()
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1542
 		auto neuron_calib = calib->atNeuronCollection();
 		neuron_calib->setSpeedup(m_pymarocco.experiment.speedup());
-		auto const& hicann_synapse_routing = m_synapse_routing[hicann];
 
 		{
 			// 3. transform individual analog parameters
