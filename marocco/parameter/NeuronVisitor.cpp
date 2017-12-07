@@ -1,6 +1,8 @@
 #include "marocco/parameter/NeuronVisitor.h"
-#include "marocco/Logger.h"
 
+#include <tuple>
+
+#include "marocco/Logger.h"
 #include "hal/Coordinate/iter_all.h"
 
 using namespace HMF::Coordinate;
@@ -70,6 +72,8 @@ void TransformNeurons::assert_synapse_target_mapping_is_default(
 	static const synapse_targets_t::value_type default_mapping =
 		{SynapseType::excitatory, SynapseType::inhibitory};
 	assert(targets == default_mapping);
+	std::ignore = targets;
+	std::ignore = default_mapping;
 }
 
 // AdEx Parameter Transformation

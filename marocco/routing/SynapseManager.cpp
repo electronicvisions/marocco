@@ -248,9 +248,12 @@ SynapseManager::SynapseStepper::SynapseStepper(
 {
 	_has_synapses = false;
 
-	for (auto const& item : s_p_to_c_map)
-		assert(item.second.size()); // Assure that there are only side parity entries with synapse
-									// columns
+#ifndef NDEBUG
+	for (auto const& item : s_p_to_c_map) {
+		// Assure that there are only side parity entries with synapse columns
+		assert(item.second.size());
+	}
+#endif
 
 	side_parity_it = side_parity_to_columns_map.begin();
 	while (side_parity_it != side_parity_to_columns_map.end()) {

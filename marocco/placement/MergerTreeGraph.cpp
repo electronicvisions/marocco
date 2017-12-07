@@ -1,5 +1,6 @@
 #include "marocco/placement/MergerTreeGraph.h"
 
+#include <tuple>
 #include <boost/preprocessor/cat.hpp>
 
 #include "hal/Coordinate/iter_all.h"
@@ -29,12 +30,14 @@ MergerTreeGraph::MergerTreeGraph() : m_graph()
 	for (auto merger : iter_all<DNCMergerOnHICANN>()) {
 		auto vertex = add_vertex(Merger{4, merger.value()}, m_graph);
 		assert(operator[](merger) == vertex);
+		std::ignore = vertex;
 	}
 
 #define ADD_VERTICES(LEVEL)                                                                        \
 	for (auto merger : iter_all<BOOST_PP_CAT(BOOST_PP_CAT(Merger, LEVEL), OnHICANN)>()) {          \
 		auto vertex = add_vertex(Merger{LEVEL, merger.value()}, m_graph);                          \
 		assert(operator[](merger) == vertex);                                                      \
+		std::ignore = vertex;                                                                      \
 	}
 
 	ADD_VERTICES(3);

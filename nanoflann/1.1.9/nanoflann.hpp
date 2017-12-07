@@ -52,6 +52,7 @@
 #include <cstdio>  // for fwrite()
 #include <cmath>   // for fabs(),...
 #include <limits>
+#include <tuple>
 
 // Avoid conflicting declaration of min/max macros in windows headers
 #if !defined(NOMINMAX) && (defined(_WIN32) || defined(_WIN32_)  || defined(WIN32) || defined(_WIN64))
@@ -680,7 +681,13 @@ namespace nanoflann
         // assign one value to all elements
         inline void assign (const T& value) { for (size_t i=0;i<N;i++) elems[i]=value; }
         // assign (compatible with std::vector's one) (by JLBC for MRPT)
-        void assign (const size_t n, const T& value) { assert(N==n); for (size_t i=0;i<N;i++) elems[i]=value; }
+        void assign(const size_t n, const T& value) {
+          assert(N == n);
+          std::ignore = n;
+          for (size_t i = 0; i < N; i++) {
+            elems[i] = value;
+          }
+        }
       private:
         // check range (may be private because it is static)
         static void rangecheck (size_type i) { if (i >= size()) { throw std::out_of_range("CArray<>: index out of range"); } }
