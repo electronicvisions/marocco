@@ -342,8 +342,9 @@ TEST_F(AHICANNManager, AllowsAllocationDuringIteration) {
 	for (auto hicann : manager.available()) {
 		manager.allocate(hicann);
 		auto id = hicann.toHICANNOnWafer().id();
-		if (id > 0)
+		if (id > 0) {
 			ASSERT_FALSE(manager.available(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id - 1}}, wafer}));
+		}
 		++count;
 	}
 
@@ -374,8 +375,9 @@ TEST_F(AHICANNManager, AllowsMaskingDuringIteration) {
 	for (auto hicann : manager.present()) {
 		manager.mask(hicann);
 		auto id = hicann.toHICANNOnWafer().id();
-		if (id > 0)
+		if (id > 0) {
 			ASSERT_FALSE(manager.has(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id - 1}}, wafer}));
+		}
 		++count;
 	}
 
