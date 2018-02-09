@@ -1,4 +1,5 @@
 #include "marocco/routing/L1RoutingGraph.h"
+#include "marocco/Logger.h"
 
 #include "hal/Coordinate/iter_all.h"
 #include "hal/HICANN/Crossbar.h"
@@ -66,7 +67,8 @@ auto L1RoutingGraph::operator[](HICANNOnWafer const& hicann) const -> HICANN con
 {
 	auto it = m_hicanns.find(hicann);
 	if (it == m_hicanns.end()) {
-		throw ResourceNotPresentError("HICANN not present in graph");
+		MAROCCO_ERROR(hicann << " not present in L1 routing graph");
+		throw ResourceNotPresentError("HICANN not present in L1 routing graph");
 	}
 	return it->second;
 }
