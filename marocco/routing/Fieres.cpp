@@ -272,6 +272,14 @@ Fieres::Fieres(IntervalList const& _list,
 		{
 			double const syns = entry.synapses;
 			size_t const assign = std::min(max_chain_length, entry.driver);
+			if (entry.driver > max_chain_length) {
+				MAROCCO_WARN("Lost "
+				             << entry.driver - assign << " of " << entry.driver
+				             << " requested synapse driver(s) because of maximum "
+				                "chain length requirement of " << max_chain_length
+				             << ". Configure via PyMarocco "
+				                "synapse_routing.driver_chain_length(max_length).");
+			}
 			if (assign==0 || syns==0.) {
 				throw std::runtime_error("assignment error");
 			}
