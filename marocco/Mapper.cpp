@@ -134,6 +134,20 @@ void Mapper::run(ObjectStore const& pynn)
 	router.run(m_results->l1_routing, m_results->synapse_routing);
 	auto synapse_loss = router.getSynapseLoss();
 
+	if (synapse_loss) {
+		synapse_loss->fill(getStats());
+	} else {
+		MAROCCO_WARN("no synapse loss data");
+	}
+
+	if (synapse_loss && !mPyMarocco->continue_despite_synapse_loss &&
+	    synapse_loss->getTotalLoss() != 0) {
+		MAROCCO_ERROR(getStats());
+		throw std::runtime_error("Synapses lost but synapse loss is not accepted. Set "
+		                         "PyMarocco continue_despite_synapse_loss to true to "
+		                         "continue with loss.");
+	}
+
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
 
 	boost::shared_ptr<calibtic::backend::Backend> calib_backend;
@@ -199,21 +213,8 @@ void Mapper::run(ObjectStore const& pynn)
 	getStats().setNumProjections(pynn.projections().size());
 	getStats().setNumNeurons(neuron_count);
 
-	if (synapse_loss) {
-		synapse_loss->fill(getStats());
-	} else {
-		MAROCCO_WARN("no synapse loss data available");
-	}
-
 	// and print them
 	MAROCCO_INFO(getStats());
-
-	if (synapse_loss && !mPyMarocco->continue_despite_synapse_loss &&
-	    synapse_loss->getTotalLoss() != 0) {
-		throw std::runtime_error("Synapses lost but synapse loss is not accepted. Set "
-		                         "PyMarocco continue_despite_synapse_loss to true to "
-		                         "continue with loss.");
-	}
 
 	// generate Hardware stats
 	HardwareUsage usage(mHW, mMgr, *placement);
