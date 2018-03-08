@@ -138,7 +138,7 @@ void SynapseRouting::run()
 
 	size_t const chain_length = m_parameters.driver_chain_length();
 	if (chain_length != SynapseDriverOnQuadrant::size) {
-		MAROCCO_WARN("using non-default synapse driver chain length of " << chain_length);
+		MAROCCO_DEBUG("using non-maximum synapse driver chain length of " << chain_length);
 	}
 
 

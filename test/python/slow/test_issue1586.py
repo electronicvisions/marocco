@@ -33,7 +33,9 @@ class TestIssue1586(unittest.TestCase):
 
         marocco = pymarocco.PyMarocco()
         marocco.neuron_placement.default_neuron_size(8)
-
+        marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
+        marocco.hicann_configurator = pymarocco.PyMarocco.HICANNConfigurator
+        marocco.continue_despite_synapse_loss = True
         marocco.backend = pymarocco.PyMarocco.ESS
         marocco.experiment_time_offset=5e-7
 

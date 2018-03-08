@@ -39,6 +39,8 @@ class TestWithResults(unittest.TestCase):
 
         self.marocco = pymarocco.PyMarocco()
         self.marocco.backend = pymarocco.PyMarocco.None
+        self.marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
+        self.marocco.defects.backend = pymarocco.Defects.Backend.None
         self.marocco.persist = os.path.join(
             self.temporary_directory, "results.bin")
 

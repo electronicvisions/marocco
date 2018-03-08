@@ -4,8 +4,8 @@
 namespace pymarocco {
 
 Defects::Defects() :
-	backend(Backend::None),
-	path(),
+	backend(Backend::XML),
+	path("/wang/data/calibration/brainscales/default"),
 	mHicanns()
 {}
 

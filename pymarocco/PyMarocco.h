@@ -89,13 +89,14 @@ public:
 
 	/// choose backend for calibration data
 	/// one of [XML, Binary, Default]
-	/// default: Default
+	/// default: Binary
 	CalibBackend calib_backend;
 
 	/// path to directory containing calibration data as xml-files
 	/// The calibration is looked up in xml files named w0-h84.xml, w0-h276.xml, etc.
 	/// Throws if the environment variable MAROCCO_CALIB_PATH is set
 	/// and this string is non-empty.
+	/// default: /wang/data/calibration/brainscales/default
 	std::string calib_path;
 
 #if !defined(PYPLUSPLUS)
@@ -130,6 +131,7 @@ public:
 	/** Default wafer to fall back to when no manual placement or defects were specified.
 	 *  @note: This will go away in the long run. Do \b NOT use this anywhere but rely
 	 *  on \c HICANNManager.wafers() instead.
+	 *  Defaults to \c 33.
 	 */
 	HMF::Coordinate::Wafer default_wafer;
 
@@ -177,15 +179,15 @@ public:
 
 	/// inter spike interval (isi) of background generators used for locking in HICANN clk cycles
 	/// hence the frequency of the background generators is given by: pll_freq/bkg_gen_isi
-	/// default: 500
+	/// default: 125
 	uint32_t bkg_gen_isi;
 
 	/// HICANN PLL clock frequency in Hz, e.g. 100e6, 150e6, 200e6
-	/// default: 100e6,
+	/// default: 125e6,
 	double pll_freq;
 
 	/// choose HICANN configurator
-	/// one of: [HICANNConfigurator, DontProgramFloatingGatesHICANNConfigurator]
+	/// default: ParallelHICANNv4Configurator
 	HICANNCfg hicann_configurator;
 
 	/// ESS config

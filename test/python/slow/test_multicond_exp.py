@@ -41,6 +41,9 @@ class IF_multicond_exp(unittest.TestCase):
         """
         marocco=pymarocco.PyMarocco()
         marocco.backend = pymarocco.PyMarocco.None
+        marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
+        marocco.defects.backend = pymarocco.Defects.Backend.None
+
         marocco.neuron_placement.default_neuron_size(4)
         marocco.wafer_cfg = os.path.join(self.temporary_directory, "wafer.bin")
         marocco.persist = os.path.join(self.temporary_directory, "results.bin")

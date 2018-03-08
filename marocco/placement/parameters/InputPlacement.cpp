@@ -8,7 +8,7 @@ namespace placement {
 namespace parameters {
 
 InputPlacement::InputPlacement()
-	: m_consider_firing_rate(false), m_bandwidth_utilization(1.0)
+	: m_consider_firing_rate(true), m_bandwidth_utilization(0.8)
 {
 }
 

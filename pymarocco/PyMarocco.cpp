@@ -27,14 +27,15 @@ PyMarocco::name() const
 
 PyMarocco::PyMarocco() :
 	backend(Backend::None),
-	calib_backend(CalibBackend::Default),
-	calib_path(""),
+	calib_backend(CalibBackend::XML),
+	calib_path("/wang/data/calibration/brainscales/default"),
+	default_wafer(33),
 	skip_mapping(false),
 	verification(Verification::Verify),
 	checkl1locking(CheckL1Locking::Check),
-	bkg_gen_isi(500),
-	pll_freq(100e6),
-	hicann_configurator(HICANNCfg::HICANNConfigurator),
+	bkg_gen_isi(125),
+	pll_freq(125e6),
+	hicann_configurator(HICANNCfg::ParallelHICANNv4Configurator),
 	continue_despite_synapse_loss(false)
 {}
 

@@ -12,7 +12,7 @@ namespace parameters {
 NeuronPlacement::NeuronPlacement()
 	: m_default_neuron_size(4),
 	  m_restrict_rightmost_neuron_blocks(false),
-	  m_minimize_number_of_sending_repeaters(true)
+	  m_minimize_number_of_sending_repeaters(false)
 {
 }
 

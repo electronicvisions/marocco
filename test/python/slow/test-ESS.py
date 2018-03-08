@@ -8,6 +8,8 @@ class TestESS(unittest.TestCase):
     def setUp(self, backend=PyMarocco.ESS):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
+        self.marocco.calib_backend = PyMarocco.CalibBackend.Default
+        self.marocco.hicann_configurator = PyMarocco.HICANNConfigurator
 
     def tearDown(self):
         del self.marocco

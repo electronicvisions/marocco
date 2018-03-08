@@ -3,7 +3,7 @@ import unittest
 import pyhalbe
 import pyredman
 import pylogging
-from pymarocco import PyMarocco
+from pymarocco import PyMarocco, Defects
 
 from pyhalbe.Coordinate import *
 import pyhmf as sim
@@ -19,6 +19,9 @@ class MaroccoFixture(unittest.TestCase):
         super(MaroccoFixture, self).setUp()
         self.marocco = PyMarocco()
         self.marocco.backend = PyMarocco.None
+        self.marocco.calib_backend = PyMarocco.CalibBackend.Default
+        self.marocco.defects.backend = Defects.Backend.None
+        self.marocco.merger_routing.strategy(self.marocco.merger_routing.minimize_number_of_sending_repeaters)
 
         sim.setup(marocco=self.marocco)
 

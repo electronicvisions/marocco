@@ -8,6 +8,7 @@ import unittest
 import pylogging
 import pyhmf as pynn
 import pyhalbe
+import Coordinate as C
 import numpy as np
 import debug_config
 
@@ -22,6 +23,7 @@ pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.DEBUG)
 def default_marocco():
     marocco = pymarocco.PyMarocco()
     marocco.neuron_placement.default_neuron_size(4)
+    marocco.synapse_routing.driver_chain_length(C.SynapseDriverOnQuadrant.size)
     marocco.experiment.speedup(10000.)
     return marocco
 

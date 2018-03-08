@@ -12,7 +12,7 @@ namespace routing {
 namespace parameters {
 
 SynapseRouting::SynapseRouting()
-	: m_driver_chain_length(SynapseDriverOnQuadrant::size), m_only_allow_background_events(false)
+	: m_driver_chain_length(3), m_only_allow_background_events(false)
 {
 }
 
