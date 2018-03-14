@@ -12,6 +12,9 @@
 #include "marocco/results/Resources.h"
 #include "marocco/routing/results/L1Routing.h"
 #include "marocco/routing/results/SynapseRouting.h"
+#include "marocco/coordinates/L1Route.h"
+
+#include "hal/HICANN/L1Address.h"
 
 namespace boost {
 namespace serialization {
@@ -23,6 +26,7 @@ namespace marocco {
 namespace results {
 
 class HICANNOnWaferProperties;
+class L1RouteProperties;
 
 /**
  * @brief Container used to store mapping results.
@@ -66,6 +70,11 @@ public:
 	 * @param h Coordinate of the HICANN
 	 */
 	HICANNOnWaferProperties properties(halco::hicann::v2::HICANNOnWafer const& hicann) const;
+
+	/**
+	 * @brief Create an object containing all L1 routes.
+	 */
+	std::vector<L1RouteProperties> l1_properties() const;
 
 private:
 	friend class boost::serialization::access;

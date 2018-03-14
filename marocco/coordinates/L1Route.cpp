@@ -235,6 +235,11 @@ public:
 	{
 		return true;
 	}
+
+	bool operator()(SynapseOnHICANN const& /*current*/, SynapseOnHICANN const& /*next*/)
+	{
+		return true;
+	}
 };
 
 bool L1Route::empty() const

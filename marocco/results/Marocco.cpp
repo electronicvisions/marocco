@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "marocco/results/Marocco.h"
 
 #include <unordered_set>
@@ -143,6 +145,116 @@ HICANNOnWaferProperties Marocco::properties(halco::hicann::v2::HICANNOnWafer con
 			num_vertical_buses[right]};
 }
 
+std::vector<L1RouteProperties> Marocco::l1_properties() const
+{
+	std::vector<L1RouteProperties> l1_route_properties_vec;
+	auto const& synapse_routing_synapses = synapse_routing.synapses();
+
+	for (auto const& route_item : l1_routing) {
+		auto const& projections = l1_routing.find_projections(route_item);
+
+		std::vector<size_t> projection_ids;
+		std::transform(projections.begin(), projections.end(),
+		               std::back_inserter(projection_ids),
+		               [](auto p) { return p.projection(); });
+
+		auto const& source = placement.find(route_item.source());
+		std::vector<HMF::HICANN::L1Address> l1_addresses;
+		std::transform(source.begin(), source.end(), std::back_inserter(projection_ids),
+		               [](auto p) {
+			return p.address()->toL1Address();
+		});
+
+		auto const& route = route_item.route();
+		L1Route route_augmented(route);
+
+		std::cout << route << '\n';
+		std::cout << route_item.target() << '\n';
+
+		// augment with drivers; primary driver first
+		if (auto const* vline = boost::get<VLineOnHICANN>(&route.back())) {
+
+			std::cout << *vline  << '\n';
+
+			auto const& synapse_switches = synapse_routing[route_item.target()][*vline];
+			for (auto const& item : synapse_switches) {
+				auto const& connected_drivers = item.connected_drivers();
+
+				std::vector<SynapseDriverOnHICANN> all_drivers(
+				    connected_drivers.drivers().begin(), connected_drivers.drivers().end());
+
+				std::sort(
+				    all_drivers.begin(), all_drivers.end(),
+				    [](auto const& drv_a, auto const& drv_b) {
+					    return drv_a.toEnum() < drv_b.toEnum();
+				    });
+
+				// Three cases to be considered:
+				// a b c
+				//     1
+				//   3 2
+				// 5 5 5 <- primary driver
+				// 7 7
+				// 9
+				//
+				// a: all drivers below primary
+				// b: drivers above and below primary
+				// c: all drivers above primary
+				//
+				// there may be more drivers than one or two below and above primary
+				//
+				// order of drivers to be inserted into L1Route:
+				//
+				// a: 5, 7, 9
+				// b: 5, 3, 5, 7 _or_ 5, 7, 5, 3
+				// c: 5, 2, 1
+				//
+				std::vector<SynapseDriverOnHICANN> drivers_for_augmentation;
+
+				auto const primary = connected_drivers.primary_driver();
+				bool const check_above_primary = (primary != all_drivers.front());
+
+				// start from primary and go down
+				for (auto it = std::find(all_drivers.begin(), all_drivers.end(), primary);
+				     it != all_drivers.end(); ++it) {
+					drivers_for_augmentation.push_back(*it);
+				}
+
+				// if there is anything above the primary driver, start from end and go up
+				if (check_above_primary) {
+					for (auto it = all_drivers.rbegin(); it != all_drivers.rend(); ++it) {
+						drivers_for_augmentation.push_back(*it);
+					}
+				}
+
+				// erase double countings from going back and forth
+				drivers_for_augmentation.erase(
+				    std::unique(drivers_for_augmentation.begin(), drivers_for_augmentation.end()),
+				    drivers_for_augmentation.end());
+
+				for (auto const& dr : drivers_for_augmentation) {
+					route_augmented.append(route.target_hicann(), dr);
+				}
+			}
+		}
+
+		// augment with synapses from all projections
+		for (auto const& proj_item : projections) {
+			auto const& synapse_items = synapse_routing_synapses.find(proj_item.projection());
+			for (auto const& synapse_item : synapse_items) {
+				auto const& hw_synapse = synapse_item.hardware_synapse();
+				if (hw_synapse.is_initialized()) {
+					route_augmented.append(route.target_hicann(), hw_synapse.get());
+				}
+			}
+		}
+
+		l1_route_properties_vec.push_back({projection_ids, route_augmented, l1_addresses});
+	}
+
+	return l1_route_properties_vec;
+}
+
 HICANNOnWaferProperties::HICANNOnWaferProperties()
 	: m_is_available(false),
 	  m_num_neurons(0),
@@ -218,21 +330,22 @@ L1RouteProperties::L1RouteProperties(std::vector<size_t> projection_ids,
 
 std::vector<size_t> L1RouteProperties::projection_ids() const
 {
-	return std::vector<size_t>{};
-}
-
-L1Route L1RouteProperties::route() const
-{
-	// TODO: fill here
-	return L1Route{};
+	return m_projection_ids;
 }
 
 std::vector<size_t> L1RouteProperties::l1_addresses() const
 {
-	// TODO: fill here
-	return std::vector<size_t>{};
+	std::vector<size_t> r;
+	for(auto addr : m_l1_addresses) {
+		r.push_back(addr.value());
+	}
+	return r;
 }
 
+L1Route L1RouteProperties::route() const
+{
+	return m_route;
+}
 
 } // namespace results
 } // namespace marocco
