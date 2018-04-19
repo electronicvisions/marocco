@@ -11,6 +11,7 @@ def remove_ndebug_from_pyext(cfg):
 
 
 def depends(ctx):
+    ctx('hate')
     ctx('rant')
     ctx('halbe')
     ctx('ester')
@@ -76,6 +77,7 @@ def build(bld):
             'marocco_coordinates_inc',
             'marocco_parameters_inc',
             'marocco_results_inc',
+            'hate_inc',
             ],
         export_includes = '.')
 

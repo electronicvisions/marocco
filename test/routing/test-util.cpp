@@ -1,6 +1,7 @@
 #include "test/common.h"
 
 #include <bitset>
+#include <boost/dynamic_bitset.hpp>
 
 #include "marocco/routing/util.h"
 
@@ -9,7 +10,7 @@ namespace routing {
 
 TEST(Routing, relative_index)
 {
-	std::bitset<8> mask;
+	boost::dynamic_bitset<> mask(8);
 	ASSERT_TRUE(mask.none());
 	EXPECT_ANY_THROW(to_relative_index(mask, 2));
 	mask.flip(2);
