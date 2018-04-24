@@ -275,7 +275,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 				ess_dir = create_temporary_directory("ess_%%%%-%%%%-%%%%-%%%%");
 				cleanup.path = ess_dir;
 			}
-			hwdb.reset(new sthal::ESSHardwareDatabase(ess_dir));
+			hwdb.reset(new sthal::ESSHardwareDatabase(wafer, ess_dir));
 			runner.reset(new sthal::ESSRunner(exp_params.hardware_duration_in_s(), mi->ess_config));
 #else  // HAVE_ESS
 			throw std::runtime_error("ESS not available (compile with ESS)");
