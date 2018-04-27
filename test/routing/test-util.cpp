@@ -28,6 +28,11 @@ TEST(Routing, relative_index)
 	EXPECT_EQ(4, to_relative_index(mask, 6));
 	EXPECT_EQ(6, from_relative_index(mask, to_relative_index(mask, 6)));
 	EXPECT_ANY_THROW(to_relative_index(mask, 10));
+
+	// different mask length
+	boost::dynamic_bitset<> mask_2(10);
+	mask_2.flip(3);
+	EXPECT_EQ(0, to_relative_index(mask_2,3));
 }
 
 } // routing

@@ -113,6 +113,8 @@ def build(bld):
             'pymarocco',
             'pymarocco_runtime',
             ],
+        defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
+        export_defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
         cxxflags=cxxflags)
 
     bld(target='marocco_coordinates_inc',
