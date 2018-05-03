@@ -98,7 +98,7 @@ void Mapper::run(ObjectStore const& pynn)
 
 	// write out bio graph in graphviz format
 	if (!mPyMarocco->bio_graph.empty()) {
-		info(this) << "writing bio graph to " << mPyMarocco->bio_graph;
+		MAROCCO_INFO("writing bio graph to " << mPyMarocco->bio_graph);
 		mBioGraph.write_graphviz(mPyMarocco->bio_graph);
 	}
 
@@ -202,11 +202,11 @@ void Mapper::run(ObjectStore const& pynn)
 	if (synapse_loss) {
 		synapse_loss->fill(getStats());
 	} else {
-		warn(this) << "no synapse loss data";
+		MAROCCO_WARN("no synapse loss data available");
 	}
 
 	// and print them
-	info(this) << getStats();
+	MAROCCO_INFO(getStats());
 
 	if (synapse_loss && !mPyMarocco->continue_despite_synapse_loss &&
 	    synapse_loss->getTotalLoss() != 0) {
