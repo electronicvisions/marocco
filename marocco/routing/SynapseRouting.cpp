@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <functional>
+#include <iterator>
 #include <stdexcept>
 #include <boost/make_shared.hpp>
 
@@ -162,7 +163,15 @@ void SynapseRouting::run()
 		for (auto it=drvs->begin_disabled(); it!=drvs->end_disabled(); ++it)
 		{
 			defect_list.push_back(*it);
-			MAROCCO_DEBUG("Marked " << *it << " on " << m_hicann << " as defect/disabled");
+			MAROCCO_TRACE("Marked " << *it << " on " << m_hicann
+			                        << " as defect/disabled");
+		}
+
+		size_t const n_marked_syndrvs =
+		    std::distance(drvs->begin_disabled(), drvs->end_disabled());
+		if (n_marked_syndrvs != 0) {
+			MAROCCO_DEBUG("Marked " << n_marked_syndrvs << " synapse driver(s) on "
+			                        << m_hicann << " as defect/disabled");
 		}
 
 		Fieres fieres(requested_drivers, drv_side, chain_length, defect_list);

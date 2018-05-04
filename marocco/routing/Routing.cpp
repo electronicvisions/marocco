@@ -1,3 +1,5 @@
+#include <iterator>
+
 #include "marocco/routing/Routing.h"
 
 #include <boost/make_shared.hpp>
@@ -51,13 +53,27 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 			auto const hbuses = defects->hbuses();
 			for (auto it = hbuses->begin_disabled(); it != hbuses->end_disabled(); ++it) {
 				l1_graph.remove(hicann, *it);
-				MAROCCO_DEBUG("Marked " << *it << " on " << hicann << " as defect/disabled");
+				MAROCCO_TRACE("Marked " << *it << " on " << hicann << " as defect/disabled");
+			}
+
+			size_t const n_marked_hbuses =
+			    std::distance(hbuses->begin_disabled(), hbuses->end_disabled());
+			if (n_marked_hbuses != 0) {
+				MAROCCO_DEBUG("Marked " << n_marked_hbuses << " horizontal L1 bus(es) on "
+				                        << hicann << " as defect/disabled");
 			}
 
 			auto const vbuses = defects->vbuses();
 			for (auto it = vbuses->begin_disabled(); it != vbuses->end_disabled(); ++it) {
 				l1_graph.remove(hicann, *it);
-				MAROCCO_DEBUG("Marked " << *it << " on " << hicann << " as defect/disabled");
+				MAROCCO_TRACE("Marked " << *it << " on " << hicann << " as defect/disabled");
+			}
+
+			size_t const n_marked_vbuses =
+				std::distance(vbuses->begin_disabled(), vbuses->end_disabled());
+			if (n_marked_vbuses != 0) {
+				MAROCCO_DEBUG("Marked " << n_marked_vbuses << " vertical L1 bus(es) on "
+				                        << hicann << " as defect/disabled");
 			}
 		}
 
