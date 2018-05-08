@@ -82,7 +82,7 @@ def build(bld):
         export_includes = '.')
 
     bld(target          = 'marocco',
-        features        = 'cxx cxxshlib post_task pyembed',
+        features        = 'cxx cxxshlib post_task',
         source          =
             bld.path.ant_glob(
                 'marocco/**/*.cpp',
@@ -128,6 +128,9 @@ def build(bld):
             'marocco_coordinates_inc',
             'halbe',
         ],
+        # gccxml requires non-variadic implementation of boost::variant for python wrappers
+        defines='BOOST_VARIANT_DO_NOT_USE_VARIADIC_TEMPLATES',
+        export_defines='BOOST_VARIANT_DO_NOT_USE_VARIADIC_TEMPLATES',
         cxxflags=cxxflags)
 
     bld(target='marocco_parameters_inc',
@@ -168,7 +171,7 @@ def build(bld):
         cxxflags=cxxflags)
 
     bld(target          = 'mapper',
-        features        = 'cxx cxxprogram post_task pyembed', # KHS: quickfix, fixing pyembed could be better
+        features        = 'cxx cxxprogram post_task',
         source          = ['main.cpp', 'marocco/Mapper.cpp'],
         install_path    = 'bin',
         use             = [

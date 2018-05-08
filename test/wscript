@@ -21,7 +21,7 @@ def configure(cfg):
 def build(bld):
 
     bld(target          = 'test-marocco',
-        features        = 'pyembed cxx cxxprogram gtest',
+        features        = 'cxx cxxprogram gtest',
         test_main       = 'main.cpp',
         source          = bld.path.ant_glob('**/test-*.cpp', excl=['coordinates/**/*']),
         install_path    = os.path.join('bin', 'tests'),
@@ -29,7 +29,7 @@ def build(bld):
         use             = [
             'marocco',
             'sthal_inc',
-            ]
+            ],
         )
 
     bld(target='test-marocco_coordinates',
