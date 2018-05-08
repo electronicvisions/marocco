@@ -391,9 +391,8 @@ HICANNParameters::getCalibrationData(bool fallback_to_defaults)
 		calib_file << hicann_id;
 		const std::string calib_file_string = calib_file.str();
 
-		MAROCCO_INFO(
-			"loading calibration file: "
-			<< m_pymarocco.calib_path + "/" + calib_file_string << ".xml");
+		MAROCCO_TRACE("loading calibration for " << calib_file_string << " from "
+		                                         << m_pymarocco.calib_path);
 		try {
 			m_calib_backend->load(calib_file_string, md, *calib);
 		} catch (std::runtime_error const& err) {
@@ -401,7 +400,7 @@ HICANNParameters::getCalibrationData(bool fallback_to_defaults)
 				throw;
 			}
 			MAROCCO_WARN(err.what());
-			MAROCCO_INFO("Will use default calibtration");
+			MAROCCO_WARN("Will use default calibtration");
 			calib->setDefaults();
 		}
 	}
