@@ -1,48 +1,47 @@
+from os.path import realpath, join, expanduser
+
+
+def depends(dep):
+    dep('halco')
+    dep('marocco')
+
+
+def options(opt):
+    opt.load('c_emscripten')
+    opt.add_option('--emscripted-boost-prefix', action='store', default='',
+                   help='Path to emscripted boost installation')
+
+
 def configure(cfg):
-    cfg.find_program('em++', var='EMPP')
-    # TODO: find emscripted boost libraries here
+    env = cfg.env
+    cfg.setenv('emscripten')
+    cfg.load('c_emscripten')
+    cfg.env.EMSCRIPTED_BOOST_PREFIX = cfg.options.emscripted_boost_prefix
+    if not cfg.env.EMSCRIPTED_BOOST_PREFIX:
+        cfg.fatal('Please provide --emscripted-boost-prefix=/path/to/boost/install')
+    cfg.setenv('', env=env)
+
 
 def build(bld):
-    # TODO: use deps from other tasks
-    file_patterns = [
-            bld.path.parent.parent.parent.ant_glob('halco/halco/hicann/v2/*.cpp', remove=False),
-            bld.path.parent.ant_glob('*/results/*.cpp', remove=False),
-            bld.path.parent.ant_glob('coordinates/*.cpp', remove=False),
-    ]
-    files = [x.relpath() for p in file_patterns for x in p]
+    # provide emscripted boost libraries
+    bld.all_envs['emscripten'].LIBPATH_BOOST4MAROCCO = [str(realpath(join(bld.all_envs['emscripten'].EMSCRIPTED_BOOST_PREFIX, 'lib')))]
+    bld.all_envs['emscripten'].INCLUDES_BOOST4MAROCCO = [str(realpath(join(bld.all_envs['emscripten'].EMSCRIPTED_BOOST_PREFIX, 'include')))]
+    bld.all_envs['emscripten'].LIB_BOOST4MAROCCO = 'boost_iostreams boost_filesystem boost_serialization boost_system'.split()
 
-    # TODO: use {halco,...}_inc
-    include_options = []
-    for p in [
-              '../../../boost/boost_1_55_0',
-              '../../../marocco',
-              '../../../halbe',
-              '../../../halco',
-              '../../../lib-boost-patches',
-              '../../../pywrap/src',
-              '../../../ztl',
-              '../../../redman',
-              '../../../rant']:
-        include_options.append('-I ' + bld.path.find_dir(p).abspath())
-    include_options = ' '.join(include_options)
-    lib_options = '-L ../../../../boost/boost_1_55_0/bin.v2'
+    # we cannot reuse the targets, so we recompile the files directly
+    marocco_files = bld.get_tgen_by_name('marocco_coordinates').source + bld.get_tgen_by_name('marocco_results').source
+    external_files = bld.get_tgen_by_name('halco_hicann_v2').source + bld.get_tgen_by_name('halco_common').source + bld.get_tgen_by_name('halbe_container_emscripten').source
 
-    bld(rule='${EMPP} -O2 --bind -std=c++14 -o ${TGT} ${SRC}'
-        +' -s ASSERTIONS=1'
-        +' -s DEMANGLE_SUPPORT=1'
-        +' -s ERROR_ON_UNDEFINED_SYMBOLS=1'
-        +' ' + include_options
-        +' ' + lib_options
-        +' -l boost_serialization'
-        +' -l boost_filesystem'
-        +' -l boost_system'
-        +' -l boost_iostreams',
-        target='Marocco.html',
+    bld.program(
+        features='cxx',
+        target='Marocco',
         source=[
-            'Marocco.cpp',
             'embind.cpp',
-            'Resources.cpp',
-            '../../../halco/halco/common/relations.cpp',
-            '../resource/HICANNManager.cpp'
-        ] + files,
+            '../resource/HICANNManager.cpp',
+        ] + marocco_files + external_files,
+        use = ['marocco_inc', 'BOOST4MAROCCO'],
+        env = bld.all_envs['emscripten'],
+        # lots of custom em++ flags... :( -> TODO: clean up duplication
+        cxxflags = '-O2 -std=c++14 -Werror -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
+        linkflags = '-O2 --bind -Werror -s USE_ZLIB=1 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
     )

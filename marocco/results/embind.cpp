@@ -1,6 +1,11 @@
 #include <emscripten/bind.h>
 
+#include <boost/lexical_cast.hpp>
+#include <boost/mpl/for_each.hpp>
+
 #include "Marocco.h"
+
+namespace { // helpers
 
 /* some overload-in-js-not-supported helpers */
 size_t num_buses_left(marocco::results::HICANNOnWaferProperties& self)
@@ -23,14 +28,45 @@ size_t num_buses_vertical(marocco::results::HICANNOnWaferProperties& self)
 	return self.num_buses(halco::common::vertical);
 }
 
+struct store_and_convert_to_string
+{
+	template<typename T> void operator()(T const& item)
+	{
+		std::string name = boost::lexical_cast<std::string>(item);
+		m_names.push_back(name);
+	}
+
+	std::vector<std::string> m_names;
+};
+
+std::string L1Route_segment_type_to_name(marocco::L1Route::segment_type& v)
+{
+	store_and_convert_to_string visitor;
+	boost::apply_visitor(visitor, v);
+	if (visitor.m_names.size() != 1) {
+		throw std::runtime_error("store_and_convert_to_string.m_names.size() should be 1");
+	}
+	return visitor.m_names[0];
+}
+
+std::vector<std::string> L1Route_Segment_type_to_name_list() {
+	store_and_convert_to_string visitor;
+	boost::mpl::for_each<marocco::L1Route::segment_type::types>(boost::ref(visitor));
+	return visitor.m_names;
+}
+
+}
+
 
 EMSCRIPTEN_BINDINGS(marocco_results)
 {
 	emscripten::class_<marocco::results::Marocco>("Marocco")
 		.constructor<>()
+		.class_function("from_file", &marocco::results::Marocco::from_file)
 		.function("load", &marocco::results::Marocco::load)
 		.function("save", &marocco::results::Marocco::save)
 		.function("properties", &marocco::results::Marocco::properties)
+		.function("l1_properties", &marocco::results::Marocco::l1_properties)
 	;
 	emscripten::class_<marocco::results::HICANNOnWaferProperties>("HICANNOnWaferProperties")
 		.constructor<>()
@@ -181,5 +217,46 @@ EMSCRIPTEN_BINDINGS(marocco_results)
 		;
 		emscripten::constant("horizontal", halco::common::horizontal);
 		emscripten::constant("vertical", halco::common::vertical);
+	}
+
+	{
+		emscripten::class_<marocco::results::L1RouteProperties>("L1RouteProperties")
+			/* not constructible */
+			.function("projection_ids", &marocco::results::L1RouteProperties::projection_ids)
+			.function("route", &marocco::results::L1RouteProperties::route)
+			.function("l1_addresses", &marocco::results::L1RouteProperties::l1_addresses)
+		;
+
+		emscripten::register_vector<size_t>("VectorSize_t");
+		emscripten::register_vector<marocco::results::L1RouteProperties>("VectorL1RouteProperties");
+
+		emscripten::class_<marocco::L1Route>("L1Route")
+			.function("size", &marocco::L1Route::size)
+			.function("get", &emscripten::internal::VectorAccess<marocco::L1Route>::get)
+			.function("source_hicann", &marocco::L1Route::source_hicann)
+			.function("target_hicann", &marocco::L1Route::target_hicann)
+		;
+
+		emscripten::class_<marocco::L1Route::segment_type>("L1RouteSegment_type")
+			.function("to_string", &L1Route_segment_type_to_name)
+			.function("which", &marocco::L1Route::segment_type::which)
+			.function("empty", &marocco::L1Route::segment_type::empty)
+			.class_function("list", &L1Route_Segment_type_to_name_list)
+		;
+
+		emscripten::register_vector<std::string>("VectorString");
+
+		// some opaque types (variants of marocco::L1Route::segment_type)
+		emscripten::class_<HMF::Coordinate::Merger0OnHICANN>("Merger0OnHICANN");
+		emscripten::class_<HMF::Coordinate::Merger1OnHICANN>("Merger1OnHICANN");
+		emscripten::class_<HMF::Coordinate::Merger2OnHICANN>("Merger2OnHICANN");
+		emscripten::class_<HMF::Coordinate::Merger3OnHICANN>("Merger3OnHICANN");
+		emscripten::class_<HMF::Coordinate::GbitLinkOnHICANN>("GbitLinkOnHICANN");
+		emscripten::class_<HMF::Coordinate::DNCMergerOnHICANN>("DNCMergerOnHICANN");
+		emscripten::class_<HMF::Coordinate::RepeaterBlockOnHICANN>("RepeaterBlockOnHICANN");
+		emscripten::class_<HMF::Coordinate::HLineOnHICANN>("HLineOnHICANN");
+		emscripten::class_<HMF::Coordinate::VLineOnHICANN>("VLineOnHICANN");
+		emscripten::class_<HMF::Coordinate::SynapseDriverOnHICANN>("SynapseDriverOnHICANN");
+		emscripten::class_<HMF::Coordinate::SynapseOnHICANN>("SynapseOnHICANN");
 	}
 }

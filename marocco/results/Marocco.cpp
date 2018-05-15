@@ -207,6 +207,33 @@ size_t HICANNOnWaferProperties::num_buses(halco::common::SideHorizontal side) co
 	return m_num_vertical_buses[side];
 }
 
+L1RouteProperties::L1RouteProperties(std::vector<size_t> projection_ids,
+                                     const L1Route& route,
+                                     const std::vector<HMF::HICANN::L1Address>& l1_addresses)
+	: m_projection_ids(projection_ids),
+	  m_route(route),
+	  m_l1_addresses(l1_addresses)
+{
+}
+
+std::vector<size_t> L1RouteProperties::projection_ids() const
+{
+	return std::vector<size_t>{};
+}
+
+L1Route L1RouteProperties::route() const
+{
+	// TODO: fill here
+	return L1Route{};
+}
+
+std::vector<size_t> L1RouteProperties::l1_addresses() const
+{
+	// TODO: fill here
+	return std::vector<size_t>{};
+}
+
+
 } // namespace results
 } // namespace marocco
 

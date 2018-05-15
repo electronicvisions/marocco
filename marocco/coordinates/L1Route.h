@@ -94,7 +94,8 @@ public:
 #endif // !PYPLUSPLUS
 
 	/// Returns the number of route segments.
-	size_t size() const;
+	typedef size_t size_type;
+	size_type size() const;
 
 	/// Returns an iterator to the beginning.
 	iterator begin() const;
@@ -103,6 +104,7 @@ public:
 	iterator end() const;
 
 	/// Returns specified element of route.
+	typedef segment_type value_type;
 	segment_type const& operator[](size_t pos) const;
 
 	/// Returns the first segment of the route that is not a \c HICANNOnWafer.

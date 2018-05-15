@@ -103,6 +103,22 @@ private:
 #endif // !PYPLUSPLUS
 }; // HICANNOnWaferProperties
 
+class L1RouteProperties
+{
+public:
+	L1RouteProperties(std::vector<size_t> projection_ids, const L1Route& route,
+	                  const std::vector<HMF::HICANN::L1Address>& l1_addresses);
+
+	std::vector<size_t> projection_ids() const;
+	L1Route route() const;
+	std::vector<size_t> l1_addresses() const;
+
+private:
+	std::vector<size_t> m_projection_ids;
+	L1Route m_route;
+	std::vector<HMF::HICANN::L1Address> m_l1_addresses;
+};
+
 } // namespace results
 } // namespace marocco
 
