@@ -163,21 +163,33 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		auto res = redman::resources::WaferWithBackend(resources.backend(), wafer);
 		auto const hicanns = res.hicanns();
 
-		size_t n_marked_hicanns = 0;
-		for (auto const& pair : mi->defects.hicanns()) {
-			if (!pair.second) {
-				LOG4CXX_TRACE(log4cxx::Logger::getLogger("marocco"),
-				              "Marked " << pair.first << " as defect/disabled");
-				hicanns->disable(pair.first.toHICANNOnWafer());
-				++n_marked_hicanns;
-			} else {
-				res.inject(pair.first.toHICANNOnWafer(), pair.second);
-			}
+		for (auto it = hicanns->begin_disabled(); it != hicanns->end_disabled(); ++it) {
+			LOG4CXX_TRACE(log4cxx::Logger::getLogger("marocco"), "Marked " << *it << " as defect/disabled");
 		}
+
+		size_t const n_marked_hicanns =
+		    std::distance(hicanns->begin_disabled(), hicanns->end_disabled());
 		if (n_marked_hicanns != 0) {
 			LOG4CXX_DEBUG(log4cxx::Logger::getLogger("marocco"),
 			              "Marked " << n_marked_hicanns
 			                        << " HICANN(s) as defect/disabled");
+		}
+
+		size_t n_manually_marked_hicanns = 0;
+		for (auto const& pair : mi->defects.hicanns()) {
+			if (!pair.second) {
+				LOG4CXX_TRACE(log4cxx::Logger::getLogger("marocco"),
+				              "Marked " << pair.first << " manually as defect/disabled");
+				hicanns->disable(pair.first.toHICANNOnWafer(), true);
+				++n_manually_marked_hicanns;
+			} else {
+				res.inject(pair.first.toHICANNOnWafer(), pair.second);
+			}
+		}
+		if (n_manually_marked_hicanns != 0) {
+			LOG4CXX_DEBUG(log4cxx::Logger::getLogger("marocco"),
+			              "Marked " << n_manually_marked_hicanns
+			                        << " HICANN(s) manually as defect/disabled");
 		}
 
 		resources.inject(res);
