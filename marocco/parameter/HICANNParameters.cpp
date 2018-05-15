@@ -312,7 +312,7 @@ void HICANNParameters::synapses(synapse_row_calib_type const& calib)
 				double clipped_weight = synapse_trafo->getAnalogWeight(hw_weight);
 				clipped_weight = clipped_weight / weight_scales[syn_addr.toNeuronOnHICANN()] /
 				                 1000. /*nS to uS*/;
-				MAROCCO_DEBUG(
+				MAROCCO_TRACE(
 					"synapse weight of " << syn_addr << " set to " << hw_weight << ", bio weight "
 				    << bio_weights[col] << ", clipped bio weight " << clipped_weight);
 #endif // MAROCCO_NDEBUG
