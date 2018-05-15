@@ -12,7 +12,8 @@ namespace parameters {
 NeuronPlacement::NeuronPlacement()
 	: m_default_neuron_size(4),
 	  m_restrict_rightmost_neuron_blocks(false),
-	  m_minimize_number_of_sending_repeaters(false)
+	  m_minimize_number_of_sending_repeaters(false),
+	  m_skip_hicanns_without_neuron_blacklisting(true)
 {
 }
 
@@ -47,6 +48,16 @@ bool NeuronPlacement::minimize_number_of_sending_repeaters() const
 	return m_minimize_number_of_sending_repeaters;
 }
 
+void NeuronPlacement::skip_hicanns_without_neuron_blacklisting(bool enable)
+{
+	m_skip_hicanns_without_neuron_blacklisting = enable;
+}
+
+bool NeuronPlacement::skip_hicanns_without_neuron_blacklisting() const
+{
+	return m_skip_hicanns_without_neuron_blacklisting;
+}
+
 template <typename Archive>
 void NeuronPlacement::serialize(Archive& ar, unsigned int const /* version */)
 {
@@ -54,7 +65,8 @@ void NeuronPlacement::serialize(Archive& ar, unsigned int const /* version */)
 	// clang-format off
 	ar & make_nvp("default_neuron_size", m_default_neuron_size)
 	   & make_nvp("restrict_rightmost_neuron_blocks", m_restrict_rightmost_neuron_blocks)
-	   & make_nvp("minimize_number_of_sending_repeaters", m_minimize_number_of_sending_repeaters);
+	   & make_nvp("minimize_number_of_sending_repeaters", m_minimize_number_of_sending_repeaters)
+	   & make_nvp("skip_hicanns_without_neuron_blacklisting", m_skip_hicanns_without_neuron_blacklisting);
 	// clang-format on
 }
 

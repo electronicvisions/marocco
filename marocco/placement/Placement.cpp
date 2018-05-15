@@ -62,6 +62,14 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 		neuron_placement, result->internal);
 
 	for (auto const& hicann : m_resource_manager.present()) {
+		if (m_pymarocco.neuron_placement.skip_hicanns_without_neuron_blacklisting() &&
+		    !m_resource_manager.get(hicann)->neurons()->has_value()) {
+				MAROCCO_DEBUG("Skipping " << hicann << " for neuron placement, "
+				              "because neuron blacklisting information is not available. Set "
+				              "PyMarocco's neuron_placement.skip_hicanns_without_neuron_blacklisting "
+				              "to false to ignore missing blacklisting information for neuron placement.");
+				continue;
+		}
 		nrn_placement.add(hicann);
 		auto const& neurons = m_resource_manager.get(hicann)->neurons();
 		for (auto it = neurons->begin_disabled(); it != neurons->end_disabled(); ++it) {

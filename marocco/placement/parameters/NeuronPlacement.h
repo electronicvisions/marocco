@@ -45,10 +45,20 @@ public:
 	void minimize_number_of_sending_repeaters(bool enable);
 	bool minimize_number_of_sending_repeaters() const;
 
+	/**
+	 * @brief Skip HICANN for automatic placement if neuron
+	 * blacklisting information is not available. This can be used as
+	 * a proxy for skipping HICANN without calibration data.
+	 * default: true
+	*/
+	void skip_hicanns_without_neuron_blacklisting(bool enable);
+	bool skip_hicanns_without_neuron_blacklisting() const;
+
 private:
 	size_type m_default_neuron_size;
 	bool m_restrict_rightmost_neuron_blocks;
 	bool m_minimize_number_of_sending_repeaters;
+	bool m_skip_hicanns_without_neuron_blacklisting;
 
 	friend class boost::serialization::access;
 	template <typename Archive>
