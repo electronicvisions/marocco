@@ -138,4 +138,33 @@ TEST_F(SpiralOrderingOfHICANNs, PreservesTopologicalAdjacency)
 	}
 }
 
+struct SpiralOrderingOfHICANNsShiftedCenter : public ::testing::Test
+{
+	SpiralOrderingOfHICANNsShiftedCenter()
+	    : ordering(HICANNOnWafer(Enum(304)).x(), HICANNOnWafer(Enum(304)).y())
+	{
+		hicanns.reserve(HICANNOnWafer::enum_type::size);
+
+		for (auto hicann : iter_all<HICANNOnWafer>()) {
+			hicanns.push_back(hicann);
+		}
+
+		std::sort(hicanns.begin(), hicanns.end(), ordering);
+	}
+
+	std::vector<HICANNOnWafer> hicanns;
+	spiral_ordering<HICANNOnWafer> ordering;
+}; // SpiralOrderingOfHICANNsShiftedCenter
+
+TEST_F(SpiralOrderingOfHICANNsShiftedCenter, ShiftingCenterWorks)
+{
+	std::vector<size_t> ids = {304, 276, 277, 305, 329, 328, 327, 303, 275, 243};
+
+	size_t ii = 0;
+	for (auto const& id : ids) {
+		EXPECT_EQ(HICANNOnWafer(Enum(id)), hicanns[ii]) << "at " << ii;
+		++ii;
+	}
+}
+
 } // namespace marocco

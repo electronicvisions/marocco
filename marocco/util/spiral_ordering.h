@@ -7,10 +7,15 @@ namespace marocco {
 
 template <typename T>
 class spiral_ordering {
-	static constexpr float CENTER_X = T::x_type::min + T::x_type::size / 2. - 0.5;
-	static constexpr float CENTER_Y = T::y_type::min + T::y_type::size / 2. - 0.5;
+	static constexpr float DEFAULT_CENTER_X = T::x_type::min + T::x_type::size / 2. - 0.5;
+	static constexpr float DEFAULT_CENTER_Y = T::y_type::min + T::y_type::size / 2. - 0.5;
 
 public:
+
+	spiral_ordering(float center_x = DEFAULT_CENTER_X,
+	                float center_y = DEFAULT_CENTER_Y) : m_center_x(center_x),
+	                                                     m_center_y(center_y) {}
+
 	bool operator()(T const& lhs, T const& rhs) const {
 		if (distance(lhs) != distance(rhs)) {
 			return distance(lhs) < distance(rhs);
@@ -19,11 +24,11 @@ public:
 	}
 
 	float x(T const& val) const {
-		return float(val.x()) - CENTER_X;
+		return float(val.x()) - m_center_x;
 	}
 
 	float y(T const& val) const {
-		return float(val.y()) - CENTER_Y;
+		return float(val.y()) - m_center_y;
 	}
 
 	float angle(T const& val) const {
@@ -38,6 +43,12 @@ public:
 	float distance(T const& val) const {
 		return std::max(std::abs(x(val)), std::abs(y(val)));
 	}
+
+private:
+
+	float const m_center_x;
+	float const m_center_y;
+
 }; // spiral_ordering
 
 } // namespace marocco
