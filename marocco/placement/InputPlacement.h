@@ -57,7 +57,7 @@ public:
 		parameters::ManualPlacement const& manual_placement,
 		parameters::NeuronPlacement const& neuron_placement_parameters,
 		parameters::L1AddressAssignment const& l1_address_assignment,
-		MergerRoutingResult const& merger_routing,
+		MergerRoutingResult& merger_routing,
 		double speedup,
 		sthal::Wafer& hw,
 		resource_manager_t& mgr);
@@ -94,7 +94,7 @@ private:
 	parameters::ManualPlacement const& m_manual_placement;
 	parameters::NeuronPlacement const& m_neuron_placement_parameters;
 	parameters::L1AddressAssignment const& m_l1_address_assignment;
-	MergerRoutingResult const& m_merger_routing;
+	MergerRoutingResult& m_merger_routing;
 	double const m_speedup;
 	sthal::Wafer& mHW;
 	resource_manager_t&      mMgr;

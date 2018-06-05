@@ -10,6 +10,7 @@
 
 #include "marocco/BioGraph.h"
 #include "marocco/placement/results/Placement.h"
+#include "marocco/placement/Result.h"
 #include "marocco/routing/results/SynapseRouting.h"
 #include "pymarocco/PyMarocco.h"
 
@@ -41,6 +42,7 @@ public:
 		chip_type& chip,
 		pymarocco::PyMarocco const& pymarocco,
 		placement::results::Placement const& neuron_placement,
+		placement::MergerRoutingResult const& merger_routing,
 		routing::results::SynapseRouting const& synapse_routing,
 		boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
 		double duration);
@@ -57,7 +59,8 @@ private:
 
 	void neuron_config(neuron_calib_type const& calib);
 
-	void background_generators(uint32_t isi=500);
+	void background_generator(HMF::Coordinate::BackgroundGeneratorOnHICANN const& bg,
+	                          uint32_t isi = 500);
 
 	/**
 	 * @param v_reset Reset voltage in hardware V
@@ -78,6 +81,7 @@ private:
 	chip_type& m_chip;
 	pymarocco::PyMarocco const& m_pymarocco;
 	placement::results::Placement const& m_neuron_placement;
+	marocco::placement::MergerRoutingResult const& m_merger_routing;
 	routing::results::SynapseRouting const& m_synapse_routing;
 	boost::shared_ptr<calibtic::backend::Backend> m_calib_backend;
 	double m_duration;

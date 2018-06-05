@@ -25,6 +25,8 @@ MergerRouting::MergerRouting(
 
 void MergerRouting::run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnWafer const& hicann)
 {
+	MAROCCO_TRACE("Running merger routing for " << hicann);
+
 	auto& merger_mapping = m_result[hicann];
 
 	for (auto const nb : iter_all<NeuronBlockOnHICANN>()) {

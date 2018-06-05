@@ -12,7 +12,7 @@ namespace placement {
 class Placement
 {
 public:
-	typedef BaseResult result_type;
+	typedef Result result_type;
 
 	Placement(
 	    pymarocco::PyMarocco& pymarocco,

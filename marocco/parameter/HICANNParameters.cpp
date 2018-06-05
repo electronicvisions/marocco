@@ -21,6 +21,7 @@ HICANNParameters::HICANNParameters(
     chip_type& chip,
     pymarocco::PyMarocco const& pymarocco,
     placement::results::Placement const& neuron_placement,
+    placement::MergerRoutingResult const& merger_routing,
     routing::results::SynapseRouting const& synapse_routing,
     boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
     double duration)
@@ -28,6 +29,7 @@ HICANNParameters::HICANNParameters(
       m_chip(chip),
       m_pymarocco(pymarocco),
       m_neuron_placement(neuron_placement),
+      m_merger_routing(merger_routing),
       m_synapse_routing(synapse_routing),
       m_calib_backend(calib_backend),
       m_duration(duration)
@@ -52,8 +54,36 @@ void HICANNParameters::run()
 	bool const transit_only = external_input_or_transit_only && !external_input;
 
 	if (!transit_only) {
-		// switch on BackgroundGenerators for locking
-		background_generators(m_pymarocco.bkg_gen_isi);
+		// Switch on one background generator per DNC merger (for locking).
+
+		if(m_merger_routing.find(hicann.toHICANNOnWafer()) == m_merger_routing.end()) {
+			MAROCCO_ERROR("No merger routing information available for " << hicann.toHICANNOnWafer());
+			throw std::runtime_error("no merger routing information available");
+		}
+
+		auto const& merger_routing_result = m_merger_routing.at(hicann);
+		if (merger_routing_result.empty()) {
+			MAROCCO_WARN("No background generator available on " << hicann.toHICANNOnWafer());
+		}
+
+		bool first = true;
+		DNCMergerOnHICANN last_merger;
+		for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
+			if (std::find(merger_routing_result.begin(),
+			              merger_routing_result.end(),
+						  nb) != merger_routing_result.end()) {
+				auto const& item = merger_routing_result[nb];
+				// Use the background generator of the first neuron block connected to
+				// each DNC merger.
+				if (first || last_merger != item) {
+					auto const bg = BackgroundGeneratorOnHICANN(nb.toEnum().value());
+					MAROCCO_TRACE("Enabling " << bg << " for background on " << nb);
+					background_generator(bg, m_pymarocco.bkg_gen_isi);
+					first = false;
+					last_merger = item;
+				}
+			}
+		}
 	}
 
 	// load calibration data from DB
@@ -211,22 +241,22 @@ void HICANNParameters::connect_denmems(
 	m_chip.connect_denmems(X(xmin), X(xmin+xwidth-1));
 }
 
-void HICANNParameters::background_generators(uint32_t isi)
+void HICANNParameters::background_generator(BackgroundGeneratorOnHICANN const& bg, uint32_t isi)
 {
 	// configure ALL BackgroundGenerators for Repeater & SynapseDriver locking.
 	// They are NOT use for production neuron stimulation.
 
+	// FIXME: move direct sthal configuration/access to NICE layer
+
 	HMF::HICANN::BkgRegularISI mode(isi);
 
-	for (auto const addr : iter_all<BackgroundGeneratorOnHICANN>()) {
-		HMF::HICANN::BackgroundGenerator bg;
-		bg.enable(true);
-		bg.seed(0);
-		bg.address(HMF::HICANN::L1Address(0));
-		bg.set_mode(mode);
+	HMF::HICANN::BackgroundGenerator cfg;
+	cfg.enable(true);
+	cfg.seed(0);
+	cfg.address(HMF::HICANN::L1Address(0));
+	cfg.set_mode(mode);
 
-		m_chip.layer1[addr] = bg;
-	}
+	m_chip.layer1[bg] = cfg;
 }
 
 void HICANNParameters::shared_parameters(

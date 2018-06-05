@@ -41,7 +41,7 @@ InputPlacement::InputPlacement(
 	parameters::ManualPlacement const& manual_placement,
 	parameters::NeuronPlacement const& neuron_placement_parameters,
 	parameters::L1AddressAssignment const& l1_address_assignment,
-	MergerRoutingResult const& merger_routing,
+	MergerRoutingResult& merger_routing,
 	double speedup,
 	sthal::Wafer& hw,
 	resource_manager_t& mgr)
@@ -218,6 +218,8 @@ void InputPlacement::insertInput(
 			merger_mapping[nb] = DNCMergerOnHICANN(nb);
 		}
 	}
+
+	m_merger_routing[target_hicann] = merger_mapping;
 
 	// As this special handling used to be done only for DNCMergerOnHICANN(7) they are
 	// processed in reverse order here to be backwards compatible with that mode of
