@@ -1,0 +1,32 @@
+# waf stuff
+build*
+html
+latex
+.lock-waf*
+.waf-*/
+waf*
+
+*.pyc
+*.o
+*.so
+*.swp
+*.bin
+
+# install dirs
+bin/
+lib/
+include/
+
+# ctags
+tags
+
+# compiler stuff
+core
+
+!*.cpp
+!*.h
+!*.py
+
+# data
+*.xml
+test.*

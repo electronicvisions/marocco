@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+import sys, os
+
+try:
+    from waflib.extras import symwaf2ic
+    from waflib.extras.gtest import summary
+    recurse = lambda ctx: None
+except ImportError:
+    from gtest import summary
+    from symwaf2ic import recurse_depends
+    recurse = lambda ctx: recurse_depends(depends, ctx)
+
+def load_waf_modules(ctx):
+    modules = ['compiler_cxx', 'pytest', 'python', 'pypp', 'boost']
+    for mo in modules:
+        ctx.load(mo)
+
+def depends(dep):
+    dep('pyhmf')
+    dep('halbe', 'pyhalbe')
+    dep('symap2ic', 'src/pylogging')
+    dep('redman')
+    dep('redman', 'pyredman')
+
+def options(opt):
+    recurse(opt)
+    load_waf_modules(opt)
+
+def configure(cfg):
+    recurse(cfg)
+    load_waf_modules(cfg)
+
+    cfg.check_boost(lib='python serialization',
+            uselib_store='BOOST4PYMAROCCO')
+
+def build(bld):
+    recurse(bld)
+
+    flags = { "cxxflags"  : [ '-Wall', '-Wextra', '-Wno-long-long', '-Wno-deprecated',
+                             '-Wno-format', '-fPIC', '-std=c++0x' ],
+              "linkflags" : [ '-Wl,-z,defs' ] }
+
+    bld(target          = 'pymarocco_inc',
+        export_includes = '..')
+
+    bld(target          = 'pymarocco_lib',
+        source          =  bld.path.ant_glob('*.cpp'),
+        features        = 'cxx cxxshlib',
+        defines         = 'PYBINDINGS',
+        use             =  [
+            'BOOST4PYMAROCCO',
+            'pymarocco_inc',
+            'euter_inc',
+            'redman',
+            'halbe_coordinate',
+            ],
+        install_path    = 'lib',
+        **flags)
+
+    bld(target          = '_pymarocco',
+        features        = 'cxx cxxshlib pypp pyembed pyext post_task',
+        script          = 'generate.py',
+        gen_defines     = 'PYPLUSPLUS __STRICT_ANSI__',
+        defines         = 'PYBINDINGS',
+        headers         = 'bindings.h',
+        use             =  [
+            'BOOST4PYMAROCCO',
+            'pymarocco_lib',
+            'euter_inc',
+            'redman_inc',
+            'halbe_coordinate',
+            ],
+        post_task       = 'pyhmf pyhalbe pylogging pyredman',
+        install_path    = 'lib',
+        **flags)
+
+    bld(target          = 'pymarocco',
+        features        = 'use',
+        use             = ['_pymarocco', 'VERSION'])
+
+    bld.install_files('lib',
+            bld.path.ant_glob('pymarocco/**/*.py'),
+            relative_trick=True)
+   
+    # Write version information
+    old_path = os.getcwd()
+    os.chdir(str(bld.path.abspath()))
+    version = os.popen('git rev-parse --short HEAD',).read().strip()
+    os.chdir(old_path)
+    
+    bld(
+        target = 'VERSION',
+        rule = 'echo "' + version + '" > ${TGT[0].abspath()}',
+        install_path = 'lib/pymarocco')

@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+import sys, os
+
+try:
+    from waflib.extras import symwaf2ic
+    from waflib.extras.gtest import summary
+    recurse = lambda ctx: None
+except ImportError:
+    from gtest import summary
+    from symwaf2ic import recurse_depends
+    recurse = lambda ctx: recurse_depends(depends, ctx)
+
+def depends(dep):
+    dep('marocco', 'tools/roqt/bindings')
+
+def options(opt):
+    opt.recurse('bindings')
+
+def configure(cfg):
+    cfg.recurse('bindings')
+
+def build(bld):
+    bld.recurse('bindings')
