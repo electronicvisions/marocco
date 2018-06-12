@@ -19,7 +19,6 @@ void ReadRepeaterTestdata::configure(sthal::Wafer& hardware)
 {
 	for (auto hicann : hardware.getAllocatedHicannCoordinates()) {
 		MAROCCO_DEBUG(hicann);
-		auto hicann_global = HICANNGlobal(hicann, hardware.index());
 		for (auto kv : m_visitor.expected_addresses[hicann]) {
 			MAROCCO_DEBUG("\t expected " << kv.first);
 			for (auto addr : kv.second) {
@@ -36,13 +35,13 @@ void ReadRepeaterTestdata::configure(sthal::Wafer& hardware)
 					// sending repeaters don't have support for test output
 					if(!r->isSending()) {
 						MAROCCO_DEBUG("\t setting input for " << *r);
-						m_configurator.add_passive_hrepeater(hicann_global, *r);
+						m_configurator.add_passive_hrepeater(HRepeaterOnWafer(*r, hicann));
 					}
 				}
 
 				if (auto const* r = boost::get<VRepeaterOnHICANN>(&kv.first)) {
 					MAROCCO_DEBUG("\t setting input for " << *r);
-					m_configurator.add_passive_vrepeater(hicann_global, *r);
+					m_configurator.add_passive_vrepeater(VRepeaterOnWafer(*r, hicann));
 				}
 
 				for (auto addr : kv.second) {
