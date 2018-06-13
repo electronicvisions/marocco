@@ -155,6 +155,12 @@ public:
 	CheckL1Locking checkl1locking;
 
 	/**
+	 * @brief: number of times locking is retried
+	 * Defaults to 5.
+	 */
+	size_t n_locking_retest;
+
+	/**
 	 * @brief Path to file to which is used to store wafer configuration.
 	 * @note Existing files will be overwritten.
 	 * If this parameter is empty, no file will be written.
