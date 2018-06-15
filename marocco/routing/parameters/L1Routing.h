@@ -37,6 +37,22 @@ public:
 		arithmetic_mean
 	};
 
+	/**
+	 * @brief Order in which L1 switches are considered
+	 *
+	 * shuffle_switches_with_hicann_enum_as_seed: seed the random engine for each HICANN with its Enum
+	 * shuffle_switches_with_given_seed: seed the random engine once with the seed given via shuffle_switches_seed(seed)
+	 * switches_in_filled_in_order: use switches in the order they were filled in
+	 *
+	 * default: shuffle_switches_with_hicann_enum_as_seed
+	 *
+	 */
+	PYPP_CLASS_ENUM(SwitchOrdering){
+		shuffle_switches_with_hicann_enum_as_seed,
+		shuffle_switches_with_given_seed,
+		switches_in_filled_in_order
+	};
+
 	void algorithm(Algorithm value);
 	Algorithm algorithm() const;
 
@@ -70,8 +86,14 @@ public:
 	 */
 	PriorityAccumulationMeasure priority_accumulation_measure() const;
 
-	void shuffle_switches(bool enable);
-	bool shuffle_switches() const;
+	/**
+	 * @brief seed for random generator used for e.g. shuffling of switches
+	 */
+	void shuffle_switches_seed(size_t seed);
+	size_t shuffle_switches_seed() const;
+
+	void switch_ordering(SwitchOrdering value);
+	SwitchOrdering switch_ordering() const;
 
 private:
 	Algorithm m_algorithm;
@@ -79,8 +101,8 @@ private:
 	std::unordered_map<projection_type, priority_type> m_priorities;
 #endif // !PYPLUSPLUS
 	PriorityAccumulationMeasure m_priority_accumulation_measure;
-	bool m_shuffle_switches;
-
+	SwitchOrdering m_switch_ordering;
+	size_t m_shuffle_switches_seed;
 	friend class boost::serialization::access;
 	template <typename Archive>
 	void serialize(Archive& ar, unsigned int const /* version */);

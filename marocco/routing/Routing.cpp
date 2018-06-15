@@ -38,12 +38,11 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 	m_synapse_loss = boost::make_shared<SynapseLoss>(m_graph.graph());
 
 	{
-		L1RoutingGraph l1_graph;
+		L1RoutingGraph l1_graph(m_pymarocco.l1_routing);
 
 		MAROCCO_INFO("Setting up L1 routing graph");
-		bool const shuffle_switches = m_pymarocco.l1_routing.shuffle_switches();
 		for (auto const& hicann : m_resource_manager.present()) {
-			l1_graph.add(hicann, shuffle_switches);
+			l1_graph.add(hicann);
 		}
 
 		// We need to deal with defects in a separate step since each call to

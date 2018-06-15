@@ -10,6 +10,7 @@
 #include "hal/Coordinate/L1.h"
 #include "hal/Coordinate/typed_array.h"
 #include "marocco/routing/L1BusOnWafer.h"
+#include "marocco/routing/parameters/L1Routing.h"
 #include "marocco/util.h"
 
 namespace marocco {
@@ -23,6 +24,11 @@ class PathBundle;
 class L1RoutingGraph
 {
 public:
+	L1RoutingGraph(parameters::L1Routing l1_routing_parameters = parameters::L1Routing())
+	    : m_l1_routing_parameters(l1_routing_parameters)
+	    , m_random_engine_shuffle_switches(m_l1_routing_parameters.shuffle_switches_seed())
+	{}
+
 	typedef L1BusOnWafer value_type;
 	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, value_type>
 	    graph_type;
@@ -32,8 +38,11 @@ public:
 	class HICANN
 	{
 	public:
-		HICANN(graph_type& graph, HMF::Coordinate::HICANNOnWafer const& hicann,
-		       bool shuffle_switches = false);
+		HICANN(
+		    graph_type& graph,
+		    HMF::Coordinate::HICANNOnWafer const& hicann,
+		    parameters::L1Routing::SwitchOrdering switch_ordering,
+		    std::default_random_engine& random_engine);
 
 		vertex_descriptor operator[](HMF::Coordinate::HLineOnHICANN const& hline) const;
 		vertex_descriptor operator[](HMF::Coordinate::VLineOnHICANN const& vline) const;
@@ -48,7 +57,7 @@ public:
 	graph_type& graph();
 	graph_type const& graph() const;
 
-	void add(HMF::Coordinate::HICANNOnWafer const& hicann, bool shuffle_switches = false);
+	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
 
 	void remove(PathBundle const& bundle);
 	void remove(
@@ -91,6 +100,8 @@ private:
 
 	graph_type m_graph;
 	std::unordered_map<HMF::Coordinate::HICANNOnWafer, HICANN> m_hicanns;
+	parameters::L1Routing m_l1_routing_parameters;
+	std::default_random_engine m_random_engine_shuffle_switches;
 }; // L1RoutingGraph
 
 } // namespace routing

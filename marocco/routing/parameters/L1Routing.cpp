@@ -11,7 +11,8 @@ namespace parameters {
 L1Routing::L1Routing()
 	: m_algorithm(Algorithm::backbone),
 	  m_priority_accumulation_measure(PriorityAccumulationMeasure::arithmetic_mean),
-	  m_shuffle_switches(true)
+	  m_switch_ordering(SwitchOrdering::shuffle_switches_with_hicann_enum_as_seed),
+	  m_shuffle_switches_seed(424242)
 {
 }
 
@@ -23,6 +24,16 @@ void L1Routing::algorithm(Algorithm value)
 auto L1Routing::algorithm() const -> Algorithm
 {
 	return m_algorithm;
+}
+
+void L1Routing::switch_ordering(SwitchOrdering value)
+{
+	m_switch_ordering = value;
+}
+
+auto L1Routing::switch_ordering() const -> SwitchOrdering
+{
+	return m_switch_ordering;
 }
 
 void L1Routing::priority(projection_type const& projection, priority_type value)
@@ -52,14 +63,14 @@ auto L1Routing::priority_accumulation_measure() const -> PriorityAccumulationMea
 	return m_priority_accumulation_measure;
 }
 
-void L1Routing::shuffle_switches(bool const enable)
+void L1Routing::shuffle_switches_seed(size_t shuffle_switches_seed)
 {
-	m_shuffle_switches = enable;
+	m_shuffle_switches_seed = shuffle_switches_seed;
 }
 
-bool L1Routing::shuffle_switches() const
+auto L1Routing::shuffle_switches_seed() const -> size_t
 {
-	return m_shuffle_switches;
+	return m_shuffle_switches_seed;
 }
 
 template <typename Archive>
@@ -70,7 +81,8 @@ void L1Routing::serialize(Archive& ar, unsigned int const /* version */)
 	ar & make_nvp("algorithm", m_algorithm)
 	   & make_nvp("priorities", m_priorities)
 	   & make_nvp("priority_accumulation_measure", m_priority_accumulation_measure)
-	   & make_nvp("shuffle_switches", m_shuffle_switches);
+	   & make_nvp("switch_ordering", m_switch_ordering)
+	   & make_nvp("shuffle_switches_seed", m_shuffle_switches_seed);
 	// clang-format on
 }
 

@@ -10,8 +10,11 @@ namespace routing {
 
 using namespace HMF::Coordinate;
 
-L1RoutingGraph::HICANN::HICANN(graph_type& graph, HICANNOnWafer const& hicann,
-                               bool const shuffle_switches)
+L1RoutingGraph::HICANN::HICANN(
+    graph_type& graph,
+    HICANNOnWafer const& hicann,
+    parameters::L1Routing::SwitchOrdering switch_ordering,
+    std::default_random_engine& random_engine)
 {
 	for (auto hline : iter_all<HLineOnHICANN>()) {
 		vertex_descriptor vertex = add_vertex(graph);
@@ -37,9 +40,20 @@ L1RoutingGraph::HICANN::HICANN(graph_type& graph, HICANNOnWafer const& hicann,
 		}
 	}
 
-	if (shuffle_switches) {
-		std::shuffle(switches.begin(), switches.end(), std::minstd_rand(hicann.id()));
-	}
+	switch (switch_ordering) {
+		case parameters::L1Routing::SwitchOrdering::shuffle_switches_with_hicann_enum_as_seed:
+			std::shuffle(switches.begin(), switches.end(), std::minstd_rand(hicann.id()));
+			break;
+		case parameters::L1Routing::SwitchOrdering::shuffle_switches_with_given_seed:
+			std::shuffle(switches.begin(), switches.end(), random_engine);
+			break;
+		case parameters::L1Routing::SwitchOrdering::switches_in_filled_in_order:
+			// nothing to do
+			break;
+		default:
+			MAROCCO_ERROR("switch ordering " << static_cast<size_t>(switch_ordering) << " unknown");
+			throw std::runtime_error("Unknown switch ordering");
+	};
 
 	for (auto const& sw : switches) {
 		add_edge(sw.first, sw.second, graph);
@@ -123,12 +137,14 @@ bool L1RoutingGraph::connect(
 	return false;
 }
 
-void L1RoutingGraph::add(HICANNOnWafer const& hicann, bool const shuffle_switches)
+void L1RoutingGraph::add(HICANNOnWafer const& hicann)
 {
 	{
 		bool success;
-		std::tie(std::ignore, success) =
-		    m_hicanns.insert(std::make_pair(hicann, HICANN(m_graph, hicann, shuffle_switches)));
+		std::tie(std::ignore, success) = m_hicanns.insert(std::make_pair(
+		    hicann, HICANN(
+		                m_graph, hicann, m_l1_routing_parameters.switch_ordering(),
+		                m_random_engine_shuffle_switches)));
 		if (!success) {
 			throw std::runtime_error("HICANN already present in graph");
 		}
