@@ -85,7 +85,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	synapse_targets_t const& synaptic_targets,
 	chip_t& chip) const
 {
-	MAROCCO_DEBUG("parameter transformation of AdEx neuron: " << neuron_bio_id);
+	MAROCCO_TRACE("parameter transformation of AdEx neuron: " << neuron_bio_id);
 
 	assert_synapse_target_mapping_is_default(synaptic_targets[neuron_hw_id]);
 
@@ -110,7 +110,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	synapse_targets_t const& synaptic_targets,
 	chip_t& chip) const
 {
-	MAROCCO_DEBUG("parameter transformation of LIF neuron: " << neuron_bio_id);
+	MAROCCO_TRACE("parameter transformation of LIF neuron: " << neuron_bio_id);
 
 	assert_synapse_target_mapping_is_default(synaptic_targets[neuron_hw_id]);
 
@@ -208,7 +208,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	synapse_targets_t const& synaptic_targets,
 	chip_t& chip) const
 {
-	MAROCCO_DEBUG("parameter transformation of multicond AdEx neuron: " << neuron_bio_id);
+	MAROCCO_TRACE("parameter transformation of multicond AdEx neuron: " << neuron_bio_id);
 
 	auto const& synapse_types = synaptic_targets[neuron_hw_id];
 
@@ -232,7 +232,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	synapse_targets_t const& synaptic_targets,
 	chip_t& chip) const
 {
-	MAROCCO_DEBUG("parameter transformation of multicond LIF neuron: " << neuron_bio_id);
+	MAROCCO_TRACE("parameter transformation of multicond LIF neuron: " << neuron_bio_id);
 
 	auto const& synapse_types = synaptic_targets[neuron_hw_id];
 

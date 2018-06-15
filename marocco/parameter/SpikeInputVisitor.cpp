@@ -22,7 +22,7 @@ void SpikeInputVisitor::operator()(
 	// TODO: Should we check for time < experiment_duration here?
 	std::copy(param.spike_times.begin(), param.spike_times.end(), std::back_inserter(spikes));
 
-	MAROCCO_DEBUG("added " << spikes.size() << " spikes from SpikeSourceArray");
+	MAROCCO_TRACE("added " << spikes.size() << " spikes from SpikeSourceArray");
 }
 
 // Spike Source Poisson Transformation
@@ -52,7 +52,7 @@ void SpikeInputVisitor::operator()(
 		spikes.push_back(time);
 	}
 
-	MAROCCO_DEBUG("added " << spikes.size() << " spikes from " << param);
+	MAROCCO_TRACE("added " << spikes.size() << " spikes from " << param);
 }
 
 SpikeInputVisitor::spikes_type extract_input_spikes(

@@ -282,7 +282,6 @@ void SynapseLossImpl::fill(pymarocco::MappingStats& stats) const
 
 		auto& weights = stats.getWeights(proj.id());
 		if (weights.size1()==0) {
-			MAROCCO_DEBUG("copying weight matrix");
 			weights = proj.getWeights().get();
 		}
 

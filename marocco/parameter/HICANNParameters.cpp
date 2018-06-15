@@ -154,14 +154,14 @@ double HICANNParameters::neurons(neuron_calib_type const& calib)
 
 	auto const& synaptic_inputs = m_synapse_routing[m_chip.index()].synaptic_inputs();
 
-	MAROCCO_INFO("Configuring neuron parameters");
+	MAROCCO_DEBUG("Configuring neuron parameters on " << hicann);
 	for (auto const& item : m_neuron_placement.find(hicann)) {
 		auto const& pop = *(graph[item.population()]);
 		auto const& logical_neuron = item.logical_neuron();
 
 		// Configure ANALOG neuron parameters.
 		for (NeuronOnWafer nrn : logical_neuron) {
-			MAROCCO_DEBUG("configuring analog parameters for " << nrn);
+			MAROCCO_TRACE("configuring analog parameters for " << nrn);
 
 			transform_analog_neuron(
 				calib, pop, item.neuron_index(), nrn, synaptic_inputs,
@@ -177,7 +177,7 @@ double HICANNParameters::neurons(neuron_calib_type const& calib)
 		// Set L1 address
 		auto const& address = item.address();
 		assert(address != boost::none);
-		MAROCCO_DEBUG(nrn << " has sending address " << address->toL1Address());
+		MAROCCO_TRACE(nrn << " has sending address " << address->toL1Address());
 		neuron.address(address->toL1Address());
 		neuron.activate_firing(true);
 		neuron.enable_spl1_output(true);

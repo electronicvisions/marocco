@@ -1,3 +1,5 @@
+#include <numeric>
+
 #include "marocco/routing/SynapseRoutingConfigurator.h"
 
 #include "hal/Coordinate/iter_all.h"
@@ -18,9 +20,13 @@ void SynapseRoutingConfigurator::run(
 	HMF::Coordinate::HICANNOnWafer const& hicann,
 	results::SynapseRouting::HICANN const& result)
 {
+
+	std::vector<size_t> n_connected_drivers;
+
 	for (auto const& item : result.synapse_switches()) {
 		auto const& vline = item.source();
 		auto const& connected_drivers = item.connected_drivers();
+		n_connected_drivers.push_back(connected_drivers.size());
 		auto const& primary_driver = connected_drivers.primary_driver();
 
 		set_synapse_switch(hicann, primary_driver, vline);
@@ -64,6 +70,14 @@ void SynapseRoutingConfigurator::run(
 			}
 		}
 	}
+
+	MAROCCO_DEBUG(
+	    "Min/max/mean number of connected drivers on "
+	    << hicann << ": "
+	    << *std::min_element(n_connected_drivers.begin(), n_connected_drivers.end()) << "/"
+	    << *std::max_element(n_connected_drivers.begin(), n_connected_drivers.end()) << "/"
+	    << std::accumulate(n_connected_drivers.begin(), n_connected_drivers.end(), 0.0) /
+	           n_connected_drivers.size());
 }
 
 void SynapseRoutingConfigurator::set_synapse_switch(
@@ -90,7 +104,7 @@ void SynapseRoutingConfigurator::connect_drivers(
 		return;
 	}
 
-	MAROCCO_INFO(
+	MAROCCO_TRACE(
 		"Connecting " << drivers.size() << " synapse driver(s) from "
 		<< *drivers.begin() << " to " << *drivers.rbegin() << " on " << hicann);
 

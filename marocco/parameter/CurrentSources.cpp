@@ -72,7 +72,7 @@ void CurrentSources::run(current_sources_type const& current_sources)
 		pattern.setPulselength(15);
 		pattern.setContinuous(true);
 
-		MAROCCO_DEBUG("setting FGStimulus for " << neuron);
+		MAROCCO_TRACE("setting FGStimulus for " << neuron);
 		m_hardware[hicann].setCurrentStimulus(neuron, pattern);
 	}
 }
