@@ -223,12 +223,16 @@ Fieres::Fieres(IntervalList const& _list,
 {}
 
 
-Fieres::Fieres(IntervalList const& _list,
+Fieres::Fieres(IntervalList const& _list_unsorted,
                HMF::Coordinate::Side const& side,
                size_t const max_chain_length,
                std::vector<SynapseDriverOnHICANN> const& defects)
 	: mSide(side)
 {
+	IntervalList _list = _list_unsorted;
+	// Sort by VLine to have a deterministic result
+	std::sort(_list.begin(), _list.end(), [](auto a, auto b) { return a.line < b.line; });
+
 	// Count number of requested drivers and synapses
 	size_t const synapse_count = std::accumulate(
 		_list.begin(), _list.end(), 0, [](size_t cnt, DriverInterval const& entry) {

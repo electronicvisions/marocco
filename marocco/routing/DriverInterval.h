@@ -100,11 +100,11 @@ struct DriverInterval
 	DriverInterval(DriverInterval const&) = default;
 
 	/// corresponding line
-	HMF::Coordinate::VLineOnHICANN const line;
+	HMF::Coordinate::VLineOnHICANN line;
 
 	/// number of theoretically required driver to have no synapse loss
-	size_t const driver;
-	size_t const synapses;
+	size_t driver;
+	size_t synapses;
 
 	/// intervals associated with this route, can be two at max, one on top and
 	/// one on bottom.
