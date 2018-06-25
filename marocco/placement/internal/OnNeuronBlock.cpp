@@ -190,25 +190,19 @@ std::ostream& print(
 	for (auto yy : iter_all<NeuronOnNeuronBlock::y_type>()) {
 		os << "| " << (yy == top ? "   top" : "bottom") << " ";
 
-		OnNeuronBlock::value_type prev = nullptr;
-		size_t index = 0;
 		for (auto xx : iter_all<NeuronOnNeuronBlock::x_type>()) {
 			auto const nrn = NeuronOnNeuronBlock(xx, yy);
 			auto const val = onb[nrn];
 
 			os << "|";
 			if (val != nullptr) {
-				os << std::setw(3) << std::setfill('#') << index;
+				os << std::setw(3) << std::setfill('#') << val->population(); // printing the population number of the neuron.
 			} else if (onb.is_defect(nrn)) {
 				os << "---";
 			} else {
 				os << "   ";
 			}
 
-			if (val != prev) {
-				++index;
-				prev = val;
-			}
 		}
 		os << "|\n";
 	}
