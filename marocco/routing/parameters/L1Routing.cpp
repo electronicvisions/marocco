@@ -11,7 +11,7 @@ namespace parameters {
 L1Routing::L1Routing()
 	: m_algorithm(Algorithm::backbone),
 	  m_priority_accumulation_measure(PriorityAccumulationMeasure::arithmetic_mean),
-	  m_shuffle_switches(false)
+	  m_shuffle_switches(true)
 {
 }
 
