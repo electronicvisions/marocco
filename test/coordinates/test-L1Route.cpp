@@ -382,4 +382,28 @@ TEST(L1Route, insertIntoAdjacentSynapseArray)
 	ASSERT_NO_THROW(route.append(HICANNOnWafer(X(4), Y(5)), SynapseDriverOnHICANN(right, Y(100))));
 }
 
+TEST(L1Route, connectedSynapseDriversUp)
+{
+	L1Route route{HICANNOnWafer(Enum(1)), VLineOnHICANN(4)};
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(3))));
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(1))));
+}
+
+TEST(L1Route, connectedSynapseDriversDown)
+{
+	L1Route route{HICANNOnWafer(Enum(1)), VLineOnHICANN(4)};
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(3))));
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(5))));
+}
+
+TEST(L1Route, connectedSynapseDriversCenter)
+{
+	L1Route route{HICANNOnWafer(Enum(1)), VLineOnHICANN(4)};
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(3))));
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(5))));
+	// in order to append Driver 1 we need to go back to the centre
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(3))));
+	ASSERT_NO_THROW(route.append(HICANNOnWafer(Enum(1)), SynapseDriverOnHICANN(Enum(1))));
+}
+
 } // namespace marocco
