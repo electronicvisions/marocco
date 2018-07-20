@@ -10,11 +10,13 @@ namespace routing {
 L1BackboneRouter::L1BackboneRouter(
     L1GraphWalker const& walker,
     vertex_descriptor const& source,
-    score_function_type const& vertical_scoring)
-	: m_walker(walker),
-	  m_graph(walker.graph()),
-	  m_source(source),
-	  m_vertical_scoring(vertical_scoring)
+    score_function_type const& vertical_scoring,
+    boost::optional<resource::HICANNManager> resource_manager) :
+    m_walker(walker),
+    m_graph(walker.graph()),
+    m_source(source),
+    m_vertical_scoring(vertical_scoring),
+    m_res_mgr(resource_manager)
 {
 	if (!m_graph[m_source].is_horizontal()) {
 		throw std::invalid_argument("source has to be horizontal bus");
@@ -66,7 +68,7 @@ void L1BackboneRouter::run()
 			    "Could not reach " << direction << "ernmost HICANN.\nTrying to detour from "
 			                       << m_graph[detour_start]);
 			std::tie(detour, reached_limit) =
-			    m_walker.detour_and_walk(detour_start, direction, limit);
+			    m_walker.detour_and_walk(detour_start, direction, limit, m_predecessors);
 			// L1GraphWalker::detour_and_walk guarantees that the detour advances
 			// horizontally by at least one HICANN, if it is not empty.
 			if (detour.empty()) {
@@ -78,6 +80,7 @@ void L1BackboneRouter::run()
 
 		// Store predecessors and vertices for targets.
 		vertex_descriptor predecessor = m_source;
+
 		for (auto const& vertex : path) {
 			m_predecessors[vertex] = predecessor;
 			predecessor = vertex;
@@ -89,9 +92,18 @@ void L1BackboneRouter::run()
 
 			maybe_branch_off_to_vertical_targets(vertex);
 		}
+
+		predecessor = m_source;
+		for (auto const& vertex : path) {
+			// store predecessors to get a clear path, sometimes it happened, that there were cycles
+			m_predecessors[vertex] = predecessor;
+			predecessor = vertex;
+		}
+		m_predecessors[m_source] = m_source;
 	}
 
 	maybe_branch_off_to_vertical_targets(m_source);
+	m_predecessors[m_source] = m_source;
 }
 
 void L1BackboneRouter::maybe_branch_off_to_vertical_targets(vertex_descriptor const& vertex)
@@ -117,8 +129,12 @@ void L1BackboneRouter::maybe_branch_off_to_vertical_targets(vertex_descriptor co
 		return;
 	}
 
-	// To establish a connection to vertical targets we consider all connected vertical
-	// buses and choose the best one based on a score.
+	candidates =
+	    L1_crossbar_restrictioning(vertex, candidates, m_predecessors, m_res_mgr, m_walker.graph());
+
+	// To establish a connection to vertical targets we consider all connected vertical buses
+	// then discard buses we are not allowed to use
+	// and choose the best one based on a score.
 
 	size_t best_score = 0;
 	vertex_descriptor best_candidate;

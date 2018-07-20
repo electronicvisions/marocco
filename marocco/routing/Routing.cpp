@@ -77,7 +77,8 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 		}
 
 		L1Routing l1_routing(
-		    l1_graph, m_graph, m_pymarocco.l1_routing, m_neuron_placement, l1_routing_result);
+		    l1_graph, m_graph, m_pymarocco.l1_routing, m_neuron_placement, l1_routing_result,
+		    m_resource_manager);
 		l1_routing.run();
 		MAROCCO_INFO("L1 routing finished with " << l1_routing_result.size() << " routes");
 

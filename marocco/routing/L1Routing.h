@@ -4,12 +4,16 @@
 #include <unordered_map>
 #include <vector>
 
+#include <boost/optional.hpp>
+
 #include "hal/Coordinate/L1.h"
 
 #include "marocco/BioGraph.h"
+#include "marocco/config.h"
 #include "marocco/coordinates/L1Route.h"
 #include "marocco/coordinates/L1RouteTree.h"
 #include "marocco/placement/results/Placement.h"
+#include "marocco/resource/Manager.h"
 #include "marocco/routing/L1RoutingGraph.h"
 #include "marocco/routing/PathBundle.h"
 #include "marocco/routing/parameters/L1Routing.h"
@@ -31,11 +35,12 @@ public:
 	}; // request_type
 
 	L1Routing(
-		L1RoutingGraph& l1_graph,
-		BioGraph const& bio_graph,
-		parameters::L1Routing const& parameters,
-		placement::results::Placement const& neuron_placement,
-		results::L1Routing& result);
+	    L1RoutingGraph& l1_graph,
+	    BioGraph const& bio_graph,
+	    parameters::L1Routing const& parameters,
+	    placement::results::Placement const& neuron_placement,
+	    results::L1Routing& result,
+	    resource::HICANNManager& resource_manager);
 
 	/**
 	 * @brief Run routing algorithm.
@@ -65,6 +70,7 @@ private:
 	placement::results::Placement const& m_neuron_placement;
 	results::L1Routing& m_result;
 	std::vector<request_type> m_failed;
+	resource::HICANNManager& m_resource_manager;
 }; // L1Routing
 
 /**
@@ -83,6 +89,24 @@ L1RouteTree toL1RouteTree(PathBundle::graph_type const& graph, PathBundle const&
  */
 L1Route with_dnc_merger_prefix(
     L1Route const& route, HMF::Coordinate::DNCMergerOnWafer const& merger);
+
+/**
+ * @brief function to discard branching candidates if too many L1-crossbar-switches are going to be
+ * set.
+ * @param[in] switch_from : the source bus
+ * @param[in] switch_to_candidates : vector of target buses to test
+ * @param[in] predecessors : according to its content the decisions are made
+ * @param[in] res_mgr : the resource manager, used to load calibration for the L1Crossbar switches
+ * @param[in] l1_graph : graph used to convert vertex_descriptors to L1BusOnWafer
+ * @return : returns a vector with allowed target buses
+ */
+std::vector<L1RoutingGraph::vertex_descriptor> L1_crossbar_restrictioning(
+    L1RoutingGraph::vertex_descriptor const& switch_from,
+    std::vector<L1RoutingGraph::vertex_descriptor> const& switch_to_candidates,
+    std::vector<L1RoutingGraph::vertex_descriptor> const& predecessors,
+    boost::optional<resource::HICANNManager>
+        res_mgr, // might load config, thus prevents the whole function from being const
+    L1RoutingGraph::graph_type const& l1_graph);
 
 } // namespace routing
 } // namespace marocco

@@ -4,6 +4,9 @@
 #include <vector>
 #include <utility>
 
+#include "marocco/config.h"
+#include "marocco/resource/Manager.h"
+#include "marocco/routing/L1Routing.h"
 #include "marocco/routing/L1RoutingGraph.h"
 
 namespace marocco {
@@ -19,7 +22,15 @@ public:
 	typedef L1RoutingGraph::edge_descriptor edge_descriptor;
 	typedef std::vector<vertex_descriptor> path_type;
 
-	L1GraphWalker(graph_type const& graph);
+	/**
+	 * Constructor
+	 *
+	 * @param [in] graph : graph for routing
+	 * @param [in] resource_manager : used to restrict routing on the graph (hardware constraints)
+	 */
+	L1GraphWalker(
+	    graph_type const& graph,
+	    boost::optional<resource::HICANNManager> resource_manager = boost::none);
 
 	/**
 	 * @brief Ensure that some vertex is not utilized.
@@ -74,11 +85,24 @@ public:
 	 *            along the original direction.
 	 * @throw std::invalid_argument If the orientation of \c vertex does not allow walking
 	 *                              in the specified direction.
+	 *
+	 * @param [in] vertex : the vertex to start the detour from
+	 * @param [in] direction : in which direction shall it try to extend
+	 * @param [in] limit : the coordinate to stop
+	 * @param [in, optional] predecessors : a predecessor list, used to restrict switch usage to
+	 * allowed configurations
+	 *
 	 */
 	std::pair<path_type, bool> detour_and_walk(
 	    vertex_descriptor const& vertex,
 	    HMF::Coordinate::Direction const& direction,
 	    size_t limit) const;
+
+	std::pair<path_type, bool> detour_and_walk(
+	    vertex_descriptor const& vertex,
+	    HMF::Coordinate::Direction const& direction,
+	    size_t limit,
+	    path_type predecessors) const;
 
 	graph_type const& graph() const;
 
@@ -100,6 +124,8 @@ private:
 
 	graph_type const& m_graph;
 	std::set<vertex_descriptor> m_avoid;
+
+	boost::optional<resource::HICANNManager> m_res_mgr;
 }; // L1GraphWalker
 
 } // namespace routing

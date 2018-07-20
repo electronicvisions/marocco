@@ -9,9 +9,12 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace routing {
 
-L1GraphWalker::L1GraphWalker(graph_type const& graph) : m_graph(graph)
-{
-}
+L1GraphWalker::L1GraphWalker(
+    graph_type const& graph, boost::optional<resource::HICANNManager> resource_manager) :
+    m_graph(graph),
+    m_res_mgr(resource_manager)
+{}
+
 
 void L1GraphWalker::avoid_using(vertex_descriptor const& vertex)
 {
@@ -126,7 +129,16 @@ auto L1GraphWalker::walk(
 
 auto L1GraphWalker::detour_and_walk(
     vertex_descriptor const& vertex, Direction const& direction, size_t limit) const
-	-> std::pair<path_type, bool>
+    -> std::pair<path_type, bool>
+{
+	return detour_and_walk(vertex, direction, limit, path_type(boost::num_vertices(m_graph)));
+}
+
+auto L1GraphWalker::detour_and_walk(
+    vertex_descriptor const& vertex,
+    Direction const& direction,
+    size_t limit,
+    path_type predecessors) const -> std::pair<path_type, bool>
 {
 	if (m_graph[vertex].toOrientation() != direction.toOrientation()) {
 		throw std::invalid_argument(
@@ -146,8 +158,12 @@ auto L1GraphWalker::detour_and_walk(
 
 	size_t longest = 0;
 	path_type best_detour;
+
+	auto candidates = change_orientation(vertex);
+	candidates = L1_crossbar_restrictioning(vertex, candidates, predecessors, m_res_mgr, m_graph);
+
 	// Iterate over all L1 buses with different orientation.
-	for (auto const& candidate : change_orientation(vertex)) {
+	for (auto const& candidate : candidates) {
 		for (auto const perpendicular : iter_all<Direction>()) {
 			// Consider both perpendicular directions.
 			if (perpendicular.toOrientation() == direction.toOrientation()) {
@@ -163,7 +179,10 @@ auto L1GraphWalker::detour_and_walk(
 			vertex_descriptor other = candidate;
 			while (step(other, perpendicular)) {
 				detour.push_back(other);
-				for (auto const& candidate_ : change_orientation(other)) {
+				auto candidates_ = change_orientation(other);
+				candidates_ = L1_crossbar_restrictioning(
+				    other, candidates_, predecessors, m_res_mgr, m_graph);
+				for (auto const& candidate_ : candidates_) {
 					path_type extension;
 					bool reached_limit;
 					std::tie(extension, reached_limit) = walk(candidate_, direction, limit);

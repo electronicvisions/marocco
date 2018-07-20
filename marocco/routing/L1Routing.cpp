@@ -30,16 +30,18 @@ L1Route::segment_type to_segment(L1BusOnWafer const& bus)
 } // namespace
 
 L1Routing::L1Routing(
-	L1RoutingGraph& l1_graph,
-	BioGraph const& bio_graph,
-	parameters::L1Routing const& parameters,
-	placement::results::Placement const& neuron_placement,
-	results::L1Routing& result)
-	: m_l1_graph(l1_graph),
-	  m_bio_graph(bio_graph),
-	  m_parameters(parameters),
-	  m_neuron_placement(neuron_placement),
-	  m_result(result)
+    L1RoutingGraph& l1_graph,
+    BioGraph const& bio_graph,
+    parameters::L1Routing const& parameters,
+    placement::results::Placement const& neuron_placement,
+    results::L1Routing& result,
+    resource::HICANNManager& resource_manager) :
+    m_l1_graph(l1_graph),
+    m_bio_graph(bio_graph),
+    m_parameters(parameters),
+    m_neuron_placement(neuron_placement),
+    m_result(result),
+    m_resource_manager(resource_manager)
 {
 }
 
@@ -116,7 +118,7 @@ void L1Routing::run_backbone_router()
 	auto const sources = sources_sorted_by_priority();
 	MAROCCO_DEBUG("found " << sources.size() << " sources");
 
-	L1GraphWalker walker(graph);
+	L1GraphWalker walker(graph, m_resource_manager);
 
 	// Avoid horizontal buses belonging to used sending repeaters.
 	for (auto const& merger : sources) {
@@ -156,7 +158,8 @@ void L1Routing::run_backbone_router()
 
 		MAROCCO_TRACE("routing from " << merger << " to " << targets.size() << " targets");
 
-		L1BackboneRouter backbone(walker, source, scoring_function);
+		L1BackboneRouter backbone(
+		    walker, source, scoring_function, boost::make_optional(m_resource_manager));
 
 		for (auto const& target : targets) {
 			backbone.add_target(target.first);
@@ -249,6 +252,7 @@ bool L1Routing::store_result(
 
 	MAROCCO_TRACE("found route to " << request.target);
 	auto const route = with_dnc_merger_prefix(toL1Route(m_l1_graph.graph(), path), request.source);
+	MAROCCO_TRACE("route : \n" << route);
 	auto const& item = m_result.add(route, request.target);
 	auto const& graph = m_bio_graph.graph();
 	for (auto const& edge : request.projections) {
@@ -328,6 +332,46 @@ L1Route with_dnc_merger_prefix(L1Route const& route, DNCMergerOnWafer const& mer
 	result.prepend(dnc_prefix, L1Route::extend_mode::extend);
 
 	return result;
+}
+
+std::vector<L1RoutingGraph::vertex_descriptor> L1_crossbar_restrictioning(
+    L1RoutingGraph::vertex_descriptor const& switch_from,
+    std::vector<L1RoutingGraph::vertex_descriptor> const& switch_to_candidates,
+    std::vector<L1RoutingGraph::vertex_descriptor> const& predecessors,
+    boost::optional<resource::HICANNManager> res_mgr,
+    L1RoutingGraph::graph_type const& l1_graph)
+{
+	// will store all destination [H|V]Lines that are already planned to be connected to
+	// 'switch_from'
+	std::vector<L1RoutingGraph::vertex_descriptor> expect_switching_to;
+
+	for (auto candidate : switch_to_candidates) {
+		if (predecessors[candidate] == switch_from || predecessors[switch_from] == candidate) {
+			// we found a planned connection between switch_from and this candidate.
+			// thus we save it as an expected swtich.
+			expect_switching_to.push_back(candidate);
+		}
+	}
+
+	// if no resource manager is given, be conservative and use at most 1 switch
+	const size_t MAX_ALLOWED_SWITCHES =
+	    res_mgr ? res_mgr->getMaxL1Crossbars(l1_graph[switch_from]) : 1;
+
+	if (expect_switching_to.size() == MAX_ALLOWED_SWITCHES) {
+		// we did reach the maximum number of switches expected, thus we are not allowed to choose
+		// any other L1Bus as target. so we set it to the switches that are already set.
+		return expect_switching_to;
+	}
+	if (expect_switching_to.size() > MAX_ALLOWED_SWITCHES) {
+		// we expect more switches to be set than allowed. something went wrong
+		LOG4CXX_ERROR(
+		    log4cxx::Logger::getLogger("marocco"),
+		    "We planned to use " << expect_switching_to.size() << " crossbar switches, but only "
+		                         << MAX_ALLOWED_SWITCHES << " are allowed.");
+		throw std::runtime_error("Crossbar switch planning exceeded hardware constraints.");
+	}
+
+	return switch_to_candidates;
 }
 
 } // namespace routing

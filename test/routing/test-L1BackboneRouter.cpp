@@ -5,6 +5,8 @@
 
 #include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/iter_all.h"
+#include "marocco/Logger.h"
+#include "marocco/routing/Configuration.h"
 #include "marocco/routing/L1BackboneRouter.h"
 #include "marocco/routing/L1Routing.h"
 
@@ -295,6 +297,146 @@ TEST_F(AL1BackboneRouter, doesNotCreateCircularPredecessorMapWhenNearEdgeOfWafer
 		EXPECT_FALSE(path.empty()) << target;
 	}
 }
+
+
+TEST_F(AL1BackboneRouter, use_only_one_switch_per_hline_right)
+{
+	/**
+	 * Routing from  [2] to its both neighbours
+	 * Difficulty:
+	 * 		do not feed both neighbours from the sending hicann.
+	 *
+	 * 		  S   < S >   S
+	 * 		      +-*-+
+	 * 		  S   | S |   S
+	 *
+	 * 	Not allowed configuration, when the signal is routed from *
+	 * 	to two VLines on the same HICANN to feed the neighbouring Synapses
+	 *
+	 **/
+	HICANNOnWafer const source_hicann(X(21), Y(0));
+	HICANNOnWafer const target1_hicann(X(20), Y(0));
+	HICANNOnWafer const target2_hicann(X(22), Y(0));
+
+	auto hline = SendingRepeaterOnHICANN(3).toHLineOnHICANN();
+
+	auto const& graph = routing_graph.graph();
+
+	auto source = routing_graph[source_hicann][hline];
+	std::vector<HICANNOnWafer> targets = {target1_hicann, target2_hicann};
+
+	L1GraphWalker walker(graph);
+	L1BackboneRouter backbone(walker, source);
+
+	for (auto const& target : targets) {
+		backbone.add_target(target);
+	}
+
+	backbone.run();
+
+	sthal::Wafer wafer;
+
+	auto path1 = backbone.path_to(targets[0]);
+	auto path2 = backbone.path_to(targets[1]);
+
+	EXPECT_EQ(path1.front(), source);
+	EXPECT_EQ(path1.front(), path2.front());
+
+	for (auto segment : path1) {
+		MAROCCO_TRACE(graph[segment]);
+	}
+	MAROCCO_TRACE("");
+	for (auto segment : path2) {
+		MAROCCO_TRACE(graph[segment]);
+	}
+
+	EXPECT_FALSE(
+	    graph[path1[1]].toHICANNOnWafer() ==
+	    graph[path2[1]]
+	        .toHICANNOnWafer()); // it is not allowed to go from the source-HLine to 2 VLines
+
+	for (auto const& target : targets) {
+		auto path = backbone.path_to(target);
+		EXPECT_FALSE(path.empty()) << target;
+		EXPECT_EQ(source, path.front()); // check for cycle
+
+		configure(wafer, toL1Route(graph, path));
+	}
+
+	for (auto hc : wafer.getAllocatedHicannCoordinates()) {
+		EXPECT_NO_THROW(wafer[hc].crossbar_switches.check_exclusiveness(1, 1, std::cerr)) << hc;
+	}
+}
+
+TEST_F(AL1BackboneRouter, use_only_one_switch_per_hline_left)
+{
+	/**
+	 * Routing from  [2] to its both neighbours
+	 * Difficulty:
+	 * 		do not feed both neighbours from the sending hicann.
+	 *
+	 * 		  S   < S >   S
+	 * 		      +-*-+
+	 * 		  S   | S |   S
+	 *
+	 * 	Not allowed configuration, when the signal is routed from *
+	 * 	to two VLines on the same HICANN to feed the neighbouring Synapses
+	 *
+	 **/
+	HICANNOnWafer const source_hicann(X(14), Y(0));
+	HICANNOnWafer const target1_hicann(X(13), Y(0));
+	HICANNOnWafer const target2_hicann(X(15), Y(0));
+
+	auto hline = SendingRepeaterOnHICANN(3).toHLineOnHICANN();
+
+	auto const& graph = routing_graph.graph();
+
+	auto source = routing_graph[source_hicann][hline];
+	std::vector<HICANNOnWafer> targets = {target1_hicann, target2_hicann};
+
+	L1GraphWalker walker(graph);
+	L1BackboneRouter backbone(walker, source);
+
+	for (auto const& target : targets) {
+		backbone.add_target(target);
+	}
+
+	backbone.run();
+
+	sthal::Wafer wafer;
+
+	auto path1 = backbone.path_to(targets[0]);
+	auto path2 = backbone.path_to(targets[1]);
+
+	EXPECT_EQ(path1.front(), source);
+	EXPECT_EQ(path1.front(), path2.front());
+
+	for (auto segment : path1) {
+		MAROCCO_TRACE(graph[segment]);
+	}
+	MAROCCO_TRACE("");
+	for (auto segment : path2) {
+		MAROCCO_TRACE(graph[segment]);
+	}
+
+	EXPECT_FALSE(
+	    graph[path1[1]].toHICANNOnWafer() ==
+	    graph[path2[1]]
+	        .toHICANNOnWafer()); // it is not allowed to go from the source-HLine to 2 VLines
+
+	for (auto const& target : targets) {
+		auto path = backbone.path_to(target);
+		EXPECT_FALSE(path.empty()) << target;
+		EXPECT_EQ(source, path.front()); // check for cycle
+
+		configure(wafer, toL1Route(graph, path));
+	}
+
+	for (auto hc : wafer.getAllocatedHicannCoordinates()) {
+		EXPECT_NO_THROW(wafer[hc].crossbar_switches.check_exclusiveness(1, 1, std::cerr)) << hc;
+	}
+}
+
 
 } // routing
 } // marocco
