@@ -88,6 +88,11 @@ bool PlacePopulations::place_one_population()
 	OnNeuronBlock& onb = on_neuron_block(nb);
 
 	NeuronPlacementRequest& placement = m_queue.back();
+	auto& population = placement.population_slice();
+	MAROCCO_DEBUG(
+	    "Placing " << *(m_graph[population.population()]) << " on neuron block " << nb
+	               << ". Still available neurons " << onb.available());
+
 	size_t const available = onb.available() / placement.neuron_size();
 
 	if (!available) {
@@ -97,7 +102,6 @@ bool PlacePopulations::place_one_population()
 		return place_one_population();
 	}
 
-	auto& population = placement.population_slice();
 	auto chunk = NeuronPlacementRequest{population.slice_front(available), placement.neuron_size()};
 	if (population.empty()) {
 		m_queue.pop_back();
