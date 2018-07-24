@@ -269,7 +269,7 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 			std::reverse(neuron_blocks.begin(), neuron_blocks.end());
 
 			std::vector<NeuronPlacementRequest> queue{placement};
-			PlacePopulations placer(m_denmem_assignment, neuron_blocks, queue);
+			PlacePopulations placer(m_graph, m_denmem_assignment, neuron_blocks, queue);
 			auto const& result = placer.run();
 			post_process(result);
 
@@ -330,7 +330,7 @@ void NeuronPlacement::run()
 		}
 	}
 
-	PlacePopulations placer(m_denmem_assignment, neuron_blocks, auto_placements);
+	PlacePopulations placer(m_graph, m_denmem_assignment, neuron_blocks, auto_placements);
 	auto const& result = placer.sort_and_run();
 	post_process(result);
 
