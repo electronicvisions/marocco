@@ -68,7 +68,7 @@ INSTANTIATE_TEST_CASE_P(
 	AHICANNManagerWithHICANN,
 	::testing::Range(
 		Co::HICANNOnWafer::enum_type::begin,
-		Co::HICANNOnWafer::enum_type::end));
+		Co::HICANNOnWafer::enum_type::end),);
 
 // (used std::tr1 prefix because of old gtest version)
 class AHICANNManagerWithOmittedHICANN
@@ -101,7 +101,7 @@ INSTANTIATE_TEST_CASE_P(
 			OmittingMethod::MASK),
 		::testing::Range(
 			Co::HICANNOnWafer::enum_type::begin,
-			Co::HICANNOnWafer::enum_type::end)));
+			Co::HICANNOnWafer::enum_type::end)),);
 
 class AHICANNManagerWithRandomlyAllocatedHICANNS
 	: public AHICANNManager,
@@ -135,7 +135,7 @@ INSTANTIATE_TEST_CASE_P(
 	AHICANNManagerWithRandomlyAllocatedHICANNS,
 	::testing::Range(
 		Co::HICANNOnWafer::enum_type::min,
-		Co::HICANNOnWafer::enum_type::size));
+		Co::HICANNOnWafer::enum_type::size),);
 
 TEST_F(AHICANNManager, AcceptsASetOfWafersOnConstruction) {
 	std::set<Co::Wafer> set;

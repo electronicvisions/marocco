@@ -211,7 +211,7 @@ TEST_P(AssignmentTest, MayClipARoute) {
 
 
 INSTANTIATE_TEST_CASE_P(AssignmentTestSides, AssignmentTest,
-                        ::testing::Values(left, right));
+                        ::testing::Values(left, right),);
 
 TEST(Fieres, Issue1666_Case1) {
 	typedef std::vector<DriverInterval> IntervalList;
