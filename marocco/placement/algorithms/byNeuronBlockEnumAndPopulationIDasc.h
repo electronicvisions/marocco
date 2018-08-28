@@ -21,6 +21,8 @@ class byNeuronBlockEnumAndPopulationIDasc : public byNeuronBlockEnumAndPopulatio
 public:
 	void initialise() PYPP_OVERRIDE;
 
+	std::string get_name() const PYPP_OVERRIDE;
+
 protected:
 	/**
 	 * @brief Sorts Populations by id

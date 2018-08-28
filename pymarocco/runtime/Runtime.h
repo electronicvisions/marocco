@@ -9,6 +9,7 @@
 
 #include "marocco/results/Marocco.h"
 
+#include "marocco/placement/algorithms/ClusterByPopulationConnectivity.h"
 #include "marocco/placement/algorithms/PlacePopulationsBase.h"
 #include "marocco/placement/algorithms/byNeuronBlockEnumAndPopulationID.h"
 #include "marocco/placement/algorithms/byNeuronBlockEnumAndPopulationIDasc.h"

@@ -113,6 +113,61 @@ bool PlacePopulationsBase::place_one_population()
 	return true;
 }
 
+bool PlacePopulationsBase::operator==(PlacePopulationsBase const& rhs) const
+{
+	bool ret = true;
+	MAROCCO_WARN(this->get_name() << " " << rhs.get_name());
+	ret &= this->get_name() == rhs.get_name();
+	// ret &= this->m_bio_graph == rhs.m_bio_graph; // as of boost 1.71, adjacency_list does not
+	// have operator== https://www.boost.org/doc/libs/1_71_0/libs/graph/doc/adjacency_list.html
+	if (this->m_bio_graph != boost::none && rhs.m_bio_graph != boost::none) {
+		auto this_vertices = boost::vertices(*(this->m_bio_graph));
+		auto rhs_vertices = boost::vertices(*(rhs.m_bio_graph));
+		if (std::distance(this_vertices.first, this_vertices.second) !=
+		    std::distance(rhs_vertices.first, rhs_vertices.second)) {
+			return false;
+		}
+		auto t_vit = this_vertices.first;
+		auto r_vit = rhs_vertices.first;
+		while (t_vit != this_vertices.second && r_vit != rhs_vertices.second) {
+			ret &= *t_vit == *r_vit;
+			t_vit++;
+			r_vit++;
+		}
+
+
+		auto this_edges = boost::edges(*(this->m_bio_graph));
+		auto rhs_edges = boost::edges(*(rhs.m_bio_graph));
+		if (std::distance(this_edges.first, this_edges.second) !=
+		    std::distance(rhs_edges.first, rhs_edges.second)) {
+			return false;
+		}
+		auto t_eit = this_edges.first;
+		auto r_eit = rhs_edges.first;
+		while (t_eit != this_edges.second && t_eit != rhs_edges.second) {
+			ret &= *t_eit == *r_eit;
+			t_eit++;
+			r_eit++;
+		}
+	} else {
+		if (this->m_bio_graph != boost::none || rhs.m_bio_graph != boost::none) {
+			// only one of them is none, so they are unequal
+			return false;
+		}
+	}
+
+	ret &= this->m_result == rhs.m_result;
+	ret &= this->m_state == rhs.m_state;
+	ret &= this->m_neuron_blocks == rhs.m_neuron_blocks;
+	ret &= this->m_queue == rhs.m_queue;
+
+	return ret;
+}
+std::string PlacePopulationsBase::get_name() const
+{
+	return "PlacePopulationsBase";
+}
+
 template <typename Archive>
 void PlacePopulationsBase::serialize(Archive& /* ar */, unsigned int const /* version */)
 {

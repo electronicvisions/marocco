@@ -79,6 +79,8 @@ public:
 	 */
 	value_type operator[](neuron_coordinate const& nrn) const;
 
+	bool operator==(OnNeuronBlock const& other) const;
+
 	/**
 	 * @brief Return an iterator pointing at the population slice assigned to a denmem.
 	 * @note Returns a past-the-end iterator if the denmem is defect

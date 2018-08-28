@@ -44,6 +44,33 @@ size_t NeuronPlacementRequest::neuron_width() const {
 	return mHwNeuronSize / OnNeuronBlock::neuron_coordinate::y_type::size;
 }
 
+bool NeuronPlacementRequest::operator==(NeuronPlacementRequest const& rhs) const
+{
+	// clang-format off
+	return (this->mPopulationSlice == rhs.mPopulationSlice &&
+	        this->mHwNeuronSize == rhs.mHwNeuronSize
+	        );
+	// clang-format off
+}
+
+bool NeuronPlacementRequest::operator!=(NeuronPlacementRequest const& rhs) const
+{
+	return !(*this == rhs);
+}
+
+size_t NeuronPlacementRequest::hash() const
+{
+	size_t hash = 0;
+	boost::hash_combine(hash, this->mPopulationSlice);
+	boost::hash_combine(hash, this->mHwNeuronSize);
+	return hash;
+}
+
+size_t hash_value(NeuronPlacementRequest const& npr)
+{
+	return npr.hash();
+}
+
 } // namespace internal
 } // namespace placement
 } // namespace marocco

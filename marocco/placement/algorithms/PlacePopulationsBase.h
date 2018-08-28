@@ -53,6 +53,8 @@ namespace algorithms {
 class PlacePopulationsBase
 {
 public:
+	virtual std::string get_name() const;
+
 	typedef HMF::Coordinate::NeuronOnWafer result_type;
 
 	/**
@@ -139,6 +141,8 @@ public: // compilation error W1039: `Py++` doesn't expose private or protected m
 	boost::optional<std::vector<HMF::Coordinate::NeuronBlockOnWafer>&> m_neuron_blocks;
 	// the population slices that shall be placed.
 	boost::optional<std::vector<NeuronPlacementRequest>&> m_queue;
+
+	virtual bool operator==(PlacePopulationsBase const& rhs) const;
 
 private:
 	friend class boost::serialization::access;

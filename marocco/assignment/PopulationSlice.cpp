@@ -70,5 +70,19 @@ bool operator!=(PopulationSlice const& lhs, PopulationSlice const& rhs) {
 	return !(lhs == rhs);
 }
 
+size_t PopulationSlice::hash() const
+{
+	size_t hash = 0;
+	boost::hash_combine(hash, mValue);
+	boost::hash_combine(hash, mOffset);
+	boost::hash_combine(hash, mSize);
+	return hash;
+}
+
+size_t hash_value(PopulationSlice const& ps)
+{
+	return ps.hash();
+}
+
 } // namespace assignment
 } // namespace marocco

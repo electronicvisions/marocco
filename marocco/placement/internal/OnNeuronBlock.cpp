@@ -136,6 +136,16 @@ auto OnNeuronBlock::operator[](neuron_coordinate const& nrn) const -> value_type
 	return {};
 }
 
+bool OnNeuronBlock::operator==(OnNeuronBlock const& other) const
+{
+	bool ret = true;
+	ret &= this->mAssignment == other.mAssignment;
+	ret &= this->mSize == other.mSize;
+	ret &= this->mAvailable == other.mAvailable;
+	ret &= this->mCeiling == other.mCeiling;
+	return ret;
+}
+
 auto OnNeuronBlock::get(neuron_coordinate const& nrn) const -> iterator {
 	auto const BEGIN = mAssignment.begin()->begin();
 	auto it = mAssignment[nrn.x()].begin();

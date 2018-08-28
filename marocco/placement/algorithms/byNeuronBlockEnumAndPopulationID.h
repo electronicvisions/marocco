@@ -24,6 +24,8 @@ public:
 	 */
 	void initialise() PYPP_OVERRIDE;
 
+	std::string get_name() const PYPP_OVERRIDE;
+
 protected:
 	/**
 	 * @brief Sorts Neuron Blocks and Populations

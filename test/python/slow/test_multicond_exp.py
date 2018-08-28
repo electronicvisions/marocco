@@ -11,6 +11,7 @@ from pyhalbe.Coordinate import *
 import pyhalbe.HICANN
 nrn_param = pyhalbe.HICANN.neuron_parameter
 import debug_config
+from pymarocco.coordinates import LogicalNeuron
 
 import pymarocco
 from pymarocco.results import Marocco
@@ -32,7 +33,7 @@ class IF_multicond_exp(unittest.TestCase):
         synapse types is as follows:
         Denmem:       | 0 | 1 |
         Synapse Type: |0 1|2 3| (left and right input)
-        
+
         Build a minimal network with 1 neuron and 4 spike sources each
         connecting to different synaptic target on the neuron. Then check that
         the configuration of the synapse driver and synapses is as expected.
@@ -57,7 +58,9 @@ class IF_multicond_exp(unittest.TestCase):
         p1.set('tau_syn', [2,3,4,5])
 
         # place to a certain HICANN to be able to extract config data afterwards
-        marocco.manual_placement.on_hicann(p1, used_hicann)
+        topleft=NeuronOnWafer(NeuronOnHICANN(X(0), Y(0)), used_hicann)
+        logical_neuron = LogicalNeuron.rectangular(topleft, size=4)
+        marocco.manual_placement.on_neuron(p1, logical_neuron)
 
         s1 = pynn.Population(1, pynn.SpikeSourcePoisson, {'rate':5.})
         s2 = pynn.Population(1, pynn.SpikeSourcePoisson, {'rate':5.})

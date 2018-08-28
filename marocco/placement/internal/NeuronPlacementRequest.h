@@ -34,11 +34,29 @@ public:
 	 */
 	size_t neuron_width() const;
 
+	bool operator==(NeuronPlacementRequest const& rhs) const;
+	bool operator!=(NeuronPlacementRequest const& rhs) const;
+
+	size_t hash() const;
+
 private:
 	assignment::PopulationSlice mPopulationSlice;
 	size_t mHwNeuronSize;
 };
 
+size_t hash_value(NeuronPlacementRequest const& npr);
+
 } // namespace internal
 } // namespace placement
 } // namespace marocco
+
+namespace std {
+template <>
+struct hash<marocco::placement::internal::NeuronPlacementRequest>
+{
+	size_t operator()(marocco::placement::internal::NeuronPlacementRequest const& npr) const
+	{
+		return hash_value(npr);
+	}
+};
+} // namespace std
