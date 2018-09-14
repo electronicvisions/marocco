@@ -8,7 +8,7 @@ import utils
 
 
 class TestManualPlacement(utils.TestWithResults):
-    @utils.parametrize([1, 2, 10, 999])
+    @utils.parametrize([1, 2, 10, 100, 999])
     def test_on_hicann(self, size):
         pynn.setup(marocco=self.marocco)
         neuron_size = 4
@@ -36,7 +36,7 @@ class TestManualPlacement(utils.TestWithResults):
             for denmem in logical_neuron:
                 self.assertEqual(hicann, denmem.toHICANNOnWafer())
 
-    @utils.parametrize([1, 2, 10, 999])
+    @utils.parametrize([1, 2, 10, 100, 999])
     def test_on_neuron_block(self, size):
         pynn.setup(marocco=self.marocco)
         neuron_size = 4
