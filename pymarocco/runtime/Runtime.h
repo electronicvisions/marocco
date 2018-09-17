@@ -9,6 +9,10 @@
 
 #include "marocco/results/Marocco.h"
 
+#include "marocco/placement/algorithms/PlacePopulationsBase.h"
+#include "marocco/placement/algorithms/byNeuronBlockEnumAndPopulationID.h"
+#include "marocco/placement/algorithms/bySmallerNeuronBlockAndPopulationID.h"
+
 namespace boost {
 namespace serialization {
 class access;

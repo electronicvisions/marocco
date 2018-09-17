@@ -95,6 +95,7 @@ def build(bld):
             'marocco_results',
             'marocco_runtime_inc',
             'sthal',
+            'marocco_algorithms_inc',
         ],
         post_task='pymarocco_runtime',
         install_path='lib',
@@ -110,6 +111,7 @@ def build(bld):
             'BOOST4PYMAROCCO',
             'euter_inc',
             'marocco_runtime',
+            'marocco_algorithms',
         ],
         post_task=['pysthal', 'pymarocco_results'],
         install_path='lib',
@@ -147,7 +149,7 @@ def build(bld):
     os.chdir(str(bld.path.abspath()))
     version = os.popen('git rev-parse --short HEAD',).read().strip()
     os.chdir(old_path)
-    
+
     bld(
         target = 'VERSION',
         rule = 'echo "' + version + '" > ${TGT[0].abspath()}',

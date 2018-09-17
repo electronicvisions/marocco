@@ -16,7 +16,6 @@
 
 using namespace HMF::Coordinate;
 using marocco::placement::internal::NeuronPlacementRequest;
-using marocco::placement::internal::PlacePopulations;
 
 namespace marocco {
 namespace placement {
@@ -273,8 +272,9 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 			std::reverse(neuron_blocks.begin(), neuron_blocks.end());
 
 			std::vector<NeuronPlacementRequest> queue{placement};
-			PlacePopulations placer(m_graph, m_denmem_assignment, neuron_blocks, queue);
-			auto const& result = placer.run();
+
+			std::vector<algorithms::PlacePopulationsBase::result_type> const result =
+			    *(m_placer->run(m_graph, m_denmem_assignment, neuron_blocks, queue));
 			post_process(result);
 
 			// The population (or parts of it) may not have been placed successfully.
@@ -329,12 +329,13 @@ void NeuronPlacement::run()
 		restrict_rightmost_neuron_blocks();
 	}
 
+	m_placer = m_parameters.default_placement_strategy();
+	if (m_placer == nullptr) {
+		MAROCCO_FATAL("no placement strategy defined")
+		throw std::runtime_error("Specify a placement strategy");
+	}
+
 	auto auto_placements = perform_manual_placement();
-	std::sort(
-		auto_placements.begin(), auto_placements.end(),
-		[&](NeuronPlacementRequest const& a, NeuronPlacementRequest const& b) -> bool {
-			return m_graph[a.population()]->id() < m_graph[b.population()]->id();
-		});
 
 	std::vector<NeuronBlockOnWafer> neuron_blocks;
 	neuron_blocks.reserve(m_denmem_assignment.size() * NeuronBlockOnHICANN::size);
@@ -346,8 +347,8 @@ void NeuronPlacement::run()
 		}
 	}
 
-	PlacePopulations placer(m_graph, m_denmem_assignment, neuron_blocks, auto_placements);
-	auto const& result = placer.sort_and_run();
+	std::vector<algorithms::PlacePopulationsBase::result_type> const result =
+	    *(m_placer->run(m_graph, m_denmem_assignment, neuron_blocks, auto_placements));
 	post_process(result);
 
 	if (!auto_placements.empty()) {
@@ -363,7 +364,8 @@ void NeuronPlacement::run()
 	MAROCCO_INFO("Placement of populations finished");
 }
 
-void NeuronPlacement::post_process(std::vector<PlacePopulations::result_type> const& placements)
+void NeuronPlacement::post_process(
+    std::vector<algorithms::PlacePopulationsBase::result_type> const& placements)
 {
 	for (auto const& primary_neuron : placements) {
 		auto hicann = primary_neuron.toHICANNOnWafer();

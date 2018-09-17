@@ -2,13 +2,14 @@
 
 #include <set>
 #include <vector>
+#include <boost/shared_ptr.hpp>
 
 #include "hal/Coordinate/HICANN.h"
 #include "hal/Coordinate/Neuron.h"
 
 #include "marocco/config.h"
+#include "marocco/placement/algorithms/PlacePopulationsBase.h"
 #include "marocco/placement/internal/NeuronPlacementRequest.h"
-#include "marocco/placement/internal/PlacePopulations.h"
 #include "marocco/placement/internal/Result.h"
 #include "marocco/placement/parameters/ManualPlacement.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
@@ -49,7 +50,14 @@ private:
 	 */
 	std::vector<internal::NeuronPlacementRequest> perform_manual_placement();
 
-	void post_process(std::vector<internal::PlacePopulations::result_type> const& placements);
+	void post_process(std::vector<algorithms::PlacePopulationsBase::result_type> const& placements);
+
+
+	/**
+	 * @brief this pointer can be set to any of PlacePopulationsBase derived classes,
+	 * so the user can define the Placing Algorithm
+	 */
+	boost::shared_ptr<algorithms::PlacePopulationsBase> m_placer;
 
 	graph_t const& m_graph;
 	parameters::NeuronPlacement const& m_parameters;

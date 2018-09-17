@@ -73,6 +73,7 @@ def build(bld):
             'nanoflann_inc',
             'marocco_coordinates_inc',
             'marocco_parameters_inc',
+            'marocco_algorithms_inc',
             'marocco_results_inc',
             'hate_inc',
             ],
@@ -87,6 +88,7 @@ def build(bld):
                     'marocco/coordinates/**/*',
                     'marocco/**/parameters/*',
                     'marocco/**/results/*',
+                    'marocco/**/algorithms/*',
                 ]) +
             bld.path.ant_glob('control/**/*.cpp'),
         install_path    = 'lib',
@@ -106,6 +108,7 @@ def build(bld):
             'redman',
             'marocco_coordinates',
             'marocco_parameters',
+            'marocco_algorithms',
             'marocco_results',
             'pymarocco',
             'pymarocco_runtime',
@@ -143,6 +146,32 @@ def build(bld):
         install_path='lib',
         use=[
             'marocco_parameters_inc',
+            'marocco_algorithms',
+            'marocco_coordinates',
+            'halbe',
+        ],
+        cxxflags=cxxflags)
+
+    bld(target='marocco_algorithms_inc',
+        use=[
+            'boost_patches',
+            'marocco_coordinates_inc',
+            'euter_inc',
+            'calibtic_inc',
+        ],
+        export_includes='.')
+
+    bld(target='marocco_algorithms',
+        features='cxx cxxshlib',
+        source= bld.path.ant_glob('marocco/**/algorithms/*.cpp')
+            + bld.path.ant_glob('marocco/**/internal/*.cpp')
+            + bld.path.ant_glob('marocco/assignment/*.cpp')
+            + bld.path.ant_glob('marocco/Logger.cpp')
+            + bld.path.ant_glob('marocco/routing/results/*.cpp')
+            + bld.path.ant_glob('marocco/placement/results/*.cpp')
+        ,install_path='lib',
+        use=[
+            'marocco_algorithms_inc',
             'marocco_coordinates',
             'halbe',
         ],

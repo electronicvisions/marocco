@@ -5,15 +5,19 @@
 #include "hal/Coordinate/Neuron.h"
 #include "marocco/coordinates/LogicalNeuron.h"
 
+#include "marocco/placement/algorithms/bySmallerNeuronBlockAndPopulationID.h"
+
 namespace marocco {
 namespace placement {
 namespace parameters {
 
-NeuronPlacement::NeuronPlacement()
-	: m_default_neuron_size(4),
-	  m_restrict_rightmost_neuron_blocks(false),
-	  m_minimize_number_of_sending_repeaters(false),
-	  m_skip_hicanns_without_neuron_blacklisting(true)
+NeuronPlacement::NeuronPlacement() :
+    m_default_neuron_size(4),
+    m_restrict_rightmost_neuron_blocks(false),
+    m_minimize_number_of_sending_repeaters(false),
+    m_skip_hicanns_without_neuron_blacklisting(true),
+    m_default_placement_strategy(
+        boost::make_shared<algorithms::bySmallerNeuronBlockAndPopulationID>())
 {
 }
 
@@ -58,6 +62,18 @@ bool NeuronPlacement::skip_hicanns_without_neuron_blacklisting() const
 	return m_skip_hicanns_without_neuron_blacklisting;
 }
 
+void NeuronPlacement::default_placement_strategy(
+    boost::shared_ptr<algorithms::PlacePopulationsBase> const placer)
+{
+	m_default_placement_strategy = placer;
+}
+
+boost::shared_ptr<algorithms::PlacePopulationsBase> NeuronPlacement::default_placement_strategy()
+    const
+{
+	return m_default_placement_strategy;
+}
+
 template <typename Archive>
 void NeuronPlacement::serialize(Archive& ar, unsigned int const /* version */)
 {
@@ -66,7 +82,9 @@ void NeuronPlacement::serialize(Archive& ar, unsigned int const /* version */)
 	ar & make_nvp("default_neuron_size", m_default_neuron_size)
 	   & make_nvp("restrict_rightmost_neuron_blocks", m_restrict_rightmost_neuron_blocks)
 	   & make_nvp("minimize_number_of_sending_repeaters", m_minimize_number_of_sending_repeaters)
-	   & make_nvp("skip_hicanns_without_neuron_blacklisting", m_skip_hicanns_without_neuron_blacklisting);
+	   & make_nvp("skip_hicanns_without_neuron_blacklisting", m_skip_hicanns_without_neuron_blacklisting)
+	   & make_nvp("default_placement_strategy", *m_default_placement_strategy)
+	   ;
 	// clang-format on
 }
 

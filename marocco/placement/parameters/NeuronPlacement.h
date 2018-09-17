@@ -1,6 +1,11 @@
 #pragma once
 
 #include <boost/serialization/export.hpp>
+#include <boost/shared_ptr.hpp>
+
+#ifndef PYPLUSPLUS
+#include "marocco/placement/algorithms/PlacePopulationsBase.h"
+#endif // !PYPLUSPLUS
 
 namespace boost {
 namespace serialization {
@@ -10,6 +15,11 @@ class access;
 
 namespace marocco {
 namespace placement {
+#ifdef PYPLUSPLUS
+namespace algorithms {
+class PlacePopulationsBase;
+} // algorithms
+#endif // PYPLUSPLUS
 namespace parameters {
 
 class NeuronPlacement {
@@ -54,11 +64,25 @@ public:
 	void skip_hicanns_without_neuron_blacklisting(bool enable);
 	bool skip_hicanns_without_neuron_blacklisting() const;
 
+
+	/**
+	 * @brief Default strategy for placing Neurons
+	 *
+	 * To change the placement strategy, users instantiate their placement algorithm and
+	 * load it here.
+	 *
+	 * @param [in] placer: shared pointer to a placement algorithm derived from PlacePopulationBase
+	 */
+	void default_placement_strategy(
+	    boost::shared_ptr<algorithms::PlacePopulationsBase> const placer);
+	boost::shared_ptr<algorithms::PlacePopulationsBase> default_placement_strategy() const;
+
 private:
 	size_type m_default_neuron_size;
 	bool m_restrict_rightmost_neuron_blocks;
 	bool m_minimize_number_of_sending_repeaters;
 	bool m_skip_hicanns_without_neuron_blacklisting;
+	boost::shared_ptr<algorithms::PlacePopulationsBase> m_default_placement_strategy;
 
 	friend class boost::serialization::access;
 	template <typename Archive>
