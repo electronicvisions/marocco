@@ -254,6 +254,7 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 				auto_placements.push_back(placement);
 				continue;
 			}
+			auto const requested_locations = neuron_blocks;
 
 			MAROCCO_DEBUG(placement.population_slice() << " will be placed manually");
 
@@ -276,7 +277,17 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 			// The population (or parts of it) may not have been placed successfully.
 #if 1
 			if (!queue.empty()) {
-				MAROCCO_ERROR("unable to implement manual placement request for population " << pop.id());
+				MAROCCO_ERROR(
+				    "unable to implement manual placement request for population "
+				    << pop << " with locations requested");
+				if (MAROCCO_DEBUG_ENABLED()) {
+					for (auto const& nb : requested_locations) {
+						MAROCCO_DEBUG("  on " << nb);
+					}
+				} else {
+					MAROCCO_ERROR("  from " << requested_locations.front());
+					MAROCCO_ERROR("  to   " << requested_locations.back());
+				}
 				size_t neurons = 0;
 				size_t denmems = 0;
 				for (auto const& request : queue) {
@@ -286,7 +297,9 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 					MAROCCO_DEBUG(
 						"remaining " << slice << " with neuron size " << request.neuron_size());
 				}
-				MAROCCO_INFO(neurons << " neurons (" << denmems << " denmems) could not be placed");
+				MAROCCO_ERROR(
+				    neurons << " neurons (" << denmems
+				            << " denmems) could not be placed for population: " << pop);
 				throw ResourceExhaustedError("unable to implement manual placement request");
 			}
 #else
