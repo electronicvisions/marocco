@@ -357,7 +357,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	if(mi->backend == PyMarocco::Backend::Hardware) {
 
 		if (mi->verification != PyMarocco::Verification::Skip) {
-			auto verify_configurator = sthal::VerifyConfigurator();
+			auto verify_configurator = sthal::VerifyConfigurator(true);
 			hardware->configure(verify_configurator);
 
 			if (verify_configurator.error_count() == 0) {
