@@ -34,7 +34,7 @@ namespace placement {
  * FPGA can send (`max_rate_FPGA`), and the maximum pulse rate before the HICANN
  * link (`max_rate_HICANN`) saturates.  From the spike sources the expected mean
  * firing rate is extracted, see \c FiringRateVisitor for details.
- * Spike sources are placed in the same order as when not considering the rates. 
+ * Spike sources are placed in the same order as when not considering the rates.
  * If the still available bandwidth per HICANN or FPGA is not sufficient for a
  * spike source, the next free input link is checked.
  *
@@ -52,15 +52,15 @@ struct InputPlacement
 {
 public:
 	InputPlacement(
-		graph_t const& graph,
-		parameters::InputPlacement const& parameters,
-		parameters::ManualPlacement const& manual_placement,
-		parameters::NeuronPlacement const& neuron_placement_parameters,
-		parameters::L1AddressAssignment const& l1_address_assignment,
-		MergerRoutingResult& merger_routing,
-		double speedup,
-		sthal::Wafer& hw,
-		resource_manager_t& mgr);
+	    graph_t const& graph,
+	    parameters::InputPlacement const& parameters,
+	    parameters::ManualPlacement const& manual_placement,
+	    parameters::NeuronPlacement const& neuron_placement_parameters,
+	    parameters::L1AddressAssignment const& l1_address_assignment,
+	    MergerRoutingResult& merger_routing,
+	    double speedup,
+	    sthal::Wafer& hw,
+	    resource_manager_t& mgr);
 
 	/**
 	 * @param neuronpl Result of neuron placement step.
@@ -79,15 +79,17 @@ private:
 
 	/**
 	 * @brief Place as many neurons as possible on the DNC mergers of the given HICANN.
-	 * @param[in,out] bio Population slice whose neurons should be placed.
+	 * @param[in] target_hicann, one hicann for which all 8 DNCs are tried as spike sources
+	 * @param[in] neuron_placement, the placement result for non spike neurons
+	 * @param[in,out] bio Population slice vector whose neurons should be placed.
 	 * @note The caller of this function has to check for remaining neurons in the
-	 *       passed-in population slice.
+	 *       passed-in population slice vector. In this case it should try another HICANN.
 	 */
 	void insertInput(
-		HMF::Coordinate::HICANNOnWafer const& target_hicann,
-		results::Placement& neuron_placement,
-		internal::L1AddressAssignment& address_assignment,
-		marocco::assignment::PopulationSlice& bio);
+	    HMF::Coordinate::HICANNOnWafer const& target_hicann,
+	    results::Placement& neuron_placement,
+	    internal::L1AddressAssignment& address_assignment,
+	    std::vector<marocco::assignment::PopulationSlice>& bio);
 
 	graph_t const&           mGraph;
 	parameters::InputPlacement const& m_parameters;
@@ -124,8 +126,8 @@ private:
 	/// @param max_neurons maximum number of neurons from the back of the
 	///        slice that are checked for fitting into the available rate.
 	/// @param available_rate availalbe rate (bandwidth) in Hz.
-	//
-	/// @return pair of number or neurons fitting into available rate as first 
+	///
+	/// @return pair of number or neurons fitting into available rate as first
 	///         argument, and the total rate used by these neurons as 2nd
 	///         argument.
 	std::pair< size_t, rate_type >

@@ -83,6 +83,11 @@ void Placement::add(BioNeuron const& bio_neuron, LogicalNeuron const& logical_ne
 	}
 }
 
+void Placement::remove(BioNeuron const& bio_neuron)
+{
+	m_container.erase(bio_neuron);
+}
+
 auto Placement::find(BioNeuron const& bio_neuron) const
 	-> iterable<by_bio_neuron_type::iterator>
 {

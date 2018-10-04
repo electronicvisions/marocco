@@ -418,7 +418,6 @@ size_t Manager<T>::getMaxChainLength(marocco::routing::L1BusOnWafer const& bus) 
 			max_chainLength = chainlength;
 		}
 	}
-	MAROCCO_DEBUG("max chain length: " << max_chainLength);
 	return max_chainLength;
 }
 

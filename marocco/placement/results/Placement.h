@@ -97,6 +97,7 @@ public:
 	typedef container_type::iterator const_iterator;
 
 	void add(BioNeuron const& bio_neuron, LogicalNeuron const& logical_neuron);
+	void remove(BioNeuron const& bio_neuron);
 
 	iterable<by_bio_neuron_type::iterator> find(BioNeuron const& bio_neuron) const;
 

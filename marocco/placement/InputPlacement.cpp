@@ -13,6 +13,7 @@
 #include "marocco/util/guess_wafer.h"
 #include "marocco/util/iterable.h"
 #include "marocco/util/neighbors.h"
+#include "marocco/routing/SynapseDriverRequirementPerSource.h"
 
 using namespace HMF::Coordinate;
 using marocco::assignment::PopulationSlice;
@@ -36,24 +37,24 @@ const InputPlacement::rate_type InputPlacement::max_rate_HICANN = 1.78e7; // Hz
 const InputPlacement::rate_type InputPlacement::max_rate_FPGA = 1.25e8; // Hz
 
 InputPlacement::InputPlacement(
-	graph_t const& graph,
-	parameters::InputPlacement const& parameters,
-	parameters::ManualPlacement const& manual_placement,
-	parameters::NeuronPlacement const& neuron_placement_parameters,
-	parameters::L1AddressAssignment const& l1_address_assignment,
-	MergerRoutingResult& merger_routing,
-	double speedup,
-	sthal::Wafer& hw,
-	resource_manager_t& mgr)
-	: mGraph(graph),
-	  m_parameters(parameters),
-	  m_manual_placement(manual_placement),
-	  m_neuron_placement_parameters(neuron_placement_parameters),
-	  m_l1_address_assignment(l1_address_assignment),
-	  m_merger_routing(merger_routing),
-	  m_speedup(speedup),
-	  mHW(hw),
-	  mMgr(mgr)
+    graph_t const& graph,
+    parameters::InputPlacement const& parameters,
+    parameters::ManualPlacement const& manual_placement,
+    parameters::NeuronPlacement const& neuron_placement_parameters,
+    parameters::L1AddressAssignment const& l1_address_assignment,
+    MergerRoutingResult& merger_routing,
+    double speedup,
+    sthal::Wafer& hw,
+    resource_manager_t& mgr)
+    : mGraph(graph),
+      m_parameters(parameters),
+      m_manual_placement(manual_placement),
+      m_neuron_placement_parameters(neuron_placement_parameters),
+      m_l1_address_assignment(l1_address_assignment),
+      m_merger_routing(merger_routing),
+      m_speedup(speedup),
+      mHW(hw),
+      mMgr(mgr)
 {
 }
 
@@ -97,6 +98,7 @@ void InputPlacement::run(
 
 		Population const& pop = *mGraph[vertex];
 		PopulationSlice bio = PopulationSlice{vertex, pop};
+		std::vector<PopulationSlice> bio_vector{bio};
 
 		// if a manual placement exists, assign it
 		auto it = mapping.find(pop.id());
@@ -107,10 +109,12 @@ void InputPlacement::run(
 
 			if (locations && !locations->empty()) {
 				for (auto const& target_hicann : *locations) {
-					insertInput(target_hicann, neuron_placement, address_assignment[target_hicann], bio);
+					insertInput(
+					    target_hicann, neuron_placement, address_assignment[target_hicann],
+					    bio_vector);
 				}
 
-				if (bio.size()) {
+				if (!bio_vector.empty()) {
 					throw std::runtime_error(
 						"out of resources for manually placed external inputs");
 				}
@@ -172,22 +176,26 @@ void InputPlacement::run(
 			if (!bio.size()) {
 				throw std::runtime_error("empty input assignment");
 			}
+			std::vector<PopulationSlice> bio_vector{bio};
 
 			neighbors.find_near(point.x, point.y);
 			for (auto const& target_hicann : neighbors) {
-				insertInput(target_hicann, neuron_placement, address_assignment[target_hicann], bio);
+				MAROCCO_TRACE(
+				    "inserting on hicann " << target_hicann << " vector " << bio_vector.size());
+				insertInput(
+				    target_hicann, neuron_placement, address_assignment[target_hicann], bio_vector);
 
 				// TODO: if HICANN has no free output buffers left.
 				// remove it from point cloud and rebuild index.
 				// BV: Check whether this todo is still true when run
 				// rate-dependent mode.
 
-				if (!bio.size()) {
+				if (bio_vector.empty()) {
 					break;
 				}
 			}
 
-			if (bio.size()) {
+			if (!bio_vector.empty()) {
 				throw std::runtime_error("out of resources for external inputs");
 			}
 		}
@@ -199,15 +207,17 @@ void InputPlacement::run(
 }
 
 void InputPlacement::insertInput(
-	HMF::Coordinate::HICANNOnWafer const& target_hicann,
-	results::Placement& neuron_placement,
-	internal::L1AddressAssignment& address_assignment,
-	PopulationSlice& bio)
+    HMF::Coordinate::HICANNOnWafer const& target_hicann,
+    results::Placement& neuron_placement,
+    internal::L1AddressAssignment& address_assignment,
+    std::vector<PopulationSlice>& bio_vector)
 {
 	// We need events with L1 address zero for locking repeaters and synapse drivers.  In
 	// principle those events could be provided through the DNC input; But as this sets in
 	// too late and/or is too short, the current approach is to use the background generator
 	// of the corresponding neuron block and forward it 1-to-1 to the DNC merger.
+
+	MAROCCO_TRACE("placing an input on " << target_hicann);
 
 	MergerRoutingResult::mapped_type merger_mapping;
 	auto const it = m_merger_routing.find(target_hicann);
@@ -218,24 +228,46 @@ void InputPlacement::insertInput(
 			merger_mapping[nb] = DNCMergerOnHICANN(nb);
 		}
 	}
-
 	m_merger_routing[target_hicann] = merger_mapping;
+
+	if (bio_vector.empty()) { // can happen by splitting populations and retrying via recursion;
+		return;
+	}
 
 	// As this special handling used to be done only for DNCMergerOnHICANN(7) they are
 	// processed in reverse order here to be backwards compatible with that mode of
 	// operation (c.f. restrict_rightmost_neuron_blocks() option).
-	for (auto const& dnc :
-	     {DNCMergerOnHICANN(7), DNCMergerOnHICANN(6), DNCMergerOnHICANN(5), DNCMergerOnHICANN(4),
-	      DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)}) {
+	auto const dncs = {DNCMergerOnHICANN(7), DNCMergerOnHICANN(6), DNCMergerOnHICANN(5), DNCMergerOnHICANN(4),
+	             DNCMergerOnHICANN(3), DNCMergerOnHICANN(2), DNCMergerOnHICANN(1), DNCMergerOnHICANN(0)};
+
+	for (auto it_dnc = dncs.begin(); it_dnc != dncs.end(); it_dnc++) {
+		auto const& dnc = *it_dnc;
 		if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::output) {
 			continue;
 		}
-
+		if (bio_vector.empty()) {
+			return;
+		}
+		DNCMergerOnWafer dnc_on_wafer (dnc, target_hicann);
 		auto& pool = address_assignment.available_addresses(dnc);
+		auto const pool_backup = pool;
 		size_t const left_space = pool.size();
 		if (!left_space) {
+			MAROCCO_TRACE("no space left, trying next DNC");
 			continue;
 		}
+		auto const drv_per_source = routing::SynapseDriverRequirementPerSource(mGraph, neuron_placement);
+
+		// drivers < allowed && slice.size(1) would still fit maybe,
+		// because for neurons of size 4 approximatly 1 driver can carry 4 sources,
+		// but it depends on the actual network structure, its not so easy to calculate
+		if (!drv_per_source.more_drivers_possible(dnc_on_wafer, mMgr) && bio_vector.back().size()>1) {
+			// if this population slice is already at the maximum allowed synapse switches, we use the next DNC
+			MAROCCO_TRACE(
+			    " invalid dnc:" << dnc << " exceeding the maximum possible driver chain length with current use: " << drv_per_source.drivers(dnc_on_wafer));
+			continue;
+		}
+		MAROCCO_TRACE(" candidate dnc:" << dnc << " driver chain length is allowed, current use: " << drv_per_source.drivers(dnc_on_wafer));
 
 		// Check whether this 1-to-1 connection is possible and whether we would mute any
 		// neurons by only selecting the background from the corresponding neuron block.
@@ -255,14 +287,26 @@ void InputPlacement::insertInput(
 			}
 		}
 
+		auto bio = bio_vector.back(); // get one PopulationSlice from the vector containing all to be placed
+		do {
+			bio = bio_vector.back();
+			bio_vector.pop_back();
+		} while (bio.empty() && !bio_vector.empty()); // if we have an empty slice, but there are
+		                                              // still remaining slices in the vector
+
+		if (bio.empty()) { // if the last slice is empty
+			return;        // terminate
+		}
+
 		MAROCCO_TRACE(
-			"Found insertion point with " << left_space
-			<< " addresses on " << dnc << " of " << target_hicann);
+		    "Possible insertion point with " << left_space << " addresses on " << dnc << " of "
+		                                  << target_hicann << " for pop slice " << bio);
 
+
+		//check for rate constraints, and calculate the number of neurons to be placed
 		size_t neuron_count = std::min(bio.size(), left_space);
-
+		rate_type used_rate = 0;
 		if (m_parameters.consider_firing_rate()) {
-			rate_type used_rate;
 			rate_type available_rate = availableRate(target_hicann);
 
 			std::tie(neuron_count, used_rate) =
@@ -272,10 +316,9 @@ void InputPlacement::insertInput(
 				MAROCCO_TRACE(
 					"Skipping " << target_hicann << " due to bandwidth limit of "
 					<< available_rate << " Hz");
+				bio_vector.push_back(bio);
 				return;
 			}
-
-			allocateRate(target_hicann, used_rate);
 		}
 
 		// make sure to tag HICANN as used
@@ -291,6 +334,11 @@ void InputPlacement::insertInput(
 
 		// we found an empty slot, insert the assignment
 		auto population_slice = bio.slice_back(neuron_count);
+		if (!bio.empty()) {
+			bio_vector.push_back(bio);
+		}
+
+		// place the sources of one Slice, it might get undone if driver requirements were exceeded
 		for (size_t ii = 0; ii < neuron_count; ++ii) {
 			auto const address = pool.pop(m_l1_address_assignment.strategy());
 			size_t const neuron_index = population_slice.offset() + ii;
@@ -301,11 +349,81 @@ void InputPlacement::insertInput(
 			neuron_placement.set_address(
 				logical_neuron, L1AddressOnWafer(DNCMergerOnWafer(dnc, target_hicann), address));
 		}
+		auto const new_drv_per_source = routing::SynapseDriverRequirementPerSource(mGraph, neuron_placement);
+		// try to split the population and place on different inputs
+		if (!new_drv_per_source.drivers_possible(dnc_on_wafer, mMgr)) {
 
-		if (!bio.size()) {
+			size_t drivers_required = new_drv_per_source.drivers(dnc_on_wafer); // TODO only calculate in debug or higher
+			MAROCCO_DEBUG(
+			    "Trying to split input population because it exceeds the maximum synpase driver chain length "
+			    << " is exceeded with " << drivers_required
+			    << " required drivers");
+
+			// if slice is of size 1, and it is the only one placed so far, it cannot be split, and must be placed
+			if (population_slice.size() == 1 && pool.size() == pool.capacity() - 1) {
+				MAROCCO_WARN("An external spike source needs more drivers than allowed, but it is "
+				             "of size 1, it cant be split. " << population_slice << " is placed on "
+							 << dnc_on_wafer << " requiring " << new_drv_per_source.drivers(dnc_on_wafer))
+				continue;
+			}
+
+			// reset the neuron placement for the placed sources. (unplace them)
+			for (size_t ii = 0; ii < neuron_count; ++ii) {
+				size_t const neuron_index = population_slice.offset() + ii;
+				BioNeuron const bio_neuron(population_slice.population(), neuron_index);
+				neuron_placement.remove(bio_neuron);
+				pool = pool_backup;
+			}
+
+			// a slice of size 1 cant be split, thus it is tried on the next NB
+			if (population_slice.size() == 1) {
+				MAROCCO_TRACE("pop can't be split, skipping to next dnc");
+				bio_vector.push_back(population_slice);
+				continue; // next dnc as pop.size is only 1 we go to the next dnc.
+			}
+
+			MAROCCO_TRACE(
+			    "retrying after splitting. currently it would require " << drivers_required
+			                                      << " drivers for pop:" << population_slice);
+
+			// split population into two and try again. // logarithmic backoff
+			std::array<PopulationSlice, 2> parts = population_slice.split();
+
+			for (auto const bio_part : parts) {
+				MAROCCO_TRACE("retrying splitted: " << bio_part);
+				bio_vector.push_back(bio_part);
+			}
+			it_dnc--;
+			continue;
+		}
+		MAROCCO_TRACE("required synapse drivers are within constraints ("
+						<< new_drv_per_source.drivers(dnc_on_wafer)
+						<< "), USING THIS DNC "
+						<< dnc_on_wafer
+						<< "for pop: "
+						<< population_slice);
+
+		if (m_parameters.consider_firing_rate()) {
+			allocateRate(target_hicann, used_rate);
+		}
+
+		if (bio_vector.empty()) {
 			// No need to check further DNC mergers if all neurons were placed successfully.
 			return;
 		}
+
+		// if driver required < drivers possible, there is still space on this dnc, thus we
+		// want to test this NB again.
+		if (drv_per_source.drivers_possible(dnc_on_wafer, mMgr)) {
+			MAROCCO_TRACE("there is still space on this DNC, let me use it again");
+			it_dnc--; // decrement iterator, as it is incremented during for loop.
+			continue;
+		}
+	}
+	if (!bio_vector.empty()) {
+		MAROCCO_DEBUG(
+		    "could not place all spike sources on this HICANN " << target_hicann
+			<< ". remaining in placement queue: " << bio_vector.size());
 	}
 }
 
