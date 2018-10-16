@@ -5,6 +5,7 @@ from pymarocco_runtime import byNeuronBlockEnumAndPopulationID as placer_linear
 from pymarocco_runtime import byNeuronBlockEnumAndPopulationIDasc as placer_linear_asc
 from pymarocco_runtime import bySmallerNeuronBlockAndPopulationID as placer_smallNB
 from pymarocco_runtime import ClusterByPopulationConnectivity as placer_pop_cluster
+from pymarocco_runtime import ClusterByNeuronConnectivity as placer_neuron_cluster
 # further placement strategies MUST also be added to the parameterized tests
 import pyhalbe.Coordinate as C
 
@@ -47,6 +48,7 @@ class PlacementAlgorithms(utils.TestWithResults):
                         placer_linear_asc(),
                         placer_smallNB(),
                         placer_pop_cluster(),
+                        placer_neuron_cluster(),
                         ])
     def test_creation(self, strategy):
         self.marocco.neuron_placement.default_placement_strategy(strategy)
@@ -61,6 +63,7 @@ class PlacementAlgorithms(utils.TestWithResults):
                         placer_linear_asc(),
                         placer_smallNB(),
                         placer_pop_cluster(),
+                        placer_neuron_cluster(),
                         ])
     def test_unequality(self, derived_strat):
         base_strat = placer()

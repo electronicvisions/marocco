@@ -174,7 +174,11 @@ def build(bld):
             'marocco_algorithms_inc',
             'marocco_coordinates',
             'halbe',
+            'euter',
+            'calibtic',
         ],
+        defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
+        export_defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
         cxxflags=cxxflags)
 
     bld(target='marocco_results_inc',
