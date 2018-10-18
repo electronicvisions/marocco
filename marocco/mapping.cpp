@@ -6,9 +6,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 
-#include "redman/backend/Backend.h"
-#include "redman/backend/Library.h"
-#include "redman/backend/MockBackend.h"
 #include "redman/resources/Wafer.h"
 #include "sthal/DontProgramFloatingGatesHICANNConfigurator.h"
 #include "sthal/ESSHardwareDatabase.h"
@@ -25,47 +22,29 @@
 #include "sthal/VerifyConfigurator.h"
 #include "sthal/MagicHardwareDatabase.h"
 
+#include "marocco/config.h"
 #include "marocco/Logger.h"
 #include "marocco/Mapper.h"
 #include "marocco/experiment/AnalogOutputsConfigurator.h"
 #include "marocco/experiment/Experiment.h"
 #include "marocco/experiment/SpikeTimesConfigurator.h"
 #include "marocco/experiment/ReadRepeaterTestdata.h"
+#include "marocco/resource/BackendLoaderRedman.h"
 #include "pymarocco/PyMarocco.h"
 #include "pymarocco/runtime/Runtime.h"
 
 using namespace HMF::Coordinate;
+using pymarocco::PyMarocco;
+
+namespace redman {
+namespace backend {
+class XMLBackend;
+class None;
+}
+}
+
 
 namespace {
-
-boost::shared_ptr<redman::backend::Backend> load_redman_backend(pymarocco::Defects const& defects)
-{
-	if (defects.backend == pymarocco::Defects::Backend::XML) {
-		auto const lib = redman::backend::loadLibrary("libredman_xml.so");
-		auto const backend = redman::backend::loadBackend(lib);
-
-		if (!backend) {
-			throw std::runtime_error("unable to load xml backend");
-		}
-
-		std::string defects_path = defects.path;
-		if (std::getenv("MAROCCO_DEFECTS_PATH") != nullptr) {
-			if (!defects_path.empty()) {
-				throw std::runtime_error(
-				    "only one of pymarocco.defects.path and MAROCCO_DEFECTS_PATH "
-				    "should be set");
-			}
-			defects_path = std::string(std::getenv("MAROCCO_DEFECTS_PATH"));
-		}
-
-		backend->config("path", defects_path);
-		backend->init();
-		return backend;
-	} else if (defects.backend == pymarocco::Defects::Backend::None) {
-		return boost::make_shared<redman::backend::MockBackend>();
-	}
-	throw std::runtime_error("defects backend not implemented");
-}
 
 #ifdef HAVE_ESS
 std::string create_temporary_directory(char const* tpl) {
@@ -100,7 +79,7 @@ namespace mapping {
 
 std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
 {
-	auto mi = store->getMetaData<pymarocco::PyMarocco>("marocco");
+	auto mi = store->getMetaData<PyMarocco>("marocco");
 
 	std::set<Wafer> wafers;
 
@@ -161,8 +140,22 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	//  ——— LOAD DEFECT DATA ———————————————————————————————————————————————————
 
-	resource_manager_t resources{load_redman_backend(mi->defects)};
-	resource_fpga_manager_t fpga_resources{load_redman_backend(mi->defects)};
+	boost::shared_ptr<redman::backend::Backend> redman_backend;
+	switch (mi->defects.backend) {
+		case pymarocco::Defects::Backend::XML:
+			redman_backend = marocco::resource::BackendLoaderRedman::load_redman_backend<
+			    redman::backend::XMLBackend>(mi->defects.path);
+			break;
+		case pymarocco::Defects::Backend::None:
+			redman_backend =
+			    marocco::resource::BackendLoaderRedman::load_redman_backend<redman::backend::None>(
+			        mi->defects.path);
+			break;
+		default:
+			throw std::runtime_error("unknown redman backend type");
+	}
+	resource_manager_t resources{redman_backend, boost::make_optional(*mi)};
+	resource_fpga_manager_t fpga_resources{redman_backend, boost::make_optional(*mi)};
 
 	{
 		auto res = redman::resources::WaferWithBackend(resources.backend(), wafer);

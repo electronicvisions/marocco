@@ -5,6 +5,23 @@
 
 #include "marocco/resource/Manager.h"
 
+#include "redman/resources/Wafer.h"
+#include "marocco/Logger.h"
+#include "marocco/resource/CalibParameters.h"
+#include "pymarocco/PyMarocco.h"
+
+#include "marocco/routing/L1BusGlobal.h"
+#include "marocco/routing/L1BusOnWafer.h"
+
+#include "calibtic/HMF/HICANNCollection.h"
+
+namespace calibtic {
+	namespace backend {
+		class XMLBackend;
+		class BinaryBackend;
+	}
+}
+
 namespace marocco {
 namespace resource {
 
@@ -28,8 +45,11 @@ get_components<HMF::Coordinate::FPGAGlobal>(redman::resources::WaferWithBackend 
 
 template <class T>
 Manager<T>::Manager(
-    boost::shared_ptr<redman::backend::Backend> backend, std::set<wafer_type> const& wafers)
-    : mBackend(backend) {
+    boost::shared_ptr<redman::backend::Backend> backend,
+    std::set<wafer_type> const& wafers,
+    boost::optional<pymarocco::PyMarocco> const pymarocco)
+    : mBackend(backend), m_pymarocco(pymarocco)
+{
 	for (auto const& wafer : wafers) {
 		load(wafer);
 	}
@@ -291,6 +311,78 @@ void Manager<T>::iterator_type::pop() {
 	mCurrent = get_components<T>(pair.second);
 	mIter = mCurrent->begin();
 	mQueue.pop();
+}
+
+template <class T>
+boost::shared_ptr<HMF::HICANNCollection> Manager<T>::loadCalib(HMF::Coordinate::HICANNGlobal const& hicann_global) const
+{
+	// if calib is in storage return that
+	if (mCalibs.find(hicann_global) == mCalibs.end()) {
+		//  ——— LOAD HARDWARE CONSTRAINTS FROM CALIBRATION —————————————
+		if (m_pymarocco) {
+			boost::shared_ptr<calibtic::backend::Backend> calib_backend;
+			switch (m_pymarocco->calib_backend) {
+				case pymarocco::PyMarocco::CalibBackend::XML:
+					calib_backend =
+					    BackendLoaderCalib::load_calibtic_backend<calibtic::backend::XMLBackend>(
+					        m_pymarocco->calib_path);
+					break;
+				case pymarocco::PyMarocco::CalibBackend::Binary:
+					calib_backend =
+					    BackendLoaderCalib::load_calibtic_backend<calibtic::backend::BinaryBackend>(
+					        m_pymarocco->calib_path);
+					break;
+				case pymarocco::PyMarocco::CalibBackend::Default:
+					MAROCCO_WARN("using default Backend");
+					break;
+				default:
+					throw std::runtime_error("unknown calibration backend type");
+			}
+			CalibParameters calib_parameters(hicann_global, *m_pymarocco, calib_backend);
+			auto calib = calib_parameters.getCalibrationData(/*fallback to default*/ true);
+			mCalibs[hicann_global] = calib;
+		} else {
+			MAROCCO_WARN("failed to load Calib data for: " << hicann_global);
+		}
+	}
+
+	return mCalibs.at(hicann_global);
+}
+
+template <class T>
+size_t Manager<T>::getMaxL1Crossbars(marocco::routing::L1BusOnWafer const& bus) const
+{
+	size_t max_switches = 0;
+	// load data from "cache" if present. load from calib if needed.
+	// TODO deduce correct wafer from somewhere
+	for (auto const wafer : mWafers) {
+		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
+		// load calib data for this bus_g
+		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
+		auto const hicann_global = HMF::Coordinate::HICANNGlobal(hicann_on_wafer, wafer.first);
+
+		auto const calib = loadCalib(hicann_global);
+
+		size_t switches = 0;
+		if (bus.is_vertical()) {
+			auto line = bus.toVLineOnHICANN();
+			switches = std::min(
+			    calib->atL1CrossbarCollection()->getMaxSwitchesPerRow(line),
+			    calib->atL1CrossbarCollection()->getMaxSwitchesPerColumn(line));
+
+		} else {
+			auto line = bus.toHLineOnHICANN();
+			switches = std::min(
+			    calib->atL1CrossbarCollection()->getMaxSwitchesPerRow(line),
+			    calib->atL1CrossbarCollection()->getMaxSwitchesPerColumn(line));
+		}
+
+		if (max_switches == 0 || switches < max_switches) {
+			max_switches = switches;
+		}
+	}
+
+	return max_switches;
 }
 
 } // namespace resource

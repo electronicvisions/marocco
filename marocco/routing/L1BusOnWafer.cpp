@@ -71,6 +71,20 @@ std::ostream& operator<<(std::ostream& os, L1BusOnWafer const& bus)
 	return os;
 }
 
+size_t L1BusOnWafer::hash() const
+{
+	size_t hash = 0;
+	boost::hash_combine(hash, m_hicann);
+	boost::hash_combine(hash, m_horizontal);
+	boost::hash_combine(hash, m_id);
+	return hash;
+}
+
+size_t hash_value(L1BusOnWafer const& bus)
+{
+	return bus.hash();
+}
+
 template <typename Archiver>
 void L1BusOnWafer::serialize(Archiver& ar, unsigned int const /*version*/)
 {

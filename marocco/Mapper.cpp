@@ -5,8 +5,7 @@
 #include "hal/Coordinate/iter_all.h"
 #include "hal/Coordinate/HICANN.h"
 
-#include "calibtic/backend/Backend.h"
-#include "calibtic/backend/Library.h"
+#include "marocco/resource/BackendLoaderCalib.h"
 
 #include "marocco/HardwareUsage.h"
 #include "marocco/Logger.h"
@@ -23,6 +22,13 @@
 
 using namespace pymarocco;
 
+namespace calibtic {
+namespace backend {
+class XMLBackend;
+class BinaryBackend;
+}
+}
+
 namespace marocco {
 
 namespace {
@@ -38,40 +44,6 @@ size_t num_neurons(Graph const& g)
 		}
 	}
 	return cnt;
-}
-
-boost::shared_ptr<calibtic::backend::Backend> load_calibtic_backend(
-    std::string calib_path, pymarocco::PyMarocco::CalibBackend calib_backend) {
-	boost::shared_ptr<calibtic::backend::Library> lib;
-
-	switch (calib_backend) {
-		case pymarocco::PyMarocco::CalibBackend::XML:
-			lib = calibtic::backend::loadLibrary("libcalibtic_xml.so");
-			break;
-		case pymarocco::PyMarocco::CalibBackend::Binary:
-			lib = calibtic::backend::loadLibrary("libcalibtic_binary.so");
-			break;
-		default:
-			throw std::runtime_error("unknown calibration backend type");
-	}
-
-	auto backend = calibtic::backend::loadBackend(lib);
-
-	if (!backend) {
-		throw std::runtime_error("unable to load calib backend");
-	}
-
-	if (std::getenv("MAROCCO_CALIB_PATH") != nullptr) {
-		if (!calib_path.empty())
-			// we break hard, if the user specified via both ways...
-			throw std::runtime_error(
-			    "colliding settings: environment variable and pymarocco.calib_path both set");
-		calib_path = std::string(std::getenv("MAROCCO_CALIB_PATH"));
-	}
-
-	backend->config("path", calib_path); // search in calib_path for calibration xml files
-	backend->init();
-	return backend;
 }
 
 } // namespace
@@ -168,9 +140,13 @@ void Mapper::run(ObjectStore const& pynn)
 	boost::shared_ptr<calibtic::backend::Backend> calib_backend;
 	switch (mPyMarocco->calib_backend) {
 		case pymarocco::PyMarocco::CalibBackend::XML:
-		case pymarocco::PyMarocco::CalibBackend::Binary:
 			calib_backend =
-			    load_calibtic_backend(mPyMarocco->calib_path, mPyMarocco->calib_backend);
+			    resource::BackendLoaderCalib::load_calibtic_backend<calibtic::backend::XMLBackend>(
+			        mPyMarocco->calib_path);
+			break;
+		case pymarocco::PyMarocco::CalibBackend::Binary:
+			calib_backend = resource::BackendLoaderCalib::load_calibtic_backend<
+			    calibtic::backend::BinaryBackend>(mPyMarocco->calib_path);
 			break;
 		case pymarocco::PyMarocco::CalibBackend::Default:
 			break;

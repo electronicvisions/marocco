@@ -49,6 +49,8 @@ public:
 	 */
 	L1BusOnWafer();
 
+	size_t hash() const;
+
 private:
 #ifndef PYPLUSPLUS
 	friend class boost::serialization::access;
@@ -63,8 +65,21 @@ private:
 
 std::ostream& operator<<(std::ostream& os, L1BusOnWafer const& bus);
 
+
+size_t hash_value(L1BusOnWafer const& bus);
+
 } // namespace routing
 } // namespace marocco
+
+namespace std {
+
+template <>
+struct hash<marocco::routing::L1BusOnWafer>
+{
+	size_t operator()(marocco::routing::L1BusOnWafer const& bus) const { return hash_value(bus); }
+};
+
+} // namespace std
 
 #ifndef PYPLUSPLUS
 #include <boost/serialization/export.hpp>

@@ -6,19 +6,34 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <boost/serialization/shared_ptr.hpp>
 #include <boost/iterator/iterator_facade.hpp>
-
+#include <boost/optional.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include "hal/Coordinate/HMFGeometry.h"
-#include "marocco/util/iterable.h"
 #include "redman/resources/Wafer.h"
+#include "marocco/resource/BackendLoaderCalib.h"
+#include "marocco/util/iterable.h"
+#include "pymarocco/PyMarocco.h"
 
 namespace redman {
 class Hicann;
 namespace backend {
 class Backend;
-}
-}
+} // backend
+} // redman
+
+namespace HMF {
+class HICANNCollection;
+} // HMF
+
+namespace marocco {
+namespace routing {
+class L1BusOnWafer;
+} // routing
+} // marocco
+
+
+using pymarocco::PyMarocco;
 
 namespace marocco {
 namespace resource {
@@ -68,9 +83,27 @@ private:
 	typedef typename RedmanManagerType<T>::type redman_manager_type;
 
 public:
+	/**
+	 * Constructor for Resource Managers
+	 *
+	 * @param [in] backend: redman backend to handle wafers
+	 * @param [in] wafers: optional, a set of wafers to handle
+	 * @param [in] pymarocco: optional, holds the backend to load some data from
+	 */
 	Manager(
-		boost::shared_ptr<redman::backend::Backend> backend,
-		std::set<wafer_type> const& wafers = {});
+	    boost::shared_ptr<redman::backend::Backend> backend,
+	    boost::optional<PyMarocco> const pymarocco)
+	    : Manager(backend, {}, pymarocco){};
+
+	Manager(
+	    boost::shared_ptr<redman::backend::Backend> backend, std::set<wafer_type> const& wafers)
+	    : Manager(backend, wafers, boost::none){};
+
+	Manager(
+	    boost::shared_ptr<redman::backend::Backend> backend,
+	    std::set<wafer_type> const& wafers,
+	    boost::optional<PyMarocco> const pymarocco);
+
 
 	/** Load data for the given wafer.
 	 * \throws std::runtime_error When wafer has already been loaded.
@@ -148,6 +181,20 @@ public:
 
 	boost::shared_ptr<redman::backend::Backend> backend() const { return mBackend; }
 
+	/**
+	 * Returns the shared pointer to the HICANNCollection.
+	 * if it is _not_ loaded yet it is stored in a map.
+	 * if it is already loaded: it is loaded from that map.
+	 * thus it loads only when nescessary.
+	 */
+	boost::shared_ptr<HMF::HICANNCollection> loadCalib(HMF::Coordinate::HICANNGlobal const& hicann_global) const;
+
+	/**
+	 * Returns the maximum number of crossbars, that are allowed to be used on this bus
+	 */
+	size_t getMaxL1Crossbars(marocco::routing::L1BusOnWafer const& bus) const;
+
+
 protected:
 	friend class AHICANNManager;
 	friend class AFPGAManager;
@@ -166,9 +213,13 @@ private:
 	wafer_map_type::const_iterator wafer_for(resource_type const& resource) const;
 
 	boost::shared_ptr<redman::backend::Backend> mBackend;
+	boost::optional<PyMarocco> const m_pymarocco;
 	wafer_map_type mWafers;
 	allocation_type mMasked;
 	allocation_type mAllocated;
+
+	// Cache for Calibration data
+	mutable std::unordered_map<HMF::Coordinate::HICANNGlobal, boost::shared_ptr<HMF::HICANNCollection> > mCalibs;
 
 	class iterator_type
 		: public boost::iterator_facade<
