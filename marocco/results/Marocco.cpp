@@ -160,7 +160,7 @@ std::vector<L1RouteProperties> Marocco::l1_properties() const
 
 		auto const& source = placement.find(route_item.source());
 		std::vector<HMF::HICANN::L1Address> l1_addresses;
-		std::transform(source.begin(), source.end(), std::back_inserter(projection_ids),
+		std::transform(source.begin(), source.end(), std::back_inserter(l1_addresses),
 		               [](auto p) {
 			return p.address()->toL1Address();
 		});
