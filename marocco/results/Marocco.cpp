@@ -168,13 +168,8 @@ std::vector<L1RouteProperties> Marocco::l1_properties() const
 		auto const& route = route_item.route();
 		L1Route route_augmented(route);
 
-		std::cout << route << '\n';
-		std::cout << route_item.target() << '\n';
-
 		// augment with drivers; primary driver first
 		if (auto const* vline = boost::get<VLineOnHICANN>(&route.back())) {
-
-			std::cout << *vline  << '\n';
 
 			auto const& synapse_switches = synapse_routing[route_item.target()][*vline];
 			for (auto const& item : synapse_switches) {
