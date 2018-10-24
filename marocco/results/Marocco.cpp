@@ -207,6 +207,36 @@ std::vector<L1RouteProperties> Marocco::l1_properties() const
 				std::vector<SynapseDriverOnHICANN> drivers_for_augmentation;
 
 				auto const primary = connected_drivers.primary_driver();
+
+				// The datastructure of synapse_routing contains the synapse drivers
+				// that shall be used. it does not store the side to which it injects.
+				// Thus it has to be deduced if this driver is used for this hicann or the neighbouring one.
+				//
+				//  Following figure shall help explaining it.
+				//  shown are 2 HICANNS with 6 VLines and 6 Synapse drivers.
+				//
+				//     Driver
+				//      v v
+				//  |123   456|123   456| << vline
+				//  |   1 2   |   1 2   |
+				//  |   3 4  x|   3 4   |
+				//  |   5 6   |   5 6   |
+				//
+				// example:  vLine:6 drv:4, will have the same hicann as target, where the route ends.
+				// but       vLine 6 drv 3, means that it feeds from the route.target_hicann() into the route_item.target()
+				//
+				// this gets problematic if `synapse_routing[route_item.target()][*vline]` has two or more entries.
+				// this happens if the `route_item.target()` hicann gets feeded from itself by vline 6 drv 4,
+				// and from its neighbour with vline 6 drv 3.
+				//
+				// this is checked here.
+				if ((vline->toSideHorizontal() != primary.toSideHorizontal() && route_item.target() == route.target_hicann() ) ||
+					(vline->toSideHorizontal() == primary.toSideHorizontal() && route_item.target() != route.target_hicann() )   ) {
+					continue;
+					/// the SynapseRouting itself does the following:
+					/// hicann_ = vline.isLeft() ? hicann.east() : hicann.west();
+				}
+
 				bool const check_above_primary = (primary != all_drivers.front());
 
 				// start from primary and go down
@@ -228,7 +258,7 @@ std::vector<L1RouteProperties> Marocco::l1_properties() const
 				    drivers_for_augmentation.end());
 
 				for (auto const& dr : drivers_for_augmentation) {
-					route_augmented.append(route.target_hicann(), dr);
+					route_augmented.append(route_item.target(), dr);
 				}
 			}
 		}
@@ -239,7 +269,7 @@ std::vector<L1RouteProperties> Marocco::l1_properties() const
 			for (auto const& synapse_item : synapse_items) {
 				auto const& hw_synapse = synapse_item.hardware_synapse();
 				if (hw_synapse.is_initialized()) {
-					route_augmented.append(route.target_hicann(), hw_synapse.get());
+					route_augmented.append(route_item.target(), hw_synapse.get());
 				}
 			}
 		}
