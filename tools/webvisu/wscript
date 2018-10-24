@@ -1,0 +1,27 @@
+import os
+from waflib import Node
+
+
+def options(opt):
+    pass
+
+
+def configure(conf):
+    env = conf.env
+    conf.setenv('marocco_webvisu')
+    blddir_webvisu = conf.path.get_bld()
+    Node.Node.mkdir(blddir_webvisu)
+    conf.env.NODE_HOME = '{}/node_home'.format(blddir_webvisu)
+    conf.env.PATH = '{}/node_modules/.bin:{}'.format(blddir_webvisu, os.environ['PATH'])
+    conf.find_program('npm')
+    conf.setenv('', env=env)
+
+
+def build(bld):
+    bld.env = bld.all_envs['marocco_webvisu']
+    srcdir_webvisu = bld.path.get_src()
+    blddir_webvisu = bld.path.get_bld()
+    bld.cmd_and_log('HOME={} {} install {}'.format(bld.env.NODE_HOME, bld.env.NPM[0], srcdir_webvisu), cwd=blddir_webvisu)
+    bld.env = bld.all_envs['']
+    start_dir = blddir_webvisu.find_dir('node_modules').find_dir('webvisu').find_dir('build')
+    bld.install_files('${PREFIX}/lib/webvisu', blddir_webvisu.ant_glob('node_modules/webvisu/build/**/*'), cwd=start_dir, relative_trick=True)

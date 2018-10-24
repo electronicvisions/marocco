@@ -1,8 +1,9 @@
 {
-	"name": "wafervisu",
+	"name": "webvisu",
 	"description": "BrainScaleS Wafer Visualization Tool",
 	"repository": "https://github.com/electronicvisions/marocco",
 	"license": "LGPL-2.1",
+	"version": "0.1.0dev",
 	"dependencies":
 		{
 			"typescript": ">=2.8.0 <3.0.0",
