@@ -124,7 +124,7 @@ namespace internalModule {
 			let colorNumNeurons = tools.colorInGradient( this.numNeuronsColorOne, this.numNeuronsColorTwo,
 					this.wafer.numNeuronsMax, this.wafer.hicanns[hicannIndex].numNeurons );
 			// draw rectangle as hicann representation
-			pixiBackend.drawRectangle(pixiBackend.container.backgrounds, x, y, this.wafer.hicannWidth, this.wafer.hicannHeight, colorNumNeurons);
+			pixiBackend.drawRectangle(pixiBackend.container.backgrounds, x, y, this.wafer.hicannWidth, this.wafer.hicannHeight, colorNumNeurons, 0.5);
 		}
 
 		/**

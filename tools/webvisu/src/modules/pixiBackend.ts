@@ -52,8 +52,8 @@ namespace pixiBackend {
        * All graphics elements that belong to the detailView are nested in the detailView container.
        */
       setup: function() {
-        this.stage.addChild(this.backgrounds);
         this.stage.addChild(this.hicannImages);
+        this.stage.addChild(this.backgrounds);
         this.stage.addChild(this.logos);
         this.stage.addChild(this.inputs);
         this.stage.addChild(this.overviewBusesLeft);
@@ -149,18 +149,20 @@ namespace pixiBackend {
      * @param width Width of the rectangle.
      * @param height Height of the rectangle.
      * @param color Fill color of the rectangle. Requires hex-color in the form "0xffffff".
+     * @param alpha Transparency of the rectangle. Requires value between 0 and 1.
      * @param interactive Set to true to allow mouse interactivity with the object.
      * @param mouseoverFunction Any callback function for the mouseover event.
      * @param mouseoutFunction Any callback function for the mouseout event.
      * @param clickFunction Any callback function for the mouseclick event.
      */
     export function drawRectangle(container: PIXI.Container,
-        x: number, y: number, width: number, height: number, color: string,
+        x: number, y: number, width: number, height: number, color: string, alpha = 1,
         interactive=false, mouseoverFunction=undefined, mouseoutFunction=undefined, clickFunction=undefined) {
       const rectangle: any = new PIXI.Graphics();
       rectangle.beginFill(color);
       rectangle.drawRect(x, y, width, height);
       rectangle.endFill();
+      rectangle.alpha = alpha;
       container.addChild(rectangle);
   
       if (interactive) {
