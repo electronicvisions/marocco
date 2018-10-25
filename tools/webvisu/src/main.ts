@@ -198,7 +198,7 @@ function setupScreen(){
 				$("#uploadScreen").css("display", "none");
 				$("#loadingScreen").css("display", "block");
 				// start main program
-				setTimeout(() => {main("./network" + inputFile.name.match(/\.[a-z,A-Z,0-9,\.]+/)[0])}, 100);
+				setTimeout(() => {main("./network" + inputFile.name.match(/\.[a-z,A-Z,0-9,\.]+/)[0])}, 30000);
 			};
 			filereader.onerror = function(event) {
 				console.error(`File could not be read! Code $event.target.error.code`);
