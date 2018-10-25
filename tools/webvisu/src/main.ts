@@ -1253,7 +1253,9 @@ function handleWheel(event) {
 		event.preventDefault();
 	}
 
-	const factor = Math.abs(event.deltaY/600) + 1;
+	// this is somewhat magic, Firefox scrolling is very slow, Safari scrolling
+	// is okayish, increase the 1.5 to increase scrollspeed
+	const factor = 1.5*(Math.abs(event.deltaY/600) + 1);
 	const transform: any = pixiBackend.container.stage.transform;
 	const pixiScale = transform.scale.x;
 
