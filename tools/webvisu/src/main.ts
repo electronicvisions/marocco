@@ -1317,7 +1317,7 @@ function handleWheel(event) {
 					automode.startDetailview(detailview.currentHicann, false);
 				};
 				// zoom out of detail view
-				if ((pixiScale < detailview.threshold) && (detailview.enabled)) {
+				if ((pixiScale < detailview.threshold) && (detailview.enabled || detailview.levelTwoEnabled)) {
 					automode.startOverview();
 				};
 			// manual mode
@@ -1437,7 +1437,7 @@ function handleTouchmove(event: any) {
 					automode.startDetailview(detailview.currentHicann, false);
 				};
 				// zoom out of detail view
-				if ((pixiScale < detailview.threshold) && (detailview.enabled)) {
+				if ((pixiScale < detailview.threshold) && (detailview.enabled || detailview.levelTwoEnabled)) {
 					automode.startOverview();
 				};
 			// manual mode
