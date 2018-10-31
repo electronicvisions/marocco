@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <numeric>
 
 #include "test/common.h"
 #include "marocco/routing/Fieres.h"
