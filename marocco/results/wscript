@@ -1,4 +1,5 @@
 from os.path import realpath, join, expanduser
+from waflib.TaskGen import feature, after_method
 
 
 def depends(dep):
@@ -22,6 +23,23 @@ def configure(cfg):
     cfg.setenv('', env=env)
 
 
+# provide post-emscripten-link-task output file installation
+# (emscripten generates a lot of files)
+@feature('emscripten_install')
+@after_method('apply_link')
+def install_all_files(self):
+    blddir = self.link_task.outputs[0].parent.get_bld()
+    try:
+        inst_to = self.install_path
+    except AttributeError:
+        inst_to = self.link_task.inst_to
+    for ext in ['.html', '.js', '.wasm', '.wasm.map', '.wast', '.data', '.js.mem', '.mem']:
+        filepath = blddir.find_node(self.target + ext)
+        if filepath:
+            self.install_task = self.add_install_files(
+                    install_to=inst_to, install_from=filepath)
+
+
 def build(bld):
     # provide emscripted boost libraries
     bld.all_envs['emscripten'].LIBPATH_BOOST4MAROCCO = [str(realpath(join(bld.all_envs['emscripten'].EMSCRIPTED_BOOST_PREFIX, 'lib')))]
@@ -33,7 +51,7 @@ def build(bld):
     external_files = bld.get_tgen_by_name('halco_hicann_v2').source + bld.get_tgen_by_name('halco_common').source + bld.get_tgen_by_name('halbe_container_emscripten').source
 
     bld.program(
-        features='cxx',
+        features='cxx emscripten_install',
         target='Marocco',
         source=[
             'embind.cpp',
@@ -44,4 +62,5 @@ def build(bld):
         # lots of custom em++ flags... :( -> TODO: clean up duplication
         cxxflags = '-O2 -std=c++14 -Werror -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
         linkflags = '-O2 --bind -Werror -s USE_ZLIB=1 -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
+        install_path    = 'lib/webvisu',
     )
