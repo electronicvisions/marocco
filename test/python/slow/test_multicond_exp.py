@@ -54,7 +54,7 @@ class IF_multicond_exp(unittest.TestCase):
         p1 = pynn.Population(1, pynn.IF_multicond_exp)
         # we use 4 different time constants and reversal potentials
         p1.set('e_rev', [0.,-10,-80,-100])
-        p1.set('tau_syn', [17,18,19,20])
+        p1.set('tau_syn', [2,3,4,5])
 
         # place to a certain HICANN to be able to extract config data afterwards
         marocco.manual_placement.on_hicann(p1, used_hicann)
