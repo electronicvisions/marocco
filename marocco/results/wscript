@@ -19,7 +19,8 @@ def configure(cfg):
     cfg.load('c_emscripten')
     cfg.env.EMSCRIPTED_BOOST_PREFIX = cfg.options.emscripted_boost_prefix
     if not cfg.env.EMSCRIPTED_BOOST_PREFIX:
-        cfg.fatal('Please provide --emscripted-boost-prefix=/path/to/boost/install')
+        cfg.fatal('Please provide --emscripted-boost-prefix='
+                  '/path/to/boost/install')
     cfg.setenv('', env=env)
 
 
@@ -33,7 +34,9 @@ def install_all_files(self):
         inst_to = self.install_path
     except AttributeError:
         inst_to = self.link_task.inst_to
-    for ext in ['.html', '.js', '.wasm', '.wasm.map', '.wast', '.data', '.js.mem', '.mem']:
+    # install of '.html' is covered by cxx feature
+    for ext in ['.js', '.wasm', '.wasm.map', '.wast', '.data', '.js.mem',
+                '.mem']:
         filepath = blddir.find_node(self.target + ext)
         if filepath:
             self.install_task = self.add_install_files(
@@ -42,25 +45,37 @@ def install_all_files(self):
 
 def build(bld):
     # provide emscripted boost libraries
-    bld.all_envs['emscripten'].LIBPATH_BOOST4MAROCCO = [str(realpath(join(bld.all_envs['emscripten'].EMSCRIPTED_BOOST_PREFIX, 'lib')))]
-    bld.all_envs['emscripten'].INCLUDES_BOOST4MAROCCO = [str(realpath(join(bld.all_envs['emscripten'].EMSCRIPTED_BOOST_PREFIX, 'include')))]
-    bld.all_envs['emscripten'].LIB_BOOST4MAROCCO = 'boost_iostreams boost_filesystem boost_serialization boost_system'.split()
+    bld.all_envs['emscripten'].LIBPATH_BOOST4MAROCCO = [str(realpath(join(
+            bld.all_envs['emscripten'].EMSCRIPTED_BOOST_PREFIX, 'lib')))]
+    bld.all_envs['emscripten'].INCLUDES_BOOST4MAROCCO = [str(realpath(join(
+            bld.all_envs['emscripten'].EMSCRIPTED_BOOST_PREFIX, 'include')))]
+    bld.all_envs['emscripten'].LIB_BOOST4MAROCCO = ('boost_iostreams '
+                                                    'boost_filesystem '
+                                                    'boost_serialization '
+                                                    'boost_system').split()
 
     # we cannot reuse the targets, so we recompile the files directly
-    marocco_files = bld.get_tgen_by_name('marocco_coordinates').source + bld.get_tgen_by_name('marocco_results').source
-    external_files = bld.get_tgen_by_name('halco_hicann_v2').source + bld.get_tgen_by_name('halco_common').source + bld.get_tgen_by_name('halbe_container_emscripten').source
+    marocco_files = bld.get_tgen_by_name('marocco_coordinates').source
+    external_files = bld.get_tgen_by_name('halco_hicann_v2').source + \
+        bld.get_tgen_by_name('halco_common').source
 
     bld.program(
         features='cxx emscripten_install',
         target='Marocco',
         source=[
-            'embind.cpp',
-            '../resource/HICANNManager.cpp',
         ] + marocco_files + external_files,
-        use = ['marocco_inc', 'BOOST4MAROCCO'],
-        env = bld.all_envs['emscripten'],
+        use=['marocco_inc', 'BOOST4MAROCCO'],
+        env=bld.all_envs['emscripten'],
         # lots of custom em++ flags... :( -> TODO: clean up duplication
-        cxxflags = '-O2 -std=c++14 -Werror -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
-        linkflags = '-O2 --bind -Werror -s USE_ZLIB=1 -s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 -s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
-        install_path    = 'lib/webvisu',
+        cxxflags='-O2 -std=c++14 -Werror -s ALLOW_MEMORY_GROWTH=1 ' + \
+                 '-s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 ' + \
+                 '-s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 ' + \
+                 '-s DISABLE_EXCEPTION_CATCHING=0 ' + \
+                 '-s  STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
+        linkflags='-O2 --bind -Werror -s USE_ZLIB=1 -s ' + \
+                  'ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 ' + \
+                  '-s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 ' + \
+                  '-s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 ' + \
+                  '-s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
+        install_path='lib/webvisu',
     )
