@@ -35,12 +35,14 @@ def install_all_files(self):
     except AttributeError:
         inst_to = self.link_task.inst_to
     # install of '.html' is covered by cxx feature
-    for ext in ['.js', '.wasm', '.wasm.map', '.wast', '.data', '.js.mem',
-                '.mem']:
-        filepath = blddir.find_node(self.target + ext)
-        if filepath:
-            self.install_task = self.add_install_files(
-                    install_to=inst_to, install_from=filepath)
+    # other compile options might need other file extensions...
+    # (e.g. .data .js.mem .mem)
+    for ext in ['.js', '.wasm', '.wasm.map', '.wast']:
+        filepath = blddir.find_or_declare(self.target + ext)
+        self.install_task = self.add_install_files(
+            install_to=inst_to, install_from=filepath)
+        # wait for link task to complete (i.e. wait for files to exist)
+        self.install_task.set_run_after(self.link_task)
 
 
 def build(bld):
