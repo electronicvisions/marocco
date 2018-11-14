@@ -15,11 +15,13 @@
 
 #include "calibtic/HMF/HICANNCollection.h"
 
+#include "hal/Coordinate/iter_all.h"
+
 namespace calibtic {
-	namespace backend {
-		class XMLBackend;
-		class BinaryBackend;
-	}
+namespace backend {
+	class XMLBackend;
+	class BinaryBackend;
+}
 }
 
 namespace marocco {
@@ -383,6 +385,41 @@ size_t Manager<T>::getMaxL1Crossbars(marocco::routing::L1BusOnWafer const& bus) 
 	}
 
 	return max_switches;
+}
+
+template <class T>
+size_t Manager<T>::getMaxChainLength(HMF::Coordinate::HICANNOnWafer const& hicann) const
+{
+	size_t max_chainLength = 0;
+	for( auto const bus : HMF::Coordinate::iter_all<HMF::Coordinate::VLineOnHICANN>() ){
+		size_t const length = getMaxChainLength( marocco::routing::L1BusOnWafer(hicann, bus) );
+		if ( max_chainLength == 0 || length < max_chainLength){
+			max_chainLength = length;
+		}
+	}
+	return max_chainLength;
+}
+
+template <class T>
+size_t Manager<T>::getMaxChainLength(marocco::routing::L1BusOnWafer const& bus) const
+{
+	size_t max_chainLength = 0;
+
+	for (auto const wafer : mWafers) {
+		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
+
+		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
+		auto const hicann_global = HMF::Coordinate::HICANNGlobal(hicann_on_wafer, wafer.first);
+
+		auto const calib = loadCalib(hicann_global);
+
+		size_t chainlength = calib->atSynapseChainLengthCollection()->getMaxChainLength(bus.toVLineOnHICANN());
+		if (max_chainLength == 0 || chainlength < max_chainLength) {
+			max_chainLength = chainlength;
+		}
+	}
+	MAROCCO_DEBUG("max chain length: " << max_chainLength);
+	return max_chainLength;
 }
 
 } // namespace resource

@@ -194,6 +194,18 @@ public:
 	 */
 	size_t getMaxL1Crossbars(marocco::routing::L1BusOnWafer const& bus) const;
 
+	/**
+	 * Retuns the maximum Chain Length, that is allowed on this bus
+	 */
+	size_t getMaxChainLength(marocco::routing::L1BusOnWafer const& bus) const;
+
+	/**
+	 * Returns the minimal maximum ChainLength that all VBuses on this HICANN allow.
+	 *
+	 * if the maxima are 3,4,5 it returns 3.
+	 */
+	size_t getMaxChainLength(HMF::Coordinate::HICANNOnWafer const& hicann) const;
+
 
 protected:
 	friend class AHICANNManager;
