@@ -57,15 +57,17 @@ def build(bld):
                                                     'boost_system').split()
 
     # we cannot reuse the targets, so we recompile the files directly
-    marocco_files = bld.get_tgen_by_name('marocco_coordinates').source
+    marocco_files = bld.get_tgen_by_name('marocco_coordinates').source + \
+        bld.get_tgen_by_name('marocco_results').source
+
     external_files = bld.get_tgen_by_name('halco_hicann_v2').source + \
-        bld.get_tgen_by_name('halco_common').source
+        bld.get_tgen_by_name('halco_common').source + \
+        bld.get_tgen_by_name('halbe_container_emscripten').source
 
     bld.program(
         features='cxx emscripten_install',
         target='Marocco',
-        source=[
-        ] + marocco_files + external_files,
+        source=['embind.cpp'] + marocco_files + external_files,
         use=['marocco_inc', 'BOOST4MAROCCO'],
         env=bld.all_envs['emscripten'],
         # lots of custom em++ flags... :( -> TODO: clean up duplication
