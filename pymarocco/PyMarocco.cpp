@@ -1,4 +1,5 @@
 #include "pymarocco/PyMarocco.h"
+#include "sthal/ParallelHICANNv4Configurator.h"
 
 #include <boost/serialization/nvp.hpp>
 
@@ -25,18 +26,18 @@ PyMarocco::name() const
 	return "marocco";
 }
 
-PyMarocco::PyMarocco() :
-	backend(Backend::None),
-	calib_backend(CalibBackend::XML),
-	calib_path("/wang/data/calibration/brainscales/default"),
-	default_wafer(33),
-	skip_mapping(false),
-	verification(Verification::Verify),
-	checkl1locking(CheckL1Locking::Check),
-	bkg_gen_isi(125),
-	pll_freq(125e6),
-	hicann_configurator(HICANNCfg::ParallelHICANNv4Configurator),
-	continue_despite_synapse_loss(false)
+PyMarocco::PyMarocco()
+    : backend(Backend::None),
+      calib_backend(CalibBackend::XML),
+      calib_path("/wang/data/calibration/brainscales/default"),
+      default_wafer(33),
+      skip_mapping(false),
+      verification(Verification::Verify),
+      checkl1locking(CheckL1Locking::Check),
+      bkg_gen_isi(125),
+      pll_freq(125e6),
+      hicann_configurator(new sthal::ParallelHICANNv4Configurator()),
+      continue_despite_synapse_loss(false)
 {}
 
 boost::shared_ptr<PyMarocco> PyMarocco::create()

@@ -1,6 +1,7 @@
 import copy, unittest, random
 from pymarocco import *
 from pyhalbe.Coordinate import *
+import pysthal
 import pyhmf as pynn
 
 class TestESS(unittest.TestCase):
@@ -9,7 +10,7 @@ class TestESS(unittest.TestCase):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
         self.marocco.calib_backend = PyMarocco.CalibBackend.Default
-        self.marocco.hicann_configurator = PyMarocco.HICANNConfigurator
+        self.marocco.hicann_configurator = pysthal.HICANNConfigurator()
 
     def tearDown(self):
         del self.marocco

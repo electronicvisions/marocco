@@ -22,6 +22,11 @@
 
 #include "sthal/ESSConfig.h"
 
+namespace sthal
+{
+	class HICANNConfigurator;
+}
+
 namespace pymarocco {
 
 /// The high-level interface to the maroccco framework
@@ -55,18 +60,6 @@ public:
 		XML,
 		Binary,
 		Default
-	};
-
-	PYPP_CLASS_ENUM(HICANNCfg) {
-		HICANNConfigurator,
-		HICANNv4Configurator,
-		DontProgramFloatingGatesHICANNConfigurator,
-		NoFGConfigurator,
-		NoResetNoFGConfigurator,
-		ParallelHICANNv4Configurator,
-		ParallelHICANNNoFGConfigurator,
-		ParallelHICANNNoResetNoFGConfigurator,
-		OnlyNeuronNoResetNoFGConfigurator
 	};
 
 	PYPP_CLASS_ENUM(Verification) {
@@ -188,7 +181,7 @@ public:
 
 	/// choose HICANN configurator
 	/// default: ParallelHICANNv4Configurator
-	HICANNCfg hicann_configurator;
+	boost::shared_ptr<sthal::HICANNConfigurator> hicann_configurator;
 
 	/// ESS config
 	sthal::ESSConfig ess_config;
