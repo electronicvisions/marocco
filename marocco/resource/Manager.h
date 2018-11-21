@@ -206,6 +206,10 @@ public:
 	 */
 	size_t getMaxChainLength(HMF::Coordinate::HICANNOnWafer const& hicann) const;
 
+	/**
+	 * Returns the maximum number of Switches from a specific bus into the synapse array.
+	 */
+	size_t getMaxSynapseSwitches(marocco::routing::L1BusOnWafer const& bus) const;
 
 protected:
 	friend class AHICANNManager;

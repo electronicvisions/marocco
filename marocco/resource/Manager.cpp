@@ -422,5 +422,28 @@ size_t Manager<T>::getMaxChainLength(marocco::routing::L1BusOnWafer const& bus) 
 	return max_chainLength;
 }
 
+template <class T>
+size_t Manager<T>::getMaxSynapseSwitches(marocco::routing::L1BusOnWafer const& bus) const
+{
+	size_t max_synapseSwitches = 0;
+
+	for (auto const wafer : mWafers) {
+		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
+
+		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
+		auto const hicann_global = HMF::Coordinate::HICANNGlobal(hicann_on_wafer, wafer.first);
+
+		auto const calib = loadCalib(hicann_global);
+
+		size_t const switches =
+		    calib->atSynapseSwitchCollection()->getMaxSwitches(bus.toVLineOnHICANN());
+		if (max_synapseSwitches == 0 || switches < max_synapseSwitches) {
+			max_synapseSwitches = switches;
+		}
+	}
+	return max_synapseSwitches;
+}
+
+
 } // namespace resource
 } // namespace marocco
