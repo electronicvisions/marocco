@@ -28,7 +28,7 @@ public:
 
 	/**
 	 * @brief Backend for defect data.
-	 * Defaults to \c None.
+	 * Defaults to \c XML.
 	 */
 	Backend backend;
 
@@ -36,6 +36,7 @@ public:
 	 * @brief Path to directory containing defect data.
 	 * Marocco will throw during runtime if \c MAROCCO_DEFECTS_PATH is set and this string
 	 * is non-empty.
+	 * default: /wang/data/calibration/brainscales/default
 	 */
 	std::string path;
 
