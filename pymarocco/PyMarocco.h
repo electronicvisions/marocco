@@ -3,6 +3,7 @@
 #include <string>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/export.hpp>
+#include <boost/shared_ptr.hpp>
 
 #include "euter/metadata.h"
 #include "pywrap/compat/macros.hpp"
@@ -21,6 +22,11 @@
 #include "marocco/routing/parameters/SynapseRouting.h"
 
 #include "sthal/ESSConfig.h"
+#include "sthal/ParallelHICANNv4Configurator.h"
+
+// At some point we should clean up the includes and replace with forward
+// declares, but they need a definition for the boost::python wrapping
+// 2/19/19 PRM
 
 namespace pymarocco {
 
@@ -55,18 +61,6 @@ public:
 		XML,
 		Binary,
 		Default
-	};
-
-	PYPP_CLASS_ENUM(HICANNCfg) {
-		HICANNConfigurator,
-		HICANNv4Configurator,
-		DontProgramFloatingGatesHICANNConfigurator,
-		NoFGConfigurator,
-		NoResetNoFGConfigurator,
-		ParallelHICANNv4Configurator,
-		ParallelHICANNNoFGConfigurator,
-		ParallelHICANNNoResetNoFGConfigurator,
-		OnlyNeuronNoResetNoFGConfigurator
 	};
 
 	PYPP_CLASS_ENUM(Verification) {
@@ -188,7 +182,7 @@ public:
 
 	/// choose HICANN configurator
 	/// default: ParallelHICANNv4Configurator
-	HICANNCfg hicann_configurator;
+	boost::shared_ptr<sthal::HICANNConfigurator> hicann_configurator;
 
 	/// ESS config
 	sthal::ESSConfig ess_config;

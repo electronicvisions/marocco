@@ -3,6 +3,7 @@ import unittest
 import pylogging
 import pyhmf as pynn
 import pymarocco
+import pysthal
 
 def ESS_available():
     try:
@@ -36,7 +37,7 @@ class TestIssue1586(unittest.TestCase):
         marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
         marocco.defects.backend = pymarocco.Defects.Backend.None
         marocco.neuron_placement.skip_hicanns_without_neuron_blacklisting(False)
-        marocco.hicann_configurator = pymarocco.PyMarocco.HICANNConfigurator
+        marocco.hicann_configurator = pysthal.HICANNConfigurator()
         marocco.continue_despite_synapse_loss = True
         marocco.backend = pymarocco.PyMarocco.ESS
         marocco.experiment_time_offset=5e-7
