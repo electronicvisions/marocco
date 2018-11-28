@@ -10,13 +10,20 @@
 #include "redman/backend/Library.h"
 #include "redman/backend/MockBackend.h"
 #include "redman/resources/Wafer.h"
+#include "sthal/DontProgramFloatingGatesHICANNConfigurator.h"
 #include "sthal/ESSHardwareDatabase.h"
 #include "sthal/ESSRunner.h"
 #include "sthal/ExperimentRunner.h"
-#include "sthal/VerifyConfigurator.h"
-#include "sthal/OnlyNeuronNoResetNoFGConfigurator.h"
-#include "sthal/MagicHardwareDatabase.h"
 #include "sthal/HICANNConfigurator.h"
+#include "sthal/HICANNv4Configurator.h"
+#include "sthal/NoResetNoFGConfigurator.h"
+#include "sthal/NoFGConfigurator.h"
+#include "sthal/ParallelHICANNv4Configurator.h"
+#include "sthal/ParallelHICANNNoFGConfigurator.h"
+#include "sthal/ParallelHICANNNoResetNoFGConfigurator.h"
+#include "sthal/OnlyNeuronNoResetNoFGConfigurator.h"
+#include "sthal/VerifyConfigurator.h"
+#include "sthal/MagicHardwareDatabase.h"
 
 #include "marocco/Logger.h"
 #include "marocco/Mapper.h"
@@ -275,6 +282,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	DeleteRecursivelyOnScopeExit cleanup;
 	std::unique_ptr<sthal::ExperimentRunner> runner;
 	std::unique_ptr<sthal::HardwareDatabase> hwdb;
+	std::unique_ptr<sthal::HICANNConfigurator> configurator;
 
 	switch (mi->backend) {
 		case PyMarocco::Backend::ESS: {
@@ -306,13 +314,44 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 			throw std::runtime_error("unknown backend");
 	}
 
+	switch(mi->hicann_configurator) {
+		case PyMarocco::HICANNCfg::HICANNConfigurator:
+			configurator.reset(new sthal::HICANNConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::HICANNv4Configurator:
+			configurator.reset(new sthal::HICANNv4Configurator());
+			break;
+		case PyMarocco::HICANNCfg::DontProgramFloatingGatesHICANNConfigurator:
+			configurator.reset(new sthal::DontProgramFloatingGatesHICANNConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::NoFGConfigurator:
+			configurator.reset(new sthal::NoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::NoResetNoFGConfigurator:
+			configurator.reset(new sthal::NoResetNoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::OnlyNeuronNoResetNoFGConfigurator:
+			configurator.reset(new sthal::OnlyNeuronNoResetNoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::ParallelHICANNv4Configurator:
+			configurator.reset(new sthal::ParallelHICANNv4Configurator());
+			break;
+		case PyMarocco::HICANNCfg::ParallelHICANNNoFGConfigurator:
+			configurator.reset(new sthal::ParallelHICANNNoFGConfigurator());
+			break;
+		case PyMarocco::HICANNCfg::ParallelHICANNNoResetNoFGConfigurator:
+			configurator.reset(new sthal::ParallelHICANNNoResetNoFGConfigurator());
+			break;
+		default:
+			throw std::runtime_error("unknown configurator");
+	}
+
 	experiment::Experiment experiment(
 		*hardware, *results, mapper.bio_graph(), exp_params, *mi, *runner);
 
 	hardware->commonFPGASettings()->setPLL(mi->pll_freq);
 
 	hardware->connect(*hwdb);
-	boost::shared_ptr<sthal::HICANNConfigurator> configurator = mi->hicann_configurator;
 	hardware->configure(*configurator);
 
 	if(mi->backend == PyMarocco::Backend::Hardware) {
