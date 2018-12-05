@@ -289,7 +289,7 @@ std::ostream& operator<<(std::ostream& os, SynapseManager const& mgr);
 template <typename Key, typename T>
 struct map_acc
 {
-	T operator()(T const& lhs, std::pair<Key, T> const& rhs)
+	T operator()(T const& lhs, std::pair<Key, T> const& rhs) const
 	{
 		return lhs + rhs.second;
 	}
@@ -298,7 +298,7 @@ struct map_acc
 struct Most
 {
 	template <typename T>
-	bool operator()(T const& a, T const& b)
+	bool operator()(T const& a, T const& b) const
 	{
 		return a > b;
 	}
