@@ -129,6 +129,10 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	// Yes, this is heavy frickelei.
 	auto runtime_container = store->getMetaData<pymarocco::runtime::Runtime>("marocco_runtime");
 
+	if (runtime_container != nullptr && (!mi->persist.empty() || !mi->wafer_cfg.empty())) {
+		throw std::runtime_error("usage of runtime and persist or wafer_cfg are mutally exclusive");
+	}
+
 	Wafer wafer;
 	boost::shared_ptr<sthal::Wafer> hardware;
 	boost::shared_ptr<results::Marocco> results;
