@@ -21,7 +21,20 @@ def build(bld):
     bld.env = bld.all_envs['marocco_webvisu']
     srcdir_webvisu = bld.path.get_src()
     blddir_webvisu = bld.path.get_bld()
-    bld.cmd_and_log('HOME={} {} install {}'.format(bld.env.NODE_HOME, bld.env.NPM[0], srcdir_webvisu), cwd=blddir_webvisu)
+
+    # we copy ts sources to the waf build folder
+    cp_cmd = "cp -a {srcdir} {blddir}".format(srcdir=srcdir_webvisu, blddir=blddir_webvisu)
+    bld.cmd_and_log (cp_cmd)
+
+    # use npm to acquire all the ts module dependencies
+    npm_cmd = "HOME={home} {npm} {{}}".format(home=bld.env.NODE_HOME, npm=bld.env.NPM[0])
+    bld.cmd_and_log (npm_cmd.format('install'), cwd=blddir_webvisu.find_dir('webvisu'))
+
+    # and run a npm script which builds and installs the static assets
+    bld.cmd_and_log (npm_cmd.format('run prepare'), cwd=blddir_webvisu.find_dir('webvisu'))
+
+    # use waf for installing to target folder
+    dist_folder = blddir_webvisu.find_dir('webvisu').find_dir('dist')
+    bld.install_files('${PREFIX}/lib/webvisu', dist_folder.ant_glob('**/*'), cwd=dist_folder, relative_trick=True)
+
     bld.env = bld.all_envs['']
-    start_dir = blddir_webvisu.find_dir('node_modules').find_dir('webvisu').find_dir('build')
-    bld.install_files('${PREFIX}/lib/webvisu', blddir_webvisu.ant_glob('node_modules/webvisu/build/**/*'), cwd=start_dir, relative_trick=True)

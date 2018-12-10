@@ -4,10 +4,21 @@
 	"repository": "https://github.com/electronicvisions/marocco",
 	"license": "LGPL-2.1",
 	"version": "0.1.0dev",
-	"dependencies":
-		{
-			"typescript": ">=2.8.0 <3.0.0",
-			"typedoc": ">=0.9.0 <0.12.0"
-		}
+	"scripts": {
+		"build": "tsc && npm run copy-static-assets",
+		"prepare": "npm run build",
+		"copy-static-assets": "ts-node copyStaticAssets.ts"
+	},
+	"devDependencies": {
+		"typescript": ">=2.8.0 <3.0.0",
+		"typedoc": ">=0.9.0 <0.12.0",
+		"@types/shelljs": "^0.7.8",
+		"shelljs": "^0.8.1",
+		"ts-node": "^5.0.0"
+	},
+	"_comment": { "FIXME": "We should explicitly include the libraries (i.e. rm *.js and add those as dependencies here)" },
+	"files": [
+		"dist/**/*"
+	]
 }
 

@@ -1,12 +1,17 @@
 {
-	"strict": true,
 	"compilerOptions": {
-		"outDir": "./build",
-		"outFile": "./build/main.js",
 		"target": "es5",
+		"outFile" : "dist/main.js",
+		"baseUrl": ".",
+		"sourceMap": true,
 		"lib" : ["es2015", "dom"]
 	},
-	"files": [
-		"./src/main.ts"
+	"strict": true,
+	"include": ["src"],
+	"exclude": [
+		".gitignore",
+		"node_home",
+		"node_modules",
+		"D3Test"
 	]
 }
