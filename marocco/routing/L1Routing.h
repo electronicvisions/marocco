@@ -49,11 +49,6 @@ public:
 	 */
 	std::vector<HMF::Coordinate::DNCMergerOnWafer> sources_sorted_by_priority() const;
 
-	/**
-	 * @brief Returns efferent projections of the given merger, grouped by their target.
-	 */
-	targets_type targets_for_source(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
-
 	std::vector<request_type> const& failed_routes() const;
 
 private:

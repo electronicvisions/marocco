@@ -5,6 +5,7 @@
 #include "marocco/Logger.h"
 #include "marocco/routing/L1BackboneRouter.h"
 #include "marocco/routing/L1DijkstraRouter.h"
+#include "marocco/routing/SynapseDriverRequirementPerSource.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include "marocco/routing/VLineUsage.h"
 #include "marocco/routing/internal/SynapseTargetMapping.h"
@@ -93,54 +94,6 @@ std::vector<DNCMergerOnWafer> L1Routing::sources_sorted_by_priority() const
 	return result;
 }
 
-std::unordered_map<HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
-L1Routing::targets_for_source(DNCMergerOnWafer const& merger) const
-{
-	std::unordered_map<HICANNOnWafer, std::set<BioGraph::edge_descriptor> > result;
-	auto const& graph = m_bio_graph.graph();
-
-	for (auto const& item : m_neuron_placement.find(merger)) {
-		for (auto const& edge : make_iterable(out_edges(item.population(), graph))) {
-			auto const target_population = target(edge, graph);
-
-			if (is_source(target_population, graph)) {
-				throw std::runtime_error("target population is a spike source");
-			}
-
-			auto const placements = m_neuron_placement.find(target_population);
-			if (placements.empty()) {
-				throw std::runtime_error("target population has not been placed");
-			}
-
-			for (auto const& placement : placements) {
-				auto const neuron_block = placement.neuron_block();
-				// Spike sources should never have incoming edges.
-				assert(neuron_block != boost::none);
-				result[neuron_block->toHICANNOnWafer()].insert(edge);
-			}
-		}
-	}
-
-	// Remove HICANN if no outgoing projection has target populations there, i.e. the
-	// number of required synapse drivers is zero.
-	for (auto it = result.begin(), eit = result.end(); it != eit;) {
-		// TODO(#1594): determination whether route has synapes to target does not
-		// need to count the total number of synapses.
-		results::SynapticInputs synaptic_inputs;
-		internal::SynapseTargetMapping::simple_mapping(it->first, m_neuron_placement, graph, synaptic_inputs);
-		SynapseDriverRequirements requirements(it->first, m_neuron_placement, synaptic_inputs);
-		auto const num = requirements.calc(merger, graph);
-
-		if (num.first == 0u) {
-			it = result.erase(it);
-		} else {
-			++it;
-		}
-	}
-
-	return result;
-}
-
 void L1Routing::run()
 {
 	switch (m_parameters.algorithm()) {
@@ -194,10 +147,12 @@ void L1Routing::run_backbone_router()
 			return vline_usage.get(bus.toHICANNOnWafer(), bus.toVLineOnHICANN()) < 12 ? 3 : 2;
 		});
 
+	auto const drv_per_src =
+	    SynapseDriverRequirementPerSource(m_bio_graph.graph(), m_neuron_placement);
 	for (auto const& merger : sources) {
 		auto const source = m_l1_graph[merger.toHICANNOnWafer()]
 		                              [merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()];
-		auto const targets = targets_for_source(merger);
+		auto const targets = drv_per_src.targets_for_source(merger);
 
 		MAROCCO_TRACE("routing from " << merger << " to " << targets.size() << " targets");
 
@@ -236,11 +191,12 @@ void L1Routing::run_dijkstra_router()
 			          [merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()],
 			10000); // TODO: magic number
 	}
-
+	auto const drv_per_src =
+	    SynapseDriverRequirementPerSource(m_bio_graph.graph(), m_neuron_placement);
 	for (auto const& merger : sources) {
 		auto const source = m_l1_graph[merger.toHICANNOnWafer()]
 		                              [merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()];
-		auto const targets = targets_for_source(merger);
+		auto const targets = drv_per_src.targets_for_source(merger);
 
 		MAROCCO_TRACE("routing from " << merger << " to " << targets.size() << " targets");
 
