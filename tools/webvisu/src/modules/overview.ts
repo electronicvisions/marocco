@@ -121,10 +121,12 @@ namespace internalModule {
 		 */
 		drawHicannBackground(hicannIndex: number, x: number, y: number) {
 			// calculate color on number of neurons color gradient
+			let numNeurons = this.wafer.hicanns[hicannIndex].numNeurons;
 			let colorNumNeurons = tools.colorInGradient( this.numNeuronsColorOne, this.numNeuronsColorTwo,
-					this.wafer.numNeuronsMax, this.wafer.hicanns[hicannIndex].numNeurons );
+					this.wafer.numNeuronsMax, numNeurons);
 			// draw rectangle as hicann representation
-			pixiBackend.drawRectangle(pixiBackend.container.backgrounds, x, y, this.wafer.hicannWidth, this.wafer.hicannHeight, colorNumNeurons, 0.5);
+			let alpha = numNeurons ? 0.5 : 0;
+			pixiBackend.drawRectangle(pixiBackend.container.backgrounds, x, y, this.wafer.hicannWidth, this.wafer.hicannHeight, colorNumNeurons, alpha);
 		}
 
 		/**
@@ -132,14 +134,16 @@ namespace internalModule {
 		 */
 		drawInputs(hicannIndex: number, x: number, y: number) {
 			// calculate color on number of inputs color gradient
+			let numInputs = this.wafer.hicanns[hicannIndex].numInputs;
 			let colorNumInputs = tools.colorInGradient( this.numInputsColorOne, this.numInputsColorTwo,
-					this.wafer.numInputsMax, this.wafer.hicanns[hicannIndex].numInputs );
+					this.wafer.numInputsMax, numInputs);
+			let alpha = numInputs ? 0.5 : 0;
 			// draw triangle in color scale as number of hicann inputs representation
 			pixiBackend.drawTriangle(pixiBackend.container.inputs,
 					x + this.wafer.busesLeftPosition.x + this.wafer.busesLeftPosition.width,
 					y + this.wafer.busesLeftPosition.y + this.wafer.busesLeftPosition.height,
 					this.wafer.busesRightPosition.x - (this.wafer.busesLeftPosition.x + this.wafer.busesLeftPosition.width),
-					this.wafer.inputTriangleHeight, colorNumInputs);
+					this.wafer.inputTriangleHeight, colorNumInputs, alpha);
 		}
 
 		/**
@@ -156,35 +160,41 @@ namespace internalModule {
 		 * Draw all vertical left buses as one colored rectangle for a HICANN (as graphics object).
 		 */
 		drawLeftBusSegment(hicannIndex: number, x: number, y: number) {
+			let numBusesLeft = this.wafer.hicanns[hicannIndex].numBusesLeft;
 			let colorNumBuses = tools.colorInGradient( this.numRoutesLeftColorOne, this.numRoutesLeftColorTwo,
-					this.wafer.numBusesLeftMax, this.wafer.hicanns[hicannIndex].numBusesLeft);
+					this.wafer.numBusesLeftMax, numBusesLeft);
+			let alpha = numBusesLeft ? 0.5 : 0;
 			pixiBackend.drawRectangle(pixiBackend.container.overviewBusesLeft,
 					x + this.wafer.busesLeftPosition.x, y + this.wafer.busesLeftPosition.y,
-					this.wafer.busesLeftPosition.width, this.wafer.busesLeftPosition.height, colorNumBuses);
+					this.wafer.busesLeftPosition.width, this.wafer.busesLeftPosition.height, colorNumBuses, alpha);
 		}
 
 		/**
 		 * Draw all vertical right buses as one colored rectangle for a HICANN (as graphics object).
 		 */
 		drawRightBusSegment(hicannIndex: number, x: number, y: number) {
+			let numBusesRight = this.wafer.hicanns[hicannIndex].numBusesRight;
 			let colorNumBuses = tools.colorInGradient( this.numRoutesRightColorOne, this.numRoutesRightColorTwo,
-					this.wafer.numBusesRightMax, this.wafer.hicanns[hicannIndex].numBusesRight);
+					this.wafer.numBusesRightMax, numBusesRight);
+			let alpha = numBusesRight ? 0.5 : 0;
 			pixiBackend.drawRectangle(pixiBackend.container.overviewBusesRight,
 					x + this.wafer.busesRightPosition.x, y + this.wafer.busesRightPosition.y,
-					this.wafer.busesRightPosition.width, this.wafer.busesRightPosition.height, colorNumBuses);
+					this.wafer.busesRightPosition.width, this.wafer.busesRightPosition.height, colorNumBuses, alpha);
 		}
 
 		/**
 		 * Draw all horizontal buses as one colored rectangle for a HICANN (as graphics object).
 		 */
 		drawHorizontalBusSegment(hicannIndex: number, x: number, y: number) {
+			let numBusesHorizontal = this.wafer.hicanns[hicannIndex].numBusesHorizontal;
 			let colorNumBuses = tools.colorInGradient( this.numRoutesHorizontalColorOne, this.numRoutesHorizontalColorTwo,
-					this.wafer.numBusesHorizontalMax, this.wafer.hicanns[hicannIndex].numBusesHorizontal);
+					this.wafer.numBusesHorizontalMax, numBusesHorizontal);
+			let alpha = numBusesHorizontal ? 0.5 : 0;
 			pixiBackend.drawRectangle(pixiBackend.container.overviewBusesHorizontal,
 					x + this.wafer.busesLeftPosition.x + this.wafer.busesLeftPosition.width,
 					y + this.wafer.busesHorizontalPosition.current.y,
 					this.wafer.busesRightPosition.x - (this.wafer.busesLeftPosition.x + this.wafer.busesLeftPosition.width),
-					this.wafer.busesHorizontalPosition.current.height, colorNumBuses);
+					this.wafer.busesHorizontalPosition.current.height, colorNumBuses, alpha);
 		}
 
 		resetOverview() {

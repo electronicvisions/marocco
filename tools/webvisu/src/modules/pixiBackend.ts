@@ -199,10 +199,11 @@ namespace pixiBackend {
      * @param height Height of the triangle.
      * @param color Fill color of the triangle. Requires hex-color in the form "0xffffff".
      */
-    export function drawTriangle(container: PIXI.Container, x: number, y: number, width: number, height: number, color) {
+    export function drawTriangle(container: PIXI.Container, x: number, y: number, width: number, height: number, color, alpha = 1) {
       const path = [x, y, x+width, y, x+width/2, y-height, x, y];
       const triangle = new PIXI.Graphics();
       triangle.beginFill(color);
+      triangle.fillAlpha = alpha;
       triangle.drawPolygon(path);
       triangle.endFill();
       container.addChild(triangle);
