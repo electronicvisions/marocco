@@ -2,9 +2,9 @@
 
 #include <unordered_map>
 
-#include "HMF/BlockCollection.h"
-#include "HMF/HICANNCollection.h"
-#include "HMF/NeuronCollection.h"
+#include "calibtic/HMF/BlockCollection.h"
+#include "calibtic/HMF/HICANNCollection.h"
+#include "calibtic/HMF/NeuronCollection.h"
 #include "sthal/HICANN.h"
 #include "hal/Coordinate/typed_array.h"
 

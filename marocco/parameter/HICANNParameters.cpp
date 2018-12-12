@@ -1,7 +1,7 @@
 #include "marocco/parameter/HICANNParameters.h"
 
-#include "HMF/NeuronCalibration.h"
-#include "HMF/SynapseRowCalibration.h"
+#include "calibtic/HMF/NeuronCalibration.h"
+#include "calibtic/HMF/SynapseRowCalibration.h"
 #include "calibtic/backend/Backend.h"
 #include "hal/Coordinate/iter_all.h"
 

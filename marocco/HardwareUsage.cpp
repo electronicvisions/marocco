@@ -3,7 +3,7 @@
 #include "marocco/Logger.h"
 #include "hal/Coordinate/iter_all.h"
 
-#include "HMF/SynapseDecoderDisablingSynapse.h"
+#include "calibtic/HMF/SynapseDecoderDisablingSynapse.h"
 
 using namespace HMF::Coordinate;
 

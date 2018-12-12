@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <boost/make_shared.hpp>
 
-#include "HMF/SynapseDecoderDisablingSynapse.h"
+#include "calibtic/HMF/SynapseDecoderDisablingSynapse.h"
 #include "hal/Coordinate/Synapse.h"
 #include "hal/Coordinate/iter_all.h"
 #include "hal/Coordinate/typed_array.h"

@@ -1,7 +1,7 @@
 #include "marocco/placement/internal/L1AddressPool.h"
 
 #include "hal/Coordinate/iter_all.h"
-#include "HMF/SynapseDecoderDisablingSynapse.h"
+#include "calibtic/HMF/SynapseDecoderDisablingSynapse.h"
 
 using namespace HMF::Coordinate;
 using namespace HMF::HICANN;

@@ -8,7 +8,7 @@
 #include <array>
 
 #include "euter/typedcellparametervector.h"
-#include "HMF/NeuronCollection.h"
+#include "calibtic/HMF/NeuronCollection.h"
 
 #include "marocco/config.h"
 #include "marocco/graph.h"
