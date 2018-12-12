@@ -162,11 +162,13 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	//  ——— LOAD DEFECT DATA ———————————————————————————————————————————————————
 
 	resource_manager_t resources{load_redman_backend(mi->defects)};
+	resource_fpga_manager_t fpga_resources{load_redman_backend(mi->defects)};
 
 	{
 		auto res = redman::resources::WaferWithBackend(resources.backend(), wafer);
 		auto const hicanns = res.hicanns();
 
+		// HICANNs
 		for (auto it = hicanns->begin_disabled(); it != hicanns->end_disabled(); ++it) {
 			LOG4CXX_TRACE(log4cxx::Logger::getLogger("marocco"), "Marked " << *it << " as defect/disabled");
 		}
@@ -197,11 +199,28 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		}
 
 		resources.inject(res);
+
+		auto res_fpga = redman::resources::WaferWithBackend(resources.backend(), wafer);
+		auto const fpgas = res_fpga.fpgas();
+		// FPGAS
+		for (auto it = fpgas->begin_disabled(); it != fpgas->end_disabled(); ++it) {
+			LOG4CXX_TRACE(
+			    log4cxx::Logger::getLogger("marocco"), "Marked " << *it << " as defect/disabled");
+		}
+
+		size_t const n_marked_fpgas = std::distance(fpgas->begin_disabled(), fpgas->end_disabled());
+		if (n_marked_fpgas != 0) {
+			LOG4CXX_DEBUG(
+			    log4cxx::Logger::getLogger("marocco"),
+			    "Marked " << n_marked_fpgas << " FPGA(s) as defect/disabled");
+		}
+
+		fpga_resources.inject(res_fpga);
 	}
 
 	//  ——— RUN MAPPING ————————————————————————————————————————————————————————
 
-	Mapper mapper{*hardware, resources, mi, results};
+	Mapper mapper{*hardware, resources, fpga_resources, mi, results};
 
 	if (mi->skip_mapping) {
 		if (!runtime_container) {
@@ -352,8 +371,6 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	experiment::Experiment experiment(
 		*hardware, *results, mapper.bio_graph(), exp_params, *mi, *runner);
-
-	hardware->commonFPGASettings()->setPLL(mi->pll_freq);
 
 	hardware->connect(*hwdb);
 	hardware->configure(*configurator);

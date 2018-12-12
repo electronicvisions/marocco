@@ -42,7 +42,7 @@ class TrivialNetworkFixture(MaroccoFixture):
         target = sim.Population(1, sim.EIF_cond_exp_isfa_ista)
         source = sim.Population(1, sim.EIF_cond_exp_isfa_ista)
 
-        self.chip = HICANNGlobal(Enum(3))
+        self.chip = HICANNGlobal(HICANNOnWafer(Enum(3)), Wafer(33))
         self.marocco.manual_placement.on_hicann(target, self.chip)
         self.marocco.manual_placement.on_hicann(source, self.chip)
         self.marocco.continue_despite_synapse_loss = True

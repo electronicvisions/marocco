@@ -19,6 +19,7 @@ public:
 	Mapper(
 		hardware_type& hw,
 		resource_manager_t& mgr,
+		resource_fpga_manager_t& fpga_mgr,
 		boost::shared_ptr<pymarocco::PyMarocco> const& pymarocco,
 		boost::shared_ptr<results::Marocco> const& results);
 
@@ -40,6 +41,7 @@ private:
 
 	// resource manager
 	resource_manager_t& mMgr;
+	resource_fpga_manager_t& mFPGAMgr;
 
 	// and a references to the hw
 	hardware_type& mHW;

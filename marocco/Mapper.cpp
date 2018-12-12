@@ -2,6 +2,9 @@
 #include <unordered_map>
 #include <chrono>
 
+#include "hal/Coordinate/iter_all.h"
+#include "hal/Coordinate/HICANN.h"
+
 #include "calibtic/backend/Backend.h"
 #include "calibtic/backend/Library.h"
 
@@ -76,9 +79,10 @@ boost::shared_ptr<calibtic::backend::Backend> load_calibtic_backend(
 Mapper::Mapper(
 	hardware_type& hw,
 	resource_manager_t& mgr,
+	resource_fpga_manager_t& fpga_mgr,
 	boost::shared_ptr<PyMarocco> const& pymarocco,
 	boost::shared_ptr<results::Marocco> const& results)
-	: mBioGraph(), mMgr(mgr), mHW(hw), mPyMarocco(pymarocco), m_results(results)
+	: mBioGraph(), mMgr(mgr), mFPGAMgr(fpga_mgr), mHW(hw), mPyMarocco(pymarocco), m_results(results)
 {
 	if (!mPyMarocco) {
 		mPyMarocco = PyMarocco::create();
@@ -119,7 +123,18 @@ void Mapper::run(ObjectStore const& pynn)
 	}
 
 	for (auto const hicann : mMgr.present()) {
+		MAROCCO_DEBUG("Adding " << hicann << " as an available resource");
 		m_results->resources.add(hicann);
+	}
+
+	for (auto const fpga : mFPGAMgr.present()) {
+		MAROCCO_DEBUG("Adding " << fpga << " as an available resource");
+		m_results->resources.add(fpga);
+		for (auto const hs_link : HMF::Coordinate::iter_all<HMF::Coordinate::HighspeedLinkOnDNC>()) {
+			if (mFPGAMgr.get(fpga)->hslinks()->has(hs_link)) {
+				m_results->resources.add(HMF::Coordinate::HighspeedLinkOnWafer(hs_link, fpga.toDNCOnWafer()));
+			}
+		}
 	}
 
 	// The 3 1/2-steps to complete happiness

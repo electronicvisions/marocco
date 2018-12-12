@@ -22,10 +22,41 @@ class Backend;
 
 namespace marocco {
 namespace resource {
-/** Overlay that can be used to track allocated HICANNs at runtime. */
-class HICANNManager {
+
+template <typename T> struct RedmanResourcesType;
+
+template <>
+struct RedmanResourcesType<HMF::Coordinate::HICANNGlobal>
+{
+	typedef redman::resources::Hicann type;
+};
+
+template <>
+struct RedmanResourcesType<HMF::Coordinate::FPGAGlobal>
+{
+	typedef redman::resources::Fpga type;
+};
+
+template <typename T> struct RedmanManagerType;
+
+template <>
+struct RedmanManagerType<HMF::Coordinate::HICANNGlobal>
+{
+	typedef redman::resources::components::Hicanns type;
+};
+
+template <>
+struct RedmanManagerType<HMF::Coordinate::FPGAGlobal>
+{
+	typedef redman::resources::components::Fpgas type;
+};
+
+/** Overlay that can be used to track allocated (HICANN/FPGA/...)Globals at runtime. */
+template <class T>
+class Manager
+{
 public:
-	typedef HMF::Coordinate::HICANNGlobal resource_type;
+	typedef T resource_type;
 
 private:
 	typedef HMF::Coordinate::Wafer wafer_type;
@@ -33,8 +64,11 @@ private:
 	typedef std::map<wafer_type, const manager_type> wafer_map_type;
 	typedef std::unordered_set<resource_type> allocation_type;
 
+	typedef typename RedmanResourcesType<T>::type redman_resources_type;
+	typedef typename RedmanManagerType<T>::type redman_manager_type;
+
 public:
-	HICANNManager(
+	Manager(
 		boost::shared_ptr<redman::backend::Backend> backend,
 		std::set<wafer_type> const& wafers = {});
 
@@ -52,84 +86,84 @@ public:
 	 */
 	std::vector<wafer_type> wafers() const;
 
-	/** Check whether this HICANN is present.
-	 * This is the case if the given HICANN is managed by this instance
+	/** Check whether this Resource is present.
+	 * This is the case if the given Resource is managed by this instance
 	 * (i.e. its wafer has been loaded) and has not been disabled in
 	 * the resource management.
 	 * In addition to the data provided by the resource management a
-	 * HICANN can be marked as absent using `mask()`.
+	 * Resource can be marked as absent using `mask()`.
 	 */
-	bool has(resource_type const& hicann) const;
+	bool has(resource_type const& resource) const;
 
-	/** Mark the given HICANN as being absent, e.g. due to use in a
+	/** Mark the given Resource as being absent, e.g. due to use in a
 	 * different process.
-	 * \throws std::runtime_error If HICANN is disabled in the resource
-	 *         management or when trying to mark an already masked HICANN.
+	 * \throws std::runtime_error If Resource is disabled in the resource
+	 *         management or when trying to mark an already masked Resource.
 	 */
-	void mask(resource_type const& hicann);
+	void mask(resource_type const& resource);
 
 	/** Revert the operation done by `mask()`.
 	 * Its presence (see `has()`) is then only determined by the
 	 * underlying defect data.
-	 * \throws std::runtime_error If HICANN is disabled in the resource
-	 *         management or if this HICANN is not masked.
+	 * \throws std::runtime_error If Resource is disabled in the resource
+	 *         management or if this Resource is not masked.
 	 */
-	void unmask(resource_type const& hicann);
+	void unmask(resource_type const& resource);
 
-	/** Check whether the given HICANN has been masked (see `mask()`).
+	/** Check whether the given Resource has been masked (see `mask()`).
 	 */
-	bool masked(resource_type const& hicann) const;
+	bool masked(resource_type const& resource) const;
 
-	/** Load the resource manager for the given HICANN.
-	 * \throws std::runtime_error If `has()` fails for this HICANN.
+	/** Load the resource manager for the given Resource.
+	 * \throws std::runtime_error If `has()` fails for this Resource.
 	 */
-	boost::shared_ptr<const redman::resources::Hicann>
-	get(resource_type const& hicann) const;
+	boost::shared_ptr<const redman_resources_type> get(resource_type const& resource) const;
 
-	/** Mark the given HICANN as being 'in use' (not available anymore).
-	 * \throws std::runtime_error If `has()` fails for this HICANN
+	/** Mark the given Resource as being 'in use' (not available anymore).
+	 * \throws std::runtime_error If `has()` fails for this Resource
 	 *         or if trying to allocate twice.
 	 */
-	void allocate(resource_type const& hicann);
+	void allocate(resource_type const& resource);
 
-	/** Release HICANN into pool of available HICANNs.
-	 * \throws std::runtime_error If `has()` fails for this HICANN or if it
+	/** Release Resource into pool of available Resources.
+	 * \throws std::runtime_error If `has()` fails for this Resource or if it
 	 *         has not been allocated yet.
 	 */
-	void release(resource_type const& hicann);
+	void release(resource_type const& resource);
 
-	/** Check whether the given HICANN is available.
-	 * In addition to `has()` this checks whether the given HICANN has already
+	/** Check whether the given Resource is available.
+	 * In addition to `has()` this checks whether the given Resource has already
 	 * been allocated.
 	 */
-	bool available(resource_type const& hicann) const;
+	bool available(resource_type const& resource) const;
 
-	/// Return the number of available HICANNs.
+	/// Return the number of available Resources.
 	size_t count_available() const;
 
-	/// Return the number of present HICANNs.
+	/// Return the number of present Resources.
 	size_t count_present() const;
 
-	/// Return the number of allocated HICANNs.
+	/// Return the number of allocated Resources.
 	size_t count_allocated() const;
 
 	boost::shared_ptr<redman::backend::Backend> backend() const { return mBackend; }
 
 protected:
 	friend class AHICANNManager;
+	friend class AFPGAManager;
 
 	/** Reload all data from the backend (for use in tests).
-	 * Does not touch the set of allocated HICANNs.  Note that wafers
+	 * Does not touch the set of allocated Resources.  Note that wafers
 	 * added via `inject()` will also be reloaded from the backend.
 	 */
 	void reload();
 
 private:
 	/** Returns an iterator to the wafer map entry belonging to the given
-	 * HICANN if the checks outlined in the description of `has()` succeed.
+	 * Resource if the checks outlined in the description of `has()` succeed.
 	 * Else a past-the-end iterator is returned.
 	 */
-	wafer_map_type::const_iterator wafer_for(resource_type const& hicann) const;
+	wafer_map_type::const_iterator wafer_for(resource_type const& resource) const;
 
 	boost::shared_ptr<redman::backend::Backend> mBackend;
 	wafer_map_type mWafers;
@@ -142,8 +176,8 @@ private:
 			// Return copy instead of reference:
 			resource_type> {
 		typedef size_t index_value_type;
-		typedef redman::resources::components::Hicanns manager_type;
-		typedef manager_type::iterator_type underlying_iterator_type;
+		typedef redman_manager_type manager_type;
+		typedef typename manager_type::iterator_type underlying_iterator_type;
 
 	public:
 		typedef std::queue<wafer_map_type::const_iterator> queue_type;
@@ -176,57 +210,61 @@ private:
 		queue_type mQueue;
 	};
 
-	iterator_type begin(iterator_type::mode_type mode) const;
-	iterator_type end(iterator_type::mode_type mode) const;
+	iterator_type begin(typename iterator_type::mode_type mode) const;
+	iterator_type end(typename iterator_type::mode_type mode) const;
 
 public:
-	/// Return an iterator to the beginning of all present HICANNs.
+	/// Return an iterator to the beginning of all present Resources.
 	iterator_type begin_present() const {
 		return begin(iterator_type::PRESENT);
 	}
 
-	/// Return an iterator to the end of all present HICANNs.
+	/// Return an iterator to the end of all present Resources.
 	iterator_type end_present() const {
 		return end(iterator_type::PRESENT);
 	}
 
-	/// Allow range-based-for iteration over all present HICANNs.
+	/// Allow range-based-for iteration over all present Resources.
 	iterable<iterator_type> present() const {
 		return {begin_present(), end_present()};
 	}
 
-	/// Return an iterator to the beginning of all available HICANNs.
+	/// Return an iterator to the beginning of all available Resources.
 	iterator_type begin_available() const {
 		return begin(iterator_type::AVAILABLE);
 	}
 
-
-	/// Return an iterator to the end of all available HICANNs.
+	/// Return an iterator to the end of all available Resources.
 	iterator_type end_available() const {
 		return end(iterator_type::AVAILABLE);
 	}
 
-	/// Allow range-based-for iteration over all available HICANNs.
-	iterable<iterator_type> available() const
-	{
+	/// Allow range-based-for iteration over all available Resources.
+	iterable<iterator_type> available() const {
 		return {begin_available(), end_available()};
 	}
 
-	/// Return an iterator to the beginning of all allocated HICANNs.
+	/// Return an iterator to the beginning of all allocated Resources.
 	iterator_type begin_allocated() const {
 		return begin(iterator_type::ALLOCATED);
 	}
 
-	/// Return an iterator to the end of all allocated HICANNs.
+	/// Return an iterator to the end of all allocated Resources.
 	iterator_type end_allocated() const {
 		return end(iterator_type::ALLOCATED);
 	}
 
-	/// Allow range-based-for iteration over all allocated HICANNs.
+	/// Allow range-based-for iteration over all allocated Resources.
 	iterable<iterator_type> allocated() const {
 		return {begin_allocated(), end_allocated()};
 	}
 };
+
+typedef Manager<HMF::Coordinate::HICANNGlobal> HICANNManager;
+typedef Manager<HMF::Coordinate::FPGAGlobal> FPGAManager;
+
+template class Manager<HMF::Coordinate::HICANNGlobal>;
+template class Manager<HMF::Coordinate::FPGAGlobal>;
 
 } // namespace resource
 } // namespace marocco

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "hal/Coordinate/Wafer.h"
-#include "marocco/resource/HICANNManager.h"
+#include "marocco/resource/Manager.h"
 
 namespace marocco {
 namespace resource {
-class HICANNManager;
+template <class T>
+class Manager;
+typedef Manager<HMF::Coordinate::HICANNGlobal> HICANNManager;
 } // namespace resource
 
 /**

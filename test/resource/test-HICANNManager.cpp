@@ -8,7 +8,7 @@
 #include "hal/Coordinate/HMFGeometry.h"
 #include "redman/backend/MockBackend.h"
 
-#include "marocco/resource/HICANNManager.h"
+#include "marocco/resource/Manager.h"
 
 template <typename... T>
 void unused(T&&...) {}

@@ -92,8 +92,8 @@ class TestSynapseLoss(unittest.TestCase):
 
     @utils.parametrize(["PopulationView", "Population", "Assembly"])
     def test_loss_in_wafer_routing(self, mode):
-        h0 = HICANNGlobal(Enum(0))
-        h1 = HICANNGlobal(Enum(1))
+        h0 = HICANNGlobal(HICANNOnWafer(Enum(0)), Wafer(33))
+        h1 = HICANNGlobal(HICANNOnWafer(Enum(1)), Wafer(33))
 
         # disable all horizontal buses on h0
         hicann = pyredman.Hicann()

@@ -7,7 +7,7 @@
 #include "sthal/Wafer.h"
 
 #ifndef PYPLUSPLUS
-#include "marocco/resource/HICANNManager.h"
+#include "marocco/resource/Manager.h"
 #else
 namespace marocco { namespace resource {
 struct HICANNManager;
@@ -17,6 +17,7 @@ struct HICANNManager;
 namespace marocco {
 
 typedef marocco::resource::HICANNManager resource_manager_t;
+typedef marocco::resource::FPGAManager resource_fpga_manager_t;
 
 } // marocco
 
