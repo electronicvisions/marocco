@@ -373,9 +373,9 @@ namespace internalModule {
 						// TODO:	store synaptic weight in route and use this information here
 						// 				Will need to divide the weight by the maximum weight of all synapses to get value between 0 and 1 as required for alpha
 						// 				better calculate maximum weight before and store in routesOnStage
-						const weight = Math.random();
+						const weight = 0.5;
 						// TODO: store synaptic input (excitatory || inhibitory) in route and use this information here
-						const excitatory = Math.round(Math.random());
+						const excitatory = 0;
 
 						graphicsObjectSynapse = pixiBackend.drawRectangles(
 							routeSegment.position.x, routeSegment.position.y, [routeSegment.position.width], [routeSegment.position.height],
