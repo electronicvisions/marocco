@@ -98,6 +98,10 @@ public:
 	            boost::multi_index::
 	                const_mem_fun<item_type, projection_type const&, &item_type::projection> >,
 	        boost::multi_index::hashed_non_unique<
+	            boost::multi_index::tag<edge_type>,
+	            boost::multi_index::
+	                const_mem_fun<item_type, edge_type const&, &item_type::edge> >,
+		    boost::multi_index::hashed_non_unique<
 	            boost::multi_index::tag<item_type>,
 	            boost::multi_index::composite_key<
 	                item_type,
@@ -121,6 +125,7 @@ public:
 	typedef container_type::index<projection_type>::type by_projection_type;
 	typedef container_type::index<item_type>::type by_projection_and_neurons_type;
 	typedef container_type::index<hardware_synapse_type>::type by_hardware_synapse_type;
+	typedef container_type::index<edge_type>::type by_edge_type;
 	typedef container_type::iterator iterator;
 	typedef container_type::iterator const_iterator;
 
@@ -168,6 +173,8 @@ public:
 
 	iterable<by_hardware_synapse_type::iterator> unrealized_synapses() const;
 
+	iterable<by_edge_type::iterator> find(edge_type const& edge) const;
+
 	bool empty() const;
 
 	size_t size() const;
@@ -188,6 +195,7 @@ PYPP_INSTANTIATE(iterable<Synapses::by_hardware_synapse_type::iterator>)
 PYPP_INSTANTIATE(iterable<Synapses::by_neurons_type::iterator>)
 PYPP_INSTANTIATE(iterable<Synapses::by_projection_and_neurons_type::iterator>)
 PYPP_INSTANTIATE(iterable<Synapses::by_projection_type::iterator>)
+PYPP_INSTANTIATE(iterable<Synapses::by_edge_type::iterator>)
 
 } // namespace results
 } // namespace routing

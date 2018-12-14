@@ -157,6 +157,12 @@ auto Synapses::unrealized_synapses() const -> iterable<by_hardware_synapse_type:
 	return make_iterable(get<hardware_synapse_type>(m_container).equal_range(boost::none));
 }
 
+auto Synapses::find(edge_type const& edge) const
+	-> iterable<by_edge_type::iterator>
+{
+	return make_iterable(get<edge_type>(m_container).equal_range(edge));
+}
+
 bool Synapses::empty() const
 {
 	return m_container.empty();
@@ -183,7 +189,8 @@ void Synapses::item_type::serialize(Archiver& ar, const unsigned int /* version 
 	ar & make_nvp("projection", m_projection)
 	   & make_nvp("source_neuron", m_source_neuron)
 	   & make_nvp("target_neuron", m_target_neuron)
-	   & make_nvp("hardware_synapse", m_hardware_synapse);
+	   & make_nvp("hardware_synapse", m_hardware_synapse)
+	   & make_nvp("edge", m_edge);
 	// clang-format on
 }
 
