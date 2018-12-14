@@ -14,6 +14,11 @@ mb = wrap.mb
 ns_marocco = mb.namespace('::marocco')
 ns_marocco.include()
 
+# propagate "explictness" to python :)
+for ns in [ns_marocco]:
+    for c in ns.classes(allow_empty=True):
+        c.constructors(lambda c: c.explicit == True, allow_empty=True).allow_implicit_conversion = False
+
 wrap.ishell()
 
 for cl in map(ns_marocco.class_, [

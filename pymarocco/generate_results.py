@@ -17,6 +17,8 @@ for ns in ns_marocco.namespaces('results'):
         # dynamically generated classes which do not have serialize functions
         if not cl.name.endswith("Properties"):
             classes.add_pickle_suite(cl)
+        # propagate "explictness" to python :)
+        cl.constructors(lambda c: c.explicit == True, allow_empty=True).allow_implicit_conversion = False
 
 for cl in ns_marocco.classes(allow_empty=True):
     # Where applicable expose iterator interface instead of raw

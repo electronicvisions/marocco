@@ -16,6 +16,10 @@ for ns in [ns_pymarocco] + list(ns_marocco.namespaces('parameters')):
     namespaces.extend_array_operators(ns)
     ns.include()
 
+    # propagate "explictness" to python :)
+    for c in ns.classes(allow_empty=True):
+        c.constructors(lambda c: c.explicit == True, allow_empty=True).allow_implicit_conversion = False
+
 for name in ['PyMarocco']:
     cl = mb.class_(name)
     createFactory = cl.mem_funs('create')

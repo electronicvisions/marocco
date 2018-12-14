@@ -19,6 +19,8 @@ for cl in ns.classes(allow_empty=True):
     factory = list(cl.mem_funs("create", allow_empty=True))
     if factory:
         cl.add_fake_constructors(factory)
+    # propagate "explictness" to python :)
+    cl.constructors(lambda c: c.explicit == True, allow_empty=True).allow_implicit_conversion = False
 
 # Do not expose typedefs (prevent AttributeErrors on import)
 for td in mb.typedefs(allow_empty=True):
