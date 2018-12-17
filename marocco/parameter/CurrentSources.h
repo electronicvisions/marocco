@@ -14,7 +14,7 @@ namespace parameter {
 
 class CurrentSources {
 public:
-	typedef std::unordered_map<BioNeuron, ConstCurrentSourcePtr> current_sources_type;
+	typedef std::unordered_map<BioNeuron, euter::ConstCurrentSourcePtr> current_sources_type;
 
 	CurrentSources(
 		sthal::Wafer& hardware, placement::results::Placement const& neuron_placement);

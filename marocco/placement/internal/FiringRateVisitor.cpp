@@ -6,6 +6,8 @@ namespace marocco {
 namespace placement {
 namespace internal {
 
+using namespace euter;
+
 FiringRateVisitor::FiringRateVisitor(double speedup) : m_speedup(speedup)
 {
 }

@@ -70,6 +70,8 @@ struct DeleteRecursivelyOnScopeExit {
 namespace marocco {
 namespace mapping {
 
+using namespace euter;
+
 std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
 {
 	auto mi = store->getMetaData<PyMarocco>("marocco");

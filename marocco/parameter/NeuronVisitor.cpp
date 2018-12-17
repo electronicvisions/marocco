@@ -54,7 +54,7 @@ HMF::NeuronCalibrationParameters calibration_parameters_for_neuron(
 
 void transform_analog_neuron(
 	TransformNeurons::calib_t const& calib,
-	Population const& pop,
+	euter::Population const& pop,
 	size_t const neuron_bio_id,
 	NeuronOnHICANN const& hw_neuron_id,
 	routing::results::SynapticInputs const& synapse_targets,
@@ -78,7 +78,7 @@ void TransformNeurons::assert_synapse_target_mapping_is_default(
 
 // AdEx Parameter Transformation
 typename TransformNeurons::return_type TransformNeurons::operator()(
-	cell_t<CellType::EIF_cond_exp_isfa_ista> const& v,
+	cell_t<euter::CellType::EIF_cond_exp_isfa_ista> const& v,
 	calib_t const& calib,
 	size_t const neuron_bio_id,
 	neuron_t const& neuron_hw_id,
@@ -103,7 +103,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 
 // LIF Parameter Transformation
 typename TransformNeurons::return_type TransformNeurons::operator()(
-	cell_t<CellType::IF_cond_exp> const& v,
+	cell_t<euter::CellType::IF_cond_exp> const& v,
 	calib_t const& calib,
 	size_t const neuron_bio_id,
 	neuron_t const& neuron_hw_id,
@@ -201,7 +201,7 @@ PyNNParameters::EIF_cond_exp_isfa_ista to_EIF_cond_exp_isfa_ista(
 
 // multi time constant AdEx Parameter Transformation
 typename TransformNeurons::return_type TransformNeurons::operator()(
-	cell_t<CellType::EIF_multicond_exp_isfa_ista> const& v,
+	cell_t<euter::CellType::EIF_multicond_exp_isfa_ista> const& v,
 	calib_t const& calib,
 	size_t const neuron_bio_id,
 	neuron_t const& neuron_hw_id,
@@ -225,7 +225,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 
 // multi time constant LIF Parameter Transformation
 typename TransformNeurons::return_type TransformNeurons::operator()(
-	cell_t<CellType::IF_multicond_exp> const& v,
+	cell_t<euter::CellType::IF_multicond_exp> const& v,
 	calib_t const& calib,
 	size_t const neuron_bio_id,
 	neuron_t const& neuron_hw_id,

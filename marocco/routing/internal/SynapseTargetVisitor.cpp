@@ -4,6 +4,8 @@ namespace marocco {
 namespace routing {
 namespace internal {
 
+using namespace euter;
+
 SynapseTargetVisitor::return_type SynapseTargetVisitor::generate_n_targets(size_t n)
 {
 	return_type rv;

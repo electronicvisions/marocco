@@ -22,10 +22,12 @@ class vecS;
 class bidirectionalS;
 }
 // forward declare euter/interface.h
-class ObjectStore;
-class Population;
-class ConstPopulationPtr;
-class ProjectionView;
+namespace euter {
+class ObjectStore {};
+class Population {};
+class ConstPopulationPtr {};
+class ProjectionView {};
+}
 #endif // !PYPLUSPLUS
 
 #include "marocco/util/iterable.h"
@@ -43,21 +45,21 @@ public:
 	typedef boost::adjacency_list<boost::vecS,
 	                              boost::vecS,
 	                              boost::bidirectionalS,
-	                              ConstPopulationPtr,
-	                              ProjectionView>
+	                              euter::ConstPopulationPtr,
+	                              euter::ProjectionView>
 	    graph_type;
 	typedef graph_type::vertex_descriptor vertex_descriptor;
 	typedef graph_type::edge_descriptor edge_descriptor;
-	typedef boost::unordered_map<Population const*, vertex_descriptor> vertices_type;
+	typedef boost::unordered_map<euter::Population const*, vertex_descriptor> vertices_type;
 	typedef boost::bimap<edge_descriptor, size_t> edges_type;
 
-	void load(ObjectStore const& os);
+	void load(euter::ObjectStore const& os);
 
 	/**
 	 * @brief Return vertex descriptor for the specified population.
 	 * @throw std::out_of_range If the population is not contained in this graph.
 	 */
-	vertex_descriptor operator[](Population const* pop) const;
+	vertex_descriptor operator[](euter::Population const* pop) const;
 
 	graph_type& graph();
 	graph_type const& graph() const;

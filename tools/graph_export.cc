@@ -85,7 +85,7 @@ int main(const int argc, const char** argv)
 		if (verbosity >= 3) {
 			std::cout << "v: " << *vit << '\n';
 		}
-		Population const& pop = *((graph)[*vit]);
+		euter::Population const& pop = *((graph)[*vit]);
 		if (verbosity >= 3) {
 			std::cout << "pop.size: " << pop.size() << '\n';
 		}
@@ -124,7 +124,7 @@ bool is_connected(
 			continue;
 		}
 
-		ProjectionView const proj_view = (bio_graph)[edge]; // get the projection for this edge
+		euter::ProjectionView const proj_view = (bio_graph)[edge]; // get the projection for this edge
 		if (!proj_view.pre().mask()[bio_src.neuron_index()]) {
 			// does the source bio neuron want to realise a connection on this edge???
 			continue;
@@ -135,7 +135,7 @@ bool is_connected(
 			continue;
 		}
 
-		Connector::const_matrix_view_type const bio_weights = proj_view.getWeights();
+		euter::Connector::const_matrix_view_type const bio_weights = proj_view.getWeights();
 
 		size_t const src_neuron_in_proj_view =
 		    marocco::routing::to_relative_index(proj_view.pre().mask(), bio_src.neuron_index());
@@ -164,7 +164,7 @@ std::vector<marocco::BioNeuron> getTargetNeurons(
 
 	for (auto const& edge : edges_out) {
 		auto const target_vertex = boost::target(edge, bio_graph);
-		Population const& target_pop = *((bio_graph)[target_vertex]);
+		euter::Population const& target_pop = *((bio_graph)[target_vertex]);
 
 		for (size_t n = 0; n < target_pop.size(); ++n) {
 			marocco::BioNeuron const bio_tgt = marocco::BioNeuron(target_vertex, n);

@@ -28,29 +28,29 @@ struct FiringRateVisitor
 {
 	typedef double return_type;
 
-	template <CellType N>
-	using cell_t = TypedCellParameterVector<N>;
+	template <euter::CellType N>
+	using cell_t = euter::TypedCellParameterVector<N>;
 
 	FiringRateVisitor(double speedup);
 
-	template <CellType N>
+	template <euter::CellType N>
 	return_type operator() (
 		cell_t<N> const& /*unused*/,
 		size_t /*unused*/)
 	{
 		std::stringstream ss;
-		ss << "unsupported spike input " << getCellTypeName(N);
+		ss << "unsupported spike input " << euter::getCellTypeName(N);
 		throw std::runtime_error(ss.str());
 	}
 
 	// Spike Source Array
 	return_type operator() (
-		cell_t<CellType::SpikeSourceArray> const& v,
+		cell_t<euter::CellType::SpikeSourceArray> const& v,
 		size_t neuron_id);
 
 	// Spike Source Poisson
 	return_type operator() (
-		cell_t<CellType::SpikeSourcePoisson> const& v,
+		cell_t<euter::CellType::SpikeSourcePoisson> const& v,
 		size_t neuron_id);
 
 	double const m_speedup;

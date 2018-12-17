@@ -20,11 +20,11 @@ struct AnalogVisitor
 	typedef void return_type;
 	typedef size_t size_type;
 
-	template <CellType N>
-	using cell_t = TypedCellParameterVector<N>;
+	template <euter::CellType N>
+	using cell_t = euter::TypedCellParameterVector<N>;
 
 	// Overload for neurons which support voltage recording
-	template <CellType N>
+	template <euter::CellType N>
 	typename std::enable_if<detail::has_record_v<cell_t<N> >::value, return_type>::type operator()(
 	    cell_t<N> const& v,
 	    size_t const neuron_index,
@@ -48,7 +48,7 @@ struct AnalogVisitor
 	}
 
 	// Overload for neurons which do not support voltage recording
-	template <CellType N>
+	template <euter::CellType N>
 	typename std::enable_if<!detail::has_record_v<cell_t<N> >::value, return_type>::type operator()(
 	    cell_t<N> const& /* v */,
 	    size_t const /* neuron_index */,
@@ -76,8 +76,8 @@ void AnalogOutputs::run(results::AnalogOutputs& result)
 			continue;
 		}
 
-		Population const& population = *(graph[item.population()]);
-		visitCellParameterVector(
+		euter::Population const& population = *(graph[item.population()]);
+		euter::visitCellParameterVector(
 			population.parameters(), visitor, item.neuron_index(), item.logical_neuron(), result);
 	}
 }

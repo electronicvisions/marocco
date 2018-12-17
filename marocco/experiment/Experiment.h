@@ -35,12 +35,12 @@ public:
 	 * @brief Populate objectstore with spike times and membrane voltage traces.
 	 * @pre The experiment must have been executed via #run().
 	 */
-	void extract_results(ObjectStore& objectstore) const;
+	void extract_results(euter::ObjectStore& objectstore) const;
 
 private:
-	bool extract_spikes(PopulationPtr population, placement_item_type const& item) const;
+	bool extract_spikes(euter::PopulationPtr population, placement_item_type const& item) const;
 
-	bool extract_membrane(PopulationPtr population, placement_item_type const& item) const;
+	bool extract_membrane(euter::PopulationPtr population, placement_item_type const& item) const;
 
 	sthal::Wafer& m_hardware;
 	results::Marocco const& m_results;

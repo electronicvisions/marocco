@@ -7,6 +7,8 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace parameter {
 
+using namespace euter;
+
 CurrentSources::CurrentSources(
 	sthal::Wafer& hardware, placement::results::Placement const& neuron_placement)
 	: m_hardware(hardware), m_neuron_placement(neuron_placement)

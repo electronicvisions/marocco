@@ -23,7 +23,7 @@ public:
 		boost::shared_ptr<pymarocco::PyMarocco> const& pymarocco,
 		boost::shared_ptr<results::Marocco> const& results);
 
-	void run(ObjectStore const& pynn);
+	void run(euter::ObjectStore const& pynn);
 
 	hardware_type&       getHardware();
 	hardware_type const& getHardware() const;

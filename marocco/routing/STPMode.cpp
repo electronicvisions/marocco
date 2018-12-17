@@ -5,6 +5,8 @@
 namespace marocco {
 namespace routing {
 
+using namespace euter;
+
 std::ostream& operator<<(std::ostream& os, STPMode m)
 {
 	switch (m) {

@@ -8,7 +8,9 @@
 
 #include "marocco/graph.h"
 
+namespace euter {
 class Population;
+}
 
 namespace marocco {
 namespace assignment {
@@ -23,7 +25,7 @@ struct PopulationSlice {
 public:
 	typedef graph_t::vertex_descriptor value_type;
 
-	PopulationSlice(value_type val, Population const& pop);
+	PopulationSlice(value_type val, euter::Population const& pop);
 	PopulationSlice(value_type val, size_t offset, size_t size);
 
 	size_t offset() const;

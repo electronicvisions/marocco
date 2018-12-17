@@ -25,7 +25,7 @@ class access;
 namespace pymarocco {
 namespace runtime {
 
-class Runtime : public DerivedMetaData<Runtime>
+class Runtime : public euter::DerivedMetaData<Runtime>
 {
 public:
 	std::string name() const PYPP_OVERRIDE;

@@ -6,7 +6,9 @@
 
 
 // forward declaration
+namespace euter {
 struct SynapseDynamics;
+} // namespace euter
 
 namespace marocco {
 namespace routing {
@@ -19,7 +21,7 @@ std::ostream& operator<<(std::ostream& os, STPMode m);
 
 #if !defined(PYPLUSPLUS)
 /// extracts the STP mode from the Projection's synapse dynmics object
-STPMode toSTPMode(boost::shared_ptr<const SynapseDynamics> const& dynamics);
+STPMode toSTPMode(boost::shared_ptr<const euter::SynapseDynamics> const& dynamics);
 #endif
 
 

@@ -124,7 +124,7 @@ void SynapseTargetMapping::simple_mapping(
 	SynapseTargetVisitor const syn_tgt_visitor{};
 
 	for (auto const& item : neuron_placement.find(hicann)) {
-		Population const& pop = *(graph[item.population()]);
+		euter::Population const& pop = *(graph[item.population()]);
 		std::vector<SynapseType> synapse_targets = visitCellParameterVector(
 			pop.parameters(), syn_tgt_visitor, item.neuron_index());
 

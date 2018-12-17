@@ -8,6 +8,8 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace routing {
 
+using namespace euter;
+
 SynapseLossImpl::SynapseLossImpl(graph_t const& graph) :
 	mGraph(graph)
 {}

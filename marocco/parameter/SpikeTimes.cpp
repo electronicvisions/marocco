@@ -26,7 +26,7 @@ void SpikeTimes::run(results::SpikeTimes& result)
 			continue;
 		}
 
-		Population const& pop = *(graph[vertex]);
+		euter::Population const& pop = *(graph[vertex]);
 		for (size_t neuron_id = 0, end = pop.size(); neuron_id < end; ++neuron_id) {
 			BioNeuron bio_neuron(vertex, neuron_id);
 			// FIXME: Combine with global hash parameter (to be introduced).

@@ -1,4 +1,5 @@
 #include "marocco/assignment/PopulationSlice.h"
+#include "euter/population.h"
 
 #include <ostream>
 #include <stdexcept>
@@ -8,7 +9,7 @@ namespace assignment {
 
 PopulationSlice::PopulationSlice() {}
 
-PopulationSlice::PopulationSlice(value_type val, Population const& pop)
+PopulationSlice::PopulationSlice(value_type val, euter::Population const& pop)
 	: PopulationSlice(val, 0, pop.size()) {}
 
 PopulationSlice::PopulationSlice(value_type val, size_t offset, size_t size)

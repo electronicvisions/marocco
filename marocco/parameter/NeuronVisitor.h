@@ -26,22 +26,22 @@ struct NeuronSharedParameterRequirements
 	typedef HMF::Coordinate::NeuronOnHICANN neuron_t;
 	typedef HMF::Coordinate::FGBlockOnHICANN group_t;
 
-	template <CellType N>
-	using cell_t = TypedCellParameterVector<N>;
+	template <euter::CellType N>
+	using cell_t = euter::TypedCellParameterVector<N>;
 
-	template <CellType N>
+	template <euter::CellType N>
 	typename std::enable_if<!detail::has_v_reset<cell_t<N>>::value, return_type>::type
 	operator() (cell_t<N> const& /*unused*/, size_t /*unused*/, neuron_t const& /*unused*/)
 	{
 		std::stringstream ss;
-		ss << "unsupported cell type: " << getCellTypeName(N);
+		ss << "unsupported cell type: " << euter::getCellTypeName(N);
 		throw std::runtime_error(ss.str());
 	}
 
 	// collect all V_reset values per _shared_ FG block, i.e.
 	// for each HICANN half, the left V_reset value is connected to all even
 	// numbered denmems, and the right V_reset to the odd numbered.
-	template <CellType N>
+	template <euter::CellType N>
 	typename std::enable_if<detail::has_v_reset<cell_t<N>>::value, return_type>::type
 	operator() (cell_t<N> const& v, size_t neuron_bio_id, neuron_t const& n)
 	{
@@ -92,12 +92,12 @@ struct TransformNeurons
 	typedef HMF::Coordinate::NeuronOnHICANN neuron_t;
 	typedef routing::results::SynapticInputs synapse_targets_t;
 
-	template <CellType N>
-		using cell_t = TypedCellParameterVector<N>;
+	template <euter::CellType N>
+		using cell_t = euter::TypedCellParameterVector<N>;
 
 	TransformNeurons(double alphaV, double shiftV) : mAlphaV(alphaV), mShiftV(shiftV) {}
 
-	template <CellType N>
+	template <euter::CellType N>
 	return_type operator()(
 		cell_t<N> const& /*unused*/,
 		calib_t const& /*unused*/,
@@ -107,13 +107,13 @@ struct TransformNeurons
 		chip_t& /*unused*/) const
 	{
 		std::stringstream ss;
-		ss << "unsupported cell type: " << getCellTypeName(N);
+		ss << "unsupported cell type: " << euter::getCellTypeName(N);
 		throw std::runtime_error(ss.str());
 	}
 
 	/// AdEx Parameter Transformation
 	return_type operator()(
-		cell_t<CellType::EIF_cond_exp_isfa_ista> const& v,
+		cell_t<euter::CellType::EIF_cond_exp_isfa_ista> const& v,
 		calib_t const& calib,
 		size_t neuron_bio_id,
 		neuron_t const& neuron_hw_id,
@@ -122,7 +122,7 @@ struct TransformNeurons
 
 	/// LIF Parameter Transformation
 	return_type operator()(
-		cell_t<CellType::IF_cond_exp> const& v,
+		cell_t<euter::CellType::IF_cond_exp> const& v,
 		calib_t const& calib,
 		size_t neuron_bio_id,
 		neuron_t const& neuron_hw_id,
@@ -131,7 +131,7 @@ struct TransformNeurons
 
 	/// AdEx with multiple time constants Parameter Transformation
 	return_type operator()(
-		cell_t<CellType::EIF_multicond_exp_isfa_ista> const& v,
+		cell_t<euter::CellType::EIF_multicond_exp_isfa_ista> const& v,
 		calib_t const& calib,
 		size_t neuron_bio_id,
 		neuron_t const& neuron_hw_id,
@@ -140,7 +140,7 @@ struct TransformNeurons
 
 	/// LIF with multiple time constants Parameter Transformation
 	return_type operator()(
-		cell_t<CellType::IF_multicond_exp> const& v,
+		cell_t<euter::CellType::IF_multicond_exp> const& v,
 		calib_t const& calib,
 		size_t neuron_bio_id,
 		neuron_t const& neuron_hw_id,
@@ -159,7 +159,7 @@ private:
 
 void transform_analog_neuron(
 	HMF::NeuronCollection const& calib,
-	Population const& pop,
+	euter::Population const& pop,
 	size_t neuron_bio_id,
 	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id,
 	routing::results::SynapticInputs const& synapse_targets,

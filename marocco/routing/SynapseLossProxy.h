@@ -8,7 +8,7 @@ namespace routing {
 class SynapseLossProxy
 {
 public:
-	typedef Connector::matrix_type Matrix;
+	typedef euter::Connector::matrix_type Matrix;
 	typedef Matrix::value_type value_type;
 
 	static value_type const NA;

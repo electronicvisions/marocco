@@ -178,7 +178,7 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 			continue;
 		}
 
-		Population const& pop = *m_graph[v];
+		euter::Population const& pop = *m_graph[v];
 
 		// Check for existence of manual placement:
 		auto it = mapping.find(pop.id());

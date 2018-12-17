@@ -13,13 +13,13 @@ struct RecordSpikesVisitor
 {
 	typedef bool return_type;
 
-	template <CellType N>
-	using cell_type = TypedCellParameterVector<N>;
+	template <euter::CellType N>
+	using cell_type = euter::TypedCellParameterVector<N>;
 	template <typename T>
 	using has_record_spikes = typename parameter::detail::has_record_spikes<T>;
 
 	// Overload for neurons which support recording of spikes
-	template <CellType N>
+	template <euter::CellType N>
 	typename std::enable_if<has_record_spikes<cell_type<N> >::value, return_type>::type operator()(
 		cell_type<N> const& v, size_t const neuron_index) const
 	{
@@ -28,7 +28,7 @@ struct RecordSpikesVisitor
 	}
 
 	// Overload for neurons which do not support recording of spikes
-	template <CellType N>
+	template <euter::CellType N>
 	typename std::enable_if<!has_record_spikes<cell_type<N> >::value, return_type>::type operator()(
 		cell_type<N> const& /* v */, size_t const /* neuron_index */) const
 	{
@@ -36,10 +36,10 @@ struct RecordSpikesVisitor
 	}
 }; // RecordSpikesVisitor
 
-bool record_spikes(CellParameterVector const& parameters, size_t const neuron_index)
+bool record_spikes(euter::CellParameterVector const& parameters, size_t const neuron_index)
 {
 	RecordSpikesVisitor visitor;
-	return visitCellParameterVector(parameters, visitor, neuron_index);
+	return euter::visitCellParameterVector(parameters, visitor, neuron_index);
 }
 
 } // namespace experiment

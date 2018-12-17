@@ -38,33 +38,33 @@ struct SynapseTargetVisitor
 {
 	typedef std::vector<SynapseType> return_type;
 
-	template <CellType N>
-	using cell_t = TypedCellParameterVector<N>;
+	template <euter::CellType N>
+	using cell_t = euter::TypedCellParameterVector<N>;
 
-	template <CellType N>
+	template <euter::CellType N>
 	return_type operator()(cell_t<N> const&, size_t) const
 	{
 		throw std::runtime_error("unsupported cell type");
 	}
 
 	// AdEx
-	return_type operator()(cell_t<CellType::EIF_cond_exp_isfa_ista> const&, size_t) const
+	return_type operator()(cell_t<euter::CellType::EIF_cond_exp_isfa_ista> const&, size_t) const
 	{
 		return {SynapseType::excitatory, SynapseType::inhibitory};
 	}
 
 	// LIF
-	return_type operator()(cell_t<CellType::IF_cond_exp> const&, size_t) const
+	return_type operator()(cell_t<euter::CellType::IF_cond_exp> const&, size_t) const
 	{
 		return {SynapseType::excitatory, SynapseType::inhibitory};
 	}
 
 	// multi conductance AdEx
 	return_type
-	operator()(cell_t<CellType::EIF_multicond_exp_isfa_ista> const& v, size_t nrn) const;
+	operator()(cell_t<euter::CellType::EIF_multicond_exp_isfa_ista> const& v, size_t nrn) const;
 
 	// multi conductance LIF
-	return_type operator()(cell_t<CellType::IF_multicond_exp> const& v, size_t nrn) const;
+	return_type operator()(cell_t<euter::CellType::IF_multicond_exp> const& v, size_t nrn) const;
 
 private:
 	/// returns a vector with n consecutive integers starting with 0.

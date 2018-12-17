@@ -19,26 +19,26 @@ struct SpikeInputVisitor
 	typedef void return_type;
 	typedef std::vector<double> spikes_type;
 
-	template <CellType N>
-	using cell_t = TypedCellParameterVector<N>;
+	template <euter::CellType N>
+	using cell_t = euter::TypedCellParameterVector<N>;
 
-	template <CellType N>
+	template <euter::CellType N>
 	void operator()(cell_t<N> const&, size_t const, size_t const, double const, spikes_type&) const
 	{
 		std::stringstream ss;
-		ss << "unsupported spike input " << getCellTypeName(N);
+		ss << "unsupported spike input " << euter::getCellTypeName(N);
 		throw std::runtime_error(ss.str());
 	}
 
 	void operator()(
-		cell_t<CellType::SpikeSourceArray> const& v,
+		cell_t<euter::CellType::SpikeSourceArray> const& v,
 		size_t const neuron_id,
 		size_t const seed,
 		double const experiment_duration,
 		spikes_type& spikes) const;
 
 	void operator()(
-		cell_t<CellType::SpikeSourcePoisson> const& v,
+		cell_t<euter::CellType::SpikeSourcePoisson> const& v,
 		size_t const neuron_id,
 		size_t const seed,
 		double const experiment_duration,
@@ -50,7 +50,7 @@ struct SpikeInputVisitor
  * @param experiment_duration PyNN experiment duration in ms
  */
 SpikeInputVisitor::spikes_type extract_input_spikes(
-	Population const& pop,
+	euter::Population const& pop,
 	size_t const neuron_id,
 	size_t const seed,
 	double const experiment_duration);

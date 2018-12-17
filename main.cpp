@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 	}
 
 	// receive pyNN script
-	auto objectstore = boost::make_shared<ObjectStore>();
+	auto objectstore = boost::make_shared<euter::ObjectStore>();
 	if (rank == MASTER_PROCESS) {
 		if (fname.empty()) {
 			parent.recv(0, msg_data_package, *objectstore);

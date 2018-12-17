@@ -8,6 +8,8 @@
 #include <iostream>
 #include <sstream>
 
+using namespace euter;
+
 template<typename T>
 std::string printWeights(T const& t)
 {

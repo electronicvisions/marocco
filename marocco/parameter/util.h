@@ -33,11 +33,11 @@ std::string generateUID(
 	return fname.str();
 }
 
-template<CellType Type>
-std::vector<typename CellTypeTraits<Type>::Parameters> const&
-parameter_cast(CellParameterVector const& _vector)
+template<euter::CellType Type>
+std::vector<typename euter::CellTypeTraits<Type>::Parameters> const&
+parameter_cast(euter::CellParameterVector const& _vector)
 {
-	auto const& vec = dynamic_cast<TypedCellParameterVector<Type> const&>(_vector);
+	auto const& vec = dynamic_cast<euter::TypedCellParameterVector<Type> const&>(_vector);
 	return vec.parameters();
 }
 

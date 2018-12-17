@@ -30,6 +30,8 @@ using namespace HMF::HICANN;
 namespace marocco {
 namespace routing {
 
+using namespace euter;
+
 template <typename T>
 using by_side_type = typed_array<T, SideHorizontal>;
 

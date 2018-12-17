@@ -10,7 +10,7 @@ namespace marocco {
 namespace parameter {
 
 void SpikeInputVisitor::operator()(
-	cell_t<CellType::SpikeSourceArray> const& v,
+	cell_t<euter::CellType::SpikeSourceArray> const& v,
 	size_t neuron_id,
 	size_t const /* seed */,
 	double const /* experiment_duration */,
@@ -27,7 +27,7 @@ void SpikeInputVisitor::operator()(
 
 // Spike Source Poisson Transformation
 void SpikeInputVisitor::operator()(
-	cell_t<CellType::SpikeSourcePoisson> const& v,
+	cell_t<euter::CellType::SpikeSourcePoisson> const& v,
 	size_t neuron_id,
 	size_t const seed,
 	double const experiment_duration,
@@ -56,7 +56,7 @@ void SpikeInputVisitor::operator()(
 }
 
 SpikeInputVisitor::spikes_type extract_input_spikes(
-	Population const& pop,
+	euter::Population const& pop,
 	size_t const neuron_id,
 	size_t const seed,
 	double const experiment_duration)

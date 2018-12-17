@@ -21,6 +21,8 @@ using marocco::assignment::PopulationSlice;
 namespace marocco {
 namespace placement {
 
+using namespace euter;
+
 namespace {
 
 struct Point

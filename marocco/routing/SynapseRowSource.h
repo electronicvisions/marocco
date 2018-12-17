@@ -24,7 +24,7 @@ namespace routing {
 class SynapseSource {
 
 public:
-	typedef boost::shared_ptr<ProjectionView> projection_view_type;
+	typedef boost::shared_ptr<euter::ProjectionView> projection_view_type;
 
 	SynapseSource (projection_view_type const & view, size_t src_idx, size_t tgt_idx);
 	SynapseSource ();

@@ -47,7 +47,7 @@ namespace pymarocco {
 ///  pynn.setup(marocco=marocco)
 ///
 /// \endcode
-class PyMarocco : public DerivedMetaData<PyMarocco>
+class PyMarocco : public euter::DerivedMetaData<PyMarocco>
 {
 public:
 

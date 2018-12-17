@@ -25,6 +25,8 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace experiment {
 
+using namespace euter;
+
 Experiment::Experiment(
 	sthal::Wafer& hardware,
 	results::Marocco const& results,

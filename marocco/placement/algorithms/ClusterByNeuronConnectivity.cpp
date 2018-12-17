@@ -124,7 +124,7 @@ bool ClusterByNeuronConnectivity::is_connected(
 			continue;
 		}
 
-		ProjectionView const proj_view = (*m_bio_graph)[edge]; // get the projection for this edge
+		euter::ProjectionView const proj_view = (*m_bio_graph)[edge]; // get the projection for this edge
 		if (!proj_view.pre().mask()[bio_src.neuron_index()]) {
 			// does the source bio neuron want to realise a connection on this edge???
 			continue;
@@ -135,7 +135,7 @@ bool ClusterByNeuronConnectivity::is_connected(
 			continue;
 		}
 
-		Connector::const_matrix_view_type const bio_weights = proj_view.getWeights();
+		euter::Connector::const_matrix_view_type const bio_weights = proj_view.getWeights();
 
 		size_t const src_neuron_in_proj_view =
 		    routing::to_relative_index(proj_view.pre().mask(), bio_src.neuron_index());
@@ -166,7 +166,7 @@ std::vector<BioNeuron> ClusterByNeuronConnectivity::getTargetNeurons(BioNeuron c
 
 		for (auto const& edge : edges_out) {
 			graph_t::vertex_descriptor target_vertex = boost::target(edge, *m_bio_graph);
-			Population const& target_pop = *((*m_bio_graph)[target_vertex]);
+			euter::Population const& target_pop = *((*m_bio_graph)[target_vertex]);
 
 			for (size_t n = 0; n < target_pop.size(); ++n) {
 				BioNeuron const bio_tgt = BioNeuron(target_vertex, n);
@@ -190,7 +190,7 @@ std::vector<BioNeuron> ClusterByNeuronConnectivity::getSourceNeurons(BioNeuron c
 
 		for (auto const& edge : edges_in) {
 			graph_t::vertex_descriptor source_vertex = boost::source(edge, *m_bio_graph);
-			Population const& source_pop = *((*m_bio_graph)[source_vertex]);
+			euter::Population const& source_pop = *((*m_bio_graph)[source_vertex]);
 
 			for (size_t n = 0; n < source_pop.size(); ++n) {
 				BioNeuron bio_src = BioNeuron(source_vertex, n);

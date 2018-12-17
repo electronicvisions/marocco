@@ -16,6 +16,8 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace parameter {
 
+using namespace euter;
+
 HICANNParameters::HICANNParameters(
     BioGraph const& bio_graph,
     chip_type& chip,

@@ -8,6 +8,8 @@ using namespace HMF::Coordinate;
 namespace marocco {
 namespace routing {
 
+using namespace euter;
+
 HandleSynapseLoss::HandleSynapseLoss(
 	BioGraph const& bio_graph,
 	placement::results::Placement const& neuron_placement,

@@ -15,6 +15,8 @@ using HMF::HICANN::DriverDecoder;
 namespace marocco {
 namespace routing {
 
+using namespace euter;
+
 std::ostream& operator<<(std::ostream& os, TriParity p)
 {
 	switch (p) {

@@ -31,6 +31,8 @@ class BinaryBackend;
 
 namespace marocco {
 
+using namespace euter;
+
 namespace {
 
 template<typename Graph>
