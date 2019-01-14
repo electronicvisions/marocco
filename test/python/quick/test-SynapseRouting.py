@@ -40,7 +40,7 @@ class TestSynapseRouting(unittest.TestCase):
             # create neuron with v_rest below v_thresh
             target = pynn.Population(1, pynn.EIF_cond_exp_isfa_ista)
 
-            N = 16            # number of source populations
+            N = 12            # number of source populations
             NEURON_SIZE = 4   # default neuron size
 
             self.marocco.neuron_placement.default_neuron_size(NEURON_SIZE)
