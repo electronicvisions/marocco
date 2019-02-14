@@ -9,6 +9,7 @@
 #include "hal/Coordinate/typed_array.h"
 
 #include "marocco/Logger.h"
+#include "marocco/placement/internal/free_functions.h"
 #include "marocco/util.h"
 #include "marocco/util/chunked.h"
 #include "marocco/util/iterable.h"
@@ -220,8 +221,10 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 
 						NeuronPlacementRequest const placement{
 							assignment::PopulationSlice{v, neuron_id, 1}, size};
-						auto& onb = m_denmem_assignment.at(
-							neuron.toHICANNOnWafer())[neuron.toNeuronBlockOnHICANN()];
+
+						auto& onb = internal::get_on_neuron_block_reference(
+						    m_denmem_assignment, neuron.toNeuronBlockOnWafer());
+
 						auto it = onb.add(neuron.toNeuronOnNeuronBlock().x(), placement);
 						if (it == onb.end()) {
 							throw std::runtime_error(

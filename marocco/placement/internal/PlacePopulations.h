@@ -45,7 +45,6 @@ public:
 private:
 	void sort_neuron_blocks();
 	bool place_one_population();
-	OnNeuronBlock& on_neuron_block(HMF::Coordinate::NeuronBlockOnWafer const& nb);
 
 	graph_t const& m_graph;
 	Result::denmem_assignment_type& m_state;

@@ -2,7 +2,9 @@
 
 #include "marocco/Logger.h"
 #include "marocco/placement/Result.h"
+#include "marocco/placement/internal/free_functions.h"
 #include "marocco/util/spiral_ordering.h"
+
 
 using namespace HMF::Coordinate;
 
@@ -40,7 +42,7 @@ void PlacePopulations::sort_neuron_blocks()
 
 	std::unordered_map<NeuronBlockOnWafer, size_t> available;
 	for (auto const& nb : m_neuron_blocks) {
-		available.emplace(nb, on_neuron_block(nb).available());
+		available.emplace(nb, get_on_neuron_block_reference(m_state, nb).available());
 	}
 
 	// Because pop_back() is more efficient for vectors, neuron blocks are sorted by size
@@ -63,20 +65,6 @@ void PlacePopulations::sort_neuron_blocks()
 		});
 }
 
-OnNeuronBlock& PlacePopulations::on_neuron_block(NeuronBlockOnWafer const& nb)
-{
-	auto const hicann = nb.toHICANNOnWafer();
-	auto it = m_state.find(hicann);
-	if (it == m_state.end()) {
-		// HICANN is not available, this can only happen for manual placement requests because
-		// automatic placement loops over available HICANNs when determining available neuron
-		// blocks.
-		MAROCCO_ERROR(hicann << " unavailable during manual population placement");
-		throw std::runtime_error("HICANN unavailable during manual population placement");
-	}
-	return it->second[nb.toNeuronBlockOnHICANN()];
-}
-
 bool PlacePopulations::place_one_population()
 {
 	if (m_queue.empty() || m_neuron_blocks.empty()) {
@@ -85,7 +73,7 @@ bool PlacePopulations::place_one_population()
 
 	// We use the smallest possible neuron block, so we won't fragment the wafer too much.
 	auto nb = m_neuron_blocks.back();
-	OnNeuronBlock& onb = on_neuron_block(nb);
+	OnNeuronBlock& onb = get_on_neuron_block_reference(m_state, nb);
 
 	NeuronPlacementRequest& placement = m_queue.back();
 	auto& population = placement.population_slice();
