@@ -14,11 +14,11 @@
 		"typedoc": ">=0.9.0 <0.12.0",
 		"@types/shelljs": "^0.7.8",
 		"shelljs": "^0.8.1",
-		"ts-node": "^5.0.0"
+		"ts-node": "^5.0.0",
+		"highlight.js": "<=9.14.2"
 	},
 	"_comment": { "FIXME": "We should explicitly include the libraries (i.e. rm *.js and add those as dependencies here)" },
 	"files": [
 		"dist/**/*"
 	]
 }
-
