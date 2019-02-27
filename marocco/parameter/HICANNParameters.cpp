@@ -221,7 +221,7 @@ double HICANNParameters::neurons(neuron_calib_type const& calib)
 	auto const mean_v_reset = shared_parameter_visitor.get_mean_v_reset();
 
 	if(v_resets.size() != 1) {
-		MAROCCO_WARN("more than one value for V_reset requested on " << m_chip);
+		MAROCCO_WARN("more than one value for V_reset requested on " << m_chip.index());
 		MAROCCO_WARN("only the mean v_reset will be used: " << mean_v_reset << " mV");
 		for(auto v_reset : v_resets) {
 			MAROCCO_DEBUG("individual v_reset values: " << v_reset << " mV");
