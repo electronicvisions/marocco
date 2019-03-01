@@ -100,33 +100,80 @@ void InputPlacement::run(
 
 		Population const& pop = *mGraph[vertex];
 		PopulationSlice bio = PopulationSlice{vertex, pop};
-		std::vector<PopulationSlice> bio_vector{bio};
+		std::vector<PopulationSlice> auto_placements;
 
 		// if a manual placement exists, assign it
 		auto it = mapping.find(pop.id());
 		if (it != mapping.end()) {
 			auto const& entry = it->second;
-			std::vector<HICANNOnWafer> const* locations =
-				boost::get<std::vector<HICANNOnWafer> >(&entry.locations);
 
-			if (locations && !locations->empty()) {
-				for (auto const& target_hicann : *locations) {
-					insertInput(
-					    target_hicann, neuron_placement, address_assignment[target_hicann],
-					    bio_vector);
-				}
-
-				if (!bio_vector.empty()) {
-					throw std::runtime_error(
-						"out of resources for manually placed external inputs");
-				}
-			} else {
-				throw std::runtime_error(
-					"manual placement of external input only implemented for"
-					"non-empty list of HICANNOnWafer coordinates.");
-				// FIXME: ...
+			// store mask of all manually placed neurons of one population-> use auto placement for
+			// the remaining
+			assignment::PopulationSlice::mask_type placed_manually;
+			placed_manually.reserve(pop.size());
+			for (auto pop_entry : entry) {
+				placed_manually.insert(
+				    placed_manually.end(), pop_entry.mask.begin(), pop_entry.mask.end());
 			}
-		} else {
+			std::sort(placed_manually.begin(), placed_manually.end());
+			// check if same neurons are used in different placement requests
+			auto same_neuron = std::adjacent_find(placed_manually.begin(), placed_manually.end());
+			if (same_neuron != placed_manually.end()) {
+				MAROCCO_ERROR(
+				    "Neuron " << *same_neuron << " of Population " << pop.id()
+				              << " used in different placement requests");
+				throw std::runtime_error("unable to implement manual placement request");
+			}
+
+			// add PopulationView support
+			for (auto pop_entry : entry) {
+				std::vector<HICANNOnWafer> const* locations =
+				    boost::get<std::vector<HICANNOnWafer> >(&pop_entry.locations);
+				std::vector<PopulationSlice> slices;
+				// use mask to slice population
+				// mask received from pynn should always be sorted in ascending order. Else it is
+				// sorted
+				if (!std::is_sorted(pop_entry.mask.begin(), pop_entry.mask.end())) {
+					std::sort(pop_entry.mask.begin(), pop_entry.mask.end());
+				}
+				slices = assignment::PopulationSlice::slice_by_mask(pop_entry.mask, bio);
+				if (locations && !locations->empty()) {
+					for (PopulationSlice current_slice : slices) {
+						// place current neuron slice (insert Input uses single slices)
+						std::vector<PopulationSlice> slice_vector{current_slice};
+						for (auto const& target_hicann : *locations) {
+							insertInput(
+							    target_hicann, neuron_placement, address_assignment[target_hicann],
+							    slice_vector);
+						}
+
+						if (!slice_vector.empty()) {
+							throw std::runtime_error(
+							    "out of resources for manually placed external inputs");
+						}
+					}
+				} else {
+					// if no location is specified use auto placement
+					for (PopulationSlice current_slice : slices) {
+						MAROCCO_DEBUG(
+						    "No locations specified in manual placement request for Population "
+						    "Slice"
+						    << current_slice << " -> Auto placement is used");
+						auto_placements.push_back(current_slice);
+					}
+				}
+			}
+			// use auto placement for remaining neurons
+			// check if auto placement is needed
+			if (placed_manually.size() < pop.size()) {
+				// auto placement of all remaining neurons of the current population
+				std::vector<PopulationSlice> remaining_neurons = assignment::PopulationSlice::slice_by_mask(
+				    assignment::PopulationSlice::invert_mask(placed_manually, pop.size()), bio);
+				auto_placements.insert(
+				    auto_placements.end(), remaining_neurons.begin(), remaining_neurons.end());
+			}
+		}
+		if (it == mapping.end() || !auto_placements.empty()) {
 			// For automatic placement we compute the mean position of all target HICANNs.
 			// We first have to gather all targets and remove duplicates, as they would
 			// shift the mean position.
@@ -163,8 +210,14 @@ void InputPlacement::run(
 
 			float const x_mean = algorithm::arithmetic_mean(xs.begin(), xs.end());
 			float const y_mean = algorithm::arithmetic_mean(ys.begin(), ys.end());
-
-			auto_inputs[targets.size()].emplace_back(Point{x_mean, y_mean}, bio);
+			// For manual placement leftovers split bio in slices
+			if (!auto_placements.empty()) {
+				for (auto bio_slices : auto_placements) {
+					auto_inputs[targets.size()].emplace_back(Point{x_mean, y_mean}, bio_slices);
+				}
+			} else {
+				auto_inputs[targets.size()].emplace_back(Point{x_mean, y_mean}, bio);
+			}
 		}
 	}
 

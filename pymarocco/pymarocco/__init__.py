@@ -30,13 +30,17 @@ def _patch_ManualPlacement():
     import functools
     import inspect
     import pyhmf
+    import pywrapstdvector
 
     def wrap(fun):
         @functools.wraps(fun)
         def wrapper(self, pop, *args):
-            if not isinstance(pop, pyhmf.Population):
-                raise TypeError('first argument has to be a pyhmf population')
-            return fun(self, pop.euter_id(), *args)
+            if isinstance(pop, pyhmf.Population):
+                return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(range(0,pop.size)), *args)
+            if isinstance(pop, pyhmf.PopulationView):
+                return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(pop.mask()), *args)
+            else:
+                raise TypeError('first argument has to be a pyhmf Population or PopulationView')
         return wrapper
 
     for (name, fun) in inspect.getmembers(ManualPlacement, inspect.ismethod):

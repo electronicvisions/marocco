@@ -6,7 +6,9 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/nvp.hpp>
 
+#ifndef PYPLUSPLUS
 #include "marocco/graph.h"
+#endif // !PYPLUSPLUS
 
 namespace euter {
 class Population;
@@ -23,18 +25,28 @@ namespace assignment {
  */
 struct PopulationSlice {
 public:
-	typedef graph_t::vertex_descriptor value_type;
 
+#ifndef PYPLUSPLUS
+	typedef graph_t::vertex_descriptor value_type;
+#endif // !PYPLUSPLUS
+	typedef size_t population_type;
+	typedef int32_t mask_element_type;
+	typedef std::vector<mask_element_type> mask_type;
+
+#ifndef PYPLUSPLUS
 	PopulationSlice(value_type val, euter::Population const& pop);
 	PopulationSlice(value_type val, size_t offset, size_t size);
+#endif // !PYPLUSPLUS
 
 	size_t offset() const;
 	size_t size() const;
 	bool empty() const;
 
+#ifndef PYPLUSPLUS
 	/** Population vertex in pynn graph.
 	 */
 	value_type const& population() const;
+#endif // !PYPLUSPLUS
 
 	/** Split off a slice of bio neurons at the front.
 	 *  @return \c PopulationSlice of the \c n first bio neurons (at most).
@@ -54,12 +66,28 @@ public:
 
 	size_t hash() const;
 
+	/**
+	 *  @brief Slice populations into pieces (PopulationSlices) according to selection mask (and
+	 *  ignore the rest)
+	 *  @return Vector of PopulationSlices
+	 */
+	 static std::vector<PopulationSlice> slice_by_mask(mask_type mask, PopulationSlice slice);
+
+	 /**
+	 *  @brief Inverts mask
+         *  @param max_size Size of Population the mask describes
+         *  @return Inverted mask of size max_size
+	 *  @note Mask must be sorted.
+         */
+	 static mask_type invert_mask(mask_type mask, mask_element_type max_size);
+
 private:
 	// Default constructor needed for serialization
 	PopulationSlice();
 
 	friend class boost::serialization::access;
 
+#ifndef PYPLUSPLUS
 	template <typename Archiver>
 	void serialize(Archiver& ar, unsigned int const /*version*/) {
 		using boost::serialization::make_nvp;
@@ -69,6 +97,7 @@ private:
 	}
 
 	value_type mValue;
+#endif // !PYPLUSPLUS
 	size_t mOffset;
 	size_t mSize;
 };

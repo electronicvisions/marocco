@@ -11,13 +11,13 @@ namespace marocco {
 namespace placement {
 namespace parameters {
 
-void ManualPlacement::on_hicann(population_type pop, HICANNOnWafer const& hicann, size_type size)
-{
-	on_hicann(pop, std::vector<HICANNOnWafer>{hicann}, size);
-}
-
 void ManualPlacement::on_hicann(
-    population_type pop, std::vector<HICANNOnWafer> const& hicanns, size_type size)
+    population_type pop, mask_type mask, HICANNOnWafer const& hicann, size_type size)
+{
+	on_hicann(pop, mask, std::vector<HICANNOnWafer>{hicann}, size);
+}
+void ManualPlacement::on_hicann(
+    population_type pop, mask_type mask, std::vector<HICANNOnWafer> const& hicanns, size_type size)
 {
 	if (hicanns.empty()) {
 		throw std::invalid_argument("at least one HICANN has to be specified");
@@ -25,17 +25,20 @@ void ManualPlacement::on_hicann(
 	if (size != 0) {
 		check_neuron_size(size);
 	}
-	m_mapping[pop] = Location{hicanns, size};
+	m_mapping[pop].push_back(Location{hicanns, size, mask});
 }
 
 void ManualPlacement::on_neuron_block(
-    population_type pop, NeuronBlockOnWafer const& block, size_type size)
+    population_type pop, mask_type mask, NeuronBlockOnWafer const& block, size_type size)
 {
-	on_neuron_block(pop, std::vector<NeuronBlockOnWafer>{block}, size);
+	on_neuron_block(pop, mask, std::vector<NeuronBlockOnWafer>{block}, size);
 }
 
 void ManualPlacement::on_neuron_block(
-    population_type pop, std::vector<NeuronBlockOnWafer> const& blocks, size_type size)
+    population_type pop,
+    mask_type mask,
+    std::vector<NeuronBlockOnWafer> const& blocks,
+    size_type size)
 {
 	if (blocks.empty()) {
 		throw std::invalid_argument("at least one neuron block has to be specified");
@@ -43,23 +46,24 @@ void ManualPlacement::on_neuron_block(
 	if (size != 0) {
 		check_neuron_size(size);
 	}
-	m_mapping[pop] = Location{blocks, size};
+	m_mapping[pop].push_back(Location{blocks, size, mask});
 }
 
-void ManualPlacement::on_neuron(population_type pop, LogicalNeuron const& neuron)
+void ManualPlacement::on_neuron(population_type pop, mask_type mask, LogicalNeuron const& neuron)
 {
-	on_neuron(pop, std::vector<LogicalNeuron>{neuron});
+	on_neuron(pop, mask, std::vector<LogicalNeuron>{neuron});
 }
 
-void ManualPlacement::on_neuron(population_type pop, std::vector<LogicalNeuron> const& neurons)
+void ManualPlacement::on_neuron(
+    population_type pop, mask_type mask, std::vector<LogicalNeuron> const& neurons)
 {
 	if (neurons.empty()) {
 		throw std::invalid_argument("at least one neuron has to be specified");
 	}
-	m_mapping[pop] = Location{neurons, 0};
+	m_mapping[pop].push_back(Location{neurons, 0, mask});
 }
 
-void ManualPlacement::with_size(population_type pop, size_type size)
+void ManualPlacement::with_size(population_type pop, mask_type mask, size_type size)
 {
 	if (size == 0u) {
 		throw std::invalid_argument("neuron size has to be specified");
@@ -67,7 +71,7 @@ void ManualPlacement::with_size(population_type pop, size_type size)
 	if (size != 0) {
 		check_neuron_size(size);
 	}
-	m_mapping[pop] = Location{std::vector<HICANNOnWafer>{}, size};
+	m_mapping[pop].push_back(Location{std::vector<HICANNOnWafer>{}, size, mask});
 }
 
 auto ManualPlacement::mapping() const -> mapping_type const&
@@ -81,7 +85,8 @@ void ManualPlacement::Location::serialize(Archive& ar, unsigned int const /* ver
 	using namespace boost::serialization;
 	// clang-format off
 	ar & make_nvp("locations", locations)
-	   & make_nvp("hw_neuron_size", hw_neuron_size);
+	   & make_nvp("hw_neuron_size", hw_neuron_size)
+	   & make_nvp("mask", mask);
 	// clang-format on
 }
 

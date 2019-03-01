@@ -185,133 +185,184 @@ std::vector<NeuronPlacementRequest> NeuronPlacement::perform_manual_placement()
 		if (it != mapping.end()) {
 			auto const& entry = it->second;
 
-			{ // A population may be explicitly placed to a set of logical neurons.
-				std::vector<LogicalNeuron> const* logical_neurons =
-				    boost::get<std::vector<LogicalNeuron> >(&entry.locations);
+			// store mask of all manually placed neurons of one population-> use auto placement for
+			// the remaining
+			assignment::PopulationSlice::mask_type placed_manually;
+			placed_manually.reserve(pop.size());
+			for (auto pop_entry : entry) {
+				placed_manually.insert(
+				    placed_manually.end(), pop_entry.mask.begin(), pop_entry.mask.end());
+			}
+			std::sort(placed_manually.begin(), placed_manually.end());
+			// check if same neurons are used in different placement requests
+			auto same_neuron = std::adjacent_find(placed_manually.begin(), placed_manually.end());
+			if (same_neuron != placed_manually.end()) {
+				MAROCCO_ERROR(
+				    "Neuron " << *same_neuron << " of Population " << pop.id()
+				              << " used in different placement requests");
+				throw std::runtime_error("unable to implement manual placement request");
+			}
 
-				if (logical_neurons) {
-					MAROCCO_DEBUG(
-						"population " << v << " will be placed on manually specified neurons");
+			for (auto pop_entry : entry) {
+				{ // A population may be explicitly placed to a set of logical neurons.
+					std::vector<LogicalNeuron> const* logical_neurons =
+					    boost::get<std::vector<LogicalNeuron> >(&pop_entry.locations);
 
-					if (logical_neurons->size() != pop.size()) {
-						throw std::runtime_error(
-							"number of logical neurons does not match size of population");
+					if (logical_neurons) {
+						MAROCCO_DEBUG(
+						    "population " << v << " will be placed on manually specified neurons");
+
+						if (logical_neurons->size() != pop_entry.mask.size()) {
+							throw std::runtime_error("number of logical neurons does not match "
+							                         "size of population or populationview");
+						}
+
+						size_t neuron_id = 0;
+						size_t mask_position = 0;
+						std::vector<NeuronOnWafer> placements;
+						for (auto const& logical_neuron : *logical_neurons) {
+							if (logical_neuron.is_external()) {
+								throw std::runtime_error(
+								    "external neuron used in manual placement request");
+							}
+
+							MAROCCO_TRACE(logical_neuron);
+
+							auto const neuron = logical_neuron.front();
+							size_t const size = logical_neuron.size();
+
+							if (!logical_neuron.is_rectangular() ||
+							    logical_neuron.front().y() != 0 || logical_neuron.back().y() != 1) {
+								throw std::runtime_error(
+								    "manual placement only supports rectangular neurons "
+								    "spanning both rows");
+							}
+							// Only use neurons specified in mask
+							while (neuron_id < pop.size()) {
+								// check if neuron should be placed
+								if (pop_entry.mask[mask_position] == int(neuron_id)) {
+									mask_position++;
+									break;
+								}
+								neuron_id++;
+							}
+							NeuronPlacementRequest const placement{
+							    assignment::PopulationSlice{v, neuron_id, 1}, size};
+
+							auto& onb = internal::get_on_neuron_block_reference(
+							    m_denmem_assignment, neuron.toNeuronBlockOnWafer());
+
+							auto it = onb.add(neuron.toNeuronOnNeuronBlock().x(), placement);
+							if (it == onb.end()) {
+								throw std::runtime_error(
+								    "specified denmems are occupied or marked as defect");
+							}
+							placements.push_back(neuron);
+
+							++neuron_id;
+						}
+
+						post_process(placements);
+						continue;
+					}
+				}
+
+				// Else manual placement requests specify candidate neuron blocks that can be
+				// used to place a population.
+				std::vector<NeuronBlockOnWafer> neuron_blocks;
+				{
+					NeuronBlockLocationVisitor vis(neuron_blocks);
+					boost::apply_visitor(vis, pop_entry.locations);
+				}
+
+				assignment::PopulationSlice slice{v, pop};
+				std::vector<assignment::PopulationSlice> slices;
+				// mask received from pynn should always be sorted in ascending order. Else it is
+				// sorted
+				if (!std::is_sorted(pop_entry.mask.begin(), pop_entry.mask.end())) {
+					std::sort(pop_entry.mask.begin(), pop_entry.mask.end());
+				}
+				slices = assignment::PopulationSlice::slice_by_mask(pop_entry.mask, slice);
+				for (assignment::PopulationSlice current_slice : slices) {
+					NeuronPlacementRequest const placement{
+					    current_slice, pop_entry.hw_neuron_size > 0 ? pop_entry.hw_neuron_size
+					                                                : default_hw_neuron_size};
+					if (neuron_blocks.empty()) {
+						// `with_size` placement request.
+						auto_placements.push_back(placement);
+						continue;
+					}
+					auto const requested_locations = neuron_blocks;
+
+					MAROCCO_DEBUG(placement.population_slice() << " will be placed manually");
+
+					if (MAROCCO_TRACE_ENABLED()) {
+						for (auto const& nb : neuron_blocks) {
+							MAROCCO_TRACE("  on " << nb);
+						}
 					}
 
-					size_t neuron_id = 0;
-					std::vector<NeuronOnWafer> placements;
-					for (auto const& logical_neuron : *logical_neurons) {
-						if (logical_neuron.is_external()) {
-							throw std::runtime_error(
-								"external neuron used in manual placement request");
-						}
+					// As PlacePopulations starts at the back of neuron_blocks for
+					// placing neurons, the order of neuron blocks is reversed, so that
+					// the order specified by the user is complied with.
+					std::reverse(neuron_blocks.begin(), neuron_blocks.end());
 
-						MAROCCO_TRACE(logical_neuron);
+					std::vector<NeuronPlacementRequest> queue{placement};
 
-						auto const neuron = logical_neuron.front();
-						size_t const size = logical_neuron.size();
+					std::vector<algorithms::PlacePopulationsBase::result_type> const result =
+					    *(m_placer->run(m_graph, m_denmem_assignment, neuron_blocks, queue));
+					post_process(result);
 
-						if (!logical_neuron.is_rectangular() || logical_neuron.front().y() != 0 ||
-						    logical_neuron.back().y() != 1) {
-							throw std::runtime_error(
-								"manual placement only supports rectangular neurons "
-								"spanning both rows");
-						}
-
-						NeuronPlacementRequest const placement{
-							assignment::PopulationSlice{v, neuron_id, 1}, size};
-
-						auto& onb = internal::get_on_neuron_block_reference(
-						    m_denmem_assignment, neuron.toNeuronBlockOnWafer());
-
-						auto it = onb.add(neuron.toNeuronOnNeuronBlock().x(), placement);
-						if (it == onb.end()) {
-							throw std::runtime_error(
-								"specified denmems are occupied or marked as defect");
-						}
-						placements.push_back(neuron);
-
-						++neuron_id;
-					}
-
-					post_process(placements);
-					continue;
-				}
-			}
-
-			// Else manual placement requests specify candidate neuron blocks that can be
-			// used to place a population.
-
-			NeuronPlacementRequest const placement{
-			    assignment::PopulationSlice{v, pop},
-			    entry.hw_neuron_size > 0 ? entry.hw_neuron_size : default_hw_neuron_size};
-			std::vector<NeuronBlockOnWafer> neuron_blocks;
-			{
-				NeuronBlockLocationVisitor vis(neuron_blocks);
-				boost::apply_visitor(vis, entry.locations);
-			}
-
-			if (neuron_blocks.empty()) {
-				// `with_size` placement request.
-				auto_placements.push_back(placement);
-				continue;
-			}
-			auto const requested_locations = neuron_blocks;
-
-			MAROCCO_DEBUG(placement.population_slice() << " will be placed manually");
-
-			if (MAROCCO_TRACE_ENABLED()) {
-				for (auto const& nb : neuron_blocks) {
-					MAROCCO_TRACE("  on " << nb);
-				}
-			}
-
-			// As PlacePopulations starts at the back of neuron_blocks for
-			// placing neurons, the order of neuron blocks is reversed, so that
-			// the order specified by the user is complied with.
-			std::reverse(neuron_blocks.begin(), neuron_blocks.end());
-
-			std::vector<NeuronPlacementRequest> queue{placement};
-
-			std::vector<algorithms::PlacePopulationsBase::result_type> const result =
-			    *(m_placer->run(m_graph, m_denmem_assignment, neuron_blocks, queue));
-			post_process(result);
-
-			// The population (or parts of it) may not have been placed successfully.
+					// The population (or parts of it) may not have been placed successfully.
 #if 1
-			if (!queue.empty()) {
-				MAROCCO_ERROR(
-				    "unable to implement manual placement request for population "
-				    << pop << " with locations requested");
-				if (MAROCCO_DEBUG_ENABLED()) {
-					for (auto const& nb : requested_locations) {
-						MAROCCO_DEBUG("  on " << nb);
+					if (!queue.empty()) {
+						MAROCCO_ERROR(
+						    "unable to implement manual placement request for population "
+						    << pop << " with locations requested");
+						if (MAROCCO_DEBUG_ENABLED()) {
+							for (auto const& nb : requested_locations) {
+								MAROCCO_DEBUG("  on " << nb);
+							}
+						} else {
+							MAROCCO_ERROR("  from " << requested_locations.front());
+							MAROCCO_ERROR("  to   " << requested_locations.back());
+						}
+						size_t neurons = 0;
+						size_t denmems = 0;
+						for (auto const& request : queue) {
+							auto const& slice = request.population_slice();
+							neurons += slice.size();
+							denmems += slice.size() * request.neuron_size();
+							MAROCCO_DEBUG(
+							    "remaining " << slice << " with neuron size "
+							                 << request.neuron_size());
+						}
+						MAROCCO_ERROR(
+						    neurons << " neurons (" << denmems
+						            << " denmems) could not be placed for population: " << pop);
+						throw ResourceExhaustedError(
+						    "unable to implement manual placement request");
 					}
-				} else {
-					MAROCCO_ERROR("  from " << requested_locations.front());
-					MAROCCO_ERROR("  to   " << requested_locations.back());
-				}
-				size_t neurons = 0;
-				size_t denmems = 0;
-				for (auto const& request : queue) {
-					auto const& slice = request.population_slice();
-					neurons += slice.size();
-					denmems += slice.size() * request.neuron_size();
-					MAROCCO_DEBUG(
-						"remaining " << slice << " with neuron size " << request.neuron_size());
-				}
-				MAROCCO_ERROR(
-				    neurons << " neurons (" << denmems
-				            << " denmems) could not be placed for population: " << pop);
-				throw ResourceExhaustedError("unable to implement manual placement request");
-			}
 #else
-			// Try again during auto-placement.
-			std::copy(queue.begin(), queue.end(), std::back_inserter(auto_placements));
+					// Try again during auto-placement.
+					std::copy(queue.begin(), queue.end(), std::back_inserter(auto_placements));
 #endif
+				}
+			}
+			// check if auto placement is needed
+			if (placed_manually.size() < pop.size()) {
+				// auto placement of all remaining neurons of the current population
+				assignment::PopulationSlice slice{v, pop};
+				std::vector<assignment::PopulationSlice> slices;
+				slices = assignment::PopulationSlice::slice_by_mask(assignment::PopulationSlice::invert_mask(placed_manually, pop.size()), slice);
+				for (assignment::PopulationSlice current_slice : slices) {
+					NeuronPlacementRequest const placement{current_slice, default_hw_neuron_size};
+					auto_placements.push_back(placement);
+				}
+			}
 		} else {
 			NeuronPlacementRequest const placement{assignment::PopulationSlice{v, pop},
-			                                default_hw_neuron_size};
+			                                       default_hw_neuron_size};
 			auto_placements.push_back(placement);
 		}
 	}
@@ -400,6 +451,5 @@ void NeuronPlacement::post_process(
 		}
 	}
 }
-
 } // namespace placement
 } // namespace marocco
