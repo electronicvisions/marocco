@@ -104,7 +104,7 @@ std::vector<L1RoutingGraph::vertex_descriptor> L1_crossbar_restrictioning(
     L1RoutingGraph::vertex_descriptor const& switch_from,
     std::vector<L1RoutingGraph::vertex_descriptor> const& switch_to_candidates,
     std::vector<L1RoutingGraph::vertex_descriptor> const& predecessors,
-    boost::optional<resource::HICANNManager>
+    boost::optional<resource::HICANNManager&>
         res_mgr, // might load config, thus prevents the whole function from being const
     L1RoutingGraph::graph_type const& l1_graph);
 

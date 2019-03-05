@@ -151,6 +151,7 @@ void L1Routing::run_backbone_router()
 
 	auto const drv_per_src =
 	    SynapseDriverRequirementPerSource(m_bio_graph.graph(), m_neuron_placement);
+	boost::optional<resource::HICANNManager&> res_mgr_o(m_resource_manager);
 	for (auto const& merger : sources) {
 		auto const source = m_l1_graph[merger.toHICANNOnWafer()]
 		                              [merger.toSendingRepeaterOnHICANN().toHLineOnHICANN()];
@@ -158,8 +159,7 @@ void L1Routing::run_backbone_router()
 
 		MAROCCO_TRACE("routing from " << merger << " to " << targets.size() << " targets");
 
-		L1BackboneRouter backbone(
-		    walker, source, scoring_function, boost::make_optional(m_resource_manager));
+		L1BackboneRouter backbone(walker, source, scoring_function, res_mgr_o);
 
 		for (auto const& target : targets) {
 			backbone.add_target(target.first);
@@ -338,7 +338,7 @@ std::vector<L1RoutingGraph::vertex_descriptor> L1_crossbar_restrictioning(
     L1RoutingGraph::vertex_descriptor const& switch_from,
     std::vector<L1RoutingGraph::vertex_descriptor> const& switch_to_candidates,
     std::vector<L1RoutingGraph::vertex_descriptor> const& predecessors,
-    boost::optional<resource::HICANNManager> res_mgr,
+    boost::optional<resource::HICANNManager&> res_mgr,
     L1RoutingGraph::graph_type const& l1_graph)
 {
 	// will store all destination [H|V]Lines that are already planned to be connected to

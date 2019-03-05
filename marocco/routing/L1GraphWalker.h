@@ -30,7 +30,7 @@ public:
 	 */
 	L1GraphWalker(
 	    graph_type const& graph,
-	    boost::optional<resource::HICANNManager> resource_manager = boost::none);
+	    boost::optional<resource::HICANNManager&> resource_manager = boost::none);
 
 	/**
 	 * @brief Ensure that some vertex is not utilized.
@@ -125,7 +125,7 @@ private:
 	graph_type const& m_graph;
 	std::set<vertex_descriptor> m_avoid;
 
-	boost::optional<resource::HICANNManager> m_res_mgr;
+	boost::optional<resource::HICANNManager&> m_res_mgr;
 }; // L1GraphWalker
 
 } // namespace routing

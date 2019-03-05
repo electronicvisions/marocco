@@ -49,7 +49,7 @@ public:
 	    L1GraphWalker const& walker,
 	    vertex_descriptor const& source,
 	    score_function_type const& vertical_scoring = nullptr,
-	    boost::optional<resource::HICANNManager> resource_manager = boost::none);
+	    boost::optional<resource::HICANNManager&> resource_manager = boost::none);
 
 	/**
 	 * @brief Adds target requirement.
@@ -116,7 +116,7 @@ private:
 	 */
 	std::vector<vertex_descriptor> m_predecessors;
 
-	boost::optional<resource::HICANNManager> m_res_mgr;
+	boost::optional<resource::HICANNManager&> m_res_mgr;
 }; // L1BackboneRouter
 
 } // namespace routing

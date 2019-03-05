@@ -11,7 +11,7 @@ L1BackboneRouter::L1BackboneRouter(
     L1GraphWalker const& walker,
     vertex_descriptor const& source,
     score_function_type const& vertical_scoring,
-    boost::optional<resource::HICANNManager> resource_manager) :
+    boost::optional<resource::HICANNManager&> resource_manager) :
     m_walker(walker),
     m_graph(walker.graph()),
     m_source(source),

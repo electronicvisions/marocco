@@ -10,7 +10,7 @@ namespace marocco {
 namespace routing {
 
 L1GraphWalker::L1GraphWalker(
-    graph_type const& graph, boost::optional<resource::HICANNManager> resource_manager) :
+    graph_type const& graph, boost::optional<resource::HICANNManager&> resource_manager) :
     m_graph(graph),
     m_res_mgr(resource_manager)
 {}
