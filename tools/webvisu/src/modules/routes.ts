@@ -413,7 +413,7 @@ namespace internalModule {
 
 			// store as graphics objects
 			pixiBackend.storeGraphics(graphicsObject, routesContainer);
-			pixiBackend.storeSprite(graphicsObjectSynapse, routesContainer, 100)
+			pixiBackend.storeSprite(graphicsObjectSynapse, routesContainer, 16)
 			pixiBackend.storeGraphics(graphicsObjectSwitches, switchesContainer);
 		}
 
