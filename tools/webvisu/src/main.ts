@@ -7,11 +7,9 @@
 	* wafer.ts: don't check for networkFilePath, but do 'marocco = new Module.Marocco(networkFilePath);' right away
 	*/
 
-/// <reference path="modules/jquery.d.ts" />
 /// <reference path="modules/jqueryui.d.ts" />
 /// <reference path="modules/filesystem.d.ts" />
 /// <reference path="modules/stats.d.ts" />
-/// <reference path="modules/pixi.d.ts" />
 /// <reference path="modules/pixiBackend.ts" />
 /// <reference path="modules/wafer.ts" />
 /// <reference path="modules/detailview.ts" />
@@ -25,6 +23,8 @@
 /// <reference path="modules/summary.ts" />
 /// <reference path="modules/hicannNumber.ts" />
 /// <reference path="modules/hicannInfo.ts" />
+
+/// <reference types="pixi.js" />
 
 /**
  * development mode: set to true to skip file upload procedure
