@@ -1,5 +1,6 @@
 // declaration file for Emscriptens global Module object
-export as namespace Module;
+
+declare namespace Module {
 
 export function onRuntimeInitialized();
 // TODO: complete the Marocco class declaration
@@ -17,4 +18,6 @@ export class HICANNOnWafer{
     constructor(enumRanged: HICANNOnWafer_EnumRanged_type)
     x()
     y()
+}
+
 }
