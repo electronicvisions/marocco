@@ -14,7 +14,7 @@ class AMergerTreeConfigurator : public AMergerTreeRouter
 public:
 	void run_configurator() {
 		auto router = build_router();
-		router.run();
+		router.run(HICANNOnWafer(Enum(0)));
 		mapping = router.result();
 		MergerTreeConfigurator configurator(layer1, graph);
 		configurator.run(mapping);
@@ -26,11 +26,14 @@ public:
 
 TEST_F(AMergerTreeConfigurator, collatesNeuronBlocks23)
 {
+	HICANNOnWafer hicann(Enum(0));
 	NeuronBlockOnHICANN nb2(2);
 	NeuronBlockOnHICANN nb3(3);
+	NeuronBlockOnWafer nbw2(nb2, hicann);
+	NeuronBlockOnWafer nbw3(nb3, hicann);
 
-	add(nb2, 12);
-	add(nb3, 32);
+	add(nbw2, 12);
+	add(nbw3, 32);
 
 	Merger1OnHICANN merger(1);
 
@@ -44,11 +47,14 @@ TEST_F(AMergerTreeConfigurator, collatesNeuronBlocks23)
 TEST_F(AMergerTreeConfigurator, collatesNeuronBlocks34)
 {
 	// Neuron block 4 can be connected to DNC merger 3 because neuron block 5 is unused.
+	HICANNOnWafer hicann(Enum(0));
 	NeuronBlockOnHICANN nb3(3);
 	NeuronBlockOnHICANN nb4(4);
+	NeuronBlockOnWafer nbw3(nb3, hicann);
+	NeuronBlockOnWafer nbw4(nb4, hicann);
 
-	add(nb3, 32);
-	add(nb4, 26);
+	add(nbw3, 32);
+	add(nbw4, 26);
 
 	Merger1OnHICANN m1{2};
 	Merger3OnHICANN m3{0};
@@ -68,13 +74,18 @@ TEST_F(AMergerTreeConfigurator, doesNotCollateNeurons345)
 {
 	// Neuron block 4 can be connected to DNC merger 3 because that would use a switch needed for
 	// neuron block 5.  The numbers were chosen s.t. we cannot connect all blocks to DNC merger 3.
+	HICANNOnWafer hicann(Enum(0));
 	NeuronBlockOnHICANN nb3(3);
 	NeuronBlockOnHICANN nb4(4);
 	NeuronBlockOnHICANN nb5(5);
+	NeuronBlockOnWafer nbw3(nb3, hicann);
+	NeuronBlockOnWafer nbw4(nb4, hicann);
+	NeuronBlockOnWafer nbw5(nb5, hicann);
 
-	add(nb3, 32);
-	add(nb4, 26);
-	add(nb5, 32);
+
+	add(nbw3, 32);
+	add(nbw4, 26);
+	add(nbw5, 32);
 
 
 	Merger1OnHICANN m1{2};
@@ -92,8 +103,10 @@ TEST_F(AMergerTreeConfigurator, doesNotCollateNeurons345)
 
 TEST_F(AMergerTreeConfigurator, doesNotCollateBecauseOfLimitedCapacity)
 {
+	HICANNOnWafer hicann(Enum(0));
 	for (auto nb : iter_all<NeuronBlockOnHICANN>()) {
-		add(nb, 32);
+		NeuronBlockOnWafer nbw(nb, hicann);
+		add(nbw, 32);
 	}
 
 	run_configurator();

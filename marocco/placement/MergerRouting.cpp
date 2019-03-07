@@ -1,11 +1,16 @@
 #include "marocco/placement/MergerRouting.h"
 
 #include <unordered_map>
+#include <boost/optional.hpp>
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
-#include "marocco/placement/MergerTreeRouter.h"
+#include "marocco/placement/ConstrainMergers.h"
 #include "marocco/placement/MergerTreeConfigurator.h"
+#include "marocco/placement/MergerTreeGraph.h"
+#include "marocco/placement/MergerTreeRouter.h"
+#include "marocco/placement/parameters/MergerRouting.h"
+#include "marocco/resource/Manager.h"
 #include "marocco/util.h"
 #include "marocco/util/chunked.h"
 
@@ -16,10 +21,20 @@ namespace marocco {
 namespace placement {
 
 MergerRouting::MergerRouting(
-	parameters::MergerRouting const& parameters,
-	internal::Result::denmem_assignment_type const& denmem_assignment,
-	MergerRoutingResult& result)
-	: m_parameters(parameters), m_denmem_assignment(denmem_assignment), m_result(result)
+    parameters::MergerRouting const& parameters,
+    internal::Result::denmem_assignment_type const& denmem_assignment,
+    MergerRoutingResult& result,
+    resource::HICANNManager const& res_mgr,
+    results::Placement const& placement,
+    graph_t const& bio_graph,
+    parameters::L1AddressAssignment const& address_parameters) :
+    m_parameters(parameters),
+    m_denmem_assignment(denmem_assignment),
+    m_result(result),
+    m_res_mgr(res_mgr),
+    m_placement(placement),
+    m_bio_graph(bio_graph),
+    m_address_parameters(address_parameters)
 {
 }
 
@@ -39,9 +54,33 @@ void MergerRouting::run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnW
 			// overall use of SPL1 outputs is minimized.  Every unused SPL1 output can
 			// then be used for external input.
 
-			auto const& denmem_assignment = m_denmem_assignment.at(hicann);
-			MergerTreeRouter router(graph, denmem_assignment);
-			router.run();
+			MergerTreeRouter router(graph, m_denmem_assignment, boost::none);
+			router.run(hicann);
+
+			// If there is no entry in the merger mapping result, the corresponding neuron
+			// block has not been merged with any other blocks and thus a 1-to-1
+			// connection should be possible (only adjacent blocks are merged!).
+			for (auto const& item : router.result()) {
+				merger_mapping[item.first] = item.second;
+			}
+
+			break;
+		}
+		case parameters::MergerRouting::Strategy::minimize_as_possible: {
+			// MergerTreeRoutingConstrained tries to merge adjacent neuron blocks such that the
+			// overall use of SPL1 outputs is minimized, but it does not merge more blocks than
+			// the SynapseDriversChainLength is able to handle, based on calculations of the
+			// SynapseDriverChainLengthPerSource class. Every unused SPL1 output can be used for
+			// external input, as a background generator can be merged to it.
+
+			ConstrainMergers constrainer(
+			    m_res_mgr, m_placement, m_bio_graph, m_address_parameters.strategy());
+
+
+			MergerTreeRouter router(
+			    graph, m_denmem_assignment, boost::optional<ConstrainMergers>(constrainer));
+
+			router.run(hicann);
 
 			// If there is no entry in the merger mapping result, the corresponding neuron
 			// block has not been merged with any other blocks and thus a 1-to-1

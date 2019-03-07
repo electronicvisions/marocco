@@ -4,6 +4,7 @@
 
 #include <array>
 #include <numeric>
+#include <experimental/array>
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
@@ -21,20 +22,25 @@ struct UnroutableNeuronBlock {};
 } // namespace
 
 MergerTreeRouter::MergerTreeRouter(
-	MergerTreeGraph const& graph, internal::Result::denmem_assignment_type::mapped_type const& nbm)
-	: m_graph(graph)
+    MergerTreeGraph const& graph,
+    internal::Result::denmem_assignment_type const& nbm,
+    boost::optional<ConstrainMergers> constrainer) :
+    m_graph(graph),
+    m_denmems(nbm),
+    m_constraints_checker(constrainer)
+{}
+
+void MergerTreeRouter::run(HMF::Coordinate::HICANNOnWafer const& hicann)
 {
 	// Count the number of mapped bio neurons for each neuron block.
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
 		m_neurons[nb] = 0u;
-		for (std::shared_ptr<internal::NeuronPlacementRequest> const& pl : nbm[nb]) {
+		for (std::shared_ptr<internal::NeuronPlacementRequest> const& pl :
+		     m_denmems.at(hicann).at(nb)) {
 			m_neurons[nb] += pl->population_slice().size();
 		}
 	}
-}
 
-void MergerTreeRouter::run()
-{
 	std::set<NeuronBlockOnHICANN> pending;
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
 		if (m_neurons[nb] > 0) {
@@ -49,12 +55,11 @@ void MergerTreeRouter::run()
 	// Mergers are not all equally expensive. Those in the center and on
 	// higher levels (closer to the DNCMergers) are more expensive. If one
 	// wastes them, some neuron blocks in the center might become
-	// unroutable. So we start the routing in the center and move outwards
-	// and we collapse only adjacent neuron blocks.
-	// Therefore it should always be possible to route all neuron blocks to
-	// at least one SPL1 output at the expense of wasting L2 input bandwidth.
+	// unroutable. So we start the routing in the center and move upwards from level 3 to level 0.
+	// Merger are tried multiple times, as for example Merger 3 is possible on all 4 levels.
+	static std::array const order =
+	    std::experimental::make_array<int>(-1, 5, 3, 6, 3, 5, 3, 1, 3, 0, 1, 2, 3, 4, 5, 6, 7);
 
-	static std::array<int, 9> const order = {{ -1, 5, 3, 1, 6, 4, 2, 7, 0 }};
 
 	for (size_t jj = 0; jj < order.size(); ++jj) {
 		auto const ii = order[jj];
@@ -123,6 +128,19 @@ void MergerTreeRouter::run()
 
 		auto& graph = m_graph.graph();
 		auto dnc_merger_vertex = m_graph[dnc_merger];
+
+		if (m_constraints_checker != boost::none) { // if the optional argument was provided
+			// test if hw resources are sufficient.
+			if (!(*m_constraints_checker)(dnc_merger, adjacent_nbs, hicann)) {
+				MAROCCO_TRACE(
+				    "cant merge to " << dnc_merger << " on " << hicann
+				                     << " we will try again, while merging less");
+				continue;
+			}
+			MAROCCO_DEBUG("merging to " << dnc_merger);
+		}
+
+
 		for (auto& adjacent_nb : adjacent_nbs) {
 			// Remove used mergers from the graph.
 			auto cur = m_graph[Merger0OnHICANN(nb)];

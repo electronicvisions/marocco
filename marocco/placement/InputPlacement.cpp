@@ -258,6 +258,7 @@ void InputPlacement::insertInput(
 
 
 		if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::output) {
+			MAROCCO_TRACE("skipping " << dnc << " because its mode is output");
 			continue;
 		}
 		if (bio_vector.empty()) {
@@ -290,6 +291,7 @@ void InputPlacement::insertInput(
 			NeuronBlockOnHICANN bg_block(dnc);
 			if (merger_mapping[bg_block] != dnc) {
 				// No route from BG to this DNC merger.
+				// BG is required, for signal locking.
 				continue;
 			}
 

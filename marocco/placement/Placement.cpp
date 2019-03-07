@@ -99,7 +99,8 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 	}
 
 	MergerRouting merger_routing(
-		m_pymarocco.merger_routing, result->internal.denmem_assignment, result->merger_routing);
+	    m_pymarocco.merger_routing, result->internal.denmem_assignment, result->merger_routing,
+	    m_resource_manager, neuron_placement, m_graph, m_pymarocco.l1_address_assignment);
 
 	for (auto const& item : result->internal.denmem_assignment) {
 		// Tag HICANN as 'in use' in the resource manager.

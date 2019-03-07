@@ -6,7 +6,7 @@
 
 #include "hal/Coordinate/L1.h"
 #include "hal/Coordinate/Neuron.h"
-#include "hal/Coordinate/typed_array.h"
+#include "marocco/placement/ConstrainMergers.h"
 #include "marocco/placement/MergerTreeGraph.h"
 #include "marocco/placement/internal/Result.h"
 
@@ -34,12 +34,14 @@ public:
 	 *              Use MergerTreeGraph::remove() to implement hardware defects.
 	 * @param nbm Result of neuron placement, used to extract the number of mapped bio
 	 *            neurons for each neuron block.
+	 * @param constrainer may contain a functor to check if constraints are met
 	 */
 	MergerTreeRouter(
-		MergerTreeGraph const& graph,
-		internal::Result::denmem_assignment_type::mapped_type const& nbm);
+	    MergerTreeGraph const& graph,
+	    internal::Result::denmem_assignment_type const& nbm,
+	    boost::optional<ConstrainMergers> const constrainer = boost::none);
 
-	void run();
+	void run(HMF::Coordinate::HICANNOnWafer const& hicann);
 
 	/**
 	 * @return Mapping of neuron blocks to DNC mergers.
@@ -69,7 +71,13 @@ private:
 	/// number of placed neurons for each NeuronBlock
 	HMF::Coordinate::typed_array<size_t, HMF::Coordinate::NeuronBlockOnHICANN> m_neurons;
 
+	/// mapping of Neurons to Hardware
+	internal::Result::denmem_assignment_type const& m_denmems;
+
+	/// merger tree result
 	result_type m_result;
+
+	boost::optional<ConstrainMergers> const m_constraints_checker;
 }; // MergerTreeRouter
 
 } // namespace placement
