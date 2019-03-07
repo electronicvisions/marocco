@@ -563,75 +563,75 @@ function main(resultsFile: string) {
 } //main
 
 function visualizeFile(resultsFile: string) {
+	wafer = new internalModule.Wafer();
+
 	try {
-		wafer = new internalModule.Wafer();
-		
 		// ----- devMode -----
 		devMode ? wafer.loadOverviewData() : wafer.loadOverviewData(resultsFile);
 		// ----- devMode -----
-		
-		// Adjust color gradients when a HICANN property is zero for every HICANN.
-		setHicannPropertyGradients();
-		
-		overview = new internalModule.Overview(
-			wafer,
-			{
-				numNeuronsColorOne: numNeuronsColorOne,
-				numNeuronsColorTwo: numNeuronsColorTwo,
-				numInputsColorOne: numInputsColorOne,
-				numInputsColorTwo: numInputsColorTwo,
-				numRoutesLeftColorOne: numRoutesLeftColorOne,
-				numRoutesLeftColorTwo: numRoutesLeftColorTwo,
-				numRoutesRightColorOne: numRoutesRightColorOne,
-				numRoutesRightColorTwo: numRoutesRightColorTwo,
-				numRoutesHorizontalColorOne: numRoutesHorizontalColorOne,
-				numRoutesHorizontalColorTwo: numRoutesHorizontalColorTwo
-			}
-		);
-		// draw overview of wafer
-		overview.drawWafer();
-	
-		detailview = new internalModule.Detailview(wafer);
-		
-		routesOnStage = new internalModule.RoutesOnStage(detailview);
-	
-		// draw routes
-		routesOnStage.drawRoutes();
-		
-		// hide routes
-		for (const route of routesOnStage.routes) {
-			routesOnStage.setRoute(route, false);
-		}
-	
-		reticlesOnStage = new internalModule.ReticlesOnStage(overview, pixiBackend.container.reticles);
-	
-		// threshold where the lookup plot is made visible
-		reticlesOnStage.threshold = fullWaferScale() * 2/3;
-	
-		// draw reticles
-		reticlesOnStage.drawReticles();
-	
-		// hide reticles
-		reticlesOnStage.setReticles(false);
-	
-		automode = new internalModule.Automode(overview, detailview);
-	
-		manualmode = new internalModule.Manualmode(overview, detailview);
-	
-		// display properties for HICANN 0 in right info panel
-		// hicannInfo.handleHicannClick(0);
-	
-		// build UI routes list in left info panel
-		buildRoutesTree();
-	
-		// UI property gradients in right info panel
-		setupPropertyGradients();
 	} catch (e) {
 		alert(
 			`cannot load input file. \nPossible reasons: invalid results file or error in emscripten marocco build`
 		);
 		throw(new Error("cannot load input file"));
 	}
+		
+	// Adjust color gradients when a HICANN property is zero for every HICANN.
+	setHicannPropertyGradients();
+	
+	overview = new internalModule.Overview(
+		wafer,
+		{
+			numNeuronsColorOne: numNeuronsColorOne,
+			numNeuronsColorTwo: numNeuronsColorTwo,
+			numInputsColorOne: numInputsColorOne,
+			numInputsColorTwo: numInputsColorTwo,
+			numRoutesLeftColorOne: numRoutesLeftColorOne,
+			numRoutesLeftColorTwo: numRoutesLeftColorTwo,
+			numRoutesRightColorOne: numRoutesRightColorOne,
+			numRoutesRightColorTwo: numRoutesRightColorTwo,
+			numRoutesHorizontalColorOne: numRoutesHorizontalColorOne,
+			numRoutesHorizontalColorTwo: numRoutesHorizontalColorTwo
+		}
+	);
+	// draw overview of wafer
+	overview.drawWafer();
+
+	detailview = new internalModule.Detailview(wafer);
+	
+	routesOnStage = new internalModule.RoutesOnStage(detailview);
+
+	// draw routes
+	routesOnStage.drawRoutes();
+	
+	// hide routes
+	for (const route of routesOnStage.routes) {
+		routesOnStage.setRoute(route, false);
+	}
+
+	reticlesOnStage = new internalModule.ReticlesOnStage(overview, pixiBackend.container.reticles);
+
+	// threshold where the lookup plot is made visible
+	reticlesOnStage.threshold = fullWaferScale() * 2/3;
+
+	// draw reticles
+	reticlesOnStage.drawReticles();
+
+	// hide reticles
+	reticlesOnStage.setReticles(false);
+
+	automode = new internalModule.Automode(overview, detailview);
+
+	manualmode = new internalModule.Manualmode(overview, detailview);
+
+	// display properties for HICANN 0 in right info panel
+	// hicannInfo.handleHicannClick(0);
+
+	// build UI routes list in left info panel
+	buildRoutesTree();
+
+	// UI property gradients in right info panel
+	setupPropertyGradients();
 }
 
 function removeVisualization() {
