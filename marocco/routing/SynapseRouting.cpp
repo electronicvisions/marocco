@@ -364,6 +364,7 @@ void SynapseRouting::run()
 							    synapses_on_vline.getSynapse(target_nrn, bio_synapse_property);
 
 							if (!found_candidate) {
+								MAROCCO_TRACE("There are no more available synapses");
 								// There are no more available synapses.
 								break;
 							}
@@ -373,11 +374,13 @@ void SynapseRouting::run()
 							assert(synapse_proxy.decoder == SynapseDecoderDisablingSynapse);
 							// check that synapse has not been tagged as defect
 							if (synapse_proxy.weight != SynapseWeight(0)) {
+								MAROCCO_TRACE("Synapse was tagged as defect");
 								found_candidate = false;
 							}
 						}
 
 						if (!found_candidate) {
+							MAROCCO_TRACE("lost a single Synapse");
 							// no synapse found, so add to synapse loss
 							syn_loss_proxy.addLoss(
 							    src_neuron_in_proj_view, trg_neuron_in_proj_view);
