@@ -159,6 +159,7 @@ std::vector<L1RouteProperties> Marocco::l1_properties() const
 		               [](auto p) { return p.projection(); });
 
 		auto const& source = placement.find(route_item.source());
+		auto const& target = placement.find(route_item.target());
 		std::vector<HMF::HICANN::L1Address> l1_addresses;
 		std::transform(source.begin(), source.end(), std::back_inserter(l1_addresses),
 		               [](auto p) {
@@ -260,20 +261,38 @@ std::vector<L1RouteProperties> Marocco::l1_properties() const
 				for (auto const& dr : drivers_for_augmentation) {
 					route_augmented.append(route_item.target(), dr);
 				}
-			}
-		}
 
-		// augment with synapses from all projections
-		for (auto const& proj_item : projections) {
-			auto const& synapse_items = synapse_routing_synapses.find(proj_item.projection());
-			for (auto const& synapse_item : synapse_items) {
-				auto const& hw_synapse = synapse_item.hardware_synapse();
-				if (hw_synapse.is_initialized()) {
-					route_augmented.append(route_item.target(), hw_synapse.get());
+				// augment with synapses to THIS hicann
+				for (auto const& proj_item : projections) {
+					auto const& synapse_items =
+					    synapse_routing_synapses.find(proj_item.projection());
+					for (auto const& synapse_item : synapse_items) {
+						auto const& syn_source = synapse_item.source_neuron();
+						auto const& syn_target = synapse_item.target_neuron();
+
+						if (std::find_if(
+						        source.begin(), source.end(),
+						        [&syn_source](placement::results::Placement::item_type const& a) {
+							        return syn_source == a.bio_neuron();
+						        }) == source.end()) {
+							continue;
+						}
+						if (std::find_if(
+						        target.begin(), target.end(),
+						        [&syn_target](placement::results::Placement::item_type const& a) {
+							        return syn_target == a.bio_neuron();
+						        }) == target.end()) {
+							continue;
+						}
+
+						auto const& hw_synapse = synapse_item.hardware_synapse();
+						if (hw_synapse.is_initialized()) {
+							route_augmented.append(route_item.target(), hw_synapse.get());
+						}
+					}
 				}
 			}
 		}
-
 		l1_route_properties_vec.push_back({projection_ids, route_augmented, l1_addresses});
 	}
 
