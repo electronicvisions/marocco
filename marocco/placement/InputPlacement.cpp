@@ -233,6 +233,7 @@ void InputPlacement::insertInput(
 	if (bio_vector.empty()) { // can happen by splitting populations and retrying via recursion;
 		return;
 	}
+	HMF::Coordinate::HICANNGlobal global_hicann(target_hicann, mMgr.wafers()[0]);
 
 	// As this special handling used to be done only for DNCMergerOnHICANN(7) they are
 	// processed in reverse order here to be backwards compatible with that mode of
@@ -242,6 +243,20 @@ void InputPlacement::insertInput(
 
 	for (auto it_dnc = dncs.begin(); it_dnc != dncs.end(); it_dnc++) {
 		auto const& dnc = *it_dnc;
+
+		if (mMgr.get(global_hicann)->dncmergers() != nullptr) {
+			if (std::find(
+			        mMgr.get(global_hicann)->dncmergers()->begin_disabled(),
+			        mMgr.get(global_hicann)->dncmergers()->end_disabled(),
+			        dnc) != mMgr.get(global_hicann)->dncmergers()->end_disabled()) {
+				MAROCCO_WARN(
+				    "skipping " << dnc << " on " << global_hicann
+				                << " for input placement because it is blacklisted");
+				continue;
+			}
+		}
+
+
 		if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::output) {
 			continue;
 		}
