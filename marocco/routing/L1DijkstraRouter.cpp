@@ -39,6 +39,7 @@ void L1DijkstraRouter::run()
 	// num_vertices() is 122 880 for a wafer with all HICANNs.
 	// sizeof(vertex_descriptor) =~ 4 byte ⇒ ~0.5 MiB (not much!)
 	m_predecessors = std::vector<vertex_descriptor>(boost::num_vertices(m_graph));
+	std::iota(m_predecessors.begin(), m_predecessors.end(), 0);
 
 	auto visitor = boost::make_dijkstra_visitor(
 		make_event_visitor(

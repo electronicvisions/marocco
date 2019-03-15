@@ -45,7 +45,7 @@ auto L1BackboneRouter::source() const -> vertex_descriptor
 void L1BackboneRouter::run()
 {
 	m_predecessors = std::vector<vertex_descriptor>(boost::num_vertices(m_graph));
-	m_predecessors[m_source] = m_source;
+	std::iota(m_predecessors.begin(), m_predecessors.end(), 0);
 
 	// Walk horizontally until we reach the leftmost/rightmost HICANN.
 	for (auto const direction : {east, west}) {
