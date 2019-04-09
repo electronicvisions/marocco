@@ -1,4 +1,4 @@
-#include <tuple>
+#include <sstream>
 #include <stdexcept>
 #include <tuple>
 #include <utility>
@@ -124,8 +124,11 @@ auto Manager<T>::wafer_for(resource_type const& r) const
 template <class T>
 boost::shared_ptr<const typename Manager<T>::redman_resources_type>
 Manager<T>::get(resource_type const& r) const {
-	if (!has(r))
-		throw std::runtime_error("Resource not present.");
+	if (!has(r)) {
+		std::stringstream err_msg;
+		err_msg << "Resource not present: " << r << ".";
+		throw std::runtime_error(err_msg.str());
+	}
 
 	typename resource_type::mixed_in_type wafer;
 	typename resource_type::local_type local;
@@ -137,8 +140,11 @@ Manager<T>::get(resource_type const& r) const {
 
 template <class T>
 void Manager<T>::mask(resource_type const& r) {
-	if (wafer_for(r) == mWafers.end())
-		throw std::runtime_error("Resource not present.");
+	if (wafer_for(r) == mWafers.end()) {
+		std::stringstream err_msg;
+		err_msg << "Resource not present: " << r << ".";
+		throw std::runtime_error(err_msg.str());
+	}
 
 	auto it = mMasked.insert(r);
 	if (!it.second)
@@ -147,8 +153,11 @@ void Manager<T>::mask(resource_type const& r) {
 
 template <class T>
 void Manager<T>::unmask(resource_type const& r) {
-	if (wafer_for(r) == mWafers.end())
-		throw std::runtime_error("Resource not present.");
+	if (wafer_for(r) == mWafers.end()) {
+		std::stringstream err_msg;
+		err_msg << "Resource not present: " << r << ".";
+		throw std::runtime_error(err_msg.str());
+	}
 
 	auto it = mMasked.find(r);
 	if (it == mMasked.end())
@@ -164,8 +173,11 @@ bool Manager<T>::masked(resource_type const& r) const {
 
 template <class T>
 void Manager<T>::allocate(resource_type const& r) {
-	if (!has(r))
-		throw std::runtime_error("Resource not present.");
+	if (!has(r)) {
+		std::stringstream err_msg;
+		err_msg << "Resource not present: " << r << ".";
+		throw std::runtime_error(err_msg.str());
+	}
 
 	auto it = mAllocated.insert(r);
 	if (!it.second)
@@ -174,8 +186,11 @@ void Manager<T>::allocate(resource_type const& r) {
 
 template <class T>
 void Manager<T>::release(resource_type const& r) {
-	if (!has(r))
-		throw std::runtime_error("Resource not present.");
+	if (!has(r)) {
+		std::stringstream err_msg;
+		err_msg << "Resource not present: " << r << ".";
+		throw std::runtime_error(err_msg.str());
+	}
 
 	auto it = mAllocated.find(r);
 	if (it == mAllocated.end())
