@@ -79,7 +79,8 @@ void Placement::item_type::set_address(L1AddressOnWafer const& address)
 void Placement::add(BioNeuron const& bio_neuron, LogicalNeuron const& logical_neuron)
 {
 	if (!m_container.insert(item_type(bio_neuron, logical_neuron)).second) {
-		throw std::runtime_error("conflict when adding neuron placement result");
+		throw std::runtime_error("conflict when adding neuron placement result. Did you mean to "
+		                         "skip mapping? add marocco.skip_mapping = True");
 	}
 }
 
