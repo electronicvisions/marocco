@@ -48,6 +48,11 @@ public:
 
 	size_t timeSpentInParallelRegion;
 	size_t timeTotal;
+	size_t timePlacement;
+	size_t timeRouting;
+	size_t timeL1Routing;
+	size_t timeSynRouting;
+	size_t timeParameterTranslation;
 
 	std::ostream& operator<< (std::ostream& os) const;
 

@@ -112,10 +112,16 @@ void Mapper::run(ObjectStore const& pynn)
 	// The 3 1/2-steps to complete happiness
 
 	// 1.  P L A C E M E N T
+	auto startPlacement = std::chrono::system_clock::now();
 	placement::Placement placer(*mPyMarocco, graph, mHW, mMgr);
 	auto placement = placer.run(m_results->placement);
+	auto endPlacement = std::chrono::system_clock::now();
+	getStats().timePlacement =
+	    std::chrono::duration_cast<std::chrono::milliseconds>(endPlacement - startPlacement)
+	        .count();
 
 	// 2.  R O U T I N G
+	auto startRouting = std::chrono::system_clock::now();
 	routing::Routing router(
 		mBioGraph, mHW, mMgr, *mPyMarocco, m_results->placement);
 	router.run(m_results->l1_routing, m_results->synapse_routing);
@@ -127,6 +133,10 @@ void Mapper::run(ObjectStore const& pynn)
 		MAROCCO_WARN("no synapse loss data");
 	}
 
+	auto endRouting = std::chrono::system_clock::now();
+	getStats().timeRouting =
+	    std::chrono::duration_cast<std::chrono::milliseconds>(endRouting - startRouting).count();
+
 	if (synapse_loss && !mPyMarocco->continue_despite_synapse_loss &&
 	    synapse_loss->getTotalLoss() != 0) {
 		MAROCCO_ERROR(getStats());
@@ -136,7 +146,7 @@ void Mapper::run(ObjectStore const& pynn)
 	}
 
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
-
+	auto startParameterTranslation = std::chrono::system_clock::now();
 	boost::shared_ptr<calibtic::backend::Backend> calib_backend;
 	switch (mPyMarocco->calib_backend) {
 		case pymarocco::PyMarocco::CalibBackend::XML:
@@ -179,6 +189,10 @@ void Mapper::run(ObjectStore const& pynn)
 			}
 		}
 	}
+	auto endParameterTranslation = std::chrono::system_clock::now();
+	getStats().timeParameterTranslation = std::chrono::duration_cast<std::chrono::milliseconds>(
+	                                          endParameterTranslation - startParameterTranslation)
+	                                          .count();
 
 	MAROCCO_DEBUG(
 		"Transformed " << pynn.current_sources().size() << " current sources into "

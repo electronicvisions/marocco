@@ -5,14 +5,19 @@
 namespace pymarocco {
 
 MappingStats::MappingStats() :
-	timeSpentInParallelRegion(0),
-	timeTotal(0),
-	mSynapseLoss(0),
-	mSynapseLossAfterL1Routing(0),
-	mSynapses(0),
-	mNumPopulations(0),
-	mNumProjections(0),
-	mNumNeurons(0)
+    timeSpentInParallelRegion(0),
+    timeTotal(0),
+    timePlacement(0),
+    timeRouting(0),
+    timeL1Routing(0),
+    timeSynRouting(0),
+    timeParameterTranslation(0),
+    mSynapseLoss(0),
+    mSynapseLossAfterL1Routing(0),
+    mSynapses(0),
+    mNumPopulations(0),
+    mNumProjections(0),
+    mNumNeurons(0)
 {}
 
 void MappingStats::setSynapseLoss(size_t s)

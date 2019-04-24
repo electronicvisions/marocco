@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iterator>
 
 #include "marocco/routing/Routing.h"
@@ -76,6 +77,7 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 			}
 		}
 
+		auto startL1Routing = std::chrono::system_clock::now();
 		L1Routing l1_routing(
 		    l1_graph, m_graph, m_pymarocco.l1_routing, m_neuron_placement, l1_routing_result,
 		    m_resource_manager);
@@ -86,6 +88,10 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 		if (!failed.empty()) {
 			MAROCCO_WARN("Failed to establish " << failed.size() << " routes");
 		}
+		auto endL1Routing = std::chrono::system_clock::now();
+		m_pymarocco.stats.timeL1Routing =
+		    std::chrono::duration_cast<std::chrono::milliseconds>(endL1Routing - startL1Routing)
+		        .count();
 
 		// Track synapse loss
 		HandleSynapseLoss handle_synapse_loss(m_graph, m_neuron_placement, l1_routing_result, m_synapse_loss);
@@ -105,10 +111,15 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 		configure(wafer_config, item.route());
 	}
 
+	auto startSynRouting = std::chrono::system_clock::now();
 	HICANNRouting local_router(
 		m_graph, wafer_config, m_resource_manager, m_pymarocco, m_neuron_placement,
 		l1_routing_result, m_synapse_loss);
 	local_router.run(synapse_routing_result);
+	auto endSynRouting = std::chrono::system_clock::now();
+	m_pymarocco.stats.timeSynRouting =
+	    std::chrono::duration_cast<std::chrono::milliseconds>(endSynRouting - startSynRouting)
+	        .count();
 
 	SynapseRoutingConfigurator configurator(wafer_config);
 
