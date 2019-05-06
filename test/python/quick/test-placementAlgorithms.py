@@ -3,6 +3,7 @@ import pyhmf as pynn
 from pymarocco import PyMarocco
 from pymarocco_runtime import PlacePopulationsBase as placer
 from pymarocco_runtime import byNeuronBlockEnumAndPopulationID as placer_linear
+from pymarocco_runtime import byNeuronBlockEnumAndPopulationIDasc as placer_linear_asc
 from pymarocco_runtime import bySmallerNeuronBlockAndPopulationID as placer_smallNB
 import pyhalbe.Coordinate as C
 
@@ -43,6 +44,7 @@ class PlacementAlgorithms(utils.TestWithResults):
 
     @utils.parametrize([placer(),
                         placer_linear(),
+                        placer_linear_asc(),
                         placer_smallNB(),
                       ])
     def test_creation(self, strategy):

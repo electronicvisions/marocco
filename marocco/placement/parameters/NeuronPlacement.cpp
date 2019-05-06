@@ -5,7 +5,7 @@
 #include "hal/Coordinate/Neuron.h"
 #include "marocco/coordinates/LogicalNeuron.h"
 
-#include "marocco/placement/algorithms/bySmallerNeuronBlockAndPopulationID.h"
+#include "marocco/placement/algorithms/byNeuronBlockEnumAndPopulationIDasc.h"
 
 namespace marocco {
 namespace placement {
@@ -17,7 +17,7 @@ NeuronPlacement::NeuronPlacement() :
     m_minimize_number_of_sending_repeaters(false),
     m_skip_hicanns_without_neuron_blacklisting(true),
     m_default_placement_strategy(
-        boost::make_shared<algorithms::bySmallerNeuronBlockAndPopulationID>())
+        boost::make_shared<algorithms::byNeuronBlockEnumAndPopulationIDasc>())
 {
 }
 

@@ -25,7 +25,7 @@ void byNeuronBlockEnumAndPopulationID::sort()
 void byNeuronBlockEnumAndPopulationID::sort_neuron_blocks()
 {
 	MAROCCO_DEBUG("Sorting NeuronBlocks");
-	std::sort(m_neuron_blocks->begin(), m_neuron_blocks->end());
+	std::sort(m_neuron_blocks->begin(), m_neuron_blocks->end(), std::greater<>());
 }
 
 void byNeuronBlockEnumAndPopulationID::sort_populations()
