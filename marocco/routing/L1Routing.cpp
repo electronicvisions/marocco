@@ -172,6 +172,7 @@ void L1Routing::run_backbone_router()
 			auto const path = backbone.path_to(target.first);
 
 			if (store_result(request_type{merger, target.first, target.second}, source, path)) {
+				vline_usage.increment(m_l1_graph[path.back()].toHICANNOnWafer(), m_l1_graph[path.back()].toVLineOnHICANN());
 				bundle.add(path);
 			}
 		}
