@@ -25,7 +25,6 @@ def depends(ctx):
     ctx('marocco', 'nanoflann')
     ctx('marocco', 'pymarocco')
     ctx('marocco', 'tools')
-    ctx('marocco', 'tools/roqt')
     ctx('marocco', 'test')
     ctx('logger')
 
