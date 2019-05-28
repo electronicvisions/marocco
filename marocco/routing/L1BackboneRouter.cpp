@@ -81,10 +81,16 @@ void L1BackboneRouter::run()
 		// Store predecessors and vertices for targets.
 		vertex_descriptor predecessor = m_source;
 
+		predecessor = m_source;
 		for (auto const& vertex : path) {
+			// store predecessors to get a clear path, sometimes it happenes, that multiple
+			// crossbars are used after detours
 			m_predecessors[vertex] = predecessor;
 			predecessor = vertex;
+		}
+		m_predecessors[m_source] = m_source;
 
+		for (auto const& vertex : path) {
 			auto hicann = m_graph[vertex].toHICANNOnWafer();
 			if (m_graph[vertex].is_vertical() && is_target(hicann)) {
 				m_vertex_for_targets[hicann] = vertex;

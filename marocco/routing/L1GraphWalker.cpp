@@ -162,6 +162,29 @@ auto L1GraphWalker::detour_and_walk(
 	auto candidates = change_orientation(vertex);
 	candidates = L1_crossbar_restrictioning(vertex, candidates, predecessors, m_res_mgr, m_graph);
 
+	// sort candidates by longest possible extension.
+	// As branching is currently done after detouring the VLine should be able to reach far,
+	// so that targets can be reached.
+	// some VLines might be occupied and would prevent reaching targets, but would allow the detour.
+	// e.g. required in test: (AL1BackboneRouter, validConfigWhenTargetAndDetourInDefectiveColumn)
+	auto candidate_metric = [direction, this](vertex_descriptor c) {
+		size_t metric = 0;
+		for (auto const perpendicular : iter_all<Direction>()) {
+			if (perpendicular.toOrientation() == direction.toOrientation()) {
+				continue;
+			}
+			vertex_descriptor other = c;
+			while (step(other, perpendicular)) {
+				metric++;
+			}
+		}
+		return metric;
+	};
+	auto candidate_compare = [candidate_metric](vertex_descriptor a, vertex_descriptor b) {
+		return candidate_metric(a) > candidate_metric(b);
+	};
+	std::sort(candidates.begin(), candidates.end(), candidate_compare);
+
 	// Iterate over all L1 buses with different orientation.
 	for (auto const& candidate : candidates) {
 		for (auto const perpendicular : iter_all<Direction>()) {
