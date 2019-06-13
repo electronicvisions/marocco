@@ -40,25 +40,6 @@ Experiment::Experiment(
 	  m_experiment_runner(experiment_runner)
 {
 	m_hardware.commonFPGASettings()->setPLL(m_pymarocco.pll_freq);
-
-	for (auto fpga_on_wafer : m_hardware.getAllocatedFpgaCoordinates()) {
-		for (auto hicann_on_dnc : iter_all<HICANNOnDNC>()) {
-			auto const hicann_on_wafer = hicann_on_dnc.toHICANNOnWafer(fpga_on_wafer);
-
-			if (!m_results.resources.has(hicann_on_wafer)) {
-				MAROCCO_DEBUG("Blacklisting " << hicann_on_wafer);
-				m_hardware[fpga_on_wafer].setBlacklisted(hicann_on_dnc, true);
-			}
-
-			HighspeedLinkOnWafer const hslink_on_wafer(
-			    hicann_on_wafer.toHighspeedLinkOnDNC(), fpga_on_wafer.toDNCOnWafer());
-
-			if (!m_results.resources.has(hslink_on_wafer)) {
-				MAROCCO_DEBUG("Disabling highspeed connection for " << hicann_on_wafer);
-				m_hardware[fpga_on_wafer].setHighspeed(hicann_on_dnc, false);
-			}
-		}
-	}
 }
 
 void Experiment::run()
