@@ -37,8 +37,7 @@ class PlacementAlgorithms(utils.TestWithResults):
 
     def test_get_strategy(self):
         """tests acquisiton of a default placement strategy"""
-        marocco = PyMarocco()
-        p = marocco.neuron_placement
+        p = self.marocco.neuron_placement
         p_strategy = p.default_placement_strategy()
         self.assertTrue(p_strategy is not None)
 
@@ -48,10 +47,9 @@ class PlacementAlgorithms(utils.TestWithResults):
                         placer_smallNB(),
                       ])
     def test_creation(self, strategy):
-        marocco = PyMarocco()
-        marocco.neuron_placement.default_placement_strategy(strategy)
+        self.marocco.neuron_placement.default_placement_strategy(strategy)
 
-        pynn.setup(marocco=marocco)
+        pynn.setup(marocco=self.marocco)
 
         self.network()
 
