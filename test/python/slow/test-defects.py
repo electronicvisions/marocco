@@ -61,7 +61,10 @@ class TrivialNetworkFixture(MaroccoFixture):
             getattr(hicann, attr)().disable(component)
 
         # Note: Overwrites values set by prior calls
-        self.marocco.defects.inject(self.chip, hicann)
+        if not self.marocco.defects.wafer():
+            self.marocco.defects.set(pyredman.Wafer(Wafer(33)))
+
+        self.marocco.defects.wafer().inject(self.chip, hicann)
 
 
 resources = {

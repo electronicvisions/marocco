@@ -76,8 +76,8 @@ std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
 
 	std::set<Wafer> wafers;
 
-	for (auto const& defect : mi->defects.hicanns()) {
-		wafers.insert(defect.first.toWafer());
+	if (mi->defects.wafer()) {
+		wafers.insert(mi->defects.wafer()->id());
 	}
 
 	return wafers;
@@ -150,8 +150,19 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	resource_manager_t resources{redman_backend, boost::make_optional(*mi)};
 	resource_fpga_manager_t fpga_resources{redman_backend, boost::make_optional(*mi)};
 
+	// if the user did not supply a redman wafer resource, load it
+	if (!mi->defects.wafer()) {
+		mi->defects.set(
+		    boost::make_shared<redman::resources::WaferWithBackend>(resources.backend(), wafer));
+	}
+
+	// need to set defects as early as possible
+	hardware->set_defects(mi->defects.wafer());
+
+	// Take data either from injected redman Wafer or load new from backend
+	auto res = *(mi->defects.wafer());
+	auto res_fpga = res;
 	{
-		auto res = redman::resources::WaferWithBackend(resources.backend(), wafer);
 		auto const hicanns = res.hicanns();
 
 		// HICANNs
@@ -167,26 +178,8 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 			                        << " HICANN(s) as defect/disabled");
 		}
 
-		size_t n_manually_marked_hicanns = 0;
-		for (auto const& pair : mi->defects.hicanns()) {
-			if (!pair.second) {
-				LOG4CXX_TRACE(log4cxx::Logger::getLogger("marocco"),
-				              "Marked " << pair.first << " manually as defect/disabled");
-				hicanns->disable(pair.first.toHICANNOnWafer(), true);
-				++n_manually_marked_hicanns;
-			} else {
-				res.inject(pair.first.toHICANNOnWafer(), pair.second);
-			}
-		}
-		if (n_manually_marked_hicanns != 0) {
-			LOG4CXX_DEBUG(log4cxx::Logger::getLogger("marocco"),
-			              "Marked " << n_manually_marked_hicanns
-			                        << " HICANN(s) manually as defect/disabled");
-		}
-
 		resources.inject(res);
 
-		auto res_fpga = redman::resources::WaferWithBackend(resources.backend(), wafer);
 		auto const fpgas = res_fpga.fpgas();
 		// FPGAS
 		for (auto it = fpgas->begin_disabled(); it != fpgas->end_disabled(); ++it) {

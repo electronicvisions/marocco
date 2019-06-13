@@ -3,6 +3,7 @@ import unittest
 
 import pyhalbe.Coordinate as C
 import pyhmf as pynn
+import pyredman
 
 import utils
 
@@ -35,10 +36,11 @@ class TestRouting(utils.TestWithResults):
 
         allowed_hicanns = [206] + range(167, 171) + range(240, 243)
         wafer = self.marocco.default_wafer
+        self.marocco.defects.set(pyredman.Wafer())
         for hicann in C.iter_all(C.HICANNOnWafer):
             if hicann.id().value() in allowed_hicanns:
                 continue
-            self.marocco.defects.disable(C.HICANNGlobal(hicann, wafer))
+            self.marocco.defects.wafer().hicanns().disable(C.HICANNGlobal(hicann, wafer))
 
         self.marocco.l1_routing.algorithm(self.marocco.l1_routing.dijkstra)
 

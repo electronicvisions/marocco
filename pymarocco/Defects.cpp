@@ -6,17 +6,19 @@ namespace pymarocco {
 Defects::Defects() :
 	backend(Backend::XML),
 	path("/wang/data/calibration/brainscales/default"),
-	mHicanns()
+	mWafer(nullptr)
 {}
 
-void Defects::disable(HMF::Coordinate::HICANNGlobal id)
-{
-	mHicanns[id].reset();
+void Defects::set(defects_t wafer) {
+		mWafer = wafer;
 }
 
-void Defects::inject(HMF::Coordinate::HICANNGlobal id,
-                     boost::shared_ptr<redman::resources::Hicann> res) {
-	mHicanns[id] = res;
+Defects::defects_t Defects::wafer() {
+		return mWafer;
+}
+
+Defects::defects_const_t Defects::wafer() const{
+		return mWafer;
 }
 
 } // pymarocco

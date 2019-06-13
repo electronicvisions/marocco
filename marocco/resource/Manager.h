@@ -75,7 +75,7 @@ public:
 
 private:
 	typedef HMF::Coordinate::Wafer wafer_type;
-	typedef redman::resources::WaferWithBackend manager_type;
+	typedef redman::resources::Wafer manager_type;
 	typedef std::map<wafer_type, const manager_type> wafer_map_type;
 	typedef std::unordered_set<resource_type> allocation_type;
 

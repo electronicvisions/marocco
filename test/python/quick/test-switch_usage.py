@@ -7,6 +7,7 @@ import pysthal
 
 import utils
 
+import pyredman
 from pymarocco.runtime import Runtime
 
 
@@ -55,9 +56,10 @@ class Test_Switch_Usage(utils.TestWithResults):
 
         disabled_hicanns = [226, 263]
         wafer = self.marocco.default_wafer
+        self.marocco.defects.set(pyredman.Wafer(runtime.wafer().index()))
         for hicann in C.iter_all(C.HICANNOnWafer):
             if hicann.id().value() in disabled_hicanns:
-                self.marocco.defects.disable(C.HICANNGlobal(hicann, wafer))
+                self.marocco.defects.wafer().hicanns().disable(C.HICANNGlobal(hicann, wafer))
             continue
 
         pynn.run(0)
@@ -111,9 +113,10 @@ class Test_Switch_Usage(utils.TestWithResults):
 
         disabled_hicanns = [352]
         wafer = self.marocco.default_wafer
+        self.marocco.defects.set(pyredman.Wafer(runtime.wafer().index()))
         for hicann in C.iter_all(C.HICANNOnWafer):
             if hicann.id().value() in disabled_hicanns:
-                self.marocco.defects.disable(C.HICANNGlobal(hicann, wafer))
+                self.marocco.defects.wafer().hicanns().disable(C.HICANNGlobal(hicann, wafer))
             continue
 
         pynn.run(0)

@@ -29,18 +29,18 @@ namespace resource {
 
 template <typename T>
 boost::shared_ptr<const typename RedmanManagerType<T>::type> get_components(
-    redman::resources::WaferWithBackend const& manager);
+    redman::resources::Wafer const& manager);
 
 template <>
 boost::shared_ptr<const typename RedmanManagerType<HMF::Coordinate::HICANNGlobal>::type>
-get_components<HMF::Coordinate::HICANNGlobal>(redman::resources::WaferWithBackend const& manager)
+get_components<HMF::Coordinate::HICANNGlobal>(redman::resources::Wafer const& manager)
 {
 	return manager.hicanns();
 }
 
 template <>
 boost::shared_ptr<const typename RedmanManagerType<HMF::Coordinate::FPGAGlobal>::type>
-get_components<HMF::Coordinate::FPGAGlobal>(redman::resources::WaferWithBackend const& manager)
+get_components<HMF::Coordinate::FPGAGlobal>(redman::resources::Wafer const& manager)
 {
 	return manager.fpgas();
 }
@@ -79,8 +79,10 @@ void Manager<T>::load(wafer_type const& wafer) {
 	if (it != mWafers.end())
 		throw std::runtime_error("Wafer has already been loaded.");
 
-	mWafers.insert(
-           std::make_pair(wafer, manager_type(mBackend, wafer)));
+	manager_type mgr;
+	mgr.set_backend(wafer, mBackend);
+	mgr.load();
+	mWafers.insert(std::make_pair(wafer, mgr));
 }
 
 template <class T>

@@ -99,7 +99,8 @@ class TestSynapseLoss(unittest.TestCase):
         hicann = pyredman.Hicann()
         for hbus in iter_all(HLineOnHICANN):
             hicann.hbuses().disable(hbus)
-        self.marocco.defects.inject(h0, hicann)
+        self.marocco.defects.set(pyredman.Wafer())
+        self.marocco.defects.wafer().inject(h0, hicann)
 
         pynn.setup(marocco=self.marocco)
         n1 = 100
