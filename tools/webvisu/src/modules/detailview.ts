@@ -18,7 +18,7 @@ namespace internalModule {
       this.determineThreshold($(window).height());
     }
     wafer: internalModule.Wafer;
-    
+
     /**
      * set this property when detailview is entered or left
      */
@@ -88,12 +88,12 @@ namespace internalModule {
      * Number of repeaters in the top and bottom blocks together.
      */
     numRepeatersVertical = 256;
-    
+
     /**
      * Distance between vertical repeaters (top and bottom)
      */
     get vRepeaterDistance() {
-      return this.wafer.repeaterBlockPosition.vertical.width.current * 2 / this.numRepeatersVertical; 
+      return this.wafer.repeaterBlockPosition.vertical.width.current * 2 / this.numRepeatersVertical;
     }
     /**
      * Distance between horizontal repeaters (left and right)
@@ -105,31 +105,31 @@ namespace internalModule {
      * Distance between vertical buses (left and right)
      */
     get vBusDistance() {
-      return this.wafer.busesLeftPosition.width/this.numBusesVertical;
+      return this.wafer.busesLeftPosition.width / this.numBusesVertical;
     }
     /**
      * Distance between horizontal buses
      */
     get hBusDistance() {
-      return this.wafer.busesHorizontalPosition.current.height/this.numBusesHorizontal;
+      return this.wafer.busesHorizontalPosition.current.height / this.numBusesHorizontal;
     }
     /**
      * Width of a vertical bus
      */
     get vBusWidth() {
-      return this.vBusDistance/2;
+      return this.vBusDistance / 2;
     }
     /**
      * Width of a horizontal bus
      */
     get hBusWidth() {
-      return this.vBusDistance/2;
+      return this.vBusDistance / 2;
     }
     /**
      * Margin around HICANN. used to calculate when to start the detailview.
      */
     get edge() {
-      return(this.wafer.hicannWidth/4)
+      return (this.wafer.hicannWidth / 4)
     }
 
     /**
@@ -140,29 +140,29 @@ namespace internalModule {
       const scale = transform.scale.x;
       const stagePosition = transform.position;
       const hicannCenter = {
-        x: (this.wafer.hicanns[hicannIndex].x * (this.wafer.hicannWidth + this.wafer.hicannMargin) + this.wafer.hicannWidth/2)
-            * scale + stagePosition.x,
-        y: (this.wafer.hicanns[hicannIndex].y * (this.wafer.hicannHeight + this.wafer.hicannMargin) + this.wafer.hicannHeight/2)
-            * scale + stagePosition.y,
+        x: (this.wafer.hicanns[hicannIndex].x * (this.wafer.hicannWidth + this.wafer.hicannMargin) + this.wafer.hicannWidth / 2)
+          * scale + stagePosition.x,
+        y: (this.wafer.hicanns[hicannIndex].y * (this.wafer.hicannHeight + this.wafer.hicannMargin) + this.wafer.hicannHeight / 2)
+          * scale + stagePosition.y,
       };
-      return(hicannCenter);
+      return (hicannCenter);
     }
-  
+
     /**
      * Find the HICANN that is closest to the center of the canvas.
      */
-    hicannClosestToCenter(canvasCenter: {x: number, y: number}) {
+    hicannClosestToCenter(canvasCenter: { x: number, y: number }) {
       let minDistance = Infinity;
       let closestHicann = <number>undefined;
-      for (let hicannIndex=this.wafer.enumMin; hicannIndex<=this.wafer.enumMax; hicannIndex++) {
+      for (let hicannIndex = this.wafer.enumMin; hicannIndex <= this.wafer.enumMax; hicannIndex++) {
         const hicannCenter = this.hicannCenter(hicannIndex);
         const distance = tools.distanceBetweenPoints(hicannCenter, canvasCenter);
-        if (distance<minDistance) {
+        if (distance < minDistance) {
           minDistance = distance;
           closestHicann = hicannIndex;
         };
       }
-      return(closestHicann);
+      return (closestHicann);
     }
 
     /**
@@ -179,8 +179,10 @@ namespace internalModule {
      * Draw all detailed elements of a HICANN
      * @param options Information about which parts of the HICANNs to draw in detail according to checkboxes.
      */
-    drawHicann(newHicann: number, options: {synapses: boolean, synDrivers: boolean, neurons: boolean,
-        leftBuses: boolean, rightBuses: boolean, horizontalBuses: boolean, repeaters: boolean, synGrids: boolean}) {
+    drawHicann(newHicann: number, options: {
+      synapses: boolean, synDrivers: boolean, neurons: boolean,
+      leftBuses: boolean, rightBuses: boolean, horizontalBuses: boolean, repeaters: boolean, synGrids: boolean
+    }) {
       const hicannPosition = this.wafer.hicanns[newHicann].position;
       // draw hicann details
       if (options.synapses) {
@@ -221,7 +223,7 @@ namespace internalModule {
       this.threshold2 = fullHicannScale * 8;
     }
 
-    drawNeurons(hicannPosition: {x: number, y: number}) {
+    drawNeurons(hicannPosition: { x: number, y: number }) {
       const positions = {
         xOne: <number[]>[],
         yOne: <number[]>[],
@@ -230,14 +232,14 @@ namespace internalModule {
         width: <number[]>[],
       }
       const segmentWidth = this.wafer.neuronArrayPosition.width / this.numNeurons;
-      for (let i=0; i<this.numNeurons; i++) {
+      for (let i = 0; i < this.numNeurons; i++) {
         // top
         for (const basePosition of [this.wafer.neuronArrayPosition.top, this.wafer.neuronArrayPosition.bottom]) {
           positions.xOne.push(basePosition.x + hicannPosition.x + (i + 0.5) * segmentWidth);
           positions.yOne.push(basePosition.y + hicannPosition.y);
           positions.xTwo.push(basePosition.x + hicannPosition.x + (i + 0.5) * segmentWidth);
           positions.yTwo.push(basePosition.y + hicannPosition.y + this.wafer.neuronArrayPosition.height);
-          positions.width.push(segmentWidth/2);
+          positions.width.push(segmentWidth / 2);
         }
       }
       const neuronColor = 0x33aabb;
@@ -252,7 +254,7 @@ namespace internalModule {
      * draw both synapse arrays of a HICANN, both as sprites and graphics objects.
      * @param hicannPosition top left corner of the HICANN.
      */
-    drawAllSynapses(hicannPosition: {x: number, y: number}) {
+    drawAllSynapses(hicannPosition: { x: number, y: number }) {
       const positions = {
         x: <number[]>[],
         y: <number[]>[],
@@ -260,8 +262,8 @@ namespace internalModule {
         height: <number[]>[]
       }
 
-      for (let x=0; x<this.numNeurons; x++) {
-        for (let y=0; y<2*this.numSynapsesVertical; y++) {
+      for (let x = 0; x < this.numNeurons; x++) {
+        for (let y = 0; y < 2 * this.numSynapsesVertical; y++) {
           const position = this.calcSynapse(hicannPosition, x, y);
           positions.x.push(position[0]);
           positions.y.push(position[1]);
@@ -275,7 +277,7 @@ namespace internalModule {
       pixiBackend.storeGraphics(graphicsObject, pixiBackend.container.synapses);
     }
 
-    drawSynGrid(hicannPosition: {x: number, y: number}) {
+    drawSynGrid(hicannPosition: { x: number, y: number }) {
       const positions = {
         xOne: <number[]>[],
         yOne: <number[]>[],
@@ -287,21 +289,21 @@ namespace internalModule {
       const segmentHeight = this.wafer.synapseArraysTopPosition.height / this.numSynapsesVertical;
       const segmentWidth = this.wafer.synapseArraysTopPosition.width / this.numNeurons;
 
-      for (let i=0; i<=this.numSynapsesVertical; i++) {
+      for (let i = 0; i <= this.numSynapsesVertical; i++) {
         //const synDriverLeft = (Math.floor(i/2))%2;
         const synDriverLeft = false;
-          positions.xOne.push(hicannPosition.x + (synDriverLeft ? this.wafer.synDriverPosition.topLeft.x : this.wafer.synapseArraysTopPosition.x));
-          positions.yOne.push(hicannPosition.y + this.wafer.synapseArraysTopPosition.y + i * segmentHeight);
-          positions.xTwo.push(hicannPosition.x + this.wafer.synDriverPosition.topRight.x + (synDriverLeft ? 0 : this.wafer.synDriverPosition.width));
-          positions.yTwo.push(hicannPosition.y + this.wafer.synapseArraysTopPosition.y + i * segmentHeight);
+        positions.xOne.push(hicannPosition.x + (synDriverLeft ? this.wafer.synDriverPosition.topLeft.x : this.wafer.synapseArraysTopPosition.x));
+        positions.yOne.push(hicannPosition.y + this.wafer.synapseArraysTopPosition.y + i * segmentHeight);
+        positions.xTwo.push(hicannPosition.x + this.wafer.synDriverPosition.topRight.x + (synDriverLeft ? 0 : this.wafer.synDriverPosition.width));
+        positions.yTwo.push(hicannPosition.y + this.wafer.synapseArraysTopPosition.y + i * segmentHeight);
 
-          positions.xOne.push(hicannPosition.x + (!synDriverLeft ? this.wafer.synDriverPosition.bottomLeft.x : this.wafer.synapseArraysBottomPosition.x));
-          positions.yOne.push(hicannPosition.y + this.wafer.synapseArraysBottomPosition.y + i * segmentHeight);
-          positions.xTwo.push(hicannPosition.x + this.wafer.synDriverPosition.bottomRight.x + (!synDriverLeft ? 0 : this.wafer.synDriverPosition.width));
-          positions.yTwo.push(hicannPosition.y + this.wafer.synapseArraysBottomPosition.y + i * segmentHeight);
+        positions.xOne.push(hicannPosition.x + (!synDriverLeft ? this.wafer.synDriverPosition.bottomLeft.x : this.wafer.synapseArraysBottomPosition.x));
+        positions.yOne.push(hicannPosition.y + this.wafer.synapseArraysBottomPosition.y + i * segmentHeight);
+        positions.xTwo.push(hicannPosition.x + this.wafer.synDriverPosition.bottomRight.x + (!synDriverLeft ? 0 : this.wafer.synDriverPosition.width));
+        positions.yTwo.push(hicannPosition.y + this.wafer.synapseArraysBottomPosition.y + i * segmentHeight);
       }
 
-      for (let i=0; i<=this.numNeurons; i++) {
+      for (let i = 0; i <= this.numNeurons; i++) {
         for (const basePosition of [this.wafer.synapseArraysTopPosition, this.wafer.synapseArraysBottomPosition]) {
           positions.xOne.push(hicannPosition.x + basePosition.x + i * segmentWidth);
           positions.yOne.push(hicannPosition.y + basePosition.y);
@@ -310,12 +312,12 @@ namespace internalModule {
         }
       }
 
-      for (let _=0; _<positions.xOne.length; _++) {
+      for (let _ = 0; _ < positions.xOne.length; _++) {
         positions.width.push(this.vBusWidth);
       }
 
       let graphicsObject = pixiBackend.drawStraightLines(
-          positions.xOne, positions.yOne, positions.xTwo, positions.yTwo, positions.width, 0xffffff)
+        positions.xOne, positions.yOne, positions.xTwo, positions.yTwo, positions.width, 0xffffff)
 
       pixiBackend.storeSprite(graphicsObject, pixiBackend.container.synGridSprite);
       pixiBackend.storeGraphics(graphicsObject, pixiBackend.container.synGrid);
@@ -331,8 +333,8 @@ namespace internalModule {
       let cornerThree = <tools.Point[]>[];
 
       const synDriverColor = 0xffffff;
-      
-      for (let i=0; i<this.numSynapseDrivers; i++) {
+
+      for (let i = 0; i < this.numSynapseDrivers; i++) {
         const synDriverPosition = this.calcSynDriver(hicannPosition, i);
         cornerOne = cornerOne.concat(synDriverPosition[0]);
         cornerTwo = cornerTwo.concat(synDriverPosition[1]);
@@ -341,22 +343,22 @@ namespace internalModule {
 
       // Graphics Objects
       let graphicsObject = pixiBackend.drawTriangles(
-          cornerOne, cornerTwo, cornerThree, synDriverColor);
+        cornerOne, cornerTwo, cornerThree, synDriverColor);
       pixiBackend.storeGraphics(graphicsObject, pixiBackend.container.synDrivers);
     }
 
     calcSynDriver(hicannPosition: tools.Point, index: number) {
-      const top = index<(this.numSynapseDrivers/2);
-      const left = top ? (index%2 === 1) : (index%2 === 0);
+      const top = index < (this.numSynapseDrivers / 2);
+      const left = top ? (index % 2 === 1) : (index % 2 === 0);
 
-      index = index%(this.numSynapseDrivers/2);
+      index = index % (this.numSynapseDrivers / 2);
 
       let cornerOne = <tools.Point>undefined;
       let cornerTwo = <tools.Point>undefined;
       let cornerThree = <tools.Point>undefined;
 
-      const segmentHeight = this.wafer.synDriverPosition.height / (this.numSynapsesVertical/2)
-      
+      const segmentHeight = this.wafer.synDriverPosition.height / (this.numSynapsesVertical / 2)
+
       if (top) {
         if (left) {
           cornerOne = ({
@@ -417,7 +419,7 @@ namespace internalModule {
 
       return [cornerOne, cornerTwo, cornerThree];
     }
-    
+
     calcSynapse(hicannPosition: tools.Point, xIndex: number, yIndex: number) {
       const top = yIndex < this.numSynapsesVertical;
       yIndex = top ? yIndex : (yIndex - this.numSynapsesVertical);
@@ -444,7 +446,7 @@ namespace internalModule {
     drawBusesLeft(hicannPosition: tools.Point) {
       let graphicsObject = new PIXI.Graphics;;
 
-      for (let i=0; i<this.numBusesVertical; i++) {
+      for (let i = 0; i < this.numBusesVertical; i++) {
         const positions = this.calcBusLeft(hicannPosition, i);
         graphicsObject = pixiBackend.drawLines(positions[0], positions[1], this.vBusWidth, 0xffffff, graphicsObject);
       };
@@ -463,10 +465,10 @@ namespace internalModule {
       const x = <number[]>[];
       const y = <number[]>[];
 
-      const repeaterBaseX = hicannPosition.x + this.wafer.repeaterBlockPosition.vertical.top.left.current.x + (index+0.5)*this.vRepeaterDistance;
-      const busBaseX = hicannPosition.x + this.wafer.busesLeftPosition.x + index*this.vBusDistance;
-      const busShiftTop = this.vRepeaterDistance * (index<(this.numBusesVertical-2) ? 1 : -(this.numBusesVertical-2)/2);
-      const busShiftBottom = this.vRepeaterDistance * (index>1 ? -1 : (this.numBusesVertical-2)/2);
+      const repeaterBaseX = hicannPosition.x + this.wafer.repeaterBlockPosition.vertical.top.left.current.x + (index + 0.5) * this.vRepeaterDistance;
+      const busBaseX = hicannPosition.x + this.wafer.busesLeftPosition.x + index * this.vBusDistance;
+      const busShiftTop = this.vRepeaterDistance * (index < (this.numBusesVertical - 2) ? 1 : -(this.numBusesVertical - 2) / 2);
+      const busShiftBottom = this.vRepeaterDistance * (index > 1 ? -1 : (this.numBusesVertical - 2) / 2);
 
       // top repeater bus connections
       x.push(repeaterBaseX + busShiftTop);
@@ -474,11 +476,11 @@ namespace internalModule {
 
       x.push(repeaterBaseX);
       y.push(hicannPosition.y + this.wafer.repeaterBlockPosition.vertical.top.left.current.y);
-      
+
       x.push(repeaterBaseX);
       y.push(hicannPosition.y + this.wafer.repeaterBlockPosition.vertical.top.left.current.y + this.wafer.repeaterBlockPosition.vertical.height);
-      
-      
+
+
       // main line
       x.push(busBaseX);
       y.push(hicannPosition.y + this.wafer.busesLeftPosition.y);
@@ -507,15 +509,15 @@ namespace internalModule {
     drawBusesRight(hicannPosition: tools.Point) {
       let graphicsObject = new PIXI.Graphics;
 
-      for (let i=0; i<this.numBusesVertical; i++) {
+      for (let i = 0; i < this.numBusesVertical; i++) {
         const positions = this.calcBusRight(hicannPosition, i);
         graphicsObject = pixiBackend.drawLines(positions[0], positions[1], this.vBusWidth, 0xffffff, graphicsObject);
       };
-      
+
       pixiBackend.storeSprite(graphicsObject, pixiBackend.container.busesRightSprite);
       pixiBackend.storeGraphics(graphicsObject, pixiBackend.container.busesRight);
     }
-    
+
     /**
      * Calculate the x and y values of the two points for all the lines, that make up a vertical right bus.
      * This includes the connecting lines between repeaters and buses.
@@ -525,29 +527,29 @@ namespace internalModule {
     calcBusRight(hicannPosition: tools.Point, index: number) {
       const x = <number[]>[];
       const y = <number[]>[];
-      
-      const repeaterBaseX = hicannPosition.x + this.wafer.repeaterBlockPosition.vertical.top.right.current.x + (index+0.5)*this.vRepeaterDistance;
-      const busBaseX = hicannPosition.x + this.wafer.busesRightPosition.x + index*this.vBusDistance;
-      const busShiftTop = this.vRepeaterDistance * (index>(1) ? -1 : (this.numBusesVertical-2)/2);
-      const busShiftBottom = this.vRepeaterDistance * (index<(this.numBusesVertical-2) ? 1 : -(this.numBusesVertical-2)/2);
-      
+
+      const repeaterBaseX = hicannPosition.x + this.wafer.repeaterBlockPosition.vertical.top.right.current.x + (index + 0.5) * this.vRepeaterDistance;
+      const busBaseX = hicannPosition.x + this.wafer.busesRightPosition.x + index * this.vBusDistance;
+      const busShiftTop = this.vRepeaterDistance * (index > (1) ? -1 : (this.numBusesVertical - 2) / 2);
+      const busShiftBottom = this.vRepeaterDistance * (index < (this.numBusesVertical - 2) ? 1 : -(this.numBusesVertical - 2) / 2);
+
       // top repeater bus connections
       x.push(repeaterBaseX + busShiftTop);
       y.push(hicannPosition.y);
-      
+
       x.push(repeaterBaseX);
       y.push(hicannPosition.y + this.wafer.repeaterBlockPosition.vertical.top.right.current.y);
-      
+
       x.push(repeaterBaseX);
       y.push(hicannPosition.y + this.wafer.repeaterBlockPosition.vertical.top.right.current.y + this.wafer.repeaterBlockPosition.vertical.height);
-      
+
       // main line
       x.push(busBaseX);
       y.push(hicannPosition.y + this.wafer.busesRightPosition.y);
 
       x.push(busBaseX);
       y.push(hicannPosition.y + this.wafer.busesRightPosition.y + this.wafer.busesRightPosition.height);
-      
+
       // bottom repeater bus connections
       x.push(repeaterBaseX);
       y.push(hicannPosition.y + this.wafer.repeaterBlockPosition.vertical.bottom.right.current.y);
@@ -567,8 +569,8 @@ namespace internalModule {
      */
     drawBusesHorizontal(hicannPosition: tools.Point) {
       let graphicsObject = new PIXI.Graphics;
-      
-      for (let i=0; i<this.numBusesHorizontal; i++) {
+
+      for (let i = 0; i < this.numBusesHorizontal; i++) {
         const positions = this.calcBusHorizontal(hicannPosition, i);
         graphicsObject = pixiBackend.drawLines(positions[0], positions[1], this.hBusWidth, 0xffffff, graphicsObject);
       };
@@ -589,16 +591,16 @@ namespace internalModule {
       const x = <number[]>[];
       const y = <number[]>[];
 
-      const repeaterLevelBaseY = hicannPosition.y + this.wafer.repeaterBlockPosition.horizontal.left.current.y + (index+0.5)*this.hRepeaterDistance;
-      const busBaseY = hicannPosition.y + this.wafer.busesHorizontalPosition.current.y + index*this.hBusDistance;
-      
+      const repeaterLevelBaseY = hicannPosition.y + this.wafer.repeaterBlockPosition.horizontal.left.current.y + (index + 0.5) * this.hRepeaterDistance;
+      const busBaseY = hicannPosition.y + this.wafer.busesHorizontalPosition.current.y + index * this.hBusDistance;
+
       // left repeater bus connections
       x.push(hicannPosition.x);
-      y.push(repeaterLevelBaseY + this.hRepeaterDistance * (index>1 ? -1 : (this.numRepeatersHorizontal-2)/2));
-      
+      y.push(repeaterLevelBaseY + this.hRepeaterDistance * (index > 1 ? -1 : (this.numRepeatersHorizontal - 2) / 2));
+
       x.push(hicannPosition.x + this.wafer.repeaterBlockPosition.horizontal.left.current.x);
       y.push(repeaterLevelBaseY);
-      
+
       x.push(hicannPosition.x + this.wafer.busesLeftPosition.x + this.wafer.busesLeftPosition.width);
       y.push(repeaterLevelBaseY);
 
@@ -617,8 +619,8 @@ namespace internalModule {
       y.push(repeaterLevelBaseY);
 
       x.push(hicannPosition.x + this.wafer.hicannWidth);
-      y.push(repeaterLevelBaseY + this.hRepeaterDistance * (index<(this.numRepeatersHorizontal-2) ? 1 : -(this.numRepeatersHorizontal-2)/2));
-      
+      y.push(repeaterLevelBaseY + this.hRepeaterDistance * (index < (this.numRepeatersHorizontal - 2) ? 1 : -(this.numRepeatersHorizontal - 2) / 2));
+
       return [x, y];
     }
 
@@ -665,99 +667,111 @@ namespace internalModule {
       }
       // vertical
       const vSegmentWidth = wafer.repeaterBlockPosition.vertical.width.current * 2 / (this.numRepeatersVertical);
-      for (let i=0; i<this.numRepeatersVertical; i++) {
-        const top = (i<this.numRepeatersVertical/2) ? (i%2 === 1) : (i%2 === 0);
-        const left = (i<this.numRepeatersVertical/2);
+      for (let i = 0; i < this.numRepeatersVertical; i++) {
+        const top = (i < this.numRepeatersVertical / 2) ? (i % 2 === 1) : (i % 2 === 0);
+        const left = (i < this.numRepeatersVertical / 2);
         const baseX = hicannPosition.x + (top ?
-            (left ? wafer.repeaterBlockPosition.vertical.top.left.current.x : wafer.repeaterBlockPosition.vertical.top.right.current.x) : 
-            (left ? wafer.repeaterBlockPosition.vertical.bottom.left.current.x : wafer.repeaterBlockPosition.vertical.bottom.right.current.x)) +
-            (i % (this.numRepeatersVertical/2)) * vSegmentWidth;
+          (left ? wafer.repeaterBlockPosition.vertical.top.left.current.x : wafer.repeaterBlockPosition.vertical.top.right.current.x) :
+          (left ? wafer.repeaterBlockPosition.vertical.bottom.left.current.x : wafer.repeaterBlockPosition.vertical.bottom.right.current.x)) +
+          (i % (this.numRepeatersVertical / 2)) * vSegmentWidth;
         const baseY = hicannPosition.y + (top ?
-          (left ? wafer.repeaterBlockPosition.vertical.top.left.current.y : wafer.repeaterBlockPosition.vertical.top.right.current.y) : 
+          (left ? wafer.repeaterBlockPosition.vertical.top.left.current.y : wafer.repeaterBlockPosition.vertical.top.right.current.y) :
           (left ? wafer.repeaterBlockPosition.vertical.bottom.left.current.y : wafer.repeaterBlockPosition.vertical.bottom.right.current.y))
         // top triangle
         vertical.topTriangle.top.push({
-            x: baseX + vSegmentWidth/2,
-            y: baseY});
+          x: baseX + vSegmentWidth / 2,
+          y: baseY
+        });
         vertical.topTriangle.left.push({
-            x: baseX, 
-            y: baseY + wafer.repeaterBlockPosition.vertical.height/3});
+          x: baseX,
+          y: baseY + wafer.repeaterBlockPosition.vertical.height / 3
+        });
         vertical.topTriangle.right.push({
-            x: baseX + vSegmentWidth,
-            y: baseY + wafer.repeaterBlockPosition.vertical.height/3});
+          x: baseX + vSegmentWidth,
+          y: baseY + wafer.repeaterBlockPosition.vertical.height / 3
+        });
         // middle bar, connecting the triangles
-        vertical.middleBar.x.push(baseX + vSegmentWidth/4);
-        vertical.middleBar.y.push(baseY + wafer.repeaterBlockPosition.vertical.height/3);
-        vertical.middleBar.width.push(vSegmentWidth/2);
-        vertical.middleBar.height.push(wafer.repeaterBlockPosition.vertical.height/3);
+        vertical.middleBar.x.push(baseX + vSegmentWidth / 4);
+        vertical.middleBar.y.push(baseY + wafer.repeaterBlockPosition.vertical.height / 3);
+        vertical.middleBar.width.push(vSegmentWidth / 2);
+        vertical.middleBar.height.push(wafer.repeaterBlockPosition.vertical.height / 3);
         // bottom triangle
         vertical.bottomTriangle.bottom.push({
-            x: baseX + vSegmentWidth/2,
-            y: baseY + this.wafer.repeaterBlockPosition.vertical.height})
+          x: baseX + vSegmentWidth / 2,
+          y: baseY + this.wafer.repeaterBlockPosition.vertical.height
+        })
         vertical.bottomTriangle.left.push({
-            x: baseX,
-            y: baseY + 2/3 * this.wafer.repeaterBlockPosition.vertical.height})
+          x: baseX,
+          y: baseY + 2 / 3 * this.wafer.repeaterBlockPosition.vertical.height
+        })
         vertical.bottomTriangle.right.push({
-            x: baseX + vSegmentWidth,
-            y: baseY + 2/3 * this.wafer.repeaterBlockPosition.vertical.height})
+          x: baseX + vSegmentWidth,
+          y: baseY + 2 / 3 * this.wafer.repeaterBlockPosition.vertical.height
+        })
       }
       // horizontal
       const hSegmentHeight = this.wafer.repeaterBlockPosition.horizontal.height.current / (this.numRepeatersHorizontal);
-      for (let i=0; i<this.numRepeatersHorizontal; i++) {
-        const left = (i%2 === 0);
+      for (let i = 0; i < this.numRepeatersHorizontal; i++) {
+        const left = (i % 2 === 0);
         const baseX = hicannPosition.x + (left ? this.wafer.repeaterBlockPosition.horizontal.left.current.x : this.wafer.repeaterBlockPosition.horizontal.right.current.x);
-        const baseY = hicannPosition.y + wafer.repeaterBlockPosition.horizontal.left.current.y + i*hSegmentHeight;
+        const baseY = hicannPosition.y + wafer.repeaterBlockPosition.horizontal.left.current.y + i * hSegmentHeight;
         // left triangle
         horizontal.leftTriangle.top.push({
-            x: baseX + wafer.repeaterBlockPosition.horizontal.width/3,
-            y: baseY});
+          x: baseX + wafer.repeaterBlockPosition.horizontal.width / 3,
+          y: baseY
+        });
         horizontal.leftTriangle.left.push({
-            x: baseX, 
-            y: baseY + hSegmentHeight/2});
+          x: baseX,
+          y: baseY + hSegmentHeight / 2
+        });
         horizontal.leftTriangle.bottom.push({
-            x: baseX + wafer.repeaterBlockPosition.horizontal.width/3,
-            y: baseY + hSegmentHeight});
+          x: baseX + wafer.repeaterBlockPosition.horizontal.width / 3,
+          y: baseY + hSegmentHeight
+        });
         // middle bar, connecting the triangles
-        horizontal.middleBar.x.push(baseX + wafer.repeaterBlockPosition.horizontal.width/3);
-        horizontal.middleBar.y.push(baseY + hSegmentHeight/4);
-        horizontal.middleBar.width.push(wafer.repeaterBlockPosition.horizontal.width/3);
-        horizontal.middleBar.height.push(hSegmentHeight/2);
+        horizontal.middleBar.x.push(baseX + wafer.repeaterBlockPosition.horizontal.width / 3);
+        horizontal.middleBar.y.push(baseY + hSegmentHeight / 4);
+        horizontal.middleBar.width.push(wafer.repeaterBlockPosition.horizontal.width / 3);
+        horizontal.middleBar.height.push(hSegmentHeight / 2);
         // bottom triangle
         horizontal.rightTriangle.top.push({
-            x: baseX + wafer.repeaterBlockPosition.horizontal.width*2/3,
-            y: baseY})
+          x: baseX + wafer.repeaterBlockPosition.horizontal.width * 2 / 3,
+          y: baseY
+        })
         horizontal.rightTriangle.right.push({
-            x: baseX + wafer.repeaterBlockPosition.horizontal.width,
-            y: baseY + hSegmentHeight/2})
+          x: baseX + wafer.repeaterBlockPosition.horizontal.width,
+          y: baseY + hSegmentHeight / 2
+        })
         horizontal.rightTriangle.bottom.push({
-            x: baseX + wafer.repeaterBlockPosition.horizontal.width*2/3,
-            y: baseY + hSegmentHeight})
+          x: baseX + wafer.repeaterBlockPosition.horizontal.width * 2 / 3,
+          y: baseY + hSegmentHeight
+        })
       }
 
       // draw top triangle
       let repeaterGraphics = pixiBackend.drawTriangles(
-          vertical.topTriangle.left, vertical.topTriangle.right, vertical.topTriangle.top, 0xffffff);
+        vertical.topTriangle.left, vertical.topTriangle.right, vertical.topTriangle.top, 0xffffff);
       // add the middle bar
       repeaterGraphics = pixiBackend.drawRectangles(
-          vertical.middleBar.x, vertical.middleBar.y, vertical.middleBar.width,
-          vertical.middleBar.height, 0xffffff, repeaterGraphics);
+        vertical.middleBar.x, vertical.middleBar.y, vertical.middleBar.width,
+        vertical.middleBar.height, 0xffffff, repeaterGraphics);
       // add the bottom triangle
       repeaterGraphics = pixiBackend.drawTriangles(
-          vertical.bottomTriangle.left, vertical.bottomTriangle.right,
-          vertical.bottomTriangle.bottom, 0xffffff, repeaterGraphics);
+        vertical.bottomTriangle.left, vertical.bottomTriangle.right,
+        vertical.bottomTriangle.bottom, 0xffffff, repeaterGraphics);
 
       // add the left triangle
       repeaterGraphics = pixiBackend.drawTriangles(
-          horizontal.leftTriangle.top, horizontal.leftTriangle.left,
-          horizontal.leftTriangle.bottom, 0xffffff, repeaterGraphics);
+        horizontal.leftTriangle.top, horizontal.leftTriangle.left,
+        horizontal.leftTriangle.bottom, 0xffffff, repeaterGraphics);
       // add the middle bar
       repeaterGraphics = pixiBackend.drawRectangles(
-          horizontal.middleBar.x, horizontal.middleBar.y, horizontal.middleBar.width,
-          horizontal.middleBar.height, 0xffffff, repeaterGraphics);
+        horizontal.middleBar.x, horizontal.middleBar.y, horizontal.middleBar.width,
+        horizontal.middleBar.height, 0xffffff, repeaterGraphics);
       // add the right triangle
       repeaterGraphics = pixiBackend.drawTriangles(
-          horizontal.rightTriangle.top, horizontal.rightTriangle.right,
-          horizontal.rightTriangle.bottom, 0xffffff, repeaterGraphics);
+        horizontal.rightTriangle.top, horizontal.rightTriangle.right,
+        horizontal.rightTriangle.bottom, 0xffffff, repeaterGraphics);
       // store the graphics element in the container
       pixiBackend.storeGraphics(repeaterGraphics, pixiBackend.container.repeaters);
     }
@@ -768,11 +782,11 @@ namespace internalModule {
       const radius = <number[]>[];
       const color = 0x000000;
 
-      for (let i=0; i<this.numBusesVertical*2; i++) {
+      for (let i = 0; i < this.numBusesVertical * 2; i++) {
         x = x.concat(this.calcHVBusSwitch(hicannPosition, i)[0]);
         y = y.concat(this.calcHVBusSwitch(hicannPosition, i)[1]);
       }
-      for (let _=0; _<x.length; _++) {
+      for (let _ = 0; _ < x.length; _++) {
         radius.push(this.vBusWidth);
       }
 
@@ -785,27 +799,27 @@ namespace internalModule {
       let xCoords = <number[]>[];
       let yCoords = <number[]>[];
 
-      const left = vBusCoord<128;
+      const left = vBusCoord < 128;
 
       const xCoord = (vBusCoord) => {
         return hicannPosition.x
-            + (left ? this.wafer.busesLeftPosition.x : this.wafer.busesRightPosition.x)
-            + (vBusCoord%128) * this.vBusDistance;
+          + (left ? this.wafer.busesLeftPosition.x : this.wafer.busesRightPosition.x)
+          + (vBusCoord % 128) * this.vBusDistance;
       };
       const yCoord = (hBusCoord) => {
         return hicannPosition.y
-            + this.wafer.repeaterBlockPosition.horizontal.left.current.y
-            + (hBusCoord+0.5)*this.hRepeaterDistance;
+          + this.wafer.repeaterBlockPosition.horizontal.left.current.y
+          + (hBusCoord + 0.5) * this.hRepeaterDistance;
       };
 
       xCoords.push(xCoord(vBusCoord));
       xCoords.push(xCoord(vBusCoord));
       if (left) {
-        yCoords.push(yCoord(63 - 2*(vBusCoord%32)));
-        yCoords.push(yCoord(63 - 2*(vBusCoord%32) - 1));
+        yCoords.push(yCoord(63 - 2 * (vBusCoord % 32)));
+        yCoords.push(yCoord(63 - 2 * (vBusCoord % 32) - 1));
       } else {
-        yCoords.push(yCoord(2*(vBusCoord%32)));
-        yCoords.push(yCoord(2*(vBusCoord%32) + 1));
+        yCoords.push(yCoord(2 * (vBusCoord % 32)));
+        yCoords.push(yCoord(2 * (vBusCoord % 32) + 1));
       }
 
       return [xCoords, yCoords];
@@ -840,13 +854,13 @@ namespace internalModule {
      * Check if the northern HICANN is closer to the canvas center than the one currently in detailview.
      * Needed for auto mode.
      */
-    northernHicannCloser(canvasCenter: {x: number, y: number}) {
+    northernHicannCloser(canvasCenter: { x: number, y: number }) {
       if (this.northernHicann) {
         const distanceCurrentHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
+          tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
         const distanceNorthernHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.northernHicann), canvasCenter);
-        if (distanceNorthernHicann + 2*this.edge < distanceCurrentHicann) {
+          tools.distanceBetweenPoints(this.hicannCenter(this.northernHicann), canvasCenter);
+        if (distanceNorthernHicann + 2 * this.edge < distanceCurrentHicann) {
           return true;
         } else {
           return false;
@@ -858,13 +872,13 @@ namespace internalModule {
      * Check if the southern HICANN is closer to the canvas center than the one currently in detailview.
      * Needed for auto mode.
      */
-    southernHicannCloser(canvasCenter: {x: number, y: number}) {
+    southernHicannCloser(canvasCenter: { x: number, y: number }) {
       if (this.southernHicann) {
         const distanceCurrentHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
+          tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
         const distanceSouthernHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.southernHicann), canvasCenter);
-        if (distanceSouthernHicann + 2*this.edge < distanceCurrentHicann) {
+          tools.distanceBetweenPoints(this.hicannCenter(this.southernHicann), canvasCenter);
+        if (distanceSouthernHicann + 2 * this.edge < distanceCurrentHicann) {
           return true;
         } else {
           return false;
@@ -876,13 +890,13 @@ namespace internalModule {
      * Check if the eastern HICANN is closer to the canvas center than the one currently in detailview.
      * Needed for auto mode.
      */
-    easternHicannCloser(canvasCenter: {x: number, y: number}) {
+    easternHicannCloser(canvasCenter: { x: number, y: number }) {
       if (this.easternHicann) {
         const distanceCurrentHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
+          tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
         const distanceEasternHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.easternHicann), canvasCenter);
-        if (distanceEasternHicann + 4*this.edge < distanceCurrentHicann) {
+          tools.distanceBetweenPoints(this.hicannCenter(this.easternHicann), canvasCenter);
+        if (distanceEasternHicann + 4 * this.edge < distanceCurrentHicann) {
           return true;
         } else {
           return false;
@@ -894,13 +908,13 @@ namespace internalModule {
      * Check if the western HICANN is closer to the canvas center than the one currently in detailview.
      * Needed for auto mode.
      */
-    westernHicannCloser(canvasCenter: {x: number, y: number}) {
+    westernHicannCloser(canvasCenter: { x: number, y: number }) {
       if (this.westernHicann) {
         const distanceCurrentHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
+          tools.distanceBetweenPoints(this.hicannCenter(this.currentHicann), canvasCenter);
         const distanceWesternHicann =
-            tools.distanceBetweenPoints(this.hicannCenter(this.westernHicann), canvasCenter);
-        if (distanceWesternHicann + 4*this.edge < distanceCurrentHicann) {
+          tools.distanceBetweenPoints(this.hicannCenter(this.westernHicann), canvasCenter);
+        if (distanceWesternHicann + 4 * this.edge < distanceCurrentHicann) {
           return true;
         } else {
           return false;
