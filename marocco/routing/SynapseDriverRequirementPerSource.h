@@ -59,7 +59,7 @@ public:
 	 * @brief Returns efferent projections of the given merger, grouped by their target.
 	 */
 	std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
-	targets_for_source(HMF::Coordinate::DNCMergerOnWafer merger) const;
+	targets_for_source(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
 
 	/**
 	 * @brief For a given Merger it returs the maximum Drivers required over
@@ -67,17 +67,19 @@ public:
 	 *
 	 * if it requires 4 and 2 Drivers in 2 different synapse arrays, 4 is returned.
 	 */
-	size_t drivers(HMF::Coordinate::DNCMergerOnWafer merger) const;
+	size_t drivers(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
 
 	/**
 	 * @brief returns true if driver reqiurements for all targets can be matched
 	 */
-	bool drivers_possible(HMF::Coordinate::DNCMergerOnWafer merger, resource::HICANNManager& mgr) const;
+	bool drivers_possible(
+	    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const;
 
 	/**
 	 * @brief returns true if driver reqiurements for all targets can be matched with ease
 	 */
-	bool more_drivers_possible(HMF::Coordinate::DNCMergerOnWafer merger, resource::HICANNManager& mgr) const;
+	bool more_drivers_possible(
+	    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const;
 
 private:
 	graph_t const& m_bio_graph;
@@ -94,7 +96,7 @@ private:
 	 * @param [in] merger : the merger the targets are searched for
 	 */
 	std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
-	fill_results(HMF::Coordinate::DNCMergerOnWafer merger) const;
+	fill_results(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
 
 	/**
 	 * @brief precalculates values and stores them in cache.
@@ -103,7 +105,7 @@ private:
 	 *
 	 * @param [in] the merger, values shall be calculated for
 	 */
-	void precalc(HMF::Coordinate::DNCMergerOnWafer merger) const;
+	void precalc(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
 };
 
 } // namespace routing

@@ -18,7 +18,8 @@ SynapseDriverRequirementPerSource::SynapseDriverRequirementPerSource(
 
 
 std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
-SynapseDriverRequirementPerSource::targets_for_source(HMF::Coordinate::DNCMergerOnWafer merger) const
+SynapseDriverRequirementPerSource::targets_for_source(
+    HMF::Coordinate::DNCMergerOnWafer const& merger) const
 {
 	if( m_cached_targets.find(merger) == m_cached_targets.end() ){
 		precalc(merger);
@@ -26,7 +27,8 @@ SynapseDriverRequirementPerSource::targets_for_source(HMF::Coordinate::DNCMerger
 	return m_cached_targets.at(merger);
 }
 
-size_t SynapseDriverRequirementPerSource::drivers(HMF::Coordinate::DNCMergerOnWafer merger) const
+size_t SynapseDriverRequirementPerSource::drivers(
+    HMF::Coordinate::DNCMergerOnWafer const& merger) const
 {
 	if( m_cached_drivers.find(merger) == m_cached_drivers.end() ){
 		precalc(merger);
@@ -35,7 +37,8 @@ size_t SynapseDriverRequirementPerSource::drivers(HMF::Coordinate::DNCMergerOnWa
 	return m_cached_drivers.at(merger);
 }
 
-bool SynapseDriverRequirementPerSource::drivers_possible(HMF::Coordinate::DNCMergerOnWafer merger, resource::HICANNManager& mgr) const
+bool SynapseDriverRequirementPerSource::drivers_possible(
+    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const
 {
 	if( m_cached_drivers.find(merger) == m_cached_drivers.end() ){
 		precalc(merger);
@@ -52,7 +55,8 @@ bool SynapseDriverRequirementPerSource::drivers_possible(HMF::Coordinate::DNCMer
 	return m_cached_drivers.at(merger) <= max_chain_global;
 }
 
-bool SynapseDriverRequirementPerSource::more_drivers_possible(HMF::Coordinate::DNCMergerOnWafer merger, resource::HICANNManager& mgr) const
+bool SynapseDriverRequirementPerSource::more_drivers_possible(
+    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const
 {
 	if( m_cached_drivers.find(merger) == m_cached_drivers.end() ){
 		precalc(merger);
@@ -73,7 +77,8 @@ bool SynapseDriverRequirementPerSource::more_drivers_possible(HMF::Coordinate::D
 }
 
 std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
-SynapseDriverRequirementPerSource::fill_results(HMF::Coordinate::DNCMergerOnWafer merger) const
+SynapseDriverRequirementPerSource::fill_results(
+    HMF::Coordinate::DNCMergerOnWafer const& merger) const
 {
 
 	if( m_cached_results.find(merger) == m_cached_results.end() ){
@@ -105,7 +110,8 @@ SynapseDriverRequirementPerSource::fill_results(HMF::Coordinate::DNCMergerOnWafe
 	return m_cached_results.at(merger);
 }
 
-void SynapseDriverRequirementPerSource::precalc(HMF::Coordinate::DNCMergerOnWafer merger) const
+void SynapseDriverRequirementPerSource::precalc(
+    HMF::Coordinate::DNCMergerOnWafer const& merger) const
 {
 	auto result = fill_results(merger);
 	size_t maxDrivers = 0;
