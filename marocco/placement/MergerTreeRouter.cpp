@@ -3,6 +3,7 @@
 #include <boost/graph/breadth_first_search.hpp>
 
 #include <array>
+#include <numeric>
 
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/Logger.h"
@@ -71,6 +72,7 @@ void MergerTreeRouter::run()
 
 		std::set<NeuronBlockOnHICANN> adjacent_nbs;
 		std::vector<MergerTreeGraph::vertex_descriptor> predecessors;
+		std::iota(predecessors.begin(), predecessors.end(), 0);
 
 		try {
 			std::tie(adjacent_nbs, predecessors) = mergeable(dnc_merger);
