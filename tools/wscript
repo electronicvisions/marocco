@@ -15,7 +15,7 @@ def configure(cfg):
 
 def build(bld):
     bld(target="pyalone",
-        features='cxx cxxshlib pypp pyembed pyext post_task',
+        features='cxx cxxshlib pypp pyembed pyext',
         script='generate.py',
         gen_defines='PYPLUSPLUS __STRICT_ANSI__',
         defines='PYBINDINGS',

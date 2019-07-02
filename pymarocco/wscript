@@ -40,8 +40,8 @@ def build(bld):
                          ],
             }
 
-    bld(target='pymarocco',
-        features='cxx cxxshlib post_task',
+    bld(target='pymarocco_cpp',
+        features='cxx cxxshlib',
         source=bld.path.ant_glob('*.cpp'),
         use=[
             'BOOST4PYMAROCCO',
@@ -50,19 +50,21 @@ def build(bld):
             'redman',
             'halbe_coordinate',
             'sthal',
+            'pywrap',
         ],
-        post_task='_pymarocco',
         install_path='lib',
         **flags)
 
     bld(target='_pymarocco',
-        features        = 'cxx cxxshlib pypp pyembed pyext post_task',
+        name='pymarocco',
+        features        = 'cxx cxxshlib pypp pyembed pyext',
         script          = 'generate.py',
         gen_defines     = 'PYPLUSPLUS __STRICT_ANSI__',
         defines         = 'PYBINDINGS',
         headers         = 'bindings.h',
-        use             = ['pymarocco', 'VERSION'],
-        post_task       = [
+        use             = [
+            'VERSION',
+            'pymarocco_cpp',
             'pyhalbe',
             'pyhmf',
             'pylogging',
@@ -95,14 +97,13 @@ def build(bld):
             'marocco_results',
             'marocco_runtime_inc',
             'sthal',
-            'marocco_algorithms_inc',
-        ],
-        post_task='pymarocco_runtime',
+            'marocco_algorithms_inc'
+            ],
         install_path='lib',
         **flags)
 
     bld(target='pymarocco_runtime',
-        features='cxx cxxshlib pypp pyembed pyext post_task',
+        features='cxx cxxshlib pypp pyembed pyext',
         script='generate_runtime.py',
         gen_defines='PYPLUSPLUS __STRICT_ANSI__',
         defines=['PYBINDINGS'] + runtime_defines,
@@ -112,13 +113,13 @@ def build(bld):
             'euter_inc',
             'marocco_runtime',
             'marocco_algorithms',
-        ],
-        post_task=['pysthal', 'pymarocco_results'],
+            'pysthal',
+            'pymarocco_results'],
         install_path='lib',
         **flags)
 
     bld(target='pymarocco_coordinates',
-        features='cxx cxxshlib pypp pyembed pyext post_task',
+        features='cxx cxxshlib pypp pyembed pyext',
         script='generate_coordinates.py',
         gen_defines='PYPLUSPLUS __STRICT_ANSI__',
         defines='PYBINDINGS',
@@ -126,21 +127,20 @@ def build(bld):
         use=[
             'marocco_coordinates',
             'halbe_coordinate',
-        ],
-        post_task='pyhalbe',
+            'pyhalbe'],
         install_path='lib',
         **flags)
 
     bld(target='pymarocco_results',
-        features='cxx cxxshlib pypp pyembed pyext post_task',
+        features='cxx cxxshlib pypp pyembed pyext',
         script='generate_results.py',
         gen_defines='PYPLUSPLUS __STRICT_ANSI__',
         defines='PYBINDINGS',
         headers='marocco_results.h',
         use=[
             'marocco_results',
-        ],
-        post_task=['pyhalbe', 'pymarocco_coordinates'],
+            'pyhalbe',
+            'pymarocco_coordinates'],
         install_path='lib',
         **flags)
 

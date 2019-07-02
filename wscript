@@ -33,13 +33,11 @@ def depends(ctx):
 def options(opt):
     opt.load('compiler_cxx')
     opt.load('boost')
-    opt.load('post_task')
 
 
 def configure(cfg):
     cfg.load('compiler_cxx')
     cfg.load('boost')
-    cfg.load('post_task')
 
     cfg.check_boost(lib='serialization filesystem system '
             'thread program_options mpi graph regex',
@@ -80,7 +78,7 @@ def build(bld):
         export_includes = '.')
 
     bld(target          = 'marocco',
-        features        = 'cxx cxxshlib post_task',
+        features        = 'cxx cxxshlib',
         source          =
             bld.path.ant_glob(
                 'marocco/**/*.cpp',
@@ -110,7 +108,7 @@ def build(bld):
             'marocco_parameters',
             'marocco_algorithms',
             'marocco_results',
-            'pymarocco',
+            'pymarocco_cpp',
             'pymarocco_runtime',
             ],
         defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
@@ -201,20 +199,21 @@ def build(bld):
         ],
         cxxflags=cxxflags)
 
+    mapper_uses = ['marocco',
+                   'mpiconfig', # adds MPI includes, linkflags, ...
+                   'pyhmf',
+                   'pyredman',
+                  ]
+
+    if bld.options.with_ester:
+        mapper_uses.append('ester')
+        mapper_uses.append('pyester')
+
     bld(target          = 'mapper',
-        features        = 'cxx cxxprogram post_task',
+        features        = 'cxx cxxprogram',
         source          = ['main.cpp', 'marocco/Mapper.cpp'],
         install_path    = 'bin',
-        use             = [
-            'marocco',
-            'mpiconfig', # adds MPI includes, linkflags, ...
-        ],
-        post_task = [
-            'ester',
-            'pyhmf',
-            'pyester',
-            'pyredman',
-            ],
+        use             = mapper_uses,
         cxxflags=cxxflags)
 
     bld.install_files(
