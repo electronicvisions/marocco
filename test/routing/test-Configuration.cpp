@@ -28,8 +28,9 @@ TEST(RoutingConfiguration, configureWorksForSimpleRoute)
 	hicann2_ref.repeater[HLineOnHICANN(48).toHRepeaterOnHICANN()].setForwarding(right);
 	hicann2_ref.crossbar_switches.set(VLineOnHICANN(39), HLineOnHICANN(48), true);
 
-	EXPECT_EQ(hicann1_ref, hw[hicann1]);
-	EXPECT_EQ(hicann2_ref, hw[hicann2]);
+	EXPECT_EQ(hicann1_ref.repeater, hw[hicann1].repeater);
+	EXPECT_EQ(hicann2_ref.repeater, hw[hicann2].repeater);
+	EXPECT_EQ(hicann2_ref.crossbar_switches, hw[hicann2].crossbar_switches);
 }
 
 TEST(RoutingConfiguration, configureWorksForSimpleTree)
@@ -58,8 +59,10 @@ TEST(RoutingConfiguration, configureWorksForSimpleTree)
 	hicann2_ref.repeater[HLineOnHICANN(48).toHRepeaterOnHICANN()].setForwarding(right);
 	hicann2_ref.crossbar_switches.set(VLineOnHICANN(39), HLineOnHICANN(48), true);
 
-	EXPECT_EQ(hicann1_ref, hw[hicann1]);
-	EXPECT_EQ(hicann2_ref, hw[hicann2]);
+	EXPECT_EQ(hicann1_ref.repeater, hw[hicann1].repeater);
+	EXPECT_EQ(hicann1_ref.crossbar_switches, hw[hicann1].crossbar_switches);
+	EXPECT_EQ(hicann2_ref.repeater, hw[hicann2].repeater);
+	EXPECT_EQ(hicann2_ref.crossbar_switches, hw[hicann2].crossbar_switches);
 }
 
 TEST(RoutingConfiguration, configureWithTestOutput)
@@ -84,8 +87,8 @@ TEST(RoutingConfiguration, configureWithTestOutput)
 	hicann1_ref.repeater[repeater1].setOutput(right);
 	hicann2_ref.repeater[repeater2].setForwarding(right);
 
-	EXPECT_EQ(hicann1_ref, hw[hicann1]);
-	EXPECT_EQ(hicann2_ref, hw[hicann2]);
+	EXPECT_EQ(hicann1_ref.repeater, hw[hicann1].repeater);
+	EXPECT_EQ(hicann2_ref.repeater, hw[hicann2].repeater);
 }
 
 } // namespace routing

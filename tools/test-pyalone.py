@@ -64,7 +64,7 @@ class AloneTest(unittest.TestCase):
         reference = pysthal.HICANN()
         reference.crossbar_switches.set(
             VLineOnHICANN(39), HLineOnHICANN(48), True)
-        self.assertEqual(reference, wafer[hicann])
+        self.assertEqual(reference.crossbar_switches, wafer[hicann].crossbar_switches)
 
     def test_dnc_merger_to_right(self):
         alone = pyalone.Alone()
