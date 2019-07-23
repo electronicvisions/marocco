@@ -1,6 +1,5 @@
 #include <random>
 #include <set>
-#include <tuple>
 #include <unordered_set>
 
 #include <gtest/gtest.h>
@@ -70,15 +69,14 @@ INSTANTIATE_TEST_CASE_P(
 		Co::HICANNOnWafer::enum_type::begin,
 		Co::HICANNOnWafer::enum_type::end),);
 
-// (used std::tr1 prefix because of old gtest version)
 class AHICANNManagerWithOmittedHICANN
     : public AHICANNManager,
-      public ::testing::WithParamInterface<std::tr1::tuple<OmittingMethod, size_t>> {
+      public ::testing::WithParamInterface< ::testing::tuple<OmittingMethod, size_t>> {
 public:
 	AHICANNManagerWithOmittedHICANN()
-		: hicann(Co::HICANNOnWafer(Co::Enum(std::tr1::get<1>(GetParam()))), wafer)
+		: hicann(Co::HICANNOnWafer(Co::Enum(::testing::get<1>(GetParam()))), wafer)
 	{
-		switch (std::tr1::get<0>(GetParam())) {
+		switch (::testing::get<0>(GetParam())) {
 			case OmittingMethod::RESOURCE_MANAGER:
 				disable_hicann(backend, hicann);
 				reload();
