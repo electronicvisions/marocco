@@ -29,7 +29,7 @@ namespace internalModule {
       });
 
       $(".settingDescription").children().eq(0).html(this.longestDescription());
-      
+
       $("#resetConfig").mouseenter(() => {
         $(".settingDescription").children().eq(1).stop(true).html(this.resetDescription).fadeIn(100);
       });
@@ -113,7 +113,7 @@ namespace internalModule {
       // create hidden file browser
       const fileBrowser = $(`<input type="file"/>`).prop("display", "none");
       $("body").append(fileBrowser);
-    
+
       fileBrowser.change(() => {
         // uploaded configuration file
         const configfile = fileBrowser.prop("files")[0];
@@ -124,17 +124,18 @@ namespace internalModule {
           $("#configurationContent .loader").css("display", "block");
 
           const contents = new Int8Array((<any>event.target).result);
-          // file name is "network" + extension of the input file
-          const filename = "./network" + configfile.name.match(/\.[a-z,A-Z,0-9,\.]+/)[0];
+          // file name is "network" + extension of the input file (xml, xml.gz are supported)
+          const filename = "./network" + configfile.name.match(/\.(xml|xml\.gz)$/)[0];
+          // TODO: we should bail out if the extension is unknown
           // delete old results file
           if (this.resultsFile) {
             FS.unlink(this.resultsFile);
           }
           // write file into emscriptens virtual file system (FS)
           FS.writeFile(filename, contents);
-          // save 
+          // save
           this.resultsFile = filename;
-  
+
           // start main program
           setTimeout(() => {
             this.saveConfig();
@@ -148,7 +149,7 @@ namespace internalModule {
           }, 100);
         }
         filereader.readAsArrayBuffer(configfile);
-    
+
         fileBrowser.remove();
       })
       // open file browser
@@ -222,7 +223,7 @@ namespace internalModule {
       // create hidden file browser
       const fileBrowser = $(`<input type="file"/>`).prop("display", "none");
       $("body").append(fileBrowser);
-    
+
       fileBrowser.change(() => {
         // uploaded configuration file
         const configfile = fileBrowser.prop("files")[0];
@@ -290,9 +291,9 @@ namespace internalModule {
       } else {
         config.routes = false;
       }
-    
+
       this.configuration = config;
-    
+
       if (saveExternal) {
         const json = JSON.stringify(config);
         const element = document.createElement("a");
@@ -335,7 +336,7 @@ namespace internalModule {
         rightPosition.current.x = rightPosition.original.x + changeRate * diff;
       }
       wafer.repeaterBlockPosition.vertical.width.current = (1 - changeRate) * wafer.repeaterBlockPosition.vertical.width.original + changeRate * wafer.busesLeftPosition.width;
-      
+
       // save visu configuration
       this.saveConfig(false, true);
       // restore visu configuration
@@ -343,13 +344,13 @@ namespace internalModule {
       // show check symbol
       this.checkSymbol();
     }
-    
+
     newRenderer = (resolution: number, forceCanvas: boolean) => {
       pixiBackend.renderer.renderer.destroy();
       $("#pixiJSCanvas").remove();
       pixiBackend.renderer = new pixiBackend.Renderer($("body"), 0x333333, canvasWidth(), canvasHeight(), forceCanvas, resolution);
     }
-    
+
     screenshot = (resolution: number) => {
       this.newRenderer(resolution, true)
 
@@ -364,7 +365,7 @@ namespace internalModule {
         element.click();
         document.body.removeChild(element);
       }, "image/png", 1)
-      
+
       this.newRenderer(1, false);
     }
   }
