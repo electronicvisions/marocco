@@ -118,7 +118,7 @@ const canvasCenter = function() {
 		y: canvasHeight()/2,
 	})
 };
-	
+
 // wait for DOM to load
 $(window).on('load', () => {
 	console.log("dom ready")
@@ -192,13 +192,13 @@ function setupScreen(){
 				let contents = new Int8Array(data);
 				// write file into emscriptens virtual file system (FS)
 				// file name is "network" + extension of the input file
-				console.log("./network" + inputFile.name.match(/\.[a-z,A-Z,0-9,\.]+/)[0])
-				FS.writeFile("./network" + inputFile.name.match(/\.[a-z,A-Z,0-9,\.]+/)[0], contents);
+				console.log("./network" + inputFile.name.match(/\.(xml|xml\.gz|bin)$/)[0])
+				FS.writeFile("./network" + inputFile.name.match(/\.(xml|xml\.gz|bin)$/)[0], contents);
 				// remove upload screen and display loading screen
 				$("#uploadScreen").css("display", "none");
 				$("#loadingScreen").css("display", "block");
 				// start main program
-				setTimeout(() => {main("./network" + inputFile.name.match(/\.[a-z,A-Z,0-9,\.]+/)[0])}, 30000);
+				setTimeout(() => {main("./network" + inputFile.name.match(/\.(xml|xml\.gz|bin)$/)[0])}, 30000);
 			};
 			filereader.onerror = function(event) {
 				console.error(`File could not be read! Code $event.target.error.code`);
@@ -229,30 +229,30 @@ function setupScreen(){
  */
 function main(resultsFile: string) {
 	///////////////////////////
-	
+
 	// FPS, RAM Stats
 	const stats = new Stats();
 	stats.showPanel( 0 ); // 0: fps, 1: ms, 2: mb, 3+: custom
 	stats.dom.style.position = "relative"
 	stats.dom.style.marginLeft = "20px"
-	
+
 	document.querySelector("#fpsContainer").appendChild( stats.dom );
-	
+
 	function animate() {
-	
+
 		stats.begin();
 		stats.end();
-	
+
 		requestAnimationFrame( animate );
-	
+
 	}
-	
+
 	requestAnimationFrame( animate );
-	
+
 	///////////////////////////
-	
+
 	console.log(`WebGL is${!PIXI.utils.isWebGLSupported ? " not": ""} supported by this browser.`);
-	
+
 	//////////////////////////////////
 	// store common DOM elements
 	// deprecated???
@@ -309,7 +309,7 @@ function main(resultsFile: string) {
 	hicannNumber = new internalModule.HicannNumber(wafer.hicannWidth, wafer.hicannHeight);
 
 	hicannInfo = new internalModule.HicannInfo();
-	
+
 	//////////////////////////////////
 
 	// Event Listeners
@@ -353,7 +353,7 @@ function main(resultsFile: string) {
 	document.querySelector("#visuWindow").addEventListener("wheel", function (e) {
 		handleWheel(e || window.event);
 });
-	
+
 	$("#allNumbersCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked;
 		hicannNumber.setAll(checked);
@@ -369,7 +369,7 @@ function main(resultsFile: string) {
 		reticlesOnStage.setReticles(((e || window.event).target as HTMLInputElement).checked);
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#numNeuronsCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked;
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -378,7 +378,7 @@ function main(resultsFile: string) {
 		manualmode.setAllCheckboxes("numNeurons", checked);
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#numInputsCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -387,7 +387,7 @@ function main(resultsFile: string) {
 		manualmode.setAllCheckboxes("numInputs", checked);
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#verticalLeftCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -396,7 +396,7 @@ function main(resultsFile: string) {
 		manualmode.setAllCheckboxes("left", checked);
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#verticalRightCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -405,7 +405,7 @@ function main(resultsFile: string) {
 		manualmode.setAllCheckboxes("right", checked);
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#horizontalCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -414,7 +414,7 @@ function main(resultsFile: string) {
 		manualmode.setAllCheckboxes("horizontal", checked);
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#verticalLeftDetailsCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -425,7 +425,7 @@ function main(resultsFile: string) {
 		}
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#verticalRightDetailsCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -436,7 +436,7 @@ function main(resultsFile: string) {
 		}
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#horizontalDetailsCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -469,7 +469,7 @@ function main(resultsFile: string) {
 		}
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#neuronsDetailsCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -480,7 +480,7 @@ function main(resultsFile: string) {
 		}
 		pixiBackend.renderer.render();
 	})
-	
+
 	$("#repeatersDetailsCheckbox").change( e => {
 		const checked = ((e || window.event).target as HTMLInputElement).checked
 		for (let index=0; index<=wafer.enumMax; index++) {
@@ -503,7 +503,7 @@ function main(resultsFile: string) {
 			manualmode.resetView();
 			// start auto Mode
 			automode.init(hicannClosestToCenter, levelOneEnabled, levelTwoEnabled);
-			manualmode.enabled = false;	
+			manualmode.enabled = false;
 		}
 	})
 
@@ -559,7 +559,7 @@ function main(resultsFile: string) {
 		setupJQueryUI();
 		pixiBackend.renderer.render();
 	})
-	
+
 } //main
 
 function visualizeFile(resultsFile: string) {
@@ -575,10 +575,10 @@ function visualizeFile(resultsFile: string) {
 		);
 		throw(new Error("cannot load input file"));
 	}
-		
+
 	// Adjust color gradients when a HICANN property is zero for every HICANN.
 	setHicannPropertyGradients();
-	
+
 	overview = new internalModule.Overview(
 		wafer,
 		{
@@ -598,12 +598,12 @@ function visualizeFile(resultsFile: string) {
 	overview.drawWafer();
 
 	detailview = new internalModule.Detailview(wafer);
-	
+
 	routesOnStage = new internalModule.RoutesOnStage(detailview);
 
 	// draw routes
 	routesOnStage.drawRoutes();
-	
+
 	// hide routes
 	for (const route of routesOnStage.routes) {
 		routesOnStage.setRoute(route, false);
@@ -919,7 +919,7 @@ function buildRoutesTree() {
 		routesOnStage.handleRouteDoubleClick();
 	})
 
-	
+
 	// route list
 	// route surrounding unordered list
 	const routesList = document.createElement("ul");
@@ -929,7 +929,7 @@ function buildRoutesTree() {
 		const ID = route.ID;
 		const routeListItem = document.createElement("li")
 		routesList.appendChild(routeListItem);
-		
+
 		const routeCheckbox = document.createElement("input");
 		routeCheckbox.type = "checkbox";
 		routeCheckbox.checked = false;
@@ -942,7 +942,7 @@ function buildRoutesTree() {
 			pixiBackend.renderer.render();
 		});
 		routeListItem.appendChild(routeCheckbox);
-		
+
 		const routeLabel = document.createElement("button");
 		routeLabel.innerText = `Route `;
 		routeLabel.addEventListener("click", function(){
@@ -1004,7 +1004,7 @@ function animateBorderAroundHicann(container, x, y, width, height, lineWidth, co
 function setupJQueryUI() {
 	// add resizability to wafer list in left info panel
 	$("#waferList")
-		.resizable({	
+		.resizable({
 			handles: "s",
 			alsoResizeReverse: "#routesList",
 			maxHeight: 0.9*$(window).innerHeight(),
@@ -1058,7 +1058,7 @@ function setupJQueryUI() {
 /**
  * Helper function to reference the DOM
  */
-function addByID(object: object, id: string) { 
+function addByID(object: object, id: string) {
 	object[id] = $(`#${id}`)
 }
 /**
@@ -1106,7 +1106,7 @@ function setupPropertyGradients() {
 			`linear-gradient(90deg, #${numRoutesRightColorOne}, #${numRoutesRightColorTwo})`);
 	domObjects.rightBuses.rightBusesMin.html(`0`);
 	domObjects.rightBuses.rightBusesMax.html(wafer.numBusesRightMax);
-	
+
 	domObjects.horizontalBuses.horizontalBusesGradient.css("background",
 			`linear-gradient(90deg, #${numRoutesHorizontalColorOne}, #${numRoutesHorizontalColorTwo})`);
 	domObjects.horizontalBuses.horizontalBusesMin.html(`0`);

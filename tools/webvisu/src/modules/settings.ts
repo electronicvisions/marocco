@@ -124,8 +124,8 @@ namespace internalModule {
           $("#configurationContent .loader").css("display", "block");
 
           const contents = new Int8Array((<any>event.target).result);
-          // file name is "network" + extension of the input file (xml, xml.gz are supported)
-          const filename = "./network" + configfile.name.match(/\.(xml|xml\.gz)$/)[0];
+          // file name is "network" + extension of the input file (xml, xml.gz, bin are supported)
+          const filename = "./network" + configfile.name.match(/\.(xml|xml\.gz|bin)$/)[0];
           // TODO: we should bail out if the extension is unknown
           // delete old results file
           if (this.resultsFile) {
