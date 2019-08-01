@@ -61,7 +61,7 @@ class AloneTest(unittest.TestCase):
         wafer = pysthal.Wafer()
         pyalone.configure(wafer, route)
         self.assertEqual(1, len(wafer.getAllocatedHicannCoordinates()))
-        reference = pysthal.HICANN()
+        reference = pysthal.HICANN(HICANNGlobal(hicann, wafer.index()))
         reference.crossbar_switches.set(
             VLineOnHICANN(39), HLineOnHICANN(48), True)
         self.assertEqual(reference.crossbar_switches, wafer[hicann].crossbar_switches)

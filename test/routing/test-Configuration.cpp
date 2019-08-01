@@ -22,8 +22,8 @@ TEST(RoutingConfiguration, configureWorksForSimpleRoute)
 	std::vector<HICANNOnWafer> expected{hicann1, hicann2};
 	EXPECT_EQ(expected, hw.getAllocatedHicannCoordinates());
 
-	sthal::HICANN hicann1_ref;
-	sthal::HICANN hicann2_ref;
+	sthal::HICANN hicann1_ref(HICANNGlobal(hicann1, hw.index()));
+	sthal::HICANN hicann2_ref(HICANNGlobal(hicann2, hw.index()));
 	hicann1_ref.repeater[HLineOnHICANN(46).toHRepeaterOnHICANN()].setOutput(right, true);
 	hicann2_ref.repeater[HLineOnHICANN(48).toHRepeaterOnHICANN()].setForwarding(right);
 	hicann2_ref.crossbar_switches.set(VLineOnHICANN(39), HLineOnHICANN(48), true);
@@ -52,8 +52,8 @@ TEST(RoutingConfiguration, configureWorksForSimpleTree)
 	std::vector<HICANNOnWafer> expected{hicann1, hicann2};
 	EXPECT_EQ(expected, hw.getAllocatedHicannCoordinates());
 
-	sthal::HICANN hicann1_ref;
-	sthal::HICANN hicann2_ref;
+	sthal::HICANN hicann1_ref(HICANNGlobal(hicann1, hw.index()));
+	sthal::HICANN hicann2_ref(HICANNGlobal(hicann2, hw.index()));
 	hicann1_ref.repeater[HLineOnHICANN(46).toHRepeaterOnHICANN()].setOutput(right, true);
 	hicann1_ref.crossbar_switches.set(VLineOnHICANN(8), HLineOnHICANN(46), true);
 	hicann2_ref.repeater[HLineOnHICANN(48).toHRepeaterOnHICANN()].setForwarding(right);
@@ -82,8 +82,8 @@ TEST(RoutingConfiguration, configureWithTestOutput)
 	std::vector<HICANNOnWafer> expected{hicann1, hicann2};
 	EXPECT_EQ(expected, hw.getAllocatedHicannCoordinates());
 
-	sthal::HICANN hicann1_ref;
-	sthal::HICANN hicann2_ref;
+	sthal::HICANN hicann1_ref(HICANNGlobal(hicann1, hw.index()));
+	sthal::HICANN hicann2_ref(HICANNGlobal(hicann2, hw.index()));
 	hicann1_ref.repeater[repeater1].setOutput(right);
 	hicann2_ref.repeater[repeater2].setForwarding(right);
 
