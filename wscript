@@ -197,6 +197,7 @@ def build(bld):
             'marocco_coordinates',
             'halbe',
             'BOOST4MAROCCO_RESULTS',
+            'euter',
         ],
         cxxflags=cxxflags)
 

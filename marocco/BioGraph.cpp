@@ -60,28 +60,6 @@ auto BioGraph::edge_from_id(routing::results::Edge const& id) const -> edge_desc
 	return m_edges.right.at(id.value());
 }
 
-void BioGraph::write_graphviz(std::string const& filename) const
-{
-	// try to open file
-	std::ofstream file(filename.c_str());
-	if (!file.is_open()) {
-        throw std::runtime_error("unable to open file " + filename);
-	}
-
-	auto population_label_writer = [this](std::ostream& out, vertex_descriptor const& v) {
-		auto p = m_graph[v];
-		out << "[label=\"" << p->size() << " " << getCellTypeName(p->type()) << "\"]";
-	};
-
-	auto projection_label_writer = [this](std::ostream& out, edge_descriptor const& e) {
-		out << "[label=\"";
-		m_graph[e].projection()->printOn(out);
-		out << "\"]";
-	};
-
-	boost::write_graphviz(file, m_graph, population_label_writer, projection_label_writer);
-}
-
 bool is_source(BioGraph::vertex_descriptor const& v, BioGraph::graph_type const& graph) {
 	return graph[v]->parameters().is_source();
 }

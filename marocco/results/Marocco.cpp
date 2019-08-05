@@ -10,6 +10,7 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/graph/adj_list_serialize.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 #include <boost/iostreams/filtering_stream.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -79,7 +80,7 @@ void Marocco::save(std::string const& filename_, bool overwrite) const
 }
 
 template <typename Archiver>
-void Marocco::serialize(Archiver& ar, const unsigned int /* version */)
+void Marocco::serialize(Archiver& ar, const unsigned int version)
 {
 	using namespace boost::serialization;
 	// clang-format off
@@ -90,6 +91,9 @@ void Marocco::serialize(Archiver& ar, const unsigned int /* version */)
 	   & make_nvp("l1_routing", l1_routing)
 	   & make_nvp("synapse_routing", synapse_routing);
 	// clang-format on
+	if (version >= 2) {
+		ar& make_nvp("bio_graph", bio_graph);
+	}
 }
 
 HICANNOnWaferProperties Marocco::properties(halco::hicann::v2::HICANNOnWafer const& hicann) const

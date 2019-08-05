@@ -24,15 +24,27 @@ def build(bld):
         install_path='lib',
         use=[
             'marocco',
-            'sthal_inc'
-        ],
-        post_task='pyhalbe pysthal pymarocco_coordinates')
+            'sthal_inc',
+            'pyhalbe',
+            'pysthal',
+            'pymarocco_coordinates',
+       ])
+
 
     bld(target='pyalone-test',
         features='pytest',
         tests='test-pyalone.py',
         install_path='bin/tests',
         use='pyalone')
+
+    bld(target='marocco_export-nrn-graph',
+        features='cxx cxxprogram',
+        source='graph_export.cc',
+        install_path='${PREFIX}/bin',
+        use=[
+            'marocco',
+            'marocco_coordinates',
+        ])
 
     bld.install_as(
         '${PREFIX}/bin/marocco_find_route', 'find_route.py', chmod=0755)

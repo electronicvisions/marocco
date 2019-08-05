@@ -6,13 +6,14 @@
 #include "halco/common/relations.h"
 #include "halco/common/typed_array.h"
 
+#include "marocco/BioGraph.h"
+#include "marocco/coordinates/L1Route.h"
 #include "marocco/parameter/results/AnalogOutputs.h"
 #include "marocco/parameter/results/SpikeTimes.h"
 #include "marocco/placement/results/Placement.h"
 #include "marocco/results/Resources.h"
 #include "marocco/routing/results/L1Routing.h"
 #include "marocco/routing/results/SynapseRouting.h"
-#include "marocco/coordinates/L1Route.h"
 
 #include "hal/HICANN/L1Address.h"
 
@@ -64,6 +65,7 @@ public:
 	placement::results::Placement placement;
 	routing::results::L1Routing l1_routing;
 	routing::results::SynapseRouting synapse_routing;
+	BioGraph::graph_type bio_graph;
 
 	/**
 	 * @brief Create an object representing overview properties of a single HICANN.
@@ -79,7 +81,7 @@ public:
 private:
 	friend class boost::serialization::access;
 	template <typename Archiver>
-	void serialize(Archiver& ar, const unsigned int /* version */);
+	void serialize(Archiver& ar, const unsigned int version);
 }; // Marocco
 
 class HICANNOnWaferProperties
@@ -132,3 +134,4 @@ private:
 } // namespace marocco
 
 BOOST_CLASS_EXPORT_KEY(::marocco::results::Marocco)
+BOOST_CLASS_VERSION(::marocco::results::Marocco, 2)

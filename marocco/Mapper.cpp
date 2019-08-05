@@ -72,17 +72,12 @@ void Mapper::run(ObjectStore const& pynn)
 	// B U I L D   G R A P H
 	mBioGraph.load(pynn);
 
-	// write out bio graph in graphviz format
-	if (!mPyMarocco->bio_graph.empty()) {
-		MAROCCO_INFO("writing bio graph to " << mPyMarocco->bio_graph);
-		mBioGraph.write_graphviz(mPyMarocco->bio_graph);
-	}
-
 	auto& graph = mBioGraph.graph();
 
 	size_t neuron_count = num_neurons(graph);
 	MAROCCO_INFO(
 	    neuron_count << " neurons in " << boost::num_vertices(graph) << " populations");
+	m_results->bio_graph = mBioGraph.graph();
 
 	if (mPyMarocco->skip_mapping) {
 		// We only need to set up the bio graph when using old results.

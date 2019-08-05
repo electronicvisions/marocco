@@ -129,9 +129,6 @@ public:
 	 */
 	HMF::Coordinate::Wafer default_wafer;
 
-	/// path to graphviz bio graph output file. No bio graph output if unset
-	std::string bio_graph;
-
 	/**
 	 * @brief Do not run mapping step but load results from previous run.
 	 * @see \c wafer_cfg and \c persist which must be set.

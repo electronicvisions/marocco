@@ -1,19 +1,31 @@
 #pragma once
 
 #include <string>
-#ifndef PYPLUSPLUS
-#include <unordered_map>
-#endif // !PYPLUSPLUS
 #include <boost/bimap.hpp>
-#include <boost/graph/adjacency_list.hpp>
+#include <boost/unordered_map.hpp>
 
 #ifndef PYPLUSPLUS
+#include <boost/graph/adjacency_list.hpp>
 #include "euter/interface.h"
 #else
-class ObjectStore {};
-class Population {};
-class ConstPopulationPtr {};
-class ProjectionView {};
+// forward declare boost/graph/adjaceny_list.hpp
+namespace boost {
+template <class VS, class ES, class D, class VT, class ET>
+class adjacency_list
+{
+public:
+	typedef VT vertex_descriptor;
+	typedef ET edge_descriptor;
+};
+
+class vecS;
+class bidirectionalS;
+}
+// forward declare euter/interface.h
+class ObjectStore;
+class Population;
+class ConstPopulationPtr;
+class ProjectionView;
 #endif // !PYPLUSPLUS
 
 #include "marocco/util/iterable.h"
@@ -36,10 +48,8 @@ public:
 	    graph_type;
 	typedef graph_type::vertex_descriptor vertex_descriptor;
 	typedef graph_type::edge_descriptor edge_descriptor;
-#ifndef PYPLUSPLUS
-	typedef std::unordered_map<Population const*, vertex_descriptor> vertices_type;
+	typedef boost::unordered_map<Population const*, vertex_descriptor> vertices_type;
 	typedef boost::bimap<edge_descriptor, size_t> edges_type;
-#endif // !PYPLUSPLUS
 
 	void load(ObjectStore const& os);
 
@@ -56,27 +66,20 @@ public:
 
 	edge_descriptor edge_from_id(routing::results::Edge const& id) const;
 
-	/**
-	 * @brief Export graph in graphviz format.
-	 * @throw std::runtime_error If the specified file could not be opened.
-	 */
-	void write_graphviz(std::string const& filename) const;
-
 private:
-#ifndef PYPLUSPLUS
 	graph_type m_graph;
-	vertices_type m_vertices;
+#ifndef PYPLUSPLUS
 	edges_type m_edges;
+	vertices_type m_vertices;
 #endif // !PYPLUSPLUS
 }; // BioGraph
-
 bool is_source(BioGraph::vertex_descriptor const& v, BioGraph::graph_type const& graph);
 bool is_physical(BioGraph::vertex_descriptor const& v, BioGraph::graph_type const& graph);
 
 } // namespace marocco
 
+#ifndef PYPLUSPLUS
 namespace std {
-
 template<>
 struct hash<marocco::BioGraph::edge_descriptor>
 {
@@ -89,5 +92,5 @@ struct hash<marocco::BioGraph::edge_descriptor>
 		return hash;
 	}
 };
-
 } // namespace std
+#endif // !PYPLUSPLUS

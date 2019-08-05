@@ -5,7 +5,7 @@ from waflib.TaskGen import feature, after_method
 def depends(dep):
     dep('halco')
     dep('marocco')
-
+    dep('euter')
 
 def options(opt):
     opt.load('c_emscripten')
@@ -62,24 +62,25 @@ def build(bld):
 
     external_files = bld.get_tgen_by_name('halco_hicann_v2').source + \
         bld.get_tgen_by_name('halco_common').source + \
-        bld.get_tgen_by_name('halbe_container_emscripten').source
+        bld.get_tgen_by_name('halbe_container_emscripten').source + \
+        bld.get_tgen_by_name('euter').source
 
     bld.program(
         features='cxx emscripten_install',
         target='Marocco',
         source=['embind.cpp'] + marocco_files + external_files,
-        use=['marocco_inc', 'BOOST4MAROCCO'],
+        use=['marocco_inc', 'BOOST4MAROCCO' ],
         env=bld.all_envs['emscripten'],
         # lots of custom em++ flags... :( -> TODO: clean up duplication
         cxxflags='-O2 -std=c++17 -Werror -s ALLOW_MEMORY_GROWTH=1 ' + \
                  '-s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 ' + \
                  '-s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 ' + \
                  '-s DISABLE_EXCEPTION_CATCHING=0 ' + \
-                 '-s  STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
-        linkflags='-O2 --bind -Werror -s USE_ZLIB=1 -s ' + \
-                  'ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 ' + \
+                 '-s  STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4 ',
+        linkflags='-O2 --bind -Werror -s USE_ZLIB=1 ' + \
+                  '-s ALLOW_MEMORY_GROWTH=1 -s ASSERTIONS=2 ' + \
                   '-s DEMANGLE_SUPPORT=1 -s ERROR_ON_UNDEFINED_SYMBOLS=1 ' + \
                   '-s VERBOSE=1 -s DISABLE_EXCEPTION_CATCHING=0 ' + \
-                  '-s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4',
+                  '-s STACK_OVERFLOW_CHECK=1 -s EXCEPTION_DEBUG=1 -g4 ',
         install_path='lib/webvisu',
     )
