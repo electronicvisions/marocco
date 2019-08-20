@@ -71,7 +71,7 @@ def build(bld):
         use=['marocco_inc', 'BOOST4MAROCCO'],
         env=bld.all_envs['emscripten'],
         # lots of custom em++ flags... :( -> TODO: clean up duplication
-        cxxflags='-O2 -std=c++14 -Werror -s ALLOW_MEMORY_GROWTH=1 ' + \
+        cxxflags='-O2 -std=c++17 -Werror -s ALLOW_MEMORY_GROWTH=1 ' + \
                  '-s ASSERTIONS=2 -s DEMANGLE_SUPPORT=1 ' + \
                  '-s ERROR_ON_UNDEFINED_SYMBOLS=1 -s VERBOSE=1 ' + \
                  '-s DISABLE_EXCEPTION_CATCHING=0 ' + \
