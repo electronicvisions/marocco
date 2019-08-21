@@ -13,9 +13,7 @@ public:
 	// Neurons
 
 	/// Choose whether the small or big hardware capacitors shall be used for the hardware neurons.
-	/// default: false 
-	/// FIXME: This might be changed to true. Currently set to false, to be compatible with previously hard-coded
-	/// use of small capacitors in parameter transformation.
+	/// default: true
 	/// @note: in the future, the choice of the capacitor should be done by the parameter transformation algorithm,
 	///        so that the parameters are optimally mapped to the hardware, depending on the available calibrations
 	bool use_big_capacitors;
