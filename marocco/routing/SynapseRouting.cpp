@@ -228,6 +228,7 @@ void SynapseRouting::run()
 			////////////////////////////////////////
 
 			for (results::ConnectedSynapseDrivers const& connected_drivers : entry.second) {
+				MAROCCO_TRACE("using drivers: " << connected_drivers);
 				m_result[m_hicann].add_synapse_switch(vline, connected_drivers);
 			}
 

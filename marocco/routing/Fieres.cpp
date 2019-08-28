@@ -148,11 +148,15 @@ bool Assignment::add(InboundRoute const& route) {
 
 	if (choice != options.cend()) {
 		// We found the smallest option with gap >= length.
+		MAROCCO_TRACE("using a gap of: " << choice->gap << " for: " << length << "Synapse Drivers");
 		insert(choice->side_vertical, choice->primary, route);
 	} else {
 		// There is no large enough gap for this incoming route.
 		// Pick the next best one as a last resort.
 		auto const& last = options.back();
+		MAROCCO_WARN(
+		    "Lost SynapseDrivers, not enough drivers could be chained. longest chain: "
+		    << last.gap << " required chain: " << length);
 		InboundRoute possible(route.line, route.drivers, route.synapses, last.gap);
 		insert(last.side_vertical, last.primary, possible);
 	}
@@ -172,7 +176,6 @@ auto Assignment::result() const -> result_type
 			    // No interval, defect driver or interval already processed.
 				continue;
 			}
-
 			QuadrantOnHICANN quadrant{side_vertical, mSide};
 			results::ConnectedSynapseDrivers drivers(
 				interval->primary.toSynapseDriverOnHICANN(quadrant));
@@ -189,31 +192,42 @@ auto Assignment::result() const -> result_type
 
 } // namespace fieres
 
-
-namespace {
-
 /// function that does the actual bin packing. Looks for suitable insertion
 /// points for entries of @param list in @param assignment.
-void defrag(std::list<fieres::InboundRoute> const& list, fieres::Assignment& assignment,
-            std::vector<VLineOnHICANN>& rejected) {
+void Fieres::defrag(
+    std::list<fieres::InboundRoute> const& list,
+    fieres::Assignment& assignment,
+    std::vector<VLineOnHICANN>& rejected)
+{
 	// We want to favor inbound routes with many synapses, thus we sort
 	// by descending number of synapses.
+	// FP: To prevent some fragmentation, a strict order is introduced by the VLine number. A more
+	// advanced behaviour could and should be emplaced here. There are still cases where
+	// neighbouring Drivers will chain into the requirements of others. A proposal: allocate a
+	// primary driver for each VLine, then elongate the chains. if required relocate primarys of
+	// neighbours (if possible).
 
 	std::vector<fieres::InboundRoute> sorted;
 	sorted.reserve(list.size());
 	std::copy(list.begin(), list.end(), std::back_inserter(sorted));
-	std::sort(sorted.begin(), sorted.end(), [](fieres::InboundRoute const& lhs, fieres::InboundRoute const& rhs) {
-		return lhs.synapses > rhs.synapses;
-	});
+	std::sort(
+	    sorted.begin(), sorted.end(),
+	    [](fieres::InboundRoute const& lhs, fieres::InboundRoute const& rhs) {
+		    if (lhs.synapses != rhs.synapses) {
+			    return lhs.synapses > rhs.synapses;
+		    } else {
+			    // order by Line Number will prevent some fragmentation, and guarantees strict order
+			    return lhs.line < rhs.line;
+		    }
+	    });
 
 	for (auto const& val : sorted) {
+		MAROCCO_TRACE("allocating drivers for VLine: " << val.line);
 		if (!assignment.add(val)) {
 			rejected.push_back(val.line);
 		}
 	} // for all assignments
 }
-
-} // namespace
 
 Fieres::Fieres(IntervalList const& _list,
 			   HMF::Coordinate::Side const& side,

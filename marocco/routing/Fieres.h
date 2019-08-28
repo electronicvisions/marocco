@@ -18,37 +18,6 @@
 namespace marocco {
 namespace routing {
 
-/// @brief BinPacking Synapse Driver Routing implementation.
-///
-/// Similar to original fieres appeoach.
-class Fieres
-{
-public:
-	typedef HMF::Coordinate::VLineOnHICANN VLineOnHICANN;
-	typedef std::vector<DriverInterval> IntervalList;
-	typedef std::unordered_map<VLineOnHICANN, std::vector<results::ConnectedSynapseDrivers> >
-		Result;
-	typedef std::vector<VLineOnHICANN> Rejected;
-
-	Fieres(IntervalList const& list,
-		   HMF::Coordinate::Side const& side,
-		   size_t max_chain_length=HMF::Coordinate::SynapseDriverOnQuadrant::end);
-
-	Fieres(IntervalList const& list,
-		   HMF::Coordinate::Side const& side,
-		   size_t max_chain_length,
-		   std::vector<HMF::Coordinate::SynapseDriverOnHICANN> const& defect);
-
-	Result result() const;
-	Rejected rejected() const;
-
-private:
-	HMF::Coordinate::Side const mSide;
-
-	Result mResult;
-	Rejected mRejected;
-};
-
 namespace fieres {
 
 struct InboundRoute {
@@ -66,7 +35,6 @@ struct InboundRoute {
 	int drivers = -1; // "defect" by default
 
 	/// number of represented synapses
-	// FIXME: This is not really used later on?
 	double synapses = 0;
 
 	/// number of actually assigned drivers. can be <= this->drivers
@@ -142,6 +110,44 @@ protected:
 };
 
 } // namespace fieres
+
+/// @brief BinPacking Synapse Driver Routing implementation.
+///
+/// Similar to original fieres appeoach.
+class Fieres
+{
+public:
+	typedef HMF::Coordinate::VLineOnHICANN VLineOnHICANN;
+	typedef std::vector<DriverInterval> IntervalList;
+	typedef std::unordered_map<VLineOnHICANN, std::vector<results::ConnectedSynapseDrivers> >
+	    Result;
+	typedef std::vector<VLineOnHICANN> Rejected;
+
+	Fieres(
+	    IntervalList const& list,
+	    HMF::Coordinate::Side const& side,
+	    size_t max_chain_length = HMF::Coordinate::SynapseDriverOnQuadrant::end);
+
+	Fieres(
+	    IntervalList const& list,
+	    HMF::Coordinate::Side const& side,
+	    size_t max_chain_length,
+	    std::vector<HMF::Coordinate::SynapseDriverOnHICANN> const& defect);
+
+	Result result() const;
+	Rejected rejected() const;
+
+private:
+	HMF::Coordinate::Side const mSide;
+
+	Result mResult;
+	Rejected mRejected;
+
+	void defrag(
+	    std::list<fieres::InboundRoute> const& list,
+	    fieres::Assignment& assignment,
+	    std::vector<VLineOnHICANN>& rejected);
+};
 
 } // namespace routing
 } // namespace marocco

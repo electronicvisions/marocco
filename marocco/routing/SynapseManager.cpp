@@ -3,6 +3,8 @@
 #include "hal/Coordinate/iter_all.h"
 #include "marocco/routing/print_tuple.h"
 
+#include "marocco/Logger.h"
+
 using namespace HMF::Coordinate;
 using HMF::HICANN::DriverDecoder;
 
@@ -295,12 +297,14 @@ void SynapseManager::SynapseStepper::update()
 	syn_col_it++;
 	if (syn_col_it != side_parity_it->second.end()) {
 		_has_synapses = true;
+		MAROCCO_TRACE("next col");
 	} else {
 		// next synapse row
 		sub_row_it++;
 		if (sub_row_it != hw_prop_to_half_row_it->second.end()) {
 			syn_col_it = side_parity_it->second.begin();
 			_has_synapses = true;
+			MAROCCO_TRACE("next row");
 		} else {
 			// try next side parity option
 			side_parity_it++;
@@ -319,6 +323,7 @@ void SynapseManager::SynapseStepper::update()
 					if (sub_row_it != hw_prop_to_half_row_it->second.end()) {
 						syn_col_it = side_parity_it->second.begin();
 						_has_synapses = true;
+						MAROCCO_TRACE("next side");
 						break;
 					}
 				}

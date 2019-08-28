@@ -6,9 +6,7 @@ namespace marocco {
 namespace placement {
 namespace parameters {
 
-MergerRouting::MergerRouting() : m_strategy(Strategy::one_to_one)
-{
-}
+MergerRouting::MergerRouting() : m_strategy(Strategy::minimize_as_possible) {}
 
 void MergerRouting::strategy(Strategy value)
 {
