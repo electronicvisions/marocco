@@ -77,6 +77,7 @@ size_t from_relative_index(T const& mask, size_t const index)
 } // namespace routing
 } // namespace marocco
 
+#if BOOST_VERSION < 107100
 #ifdef BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS
 // provide hash_value function if we can access the private members
 namespace boost {
@@ -91,3 +92,4 @@ namespace boost {
 #error BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS not defined. \
        Need to access access the private member to provide hash_value function!
 #endif
+#endif // boost 1.71's dynamic_bitset introduced boost::hash_value
