@@ -20,12 +20,16 @@ Synapses::item_type::item_type(
 	projection_type const& projection,
 	BioNeuron const& source_neuron,
 	BioNeuron const& target_neuron,
-	hardware_synapse_type const& hardware_synapse)
+	hardware_synapse_type const& hardware_synapse,
+	SynapseType const& syntype,
+	STPMode const& stp)
 	: m_edge(edge),
 	  m_projection(projection),
 	  m_source_neuron(source_neuron),
 	  m_target_neuron(target_neuron),
-	  m_hardware_synapse(hardware_synapse)
+	  m_hardware_synapse(hardware_synapse),
+	  m_syntype(syntype),
+	  m_stp(stp)
 {
 }
 
@@ -66,12 +70,24 @@ auto Synapses::item_type::hardware_synapse() const -> optional_hardware_synapse_
 	return m_hardware_synapse;
 }
 
+SynapseType const& Synapses::item_type::synapse_type() const
+{
+	return m_syntype;
+}
+
+STPMode const& Synapses::item_type::stp_mode() const
+{
+	return m_stp;
+}
+
 void Synapses::add(
 	edge_type const& edge,
 	projection_type const& projection,
 	BioNeuron const& source_neuron,
 	BioNeuron const& target_neuron,
-	hardware_synapse_type const& hardware_synapse)
+	hardware_synapse_type const& hardware_synapse,
+	SynapseType const& syntype,
+	STPMode const& stp)
 {
 	// Check if this hardware synapse is already in use.  As `boost::none` is used to
 	// represent synapse loss, we have to use `hashed_non_unique` instead of `hashed_unique`,
@@ -81,7 +97,7 @@ void Synapses::add(
 		throw std::runtime_error("hardware synapse already in use");
 	}
 
-	if (!m_container.insert(item_type(edge, projection, source_neuron, target_neuron, hardware_synapse))
+	if (!m_container.insert(item_type(edge, projection, source_neuron, target_neuron, hardware_synapse, syntype, stp))
 		.second) {
 		throw std::runtime_error("error when adding synapse routing result");
 	}
@@ -91,7 +107,8 @@ void Synapses::add_unrealized_synapse(
 	edge_type const& edge,
 	projection_type const& projection,
 	BioNeuron const& source_neuron,
-	BioNeuron const& target_neuron)
+	BioNeuron const& target_neuron
+	)
 {
 	// Check if this connection already has associated hardware synapses.
 	// FIXME: use edge instead of euter id?

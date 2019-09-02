@@ -14,6 +14,8 @@
 #include "marocco/coordinates/BioNeuron.h"
 #include "marocco/routing/results/Edge.h"
 #include "marocco/util/iterable.h"
+#include "marocco/coordinates/SynapseType.h"
+#include "marocco/routing/STPMode.h"
 
 namespace boost {
 namespace serialization {
@@ -57,7 +59,9 @@ public:
 			projection_type const& projection,
 			BioNeuron const& source_neuron,
 			BioNeuron const& target_neuron,
-			hardware_synapse_type const& hardware_synapse);
+			hardware_synapse_type const& hardware_synapse,
+			SynapseType const& syntype,
+			STPMode const& stp);
 
 		item_type(
 			edge_type const& edge,
@@ -70,6 +74,8 @@ public:
 		BioNeuron const& source_neuron() const;
 		BioNeuron const& target_neuron() const;
 		optional_hardware_synapse_type const& hardware_synapse() const;
+		SynapseType const& synapse_type() const;
+		STPMode const& stp_mode() const;
 
 	private:
 		edge_type m_edge;
@@ -77,6 +83,8 @@ public:
 		BioNeuron m_source_neuron;
 		BioNeuron m_target_neuron;
 		optional_hardware_synapse_type m_hardware_synapse;
+		SynapseType m_syntype;
+		STPMode m_stp;
 
 		friend class boost::serialization::access;
 		item_type();
@@ -134,7 +142,9 @@ public:
 		projection_type const& projection,
 		BioNeuron const& source_neuron,
 		BioNeuron const& target_neuron,
-		hardware_synapse_type const& hardware_synapse);
+		hardware_synapse_type const& hardware_synapse,
+		SynapseType const& syntype,
+		STPMode const& stp);
 
 	void add_unrealized_synapse(
 		edge_type const& edge,
