@@ -454,11 +454,6 @@ bool ClusterByPopulationConnectivity::operator==(ClusterByPopulationConnectivity
 	return ret;
 }
 
-std::string ClusterByPopulationConnectivity::get_name() const
-{
-	return "ClusterByPopulationConnectivity";
-}
-
 } // namespace internal
 } // namespace placement
 } // namespace marocco

@@ -38,11 +38,6 @@ void byNeuronBlockEnumAndPopulationID::sort_populations()
 	    });
 }
 
-std::string byNeuronBlockEnumAndPopulationID::get_name() const
-{
-	return "byNeuronBlockEnumAndPopulationID";
-}
-
 } // namespace internal
 } // namespace placement
 } // namespace marocco

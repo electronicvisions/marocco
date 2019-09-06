@@ -53,8 +53,6 @@ namespace algorithms {
 class PlacePopulationsBase
 {
 public:
-	virtual std::string get_name() const;
-
 	typedef HMF::Coordinate::NeuronOnWafer result_type;
 
 	/**

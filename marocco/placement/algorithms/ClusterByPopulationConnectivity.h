@@ -124,8 +124,6 @@ public:
 	    PopulationPlacementPriority m_population_placement_priority,
 	    PopulationPlacementPriority::target_and_source);
 
-	std::string get_name() const PYPP_OVERRIDE;
-
 	bool operator==(ClusterByPopulationConnectivity const& rhs) const;
 
 protected:

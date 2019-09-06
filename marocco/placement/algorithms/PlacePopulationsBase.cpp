@@ -115,11 +115,11 @@ bool PlacePopulationsBase::place_one_population()
 
 bool PlacePopulationsBase::operator==(PlacePopulationsBase const& rhs) const
 {
-	bool ret = true;
-	MAROCCO_WARN(this->get_name() << " " << rhs.get_name());
-	ret &= this->get_name() == rhs.get_name();
+	bool ret = (typeid(*this) == typeid(rhs));
+
 	// ret &= this->m_bio_graph == rhs.m_bio_graph; // as of boost 1.71, adjacency_list does not
 	// have operator== https://www.boost.org/doc/libs/1_71_0/libs/graph/doc/adjacency_list.html
+	// populations and edges are compared
 	if (this->m_bio_graph != boost::none && rhs.m_bio_graph != boost::none) {
 		auto this_vertices = boost::vertices(*(this->m_bio_graph));
 		auto rhs_vertices = boost::vertices(*(rhs.m_bio_graph));
@@ -162,10 +162,6 @@ bool PlacePopulationsBase::operator==(PlacePopulationsBase const& rhs) const
 	ret &= this->m_queue == rhs.m_queue;
 
 	return ret;
-}
-std::string PlacePopulationsBase::get_name() const
-{
-	return "PlacePopulationsBase";
 }
 
 template <typename Archive>

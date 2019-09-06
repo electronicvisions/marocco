@@ -55,8 +55,6 @@ public:
 	// clang-format on
 	PYPP_INIT(PlacementPriority m_population_placement_priority, PlacementPriority::target_and_source);
 
-	std::string get_name() const PYPP_OVERRIDE;
-
 	bool operator==(ClusterByNeuronConnectivity const& rhs) const;
 
 

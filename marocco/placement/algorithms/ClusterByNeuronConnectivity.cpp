@@ -377,11 +377,6 @@ void ClusterByNeuronConnectivity::update_relations_to_placement(
 
 }
 
-std::string ClusterByNeuronConnectivity::get_name() const
-{
-	return "ClusterByNeuronConnectivity";
-}
-
 bool ClusterByNeuronConnectivity::operator==(ClusterByNeuronConnectivity const& rhs) const
 {
 	bool ret = true;

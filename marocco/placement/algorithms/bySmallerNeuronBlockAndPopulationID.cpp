@@ -56,11 +56,6 @@ void bySmallerNeuronBlockAndPopulationID::sort_neuron_blocks()
 	    });
 }
 
-std::string bySmallerNeuronBlockAndPopulationID::get_name() const
-{
-	return "bySmallerNeuronBlockAndPopulationID";
-}
-
 } // namespace internal
 } // namespace placement
 } // namespace marocco
