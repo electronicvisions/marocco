@@ -207,7 +207,9 @@ void Synapses::item_type::serialize(Archiver& ar, const unsigned int /* version 
 	   & make_nvp("source_neuron", m_source_neuron)
 	   & make_nvp("target_neuron", m_target_neuron)
 	   & make_nvp("hardware_synapse", m_hardware_synapse)
-	   & make_nvp("edge", m_edge);
+	   & make_nvp("edge", m_edge)
+	   & make_nvp("synapse_type", m_syntype)
+	   & make_nvp("STPmode", m_stp);
 	// clang-format on
 }
 
