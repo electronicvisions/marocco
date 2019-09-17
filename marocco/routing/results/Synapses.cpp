@@ -22,14 +22,16 @@ Synapses::item_type::item_type(
 	BioNeuron const& target_neuron,
 	hardware_synapse_type const& hardware_synapse,
 	SynapseType const& syntype,
-	STPMode const& stp)
+	STPMode const& stp,
+	double const& weight)
 	: m_edge(edge),
 	  m_projection(projection),
 	  m_source_neuron(source_neuron),
 	  m_target_neuron(target_neuron),
 	  m_hardware_synapse(hardware_synapse),
 	  m_syntype(syntype),
-	  m_stp(stp)
+	  m_stp(stp),
+	  m_weight(weight)
 {
 }
 
@@ -80,6 +82,11 @@ STPMode const& Synapses::item_type::stp_mode() const
 	return m_stp;
 }
 
+double const& Synapses::item_type::get_weight() const
+{
+	return m_weight;
+}
+
 void Synapses::add(
 	edge_type const& edge,
 	projection_type const& projection,
@@ -87,7 +94,8 @@ void Synapses::add(
 	BioNeuron const& target_neuron,
 	hardware_synapse_type const& hardware_synapse,
 	SynapseType const& syntype,
-	STPMode const& stp)
+	STPMode const& stp,
+	double const& weight)
 {
 	// Check if this hardware synapse is already in use.  As `boost::none` is used to
 	// represent synapse loss, we have to use `hashed_non_unique` instead of `hashed_unique`,
@@ -97,7 +105,7 @@ void Synapses::add(
 		throw std::runtime_error("hardware synapse already in use");
 	}
 
-	if (!m_container.insert(item_type(edge, projection, source_neuron, target_neuron, hardware_synapse, syntype, stp))
+	if (!m_container.insert(item_type(edge, projection, source_neuron, target_neuron, hardware_synapse, syntype, stp, weight))
 		.second) {
 		throw std::runtime_error("error when adding synapse routing result");
 	}
@@ -209,7 +217,8 @@ void Synapses::item_type::serialize(Archiver& ar, const unsigned int /* version 
 	   & make_nvp("hardware_synapse", m_hardware_synapse)
 	   & make_nvp("edge", m_edge)
 	   & make_nvp("synapse_type", m_syntype)
-	   & make_nvp("STPmode", m_stp);
+	   & make_nvp("STPmode", m_stp)
+	   & make_nvp("weight", m_weight);
 	// clang-format on
 }
 

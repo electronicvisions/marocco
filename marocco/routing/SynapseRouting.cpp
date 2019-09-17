@@ -410,7 +410,7 @@ void SynapseRouting::run()
 								results::Synapses::edge_type(proj_item.edge()),
 								proj_item.projection(), source_item.bio_neuron(),
 								target_item.bio_neuron(), SynapseOnWafer(syn_addr, m_hicann),
-								syntype_proj, stp_proj);
+								syntype_proj, stp_proj, weight);
 						}
 					}
 				}

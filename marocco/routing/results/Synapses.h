@@ -61,7 +61,8 @@ public:
 			BioNeuron const& target_neuron,
 			hardware_synapse_type const& hardware_synapse,
 			SynapseType const& syntype,
-			STPMode const& stp);
+			STPMode const& stp,
+			double const& weight);
 
 		item_type(
 			edge_type const& edge,
@@ -76,6 +77,7 @@ public:
 		optional_hardware_synapse_type const& hardware_synapse() const;
 		SynapseType const& synapse_type() const;
 		STPMode const& stp_mode() const;
+		double const& get_weight() const;
 
 	private:
 		edge_type m_edge;
@@ -85,6 +87,7 @@ public:
 		optional_hardware_synapse_type m_hardware_synapse;
 		SynapseType m_syntype;
 		STPMode m_stp;
+		double m_weight;
 
 		friend class boost::serialization::access;
 		item_type();
@@ -144,7 +147,8 @@ public:
 		BioNeuron const& target_neuron,
 		hardware_synapse_type const& hardware_synapse,
 		SynapseType const& syntype,
-		STPMode const& stp);
+		STPMode const& stp,
+		double const& weight);
 
 	void add_unrealized_synapse(
 		edge_type const& edge,
