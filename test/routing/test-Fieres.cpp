@@ -137,9 +137,9 @@ TEST_P(AssignmentTest, AchievesASnugFit) {
 
 	// Disable all but 'target' and the next two synapse drivers.
 	assignment.test_disable_all_but([&target](SynapseDriverOnHICANN const& drv) {
-		return (drv.toSideVertical() == target.toSideVertical() &&
-		        size_t(drv.toSynapseDriverOnQuadrant() -
-		               target.toSynapseDriverOnQuadrant()) < 3);
+		int distance = static_cast<int>(drv.toSynapseDriverOnQuadrant()) -
+		               static_cast<int>(target.toSynapseDriverOnQuadrant());
+		return (drv.toSideVertical() == target.toSideVertical() && distance >= 0 && distance < 3);
 	});
 
 	// Check that we actually disabled the right ones.
