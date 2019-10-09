@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <numeric>
 
 #include "marocco/routing/SynapseRoutingConfigurator.h"
@@ -71,20 +72,18 @@ void SynapseRoutingConfigurator::run(
 		}
 	}
 
-	MAROCCO_DEBUG(
-	    "Number of connected drivers on "
-	    << hicann << ": "
-	    << std::accumulate(n_connected_drivers.begin(), n_connected_drivers.end(), 0.0) /
-	           n_connected_drivers.size());
-
 	if (!n_connected_drivers.empty()) {
+		MAROCCO_DEBUG(
+		    "Average number of connected drivers on "
+		    << hicann << ": " << std::setprecision (2) << std::fixed
+		    << std::accumulate(n_connected_drivers.begin(), n_connected_drivers.end(), 0.0) /
+		           n_connected_drivers.size());
+
 		MAROCCO_DEBUG(
 		    "Minimum number of connected drivers on "
 		    << hicann << ": "
 		    << *std::min_element(n_connected_drivers.begin(), n_connected_drivers.end()));
-	}
 
-	if (!n_connected_drivers.empty()) {
 		MAROCCO_DEBUG(
 		    "Maximum number of connected drivers on "
 		    << hicann << ": "
