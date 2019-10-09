@@ -342,17 +342,19 @@ boost::shared_ptr<HMF::HICANNCollection> Manager<T>::loadCalib(HMF::Coordinate::
 			boost::shared_ptr<calibtic::backend::Backend> calib_backend;
 			switch (m_pymarocco->calib_backend) {
 				case pymarocco::PyMarocco::CalibBackend::XML:
+					MAROCCO_INFO("using xml calibration backend");
 					calib_backend =
 					    BackendLoaderCalib::load_calibtic_backend<calibtic::backend::XMLBackend>(
 					        m_pymarocco->calib_path);
 					break;
 				case pymarocco::PyMarocco::CalibBackend::Binary:
+					MAROCCO_INFO("using binary calibration backend");
 					calib_backend =
 					    BackendLoaderCalib::load_calibtic_backend<calibtic::backend::BinaryBackend>(
 					        m_pymarocco->calib_path);
 					break;
 				case pymarocco::PyMarocco::CalibBackend::Default:
-					MAROCCO_WARN("using default Backend");
+					MAROCCO_INFO("using default (i.e. no) calibration backend");
 					break;
 				default:
 					throw std::runtime_error("unknown calibration backend type");

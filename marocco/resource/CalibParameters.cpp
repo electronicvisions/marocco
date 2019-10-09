@@ -25,7 +25,7 @@ boost::shared_ptr<CalibParameters::calib_type> CalibParameters::getCalibrationDa
 {
 	auto calib = boost::make_shared<calib_type>();
 	if (!m_calib_backend) {
-		MAROCCO_WARN("no backend: setting defaults");
+		MAROCCO_INFO("no backend: setting defaults");
 		calib->setDefaults();
 	} else {
 		calibtic::MetaData md;
