@@ -109,9 +109,7 @@ private:
 	size_t m_num_neurons;
 	size_t m_num_inputs;
 	size_t m_num_horizontal_buses;
-#ifndef PYPLUSPLUS
 	halco::common::typed_array<size_t, halco::common::SideHorizontal> m_num_vertical_buses;
-#endif // !PYPLUSPLUS
 }; // HICANNOnWaferProperties
 
 class L1RouteProperties
