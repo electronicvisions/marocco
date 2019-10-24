@@ -35,6 +35,7 @@ public:
 	BioNeuron();
 	BioNeuron(vertex_descriptor population, size_t neuron_index);
 
+	// vertex descriptor of the BioGraph, coincides with euter_id; cf. BioGraph.cpp
 	vertex_descriptor population() const;
 	size_t neuron_index() const;
 
