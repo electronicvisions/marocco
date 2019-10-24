@@ -261,6 +261,7 @@ class TestResults(utils.TestWithResults):
         proj_a = pynn.Projection(pop_a, target, con)
         proj_b = pynn.Projection(pop_b, target, con)
         proj_ab = pynn.Projection(pop_ab, target, con)
+        projections = [proj_a, proj_b, proj_ab]
 
         pynn.run(0)
         pynn.end()
@@ -302,6 +303,10 @@ class TestResults(utils.TestWithResults):
             self.assertEqual(1, len(items))
             self.assertTrue(hw_ab.issuperset(to_hw_synapses(items)))
 
+        for proj in projections:
+            items = synapses.find(proj)
+            for item in items:
+                self.assertEqual(proj.euter_id(), item.projection())
 
 if __name__ == '__main__':
     unittest.main()

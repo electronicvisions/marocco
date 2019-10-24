@@ -30,6 +30,7 @@ namespace results {
 class Synapses {
 public:
 	typedef Edge edge_type;
+	// projections are identified by their unique euter_id (which is by convention of type size_t)
 	typedef size_t projection_type;
 	typedef HMF::Coordinate::SynapseOnWafer hardware_synapse_type;
 	typedef boost::optional<hardware_synapse_type> optional_hardware_synapse_type;
