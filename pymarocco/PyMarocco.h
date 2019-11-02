@@ -22,7 +22,7 @@
 #include "marocco/routing/parameters/SynapseRouting.h"
 
 #include "sthal/ESSConfig.h"
-#include "sthal/ParallelHICANNv4Configurator.h"
+#include "sthal/ParallelHICANNv4SmartConfigurator.h"
 
 // At some point we should clean up the includes and replace with forward
 // declares, but they need a definition for the boost::python wrapping
@@ -178,7 +178,7 @@ public:
 	double pll_freq;
 
 	/// choose HICANN configurator
-	/// default: ParallelHICANNv4Configurator
+	/// default: ParallelHICANNv4SmartConfigurator
 	boost::shared_ptr<sthal::HICANNConfigurator> hicann_configurator;
 
 	/// ESS config

@@ -35,7 +35,7 @@ PyMarocco::PyMarocco()
       checkl1locking(CheckL1Locking::Check),
       bkg_gen_isi(125),
       pll_freq(125e6),
-      hicann_configurator(new sthal::ParallelHICANNv4Configurator()),
+      hicann_configurator(new sthal::ParallelHICANNv4SmartConfigurator()),
       continue_despite_synapse_loss(false)
 {}
 
