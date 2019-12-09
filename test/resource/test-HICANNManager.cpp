@@ -339,7 +339,7 @@ TEST_F(AHICANNManager, AllowsAllocationDuringIteration) {
 
 	for (auto hicann : manager.available()) {
 		manager.allocate(hicann);
-		auto id = hicann.toHICANNOnWafer().id();
+		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id > 0) {
 			ASSERT_FALSE(manager.available(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id - 1}}, wafer}));
 		}
@@ -356,7 +356,7 @@ TEST_F(AHICANNManager, AllowsAllocationOfYetToComeHicannsDuringIteration) {
 	auto const size = Co::HICANNOnWafer::enum_type::size;
 
 	for (auto hicann : manager.available()) {
-		auto id = hicann.toHICANNOnWafer().id();
+		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id < size - 1) {
 			manager.allocate(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id + 1}}, wafer});
 		}
@@ -372,7 +372,7 @@ TEST_F(AHICANNManager, AllowsMaskingDuringIteration) {
 
 	for (auto hicann : manager.present()) {
 		manager.mask(hicann);
-		auto id = hicann.toHICANNOnWafer().id();
+		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id > 0) {
 			ASSERT_FALSE(manager.has(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id - 1}}, wafer}));
 		}
@@ -389,7 +389,7 @@ TEST_F(AHICANNManager, AllowsMaskingOfYetToComeHicannsDuringIteration) {
 	auto const size = Co::HICANNOnWafer::enum_type::size;
 
 	for (auto hicann : manager.present()) {
-		auto id = hicann.toHICANNOnWafer().id();
+		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id < size - 1) {
 			manager.mask(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id + 1}}, wafer});
 		}

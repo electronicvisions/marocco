@@ -227,7 +227,7 @@ TEST_F(OnNeuronBlockTest, AllowsIterationOfPopulationNeurons) {
 	std::vector<size_t> neuron_enums{33, 1, 32, 0};
 
 	for (auto nrn : onb.neurons(it)) {
-		ASSERT_EQ(neuron_enums.back(), nrn.id());
+		ASSERT_EQ(neuron_enums.back(), nrn.toEnum());
 		neuron_enums.pop_back();
 	}
 }

@@ -38,7 +38,7 @@ class TestRouting(utils.TestWithResults):
         wafer = self.marocco.default_wafer
         self.marocco.defects.set(pyredman.Wafer())
         for hicann in C.iter_all(C.HICANNOnWafer):
-            if hicann.id().value() in allowed_hicanns:
+            if hicann.toEnum().value() in allowed_hicanns:
                 continue
             self.marocco.defects.wafer().hicanns().disable(C.HICANNGlobal(hicann, wafer))
 

@@ -47,13 +47,13 @@ struct NeuronSharedParameterRequirements
 	{
 		auto const& cellparams = v.parameters()[neuron_bio_id];
 		mVResets.insert(cellparams.v_reset);
-		mVResetValues[n.toSharedFGBlockOnHICANN().id()].push_back(cellparams.v_reset);
+		mVResetValues[n.toSharedFGBlockOnHICANN().toEnum()].push_back(cellparams.v_reset);
 	}
 
 	// get the mean v_reset value per FG block
 	double get_mean_v_reset(group_t const& g) const
 	{
-		auto const& vals = mVResetValues[g.id()];
+		auto const& vals = mVResetValues[g.toEnum()];
 		return std::accumulate(vals.begin(), vals.end(), 0.0) / vals.size();
 	}
 

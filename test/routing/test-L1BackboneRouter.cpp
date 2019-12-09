@@ -165,7 +165,7 @@ TEST_F(AL1BackboneRouter, usesMultipleDetoursIfNecessary)
 
 	L1RoutingGraph restricted_routing_graph;
 	for (auto hicann : iter_all<HICANNOnWafer>()) {
-		if (hicann.toDNCOnWafer().id() == 19 || hicann.toDNCOnWafer().id() == 28) {
+		if (hicann.toDNCOnWafer().toEnum() == 19 || hicann.toDNCOnWafer().toEnum() == 28) {
 			continue;
 		}
 		restricted_routing_graph.add(hicann);
@@ -173,9 +173,9 @@ TEST_F(AL1BackboneRouter, usesMultipleDetoursIfNecessary)
 	auto const& graph = restricted_routing_graph.graph();
 
 	HICANNOnWafer const source(X(12), Y(8));
-	ASSERT_EQ(27, source.toDNCOnWafer().id());
+	ASSERT_EQ(27, source.toDNCOnWafer().toEnum());
 	HICANNOnWafer const target(X(35), Y(8));
-	ASSERT_EQ(32, target.toDNCOnWafer().id());
+	ASSERT_EQ(32, target.toDNCOnWafer().toEnum());
 	auto const hline = SendingRepeaterOnHICANN(3).toHLineOnHICANN();
 
 	L1GraphWalker walker(graph);
@@ -200,14 +200,14 @@ TEST_F(AL1BackboneRouter, usesMultipleDetoursIfNecessary)
 	ASSERT_FALSE(turns.empty());
 	EXPECT_EQ(2, turns.size());
 	{
-		auto const dnc = turns.front().toHICANNOnWafer().toDNCOnWafer().id();
+		auto const dnc = turns.front().toHICANNOnWafer().toDNCOnWafer().toEnum();
 		if (dnc != 10 && dnc != 35) {
 			FAIL() << "detour uses unexpected reticle " << dnc;
 		}
 	}
 
 	{
-		auto const dnc = turns.back().toHICANNOnWafer().toDNCOnWafer().id();
+		auto const dnc = turns.back().toHICANNOnWafer().toDNCOnWafer().toEnum();
 		if (!(20 <= dnc && dnc <= 22) && !(29 <= dnc && dnc <= 31)) {
 			FAIL() << "detour uses unexpected reticle " << dnc;
 		}

@@ -30,7 +30,7 @@ boost::shared_ptr<CalibParameters::calib_type> CalibParameters::getCalibrationDa
 	} else {
 		calibtic::MetaData md;
 
-		const size_t hicann_id = m_hicann.toHICANNOnWafer().id().value();
+		const size_t hicann_id = m_hicann.toHICANNOnWafer().toEnum().value();
 		std::stringstream calib_file;
 		calib_file << "w" << size_t(m_hicann.toWafer()) << "-h";
 		calib_file << hicann_id;

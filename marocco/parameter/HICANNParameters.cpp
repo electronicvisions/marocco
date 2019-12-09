@@ -417,7 +417,7 @@ HICANNParameters::getCalibrationData(bool fallback_to_defaults)
 	} else {
 		calibtic::MetaData md;
 
-		const size_t hicann_id = m_chip.index().toHICANNOnWafer().id().value();
+		const size_t hicann_id = m_chip.index().toHICANNOnWafer().toEnum().value();
 		std::stringstream calib_file;
 		calib_file << "w" << size_t(m_chip.index().toWafer()) << "-h";
 		calib_file << hicann_id;

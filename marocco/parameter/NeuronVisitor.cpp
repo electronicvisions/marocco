@@ -95,7 +95,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(
-		cellparams, neuron_hw_id.id(), params);
+		cellparams, neuron_hw_id.toEnum(), params);
 
 	hwparams.toHW(neuron_hw_id, chip.floating_gates);
 }
@@ -120,7 +120,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
 	auto hwparams = calib.applyNeuronCalibration(
-		cellparams, neuron_hw_id.id(), params);
+		cellparams, neuron_hw_id.toEnum(), params);
 
 	hwparams.toHW(neuron_hw_id, chip.floating_gates);
 }
@@ -218,7 +218,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	auto const params =
 	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
-	auto hwparams = calib.applyNeuronCalibration(cellparams, neuron_hw_id.id(), params);
+	auto hwparams = calib.applyNeuronCalibration(cellparams, neuron_hw_id.toEnum(), params);
 
 	hwparams.toHW(neuron_hw_id, chip.floating_gates);
 }
@@ -242,7 +242,7 @@ typename TransformNeurons::return_type TransformNeurons::operator()(
 	auto const params =
 	    calibration_parameters_for_neuron(chip, mAlphaV, mShiftV, neuron_hw_id);
 
-	auto hwparams = calib.applyNeuronCalibration(cellparams, neuron_hw_id.id(), params);
+	auto hwparams = calib.applyNeuronCalibration(cellparams, neuron_hw_id.toEnum(), params);
 
 	hwparams.toHW(neuron_hw_id, chip.floating_gates);
 }

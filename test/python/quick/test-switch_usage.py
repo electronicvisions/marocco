@@ -58,7 +58,7 @@ class Test_Switch_Usage(utils.TestWithResults):
         wafer = self.marocco.default_wafer
         self.marocco.defects.set(pyredman.Wafer(runtime.wafer().index()))
         for hicann in C.iter_all(C.HICANNOnWafer):
-            if hicann.id().value() in disabled_hicanns:
+            if hicann.toEnum().value() in disabled_hicanns:
                 self.marocco.defects.wafer().hicanns().disable(C.HICANNGlobal(hicann, wafer))
             continue
 
@@ -115,7 +115,7 @@ class Test_Switch_Usage(utils.TestWithResults):
         wafer = self.marocco.default_wafer
         self.marocco.defects.set(pyredman.Wafer(runtime.wafer().index()))
         for hicann in C.iter_all(C.HICANNOnWafer):
-            if hicann.id().value() in disabled_hicanns:
+            if hicann.toEnum().value() in disabled_hicanns:
                 self.marocco.defects.wafer().hicanns().disable(C.HICANNGlobal(hicann, wafer))
             continue
 

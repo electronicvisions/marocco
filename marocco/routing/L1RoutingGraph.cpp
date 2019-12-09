@@ -42,7 +42,7 @@ L1RoutingGraph::HICANN::HICANN(
 
 	switch (switch_ordering) {
 		case parameters::L1Routing::SwitchOrdering::shuffle_switches_with_hicann_enum_as_seed:
-			std::shuffle(switches.begin(), switches.end(), std::minstd_rand(hicann.id()));
+			std::shuffle(switches.begin(), switches.end(), std::minstd_rand(hicann.toEnum()));
 			break;
 		case parameters::L1Routing::SwitchOrdering::shuffle_switches_with_given_seed:
 			std::shuffle(switches.begin(), switches.end(), random_engine);

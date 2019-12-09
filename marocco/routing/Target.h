@@ -36,7 +36,7 @@ struct hash<marocco::routing::Target>
 	size_t operator()(marocco::routing::Target const& target) const
 	{
 		size_t hash = 0;
-		boost::hash_combine(hash, target.toHICANNOnWafer().id());
+		boost::hash_combine(hash, target.toHICANNOnWafer().toEnum());
 		boost::hash_combine(hash, target.toOrientation());
 		return hash;
 	}
