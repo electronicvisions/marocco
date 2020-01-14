@@ -69,7 +69,7 @@ def build(bld):
         features='cxx emscripten_install',
         target='Marocco',
         source=['embind.cpp'] + marocco_files + external_files,
-        use=['marocco_inc', 'BOOST4MAROCCO' ],
+        use=['marocco_inc', 'BOOST4MAROCCO', 'halbe_container', 'euter'],
         env=bld.all_envs['emscripten'],
         # lots of custom em++ flags... :( -> TODO: clean up duplication
         cxxflags='-O2 -std=c++17 -Werror -s ALLOW_MEMORY_GROWTH=1 ' + \

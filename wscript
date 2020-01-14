@@ -62,18 +62,6 @@ def build(bld):
     ]
 
     bld(target          = 'marocco_inc',
-        use             = [
-            'boost_patches',
-            'sthal_inc',
-            'redman_inc',
-            'euter_inc',
-            'nanoflann_inc',
-            'marocco_coordinates_inc',
-            'marocco_parameters_inc',
-            'marocco_algorithms_inc',
-            'marocco_results_inc',
-            'hate_inc',
-            ],
         export_includes = '.')
 
     bld(target          = 'marocco',
@@ -109,6 +97,7 @@ def build(bld):
             'marocco_results',
             'pymarocco_cpp',
             'pymarocco_runtime',
+            'nanoflann_inc'
             ],
         defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
         export_defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
@@ -131,10 +120,6 @@ def build(bld):
         cxxflags=cxxflags)
 
     bld(target='marocco_parameters_inc',
-        use=[
-            'boost_patches',
-            'marocco_coordinates_inc',
-        ],
         export_includes='.')
 
     bld(target='marocco_parameters',
@@ -150,12 +135,6 @@ def build(bld):
         cxxflags=cxxflags)
 
     bld(target='marocco_algorithms_inc',
-        use=[
-            'boost_patches',
-            'marocco_coordinates_inc',
-            'euter_inc',
-            'calibtic_inc',
-        ],
         export_includes='.')
 
     bld(target='marocco_algorithms',
@@ -179,10 +158,6 @@ def build(bld):
         cxxflags=cxxflags)
 
     bld(target='marocco_results_inc',
-        use=[
-            'boost_patches',
-            'marocco_coordinates_inc',
-        ],
         export_includes='.')
 
     bld(target='marocco_results',
