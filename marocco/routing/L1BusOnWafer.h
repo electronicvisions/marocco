@@ -3,9 +3,9 @@
 #include <iostream>
 #include <boost/operators.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/Relations.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/common/relations.h"
 
 namespace marocco {
 namespace routing {
@@ -18,29 +18,29 @@ class L1BusOnWafer : boost::equality_comparable<L1BusOnWafer>
 {
 public:
 	L1BusOnWafer(
-	    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::HLineOnHICANN const& hline);
+	    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::HLineOnHICANN const& hline);
 	L1BusOnWafer(
-	    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VLineOnHICANN const& vline);
+	    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::VLineOnHICANN const& vline);
 
 	bool is_horizontal() const;
 
 	bool is_vertical() const;
 
-	HMF::Coordinate::Orientation toOrientation() const;
+	halco::common::Orientation toOrientation() const;
 
-	HMF::Coordinate::HICANNOnWafer toHICANNOnWafer() const;
+	halco::hicann::v2::HICANNOnWafer toHICANNOnWafer() const;
 
 	/**
 	 * @brief Returns the halbe coordinate corresponding to this bus.
 	 * @pre You need to ensure that #is_horizontal() returns true before calling this function.
 	 */
-	HMF::Coordinate::HLineOnHICANN toHLineOnHICANN() const;
+	halco::hicann::v2::HLineOnHICANN toHLineOnHICANN() const;
 
 	/**
 	 * @brief Returns the halbe coordinate corresponding to this bus.
 	 * @pre You need to ensure that #is_vertical() returns true before calling this function.
 	 */
-	HMF::Coordinate::VLineOnHICANN toVLineOnHICANN() const;
+	halco::hicann::v2::VLineOnHICANN toVLineOnHICANN() const;
 
 	bool operator==(L1BusOnWafer const& other) const;
 
@@ -58,7 +58,7 @@ private:
 	void serialize(Archiver& ar, unsigned int const /*version*/);
 #endif // !PYPLUSPLUS
 
-	HMF::Coordinate::HICANNOnWafer m_hicann;
+	halco::hicann::v2::HICANNOnWafer m_hicann;
 	bool m_horizontal;
 	size_t m_id;
 }; // L1BusOnWafer

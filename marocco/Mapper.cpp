@@ -2,8 +2,8 @@
 #include <unordered_map>
 #include <chrono>
 
-#include "hal/Coordinate/iter_all.h"
-#include "hal/Coordinate/HICANN.h"
+#include "halco/common/iter_all.h"
+#include "halco/hicann/v2/hicann.h"
 
 #include "marocco/resource/BackendLoaderCalib.h"
 
@@ -99,9 +99,9 @@ void Mapper::run(ObjectStore const& pynn)
 	for (auto const fpga : mFPGAMgr.present()) {
 		MAROCCO_DEBUG("Adding " << fpga << " as an available resource");
 		m_results->resources.add(fpga);
-		for (auto const hs_link : HMF::Coordinate::iter_all<HMF::Coordinate::HighspeedLinkOnDNC>()) {
+		for (auto const hs_link : halco::common::iter_all<halco::hicann::v2::HighspeedLinkOnDNC>()) {
 			if (mFPGAMgr.get(fpga)->hslinks()->has(hs_link)) {
-				m_results->resources.add(HMF::Coordinate::HighspeedLinkOnWafer(hs_link, fpga.toDNCOnWafer()));
+				m_results->resources.add(halco::hicann::v2::HighspeedLinkOnWafer(hs_link, fpga.toDNCOnWafer()));
 			}
 		}
 	}

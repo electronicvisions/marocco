@@ -1,6 +1,7 @@
 import unittest
 
-import pyhalbe.Coordinate as C
+from pyhalco_common import Enum
+import pyhalco_hicann_v2 as C
 import pyhmf as pynn
 import pylogging
 import pysthal
@@ -46,9 +47,9 @@ class Test_Switch_Usage(utils.TestWithResults):
         proj = pynn.Projection(
             source, target2, pynn.AllToAllConnector(weights=1.))
 
-        source_hicann = C.HICANNOnWafer(C.Enum(227))
-        target1_hicann = C.HICANNOnWafer(C.Enum(155))
-        target2_hicann = C.HICANNOnWafer(C.Enum(225))
+        source_hicann = C.HICANNOnWafer(Enum(227))
+        target1_hicann = C.HICANNOnWafer(Enum(155))
+        target2_hicann = C.HICANNOnWafer(Enum(225))
 
         self.marocco.manual_placement.on_hicann(source, source_hicann)
         self.marocco.manual_placement.on_hicann(target1, target1_hicann)
@@ -103,9 +104,9 @@ class Test_Switch_Usage(utils.TestWithResults):
         proj = pynn.Projection(
             source, target2, pynn.AllToAllConnector(weights=1.))
 
-        source_hicann = C.HICANNOnWafer(C.Enum(351))
-        target1_hicann = C.HICANNOnWafer(C.Enum(331))
-        target2_hicann = C.HICANNOnWafer(C.Enum(353))
+        source_hicann = C.HICANNOnWafer(Enum(351))
+        target1_hicann = C.HICANNOnWafer(Enum(331))
+        target2_hicann = C.HICANNOnWafer(Enum(353))
 
         self.marocco.manual_placement.on_hicann(source, source_hicann)
         self.marocco.manual_placement.on_hicann(target1, target1_hicann)

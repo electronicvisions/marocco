@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
 #include "marocco/Logger.h"
 #include "marocco/placement/InputPlacement.h"
@@ -10,7 +10,8 @@
 #include "marocco/placement/MergerTreeConfigurator.h"
 #include "marocco/placement/NeuronPlacement.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace placement {

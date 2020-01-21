@@ -32,7 +32,7 @@ public:
 
 	static boost::shared_ptr<Runtime> create();
 
-	static boost::shared_ptr<Runtime> create(HMF::Coordinate::Wafer const& wafer);
+	static boost::shared_ptr<Runtime> create(halco::hicann::v2::Wafer const& wafer);
 
 	boost::shared_ptr<sthal::Wafer> wafer();
 	boost::shared_ptr<marocco::results::Marocco> results();
@@ -41,7 +41,7 @@ public:
 
 private:
 	Runtime();
-	Runtime(HMF::Coordinate::Wafer const& wafer);
+	Runtime(halco::hicann::v2::Wafer const& wafer);
 
 	boost::shared_ptr<sthal::Wafer> m_wafer;
 	boost::shared_ptr<marocco::results::Marocco> m_results;

@@ -1,10 +1,12 @@
 #include "marocco/routing/results/L1Routing.h"
 
-#include "hal/Coordinate/Relations.h"
+#include "halco/common/relations.h"
 
 #include <boost/serialization/nvp.hpp>
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
+
 using boost::multi_index::get;
 
 namespace marocco {

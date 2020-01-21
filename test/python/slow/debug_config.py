@@ -4,7 +4,8 @@
 functions for debugging the HICANN configuration
 """
 
-import pyhalbe.Coordinate as Coord
+from pyhalco_common import top, bottom, left, right
+import pyhalco_hicann_v2 as Coord
 import pysthal
 import pymarocco
 
@@ -28,13 +29,13 @@ def get_syn_in_side(row_config):
     returns either left or right.
     """
 
-    left_cfg = row_config.get_syn_in(Coord.left)
-    right_cfg = row_config.get_syn_in(Coord.right)
+    left_cfg = row_config.get_syn_in(left)
+    right_cfg = row_config.get_syn_in(right)
     assert int(left_cfg) + int(right_cfg) == 1
     if left_cfg:
-        return Coord.left
+        return left
     else:
-        return Coord.right
+        return right
 
 def find_synapses(synapses, drv, addr):
     """
@@ -55,13 +56,13 @@ def find_synapses(synapses, drv, addr):
     rv = []
     drv_cfg = synapses[drv]
 
-    for row_on_driver in (Coord.top,Coord.bottom):
+    for row_on_driver in (top,bottom):
         row_addr = Coord.SynapseRowOnHICANN(drv,row_on_driver)
         decoders = synapses[row_addr].decoders
         # check 2 MSB
         row_cfg = drv_cfg[Coord.RowOnSynapseDriver(row_on_driver)]
         # halbe uses SideVertical to represent even and odd columns
-        for parity in (Coord.top,Coord.bottom):
+        for parity in (top,bottom):
             if row_cfg.get_decoder(parity) == dd:
                 for i in range(int(parity),len(decoders),2):
                     if decoders[i] == sd:

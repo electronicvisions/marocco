@@ -8,7 +8,7 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/version.hpp>
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "redman/resources/Hicann.h"
 #include "redman/resources/Wafer.h"
 

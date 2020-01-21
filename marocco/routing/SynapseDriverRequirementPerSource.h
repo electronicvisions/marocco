@@ -7,7 +7,7 @@
 // custom header
 #include "marocco/config.h"
 #include "marocco/graph.h"
-#include "hal/Coordinate/L1.h"
+#include "halco/hicann/v2/l1.h"
 
 // forward declerations
 namespace marocco {
@@ -58,8 +58,8 @@ public:
 	/**
 	 * @brief Returns efferent projections of the given merger, grouped by their target.
 	 */
-	std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
-	targets_for_source(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
+	std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
+	targets_for_source(halco::hicann::v2::DNCMergerOnWafer const& merger) const;
 
 	/**
 	 * @brief For a given Merger it returs the maximum Drivers required over
@@ -67,26 +67,26 @@ public:
 	 *
 	 * if it requires 4 and 2 Drivers in 2 different synapse arrays, 4 is returned.
 	 */
-	size_t drivers(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
+	size_t drivers(halco::hicann::v2::DNCMergerOnWafer const& merger) const;
 
 	/**
 	 * @brief returns true if driver reqiurements for all targets can be matched
 	 */
 	bool drivers_possible(
-	    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const;
+	    halco::hicann::v2::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const;
 
 	/**
 	 * @brief returns true if driver reqiurements for all targets can be matched with ease
 	 */
 	bool more_drivers_possible(
-	    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const;
+	    halco::hicann::v2::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const;
 
 private:
 	graph_t const& m_bio_graph;
 	placement::results::Placement const& m_placement;
-	mutable std::unordered_map<HMF::Coordinate::DNCMergerOnWafer, std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> > > m_cached_results;
-	mutable std::unordered_map<HMF::Coordinate::DNCMergerOnWafer, std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> > > m_cached_targets;
-	mutable std::unordered_map<HMF::Coordinate::DNCMergerOnWafer, size_t> m_cached_drivers;
+	mutable std::unordered_map<halco::hicann::v2::DNCMergerOnWafer, std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> > > m_cached_results;
+	mutable std::unordered_map<halco::hicann::v2::DNCMergerOnWafer, std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> > > m_cached_targets;
+	mutable std::unordered_map<halco::hicann::v2::DNCMergerOnWafer, size_t> m_cached_drivers;
 
 	/**
 	 * @brief a map HICANN -> set(edge) is retured
@@ -95,8 +95,8 @@ private:
 	 *
 	 * @param [in] merger : the merger the targets are searched for
 	 */
-	std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
-	fill_results(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
+	std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
+	fill_results(halco::hicann::v2::DNCMergerOnWafer const& merger) const;
 
 	/**
 	 * @brief precalculates values and stores them in cache.
@@ -105,7 +105,7 @@ private:
 	 *
 	 * @param [in] the merger, values shall be calculated for
 	 */
-	void precalc(HMF::Coordinate::DNCMergerOnWafer const& merger) const;
+	void precalc(halco::hicann::v2::DNCMergerOnWafer const& merger) const;
 };
 
 } // namespace routing

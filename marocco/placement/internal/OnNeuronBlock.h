@@ -6,7 +6,7 @@
 
 #include <boost/iterator/iterator_adaptor.hpp>
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/neuron.h"
 #include "marocco/util/iterable.h"
 #include "marocco/placement/internal/NeuronPlacementRequest.h"
 
@@ -28,7 +28,7 @@ class neuron_iterator;
  */
 class OnNeuronBlock {
 public:
-	typedef HMF::Coordinate::NeuronOnNeuronBlock neuron_coordinate;
+	typedef halco::hicann::v2::NeuronOnNeuronBlock neuron_coordinate;
 	typedef std::shared_ptr<NeuronPlacementRequest> value_type;
 	typedef std::array<std::array<value_type, neuron_coordinate::y_type::size>,
 	                   neuron_coordinate::x_type::size> array_type;
@@ -176,7 +176,7 @@ private:
 std::ostream& print(
 	std::ostream& os,
 	OnNeuronBlock const& onb,
-	HMF::Coordinate::NeuronBlockOnHICANN const& nb);
+	halco::hicann::v2::NeuronBlockOnHICANN const& nb);
 
 namespace detail {
 namespace on_neuron_block {

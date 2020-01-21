@@ -5,7 +5,7 @@
 #include "marocco/placement/internal/free_functions.h"
 #include "marocco/util/spiral_ordering.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace placement {

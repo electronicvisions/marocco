@@ -10,7 +10,7 @@
 #include "marocco/placement/internal/NeuronPlacementRequest.h"
 #include "marocco/placement/internal/Result.h"
 #endif // !PYPLUSPLUS
-#include "hal/Coordinate/Neuron.h"
+#include "halco/hicann/v2/neuron.h"
 
 
 namespace marocco {
@@ -53,7 +53,7 @@ namespace algorithms {
 class PlacePopulationsBase
 {
 public:
-	typedef HMF::Coordinate::NeuronOnWafer result_type;
+	typedef halco::hicann::v2::NeuronOnWafer result_type;
 
 	/**
 	 * @brief This function should run until all populations of the queue are placed
@@ -78,7 +78,7 @@ public:
 	boost::optional<std::vector<PlacePopulationsBase::result_type> > run(
 	    graph_t const& graph,
 	    internal::Result::denmem_assignment_type& state,
-	    std::vector<HMF::Coordinate::NeuronBlockOnWafer>& neuron_blocks,
+	    std::vector<halco::hicann::v2::NeuronBlockOnWafer>& neuron_blocks,
 	    std::vector<NeuronPlacementRequest>& queue);
 #endif // !PYPLUSPLUS
 protected:
@@ -109,7 +109,7 @@ protected:
 	 *placement of populations.
 	 **/
 	virtual void update_relations_to_placement(
-	    NeuronPlacementRequest const& chunk, HMF::Coordinate::NeuronBlockOnWafer const& nb)
+	    NeuronPlacementRequest const& chunk, halco::hicann::v2::NeuronBlockOnWafer const& nb)
 	{
 		static_cast<void>(chunk);
 		static_cast<void>(nb);
@@ -136,7 +136,7 @@ protected:
 public: // compilation error W1039: `Py++` doesn't expose private or protected member variables.
 	// the neuron blocks that may be used. might be all or restricted due to manual placement
 	// request.
-	boost::optional<std::vector<HMF::Coordinate::NeuronBlockOnWafer>&> m_neuron_blocks;
+	boost::optional<std::vector<halco::hicann::v2::NeuronBlockOnWafer>&> m_neuron_blocks;
 	// the population slices that shall be placed.
 	boost::optional<std::vector<NeuronPlacementRequest>&> m_queue;
 

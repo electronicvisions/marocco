@@ -4,8 +4,8 @@
 #include <map>
 #include <vector>
 
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/Neuron.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/hicann/v2/neuron.h"
 #include "marocco/placement/ConstrainMergers.h"
 #include "marocco/placement/MergerTreeGraph.h"
 #include "marocco/placement/internal/Result.h"
@@ -26,7 +26,7 @@ namespace placement {
  */
 class MergerTreeRouter {
 public:
-	typedef std::map<HMF::Coordinate::NeuronBlockOnHICANN, HMF::Coordinate::DNCMergerOnHICANN>
+	typedef std::map<halco::hicann::v2::NeuronBlockOnHICANN, halco::hicann::v2::DNCMergerOnHICANN>
 		result_type;
 
 	/**
@@ -41,7 +41,7 @@ public:
 	    internal::Result::denmem_assignment_type const& nbm,
 	    boost::optional<ConstrainMergers> const constrainer = boost::none);
 
-	void run(HMF::Coordinate::HICANNOnWafer const& hicann);
+	void run(halco::hicann::v2::HICANNOnWafer const& hicann);
 
 	/**
 	 * @return Mapping of neuron blocks to DNC mergers.
@@ -56,10 +56,10 @@ private:
 	 *         predecessors that contains the path from those neuron blocks to the
 	 *         specified merger.
 	 */
-	std::pair<std::set<HMF::Coordinate::NeuronBlockOnHICANN>,
+	std::pair<std::set<halco::hicann::v2::NeuronBlockOnHICANN>,
 	          std::vector<MergerTreeGraph::vertex_descriptor> >
 	mergeable(
-	    HMF::Coordinate::DNCMergerOnHICANN const& merger);
+	    halco::hicann::v2::DNCMergerOnHICANN const& merger);
 
 	/**
 	 * @brief Representation of the merger tree.
@@ -69,7 +69,7 @@ private:
 	MergerTreeGraph m_graph;
 
 	/// number of placed neurons for each NeuronBlock
-	HMF::Coordinate::typed_array<size_t, HMF::Coordinate::NeuronBlockOnHICANN> m_neurons;
+	halco::common::typed_array<size_t, halco::hicann::v2::NeuronBlockOnHICANN> m_neurons;
 
 	/// mapping of Neurons to Hardware
 	internal::Result::denmem_assignment_type const& m_denmems;

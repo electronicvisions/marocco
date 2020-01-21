@@ -6,11 +6,12 @@
 #include <vector>
 #include <set>
 
-#include "hal/Coordinate/HMFGeometry.h"
-#include "hal/Coordinate/iter_all.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/common/iter_all.h"
+#include "halco/common/typed_array.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 

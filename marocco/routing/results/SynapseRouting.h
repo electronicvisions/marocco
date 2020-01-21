@@ -9,9 +9,9 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/Synapse.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/hicann/v2/synapse.h"
 #include "pywrap/compat/macros.hpp"
 
 #include "marocco/routing/results/ConnectedSynapseDrivers.h"
@@ -36,12 +36,12 @@ public:
 	// TODO: This could have been a multimap but py++ will mark `std::pair<Key const, T>` with
 	// `boost::noncopyable` because the `first` member cannot be copy-assigned (because of the
 	// const).  This leads to `No to_python (by-value) converter found for C++ type: std::pair<...>`.
-	// typedef std::multimap<HMF::Coordinate::VLineOnHICANN, ConnectedSynapseDrivers>
+	// typedef std::multimap<halco::hicann::v2::VLineOnHICANN, ConnectedSynapseDrivers>
 	// 	synapse_switches_type;
 	class synapse_switches_item_type
 	{
 	public:
-		typedef HMF::Coordinate::VLineOnHICANN source_type;
+		typedef halco::hicann::v2::VLineOnHICANN source_type;
 
 		synapse_switches_item_type(
 			source_type const& source, ConnectedSynapseDrivers const& connected_drivers);
@@ -69,32 +69,32 @@ public:
 
 	class HICANN {
 	public:
-		bool has(HMF::Coordinate::SynapseDriverOnHICANN const& driver) const;
+		bool has(halco::hicann::v2::SynapseDriverOnHICANN const& driver) const;
 
-		bool has(HMF::Coordinate::SynapseRowOnHICANN const& row) const;
+		bool has(halco::hicann::v2::SynapseRowOnHICANN const& row) const;
 
 		SynapseDriverConfiguration& operator[](
-			HMF::Coordinate::SynapseDriverOnHICANN const& driver);
+			halco::hicann::v2::SynapseDriverOnHICANN const& driver);
 
 		SynapseDriverConfiguration const& operator[](
-			HMF::Coordinate::SynapseDriverOnHICANN const& driver) const;
+			halco::hicann::v2::SynapseDriverOnHICANN const& driver) const;
 
 		SynapseRowConfiguration& operator[](
-			HMF::Coordinate::SynapseRowOnHICANN const& row);
+			halco::hicann::v2::SynapseRowOnHICANN const& row);
 
 		SynapseRowConfiguration const& operator[](
-			HMF::Coordinate::SynapseRowOnHICANN const& row) const;
+			halco::hicann::v2::SynapseRowOnHICANN const& row) const;
 
 		/**
 		 * @brief Add connection from vertical bus to synapse drivers.
 		 * @param vline End of afferent route, may lie on adjacent HICANN.
 		 */
 		void add_synapse_switch(
-			HMF::Coordinate::VLineOnHICANN const& vline,
+			halco::hicann::v2::VLineOnHICANN const& vline,
 			ConnectedSynapseDrivers const& drivers);
 
 		iterable<synapse_switches_type::iterator> operator[](
-		    HMF::Coordinate::VLineOnHICANN const& vline) const;
+		    halco::hicann::v2::VLineOnHICANN const& vline) const;
 
 		iterable<synapse_switches_type::iterator> synapse_switches() const;
 
@@ -106,9 +106,9 @@ public:
 
 	private:
 #ifndef PYPLUSPLUS
-		std::unordered_map<HMF::Coordinate::SynapseDriverOnHICANN, SynapseDriverConfiguration>
+		std::unordered_map<halco::hicann::v2::SynapseDriverOnHICANN, SynapseDriverConfiguration>
 			m_synapse_driver_configurations;
-		std::unordered_map<HMF::Coordinate::SynapseRowOnHICANN, SynapseRowConfiguration>
+		std::unordered_map<halco::hicann::v2::SynapseRowOnHICANN, SynapseRowConfiguration>
 		    m_synapse_rows;
 #endif // !PYPLUSPLUS
 		synapse_switches_type m_synapse_switches;
@@ -119,11 +119,11 @@ public:
 		void serialize(Archiver& ar, const unsigned int /* version */);
 	}; // HICANN
 
-	bool has(HMF::Coordinate::HICANNOnWafer const& hicann) const;
+	bool has(halco::hicann::v2::HICANNOnWafer const& hicann) const;
 
-	HICANN& operator[](HMF::Coordinate::HICANNOnWafer const& hicann);
+	HICANN& operator[](halco::hicann::v2::HICANNOnWafer const& hicann);
 
-	HICANN const& operator[](HMF::Coordinate::HICANNOnWafer const& hicann) const;
+	HICANN const& operator[](halco::hicann::v2::HICANNOnWafer const& hicann) const;
 
 #ifndef PYPLUSPLUS
 	Synapses& synapses();
@@ -133,7 +133,7 @@ public:
 
 private:
 #ifndef PYPLUSPLUS
-	std::unordered_map<HMF::Coordinate::HICANNOnWafer, HICANN> m_hicanns;
+	std::unordered_map<halco::hicann::v2::HICANNOnWafer, HICANN> m_hicanns;
 #endif // !PYPLUSPLUS
 	Synapses m_synapses;
 

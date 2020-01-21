@@ -1,7 +1,8 @@
 import copy, unittest, random
 import numpy as np
 from pymarocco import *
-from pyhalbe.Coordinate import *
+from pyhalco_common import Enum
+from pyhalco_hicann_v2 import *
 import pyhmf as pynn
 
 """

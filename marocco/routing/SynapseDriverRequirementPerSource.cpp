@@ -1,7 +1,7 @@
 #include "SynapseDriverRequirementPerSource.h"
 
 #include "SynapseDriverRequirements.h"
-#include "hal/Coordinate/L1.h"
+#include "halco/hicann/v2/l1.h"
 #include "marocco/Logger.h"
 #include "marocco/graph.h"
 #include "marocco/placement/results/Placement.h"
@@ -17,9 +17,9 @@ SynapseDriverRequirementPerSource::SynapseDriverRequirementPerSource(
 {}
 
 
-std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
+std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
 SynapseDriverRequirementPerSource::targets_for_source(
-    HMF::Coordinate::DNCMergerOnWafer const& merger) const
+    halco::hicann::v2::DNCMergerOnWafer const& merger) const
 {
 	if( m_cached_targets.find(merger) == m_cached_targets.end() ){
 		precalc(merger);
@@ -28,7 +28,7 @@ SynapseDriverRequirementPerSource::targets_for_source(
 }
 
 size_t SynapseDriverRequirementPerSource::drivers(
-    HMF::Coordinate::DNCMergerOnWafer const& merger) const
+    halco::hicann::v2::DNCMergerOnWafer const& merger) const
 {
 	if( m_cached_drivers.find(merger) == m_cached_drivers.end() ){
 		precalc(merger);
@@ -38,7 +38,7 @@ size_t SynapseDriverRequirementPerSource::drivers(
 }
 
 bool SynapseDriverRequirementPerSource::drivers_possible(
-    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const
+    halco::hicann::v2::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const
 {
 	if( m_cached_drivers.find(merger) == m_cached_drivers.end() ){
 		precalc(merger);
@@ -56,7 +56,7 @@ bool SynapseDriverRequirementPerSource::drivers_possible(
 }
 
 bool SynapseDriverRequirementPerSource::more_drivers_possible(
-    HMF::Coordinate::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const
+    halco::hicann::v2::DNCMergerOnWafer const& merger, resource::HICANNManager const& mgr) const
 {
 	if( m_cached_drivers.find(merger) == m_cached_drivers.end() ){
 		precalc(merger);
@@ -76,14 +76,14 @@ bool SynapseDriverRequirementPerSource::more_drivers_possible(
 	return m_cached_drivers.at(merger) < max_chain_global;
 }
 
-std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
+std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
 SynapseDriverRequirementPerSource::fill_results(
-    HMF::Coordinate::DNCMergerOnWafer const& merger) const
+    halco::hicann::v2::DNCMergerOnWafer const& merger) const
 {
 
 	if( m_cached_results.find(merger) == m_cached_results.end() ){
 
-		std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> > result;
+		std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> > result;
 		for (auto const& item : m_placement.find(merger)) {
 			for (auto const& edge : make_iterable(out_edges(item.population(), m_bio_graph))) {
 				auto const target_population = target(edge, m_bio_graph);
@@ -111,7 +111,7 @@ SynapseDriverRequirementPerSource::fill_results(
 }
 
 void SynapseDriverRequirementPerSource::precalc(
-    HMF::Coordinate::DNCMergerOnWafer const& merger) const
+    halco::hicann::v2::DNCMergerOnWafer const& merger) const
 {
 	auto result = fill_results(merger);
 	size_t maxDrivers = 0;

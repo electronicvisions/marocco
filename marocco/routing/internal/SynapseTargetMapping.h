@@ -89,7 +89,7 @@ struct SynapseTargetMapping
 	 * @param[out] synaptic_inputs
 	 */
 	static void simple_mapping(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HICANNOnWafer const& hicann,
 		placement::results::Placement const& neuron_placement,
 		graph_t const& graph,
 		results::SynapticInputs& synaptic_inputs);

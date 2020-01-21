@@ -12,7 +12,7 @@ class HardwareUsage
 {
 public:
 	typedef resource_manager_t Resource;
-	typedef HMF::Coordinate::HICANNGlobal Index;
+	typedef halco::hicann::v2::HICANNGlobal Index;
 
 	HardwareUsage(sthal::Wafer const& hardware,
 				  Resource const& r,

@@ -3,16 +3,16 @@
 #include <map>
 #include <unordered_map>
 
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/Neuron.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/hicann/v2/neuron.h"
+#include "halco/common/typed_array.h"
 
 namespace marocco {
 namespace placement {
 
-typedef std::unordered_map<HMF::Coordinate::HICANNOnWafer,
-                           HMF::Coordinate::typed_array<HMF::Coordinate::DNCMergerOnHICANN,
-                                                        HMF::Coordinate::NeuronBlockOnHICANN> >
+typedef std::unordered_map<halco::hicann::v2::HICANNOnWafer,
+                           halco::common::typed_array<halco::hicann::v2::DNCMergerOnHICANN,
+                                                        halco::hicann::v2::NeuronBlockOnHICANN> >
 	MergerRoutingResult;
 
 } // namespace placement

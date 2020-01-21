@@ -8,8 +8,8 @@
 #include <boost/optional.hpp>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/External.h"
-#include "hal/Coordinate/HICANN.h"
+#include "halco/hicann/v2/external.h"
+#include "halco/hicann/v2/hicann.h"
 #include "pywrap/compat/macros.hpp"
 
 #include "marocco/coordinates/LogicalNeuron.h"
@@ -59,9 +59,9 @@ namespace results {
 class AnalogOutputs
 {
 public:
-	typedef HMF::Coordinate::AnalogOnHICANN analog_output_type;
-	typedef HMF::Coordinate::DNCOnWafer reticle_type;
-	typedef HMF::Coordinate::HICANNOnWafer hicann_type;
+	typedef halco::hicann::v2::AnalogOnHICANN analog_output_type;
+	typedef halco::hicann::v2::DNCOnWafer reticle_type;
+	typedef halco::hicann::v2::HICANNOnWafer hicann_type;
 
     class item_type {
     public:

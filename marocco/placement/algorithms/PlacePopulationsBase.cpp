@@ -6,7 +6,7 @@
 #include "marocco/placement/internal/OnNeuronBlock.h"
 #include "marocco/placement/internal/free_functions.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace placement {
@@ -15,7 +15,7 @@ namespace algorithms {
 boost::optional<std::vector<PlacePopulationsBase::result_type> > PlacePopulationsBase::run(
     graph_t const& graph,
     internal::Result::denmem_assignment_type& state,
-    std::vector<HMF::Coordinate::NeuronBlockOnWafer>& neuron_blocks,
+    std::vector<halco::hicann::v2::NeuronBlockOnWafer>& neuron_blocks,
     std::vector<NeuronPlacementRequest>& queue)
 {
 	m_bio_graph = graph;

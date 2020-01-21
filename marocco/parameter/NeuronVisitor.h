@@ -23,8 +23,8 @@ namespace parameter {
 struct NeuronSharedParameterRequirements
 {
 	typedef void return_type;
-	typedef HMF::Coordinate::NeuronOnHICANN neuron_t;
-	typedef HMF::Coordinate::FGBlockOnHICANN group_t;
+	typedef halco::hicann::v2::NeuronOnHICANN neuron_t;
+	typedef halco::hicann::v2::FGBlockOnHICANN group_t;
 
 	template <euter::CellType N>
 	using cell_t = euter::TypedCellParameterVector<N>;
@@ -89,7 +89,7 @@ struct TransformNeurons
 	typedef size_t size_type;
 	typedef sthal::HICANN chip_t;
 	typedef HMF::NeuronCollection calib_t;
-	typedef HMF::Coordinate::NeuronOnHICANN neuron_t;
+	typedef halco::hicann::v2::NeuronOnHICANN neuron_t;
 	typedef routing::results::SynapticInputs synapse_targets_t;
 
 	template <euter::CellType N>
@@ -161,7 +161,7 @@ void transform_analog_neuron(
 	HMF::NeuronCollection const& calib,
 	euter::Population const& pop,
 	size_t neuron_bio_id,
-	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id,
+	halco::hicann::v2::NeuronOnHICANN const& neuron_hw_id,
 	routing::results::SynapticInputs const& synapse_targets,
 	TransformNeurons& visitor,
 	sthal::HICANN& chip);

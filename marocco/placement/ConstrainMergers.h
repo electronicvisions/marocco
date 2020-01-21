@@ -2,7 +2,7 @@
 
 #include <set>
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "marocco/graph.h"
 #include "marocco/placement/parameters/L1AddressAssignment.h"
 namespace marocco {
@@ -14,7 +14,7 @@ class Placement;
 namespace resource {
 template <class T>
 class Manager;
-typedef Manager<HMF::Coordinate::HICANNGlobal> HICANNManager;
+typedef Manager<halco::hicann::v2::HICANNGlobal> HICANNManager;
 } // namespace resource
 } // namespace marocco
 
@@ -53,9 +53,9 @@ public:
 	 * @return bool : true if constrains are met, false if violated
 	 */
 	bool operator()(
-	    HMF::Coordinate::DNCMergerOnHICANN const& dnc_merger,
-	    std::set<HMF::Coordinate::NeuronBlockOnHICANN> const& adjacent_nbs,
-	    HMF::Coordinate::HICANNOnWafer const& hicann) const;
+	    halco::hicann::v2::DNCMergerOnHICANN const& dnc_merger,
+	    std::set<halco::hicann::v2::NeuronBlockOnHICANN> const& adjacent_nbs,
+	    halco::hicann::v2::HICANNOnWafer const& hicann) const;
 
 
 private:

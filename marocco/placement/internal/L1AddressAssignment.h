@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/common/typed_array.h"
 
 #include "marocco/placement/internal/L1AddressPool.h"
 
@@ -16,7 +16,7 @@ namespace internal {
 class L1AddressAssignment
 {
 public:
-	typedef HMF::Coordinate::DNCMergerOnHICANN index_type;
+	typedef halco::hicann::v2::DNCMergerOnHICANN index_type;
 
 	L1AddressAssignment();
 
@@ -44,9 +44,9 @@ private:
 	 * @brief Mode of DNC mergers.
 	 * \c Mode::unused is the default value.
 	 */
-	HMF::Coordinate::typed_array<Mode, index_type> m_mode;
+	halco::common::typed_array<Mode, index_type> m_mode;
 
-	HMF::Coordinate::typed_array<L1AddressPool, index_type> m_address_pools;
+	halco::common::typed_array<L1AddressPool, index_type> m_address_pools;
 }; // L1AddressAssignment
 
 } // namespace internal

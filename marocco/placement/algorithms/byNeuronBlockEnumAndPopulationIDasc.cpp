@@ -3,7 +3,7 @@
 #include "marocco/Logger.h"
 #include "marocco/placement/internal/OnNeuronBlock.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace placement {

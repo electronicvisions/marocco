@@ -7,7 +7,7 @@
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/tuple.h>
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "hal/HICANN/L1Address.h"
 #include "marocco/routing/results/SynapticInputs.h"
 #include "marocco/placement/results/Placement.h"
@@ -19,7 +19,7 @@
 namespace marocco {
 namespace routing {
 
-using HMF::Coordinate::Parity;
+using halco::common::Parity;
 
 /// Parity with the option that both columns are fine
 /// name inspired by boost::tribool
@@ -33,20 +33,20 @@ std::ostream& operator<<(std::ostream& os, TriParity p);
 
 typedef std::tuple<SynapseType, HMF::HICANN::DriverDecoder, STPMode> Type_Decoder_STP;
 
-typedef std::tuple<HMF::Coordinate::Side, Parity, HMF::HICANN::DriverDecoder, STPMode>
+typedef std::tuple<halco::common::Side, Parity, HMF::HICANN::DriverDecoder, STPMode>
 	Side_Parity_Decoder_STP;
 
-typedef std::tuple<HMF::Coordinate::Side, Parity> Side_Parity;
+typedef std::tuple<halco::common::Side, Parity> Side_Parity;
 
-typedef std::tuple<HMF::Coordinate::Side, TriParity> Side_TriParity;
+typedef std::tuple<halco::common::Side, TriParity> Side_TriParity;
 
-typedef std::tuple<HMF::Coordinate::Side, Parity, STPMode> Side_Parity_STP;
+typedef std::tuple<halco::common::Side, Parity, STPMode> Side_Parity_STP;
 
-typedef std::tuple<HMF::Coordinate::Side, HMF::HICANN::DriverDecoder, STPMode> Side_Decoder_STP;
+typedef std::tuple<halco::common::Side, HMF::HICANN::DriverDecoder, STPMode> Side_Decoder_STP;
 
 typedef std::tuple<HMF::HICANN::DriverDecoder, STPMode> Decoder_STP;
 
-typedef std::tuple<HMF::Coordinate::Side, STPMode> Side_STP;
+typedef std::tuple<halco::common::Side, STPMode> Side_STP;
 
 
 inline Side_STP to_Side_STP(Side_Decoder_STP const& rhs)
@@ -63,7 +63,7 @@ class SynapseCounts
 {
 public:
 	typedef std::map<Type_Decoder_STP, size_t> property_counts;
-	typedef std::unordered_map<HMF::Coordinate::NeuronOnHICANN, property_counts> mapped_type;
+	typedef std::unordered_map<halco::hicann::v2::NeuronOnHICANN, property_counts> mapped_type;
 
 
 	/// increase synapse count for target neuron 'p', for DriverDecoderMask
@@ -74,7 +74,7 @@ public:
 	/// @param type target of the synapse, a.k.a the synapse type
 	/// @param stp STP mode of the synapse
 	void
-	add(HMF::Coordinate::NeuronOnHICANN const& p,
+	add(halco::hicann::v2::NeuronOnHICANN const& p,
 		HMF::HICANN::L1Address const& addr,
 		SynapseType const& type,
 		STPMode const& stp)
@@ -137,10 +137,10 @@ private:
 class SynapseDriverRequirements
 {
 public:
-	typedef std::unordered_map<HMF::Coordinate::NeuronOnHICANN, size_t> NeuronWidth;
+	typedef std::unordered_map<halco::hicann::v2::NeuronOnHICANN, size_t> NeuronWidth;
 	typedef std::map<SynapseType, std::map<Side_Parity, size_t> >
 		Side_Parity_count_per_synapse_type;
-	typedef std::map<Side_Parity, std::vector<HMF::Coordinate::SynapseColumnOnHICANN> >
+	typedef std::map<Side_Parity, std::vector<halco::hicann::v2::SynapseColumnOnHICANN> >
 		SynapseColumnsMap;
 
 	/// constructor
@@ -154,7 +154,7 @@ public:
 	/// @param syn_tgt_mapping  mapping of biological synapse types onto the
 	/// synaptic input circuits of the hardware neurons
 	SynapseDriverRequirements(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HICANNOnWafer const& hicann,
 		placement::results::Placement const& placement_result,
 		results::SynapticInputs const& syn_tgt_mapping);
 
@@ -183,7 +183,7 @@ public:
 	/// @return a std::pair (number of required drivers, number of synapses
 	/// from this L1 Route to target neurons on the HICANN)
 	std::pair<size_t, size_t> calc(
-		HMF::Coordinate::DNCMergerOnWafer const& source,
+		halco::hicann::v2::DNCMergerOnWafer const& source,
 		graph_t const& graph,
 		std::map<Side_Parity_Decoder_STP, size_t>& synapse_histogram,
 		std::map<Side_Parity_Decoder_STP, size_t>& synrow_histogram) const;
@@ -202,9 +202,9 @@ public:
 	///       projection has targets on this HICANN. This assertion could be done much
 	///       more efficiently, cf. #1594.
 	std::pair<size_t, size_t> calc(
-		HMF::Coordinate::DNCMergerOnWafer const& source, graph_t const& graph) const;
+		halco::hicann::v2::DNCMergerOnWafer const& source, graph_t const& graph) const;
 
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN, std::map<SynapseType, SynapseColumnsMap> >
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN, std::map<SynapseType, SynapseColumnsMap> >
 	get_synapse_type_to_synapse_columns_map() const;
 
 private:
@@ -217,14 +217,14 @@ private:
 	/// neurons of a HICANN
 	static NeuronWidth extract_neuron_width(
 		placement::results::Placement const& neuron_placement,
-		HMF::Coordinate::HICANNOnWafer const& hicann);
+		halco::hicann::v2::HICANNOnWafer const& hicann);
 
 	/// calculate for all used compound hardware neurons the number of target
 	/// synapses per synaptic input granularity per biological synapse type.
 	/// @param neuron_width neuron width per used hardware neuron
 	/// @param syn_tgt_mapping mapping of biological synapse types onto the
 	/// synaptic input circuits of the hardware neurons
-	static std::unordered_map<HMF::Coordinate::NeuronOnHICANN, Side_Parity_count_per_synapse_type>
+	static std::unordered_map<halco::hicann::v2::NeuronOnHICANN, Side_Parity_count_per_synapse_type>
 	calc_target_synapses_per_synaptic_input_granularity(
 		NeuronWidth const& neuron_width, results::SynapticInputs const& syn_tgt_mapping);
 
@@ -237,7 +237,7 @@ private:
 	/// @param neuron_width neuron width per used hardware neuron
 	/// @param syn_tgt_mapping mapping of biological synapse types onto the
 	/// synaptic input circuits of the hardware neurons
-	static std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+	static std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 							  std::map<SynapseType, SynapseColumnsMap> >
 	calc_synapse_type_to_synapse_columns_map(
 		NeuronWidth const& neuron_width, results::SynapticInputs const& syn_tgt_mapping);
@@ -274,7 +274,7 @@ private:
 	/// @return the count and associcated TriParity
 	/// @note if the returned count is 0, the returned tri parity is "any".
 	static std::pair<size_t, TriParity> get_min_realizing_count_and_parity(
-		HMF::Coordinate::Side const& side, std::map<Side_Parity, size_t> const& map);
+		halco::common::Side const& side, std::map<Side_Parity, size_t> const& map);
 
 	/// Counts the number of required half rows required per hardware property
 	/// to realize all synapses for one target neuron.  In this step, we choose
@@ -427,7 +427,7 @@ private:
 	/// requirements, but there might be more efficient global solutions.
 	static std::pair<size_t, size_t> _calc(
 		SynapseCounts const& syn_counts,
-		std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+		std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 						   Side_Parity_count_per_synapse_type> const&
 			target_synapses_per_parity_and_synaptic_input,
 		std::map<Side_Parity_Decoder_STP, size_t>& synapse_histogram,
@@ -475,7 +475,7 @@ private:
 
 	// members
 	/// Coordinate of HICANN chip we are currently working on.
-	HMF::Coordinate::HICANNOnWafer mHICANN;
+	halco::hicann::v2::HICANNOnWafer mHICANN;
 
 	/// @mapping of biological neurons/populations onto hardware neurons
 	placement::results::Placement const& mPlacementResult;
@@ -490,7 +490,7 @@ private:
 
 	/// for each used compound hardware neurons, the number of target synapses
 	/// per synaptic input granularity per biological synapse type.
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN, Side_Parity_count_per_synapse_type> const
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN, Side_Parity_count_per_synapse_type> const
 		mTargetSynapsesPerSynapticInputGranularity;
 
 	FRIEND_TEST(SynapseDriverRequirements, Base);

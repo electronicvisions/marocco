@@ -1,7 +1,8 @@
 import unittest
 import pyhmf as pynn
 from pymarocco_runtime import ClusterByNeuronConnectivity as placer
-import pyhalbe.Coordinate as C
+from pyhalco_common import Enum
+import pyhalco_hicann_v2 as C
 
 import pylogging
 import utils
@@ -49,7 +50,7 @@ class PlacementAlgorithmsClusterNrn(utils.TestWithResults):
         result = self.load_results()
 
         # the first NB for merger friendly placemnt.
-        nb = C.NeuronBlockOnHICANN(C.Enum(3))
+        nb = C.NeuronBlockOnHICANN(Enum(3))
 
         for pop in self.pops:
             for nrn in pop:
@@ -71,7 +72,7 @@ class PlacementAlgorithmsClusterNrn(utils.TestWithResults):
         self.run_placement()
 
         result = self.load_results()
-        nb = C.NeuronBlockOnHICANN(C.Enum(7))
+        nb = C.NeuronBlockOnHICANN(Enum(7))
         for pop in self.pops:
             for nrn in pop:
                 placement_item, = result.placement.find(nrn)
@@ -92,7 +93,7 @@ class PlacementAlgorithmsClusterNrn(utils.TestWithResults):
         self.run_placement()
 
         result = self.load_results()
-        nb = C.NeuronBlockOnHICANN(C.Enum(0))
+        nb = C.NeuronBlockOnHICANN(Enum(0))
         for pop in self.pops:
             for nrn in pop:
                 placement_item, = result.placement.find(nrn)
@@ -127,10 +128,10 @@ class PlacementAlgorithmsClusterNrn(utils.TestWithResults):
         proj2 = pynn.Projection(pops[1], pops[2], pynn.AllToAllConnector(weights=0.01))
 
         h = {}
-        h[pops[0]] = C.HICANNOnWafer(C.Enum(100))
+        h[pops[0]] = C.HICANNOnWafer(Enum(100))
         # average position is this one, clustering will select it
-        h[pops[1]] = C.HICANNOnWafer(C.Enum(101))
-        h[pops[2]] = C.HICANNOnWafer(C.Enum(102))
+        h[pops[1]] = C.HICANNOnWafer(Enum(101))
+        h[pops[2]] = C.HICANNOnWafer(Enum(102))
         marocco.manual_placement.on_hicann(pops[0], h[pops[0]])
         marocco.manual_placement.on_hicann(pops[2], h[pops[2]])
 
@@ -164,10 +165,10 @@ class PlacementAlgorithmsClusterNrn(utils.TestWithResults):
         proj2 = pynn.Projection(pops[1], pops[2], pynn.AllToAllConnector(weights=0.01))
 
         h = {}
-        h[pops[0]] = C.HICANNOnWafer(C.Enum(100))
+        h[pops[0]] = C.HICANNOnWafer(Enum(100))
         # average positon of sources
-        h[pops[1]] = C.HICANNOnWafer(C.Enum(100))
-        h[pops[2]] = C.HICANNOnWafer(C.Enum(102))
+        h[pops[1]] = C.HICANNOnWafer(Enum(100))
+        h[pops[2]] = C.HICANNOnWafer(Enum(102))
         marocco.manual_placement.on_hicann(pops[0], h[pops[0]])
         marocco.manual_placement.on_hicann(pops[2], h[pops[2]])
 
@@ -201,10 +202,10 @@ class PlacementAlgorithmsClusterNrn(utils.TestWithResults):
         proj2 = pynn.Projection(pops[1], pops[2], pynn.AllToAllConnector(weights=0.01))
 
         h = {}
-        h[pops[0]] = C.HICANNOnWafer(C.Enum(100))
+        h[pops[0]] = C.HICANNOnWafer(Enum(100))
         # average positon of target
-        h[pops[1]] = C.HICANNOnWafer(C.Enum(102))
-        h[pops[2]] = C.HICANNOnWafer(C.Enum(102))
+        h[pops[1]] = C.HICANNOnWafer(Enum(102))
+        h[pops[2]] = C.HICANNOnWafer(Enum(102))
         marocco.manual_placement.on_hicann(pops[0], h[pops[0]])
         marocco.manual_placement.on_hicann(pops[2], h[pops[2]])
 
@@ -242,10 +243,10 @@ class PlacementAlgorithmsClusterNrn(utils.TestWithResults):
         proj2 = pynn.Projection(pops[1], pops[2], pynn.OneToOneConnector(weights=0.01))
 
         h = {}
-        h[pops[0]] = C.HICANNOnWafer(C.Enum(100))
+        h[pops[0]] = C.HICANNOnWafer(Enum(100))
         # the next free hicann (vertical order)
-        h[pops[1]] = C.HICANNOnWafer(C.Enum(72))
-        h[pops[2]] = C.HICANNOnWafer(C.Enum(48))
+        h[pops[1]] = C.HICANNOnWafer(Enum(72))
+        h[pops[2]] = C.HICANNOnWafer(Enum(48))
         marocco.manual_placement.on_hicann(pops[0], h[pops[0]])
 
         pynn.run(0)

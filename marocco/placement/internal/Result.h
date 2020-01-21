@@ -3,9 +3,9 @@
 #include <vector>
 #include <boost/unordered_map.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/Neuron.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/neuron.h"
+#include "halco/common/typed_array.h"
 
 #include "marocco/graph.h"
 
@@ -32,15 +32,15 @@ struct Result {
 
 	// TODO: Move into NeuronPlacement, as soon as this is not used outside placement anymore.
 	typedef boost::unordered_map<
-	    HMF::Coordinate::HICANNOnWafer,
-	    HMF::Coordinate::
-	        typed_array<internal::OnNeuronBlock, HMF::Coordinate::NeuronBlockOnHICANN> >
+	    halco::hicann::v2::HICANNOnWafer,
+	    halco::common::
+	        typed_array<internal::OnNeuronBlock, halco::hicann::v2::NeuronBlockOnHICANN> >
 	    denmem_assignment_type;
 
-	typedef boost::unordered_map<vertex_descriptor, std::vector<HMF::Coordinate::NeuronOnWafer> >
+	typedef boost::unordered_map<vertex_descriptor, std::vector<halco::hicann::v2::NeuronOnWafer> >
 	    primary_denmems_for_population_type;
 
-	typedef boost::unordered_map<HMF::Coordinate::HICANNOnWafer, internal::L1AddressAssignment>
+	typedef boost::unordered_map<halco::hicann::v2::HICANNOnWafer, internal::L1AddressAssignment>
 	    address_assignment_type;
 
 	denmem_assignment_type denmem_assignment;

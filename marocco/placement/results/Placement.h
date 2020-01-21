@@ -7,8 +7,8 @@
 #include <boost/optional.hpp>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/Neuron.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/neuron.h"
 #include "pywrap/compat/macros.hpp"
 #include "marocco/coordinates/BioNeuron.h"
 #include "marocco/coordinates/L1AddressOnWafer.h"
@@ -32,8 +32,8 @@ public:
 
 	class item_type {
 	public:
-		typedef boost::optional<HMF::Coordinate::NeuronBlockOnWafer> neuron_block_type;
-		typedef boost::optional<HMF::Coordinate::DNCMergerOnWafer> dnc_merger_type;
+		typedef boost::optional<halco::hicann::v2::NeuronBlockOnWafer> neuron_block_type;
+		typedef boost::optional<halco::hicann::v2::DNCMergerOnWafer> dnc_merger_type;
 		typedef boost::optional<L1AddressOnWafer> address_type;
 
 		item_type(BioNeuron const& bio_neuron, LogicalNeuron const& logical_neuron);
@@ -76,13 +76,13 @@ public:
 	            boost::multi_index::
 	                const_mem_fun<item_type, vertex_descriptor, &item_type::population> >,
 	        boost::multi_index::ordered_non_unique<
-	            boost::multi_index::tag<HMF::Coordinate::NeuronBlockOnWafer>,
+	            boost::multi_index::tag<halco::hicann::v2::NeuronBlockOnWafer>,
 	            boost::multi_index::const_mem_fun<
 	                item_type,
 		            item_type::neuron_block_type const&,
 	                &item_type::neuron_block> >,
 	        boost::multi_index::hashed_non_unique<
-	            boost::multi_index::tag<HMF::Coordinate::DNCMergerOnWafer>,
+	            boost::multi_index::tag<halco::hicann::v2::DNCMergerOnWafer>,
 	            boost::multi_index::const_mem_fun<
 	                item_type,
 		            item_type::dnc_merger_type,
@@ -91,8 +91,8 @@ public:
 	typedef container_type::index<BioNeuron>::type by_bio_neuron_type;
 	typedef container_type::index<LogicalNeuron>::type by_logical_neuron_type;
 	typedef container_type::index<vertex_descriptor>::type by_population_type;
-	typedef container_type::index<HMF::Coordinate::NeuronBlockOnWafer>::type by_neuron_block_type;
-	typedef container_type::index<HMF::Coordinate::DNCMergerOnWafer>::type by_dnc_merger_type;
+	typedef container_type::index<halco::hicann::v2::NeuronBlockOnWafer>::type by_neuron_block_type;
+	typedef container_type::index<halco::hicann::v2::DNCMergerOnWafer>::type by_dnc_merger_type;
 	typedef container_type::iterator iterator;
 	typedef container_type::iterator const_iterator;
 
@@ -106,26 +106,26 @@ public:
 	iterable<by_population_type::iterator> find(vertex_descriptor const& population) const;
 
 	iterable<by_neuron_block_type::iterator> find(
-	    boost::optional<HMF::Coordinate::NeuronBlockOnWafer> const& neuron_block) const;
+	    boost::optional<halco::hicann::v2::NeuronBlockOnWafer> const& neuron_block) const;
 
 	iterable<by_dnc_merger_type::iterator> find(
-	    boost::optional<HMF::Coordinate::DNCMergerOnWafer> const& dnc_merger) const;
+	    boost::optional<halco::hicann::v2::DNCMergerOnWafer> const& dnc_merger) const;
 
 	// The overloads without boost::optional<T> have been added because otherwise
 	// find(vertex_descriptor const&) would be a viable candidate for a find(T{}) call,
 	// because of implicit conversion to integral types.
 
 	iterable<by_neuron_block_type::iterator> find(
-	    HMF::Coordinate::NeuronBlockOnWafer const& neuron_block) const;
+	    halco::hicann::v2::NeuronBlockOnWafer const& neuron_block) const;
 
 	iterable<by_dnc_merger_type::iterator> find(
-	    HMF::Coordinate::DNCMergerOnWafer const& dnc_merger) const;
+	    halco::hicann::v2::DNCMergerOnWafer const& dnc_merger) const;
 
 	/**
 	 * @brief Find all placements with neuron blocks on the given HICANN.
 	 */
 	iterable<by_neuron_block_type::iterator> find(
-		HMF::Coordinate::HICANNOnWafer const& hicann) const;
+		halco::hicann::v2::HICANNOnWafer const& hicann) const;
 
 	bool empty() const;
 

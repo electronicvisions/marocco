@@ -4,7 +4,8 @@
 #include <boost/variant/static_visitor.hpp>
 
 using marocco::L1Route;
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 class ConfigureL1RouteVisitor : public boost::static_visitor<>
 {

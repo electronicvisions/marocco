@@ -46,7 +46,7 @@ public:
 	 * @throw std::invalid_argument If the orientation of \c vertex does not allow walking
 	 *                              in the specified direction.
 	 */
-	bool step(vertex_descriptor& vertex, HMF::Coordinate::Direction const& direction) const;
+	bool step(vertex_descriptor& vertex, halco::common::Direction const& direction) const;
 
 	/**
 	 * @brief Returns all connected vertices with different orientation
@@ -67,7 +67,7 @@ public:
 	 */
 	std::pair<path_type, bool> walk(
 	    vertex_descriptor const& vertex,
-	    HMF::Coordinate::Direction const& direction,
+	    halco::common::Direction const& direction,
 	    size_t limit) const;
 
 	/**
@@ -95,20 +95,20 @@ public:
 	 */
 	std::pair<path_type, bool> detour_and_walk(
 	    vertex_descriptor const& vertex,
-	    HMF::Coordinate::Direction const& direction,
+	    halco::common::Direction const& direction,
 	    size_t limit) const;
 
 	std::pair<path_type, bool> detour_and_walk(
 	    vertex_descriptor const& vertex,
-	    HMF::Coordinate::Direction const& direction,
+	    halco::common::Direction const& direction,
 	    size_t limit,
 	    path_type predecessors) const;
 
 	graph_type const& graph() const;
 
 private:
-	typedef HMF::Coordinate::HICANNOnWafer::x_type x_type;
-	typedef HMF::Coordinate::HICANNOnWafer::y_type y_type;
+	typedef halco::hicann::v2::HICANNOnWafer::x_type x_type;
+	typedef halco::hicann::v2::HICANNOnWafer::y_type y_type;
 
 	std::pair<path_type, bool> walk_north(
 		vertex_descriptor const& vertex, y_type const& limit) const;

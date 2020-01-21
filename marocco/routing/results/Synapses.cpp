@@ -3,7 +3,7 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/optional.hpp>
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 using boost::multi_index::get;
 
 namespace marocco {

@@ -1,12 +1,13 @@
 #include <algorithm>
 
-#include "hal/Coordinate/Quadrant.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/hicann/v2/quadrant.h"
+#include "halco/common/iter_all.h"
 #include "marocco/Logger.h"
 #include "marocco/routing/Fieres.h"
 #include "marocco/util/algorithm.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {
@@ -230,7 +231,7 @@ void Fieres::defrag(
 }
 
 Fieres::Fieres(IntervalList const& _list,
-			   HMF::Coordinate::Side const& side,
+			   halco::common::Side const& side,
 			   size_t max_chain_length) :
 	// call delegate constructor with no defects
 	Fieres(_list, side, max_chain_length, std::vector<SynapseDriverOnHICANN>{})
@@ -238,7 +239,7 @@ Fieres::Fieres(IntervalList const& _list,
 
 
 Fieres::Fieres(IntervalList const& _list_unsorted,
-               HMF::Coordinate::Side const& side,
+               halco::common::Side const& side,
                size_t const max_chain_length,
                std::vector<SynapseDriverOnHICANN> const& defects)
 	: mSide(side)

@@ -5,7 +5,7 @@
 #include <boost/serialization/variant.hpp>
 #include <boost/serialization/vector.hpp>
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace placement {

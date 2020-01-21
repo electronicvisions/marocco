@@ -6,7 +6,7 @@
 #include "calibtic/HMF/HICANNCollection.h"
 #include "calibtic/HMF/NeuronCollection.h"
 #include "sthal/HICANN.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/common/typed_array.h"
 
 #include "marocco/BioGraph.h"
 #include "marocco/placement/results/Placement.h"
@@ -54,12 +54,12 @@ private:
 	double neurons(neuron_calib_type const& calib);
 
 	void connect_denmems(
-		HMF::Coordinate::NeuronOnHICANN const& topleft_neuron,
+		halco::hicann::v2::NeuronOnHICANN const& topleft_neuron,
 		size_t hw_neurons_size);
 
 	void neuron_config(neuron_calib_type const& calib);
 
-	void background_generator(HMF::Coordinate::BackgroundGeneratorOnHICANN const& bg,
+	void background_generator(halco::hicann::v2::BackgroundGeneratorOnHICANN const& bg,
 	                          uint32_t isi = 500);
 
 	/**
@@ -73,7 +73,7 @@ private:
 	/// returns an array with the weight scale factor for each neuron on the hicann.
 	/// The factor to scale biological to hardware weights is calculated as: speedup * cm_hw/ cm_bio
 	/// where cm_hw is the sum of the capacitances of all interconnected hw-neurons
-	HMF::Coordinate::typed_array<double, HMF::Coordinate::NeuronOnHICANN> weight_scale_array() const;
+	halco::common::typed_array<double, halco::hicann::v2::NeuronOnHICANN> weight_scale_array() const;
 
 	boost::shared_ptr<calib_type> getCalibrationData(bool fallback_to_defaults);
 
@@ -86,7 +86,7 @@ private:
 	boost::shared_ptr<calibtic::backend::Backend> m_calib_backend;
 	double m_duration;
 
-	HMF::Coordinate::typed_array<std::vector<sthal::Spike>, HMF::Coordinate::DNCMergerOnHICANN> m_spikes;
+	halco::common::typed_array<std::vector<sthal::Spike>, halco::hicann::v2::DNCMergerOnHICANN> m_spikes;
 };
 
 } // namespace parameter

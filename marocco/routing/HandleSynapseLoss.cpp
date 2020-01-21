@@ -3,7 +3,7 @@
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/util.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace routing {
@@ -33,8 +33,8 @@ void HandleSynapseLoss::operator()(results::L1Routing::route_item_type const& ro
 }
 
 void HandleSynapseLoss::operator()(
-	HMF::Coordinate::DNCMergerOnWafer const& source_merger,
-	HMF::Coordinate::HICANNOnWafer const& target_hicann,
+	halco::hicann::v2::DNCMergerOnWafer const& source_merger,
+	halco::hicann::v2::HICANNOnWafer const& target_hicann,
 	BioGraph::edge_descriptor const& projection)
 {
 	HICANNOnWafer const source_hicann = source_merger.toHICANNOnWafer();

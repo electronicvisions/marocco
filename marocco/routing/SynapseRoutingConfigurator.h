@@ -12,7 +12,7 @@ public:
 	SynapseRoutingConfigurator(sthal::Wafer& hardware);
 
 	void run(
-	    HMF::Coordinate::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::HICANNOnWafer const& hicann,
 	    results::SynapseRouting::HICANN const& result);
 
 private:
@@ -23,15 +23,15 @@ private:
 	 * @param vline Vertical bus, may lie on adjacent HICANN.
 	 */
 	void set_synapse_switch(
-	    HMF::Coordinate::HICANNOnWafer const& hicann,
-	    HMF::Coordinate::SynapseDriverOnHICANN const& driver,
-		HMF::Coordinate::VLineOnHICANN const& vline);
+	    halco::hicann::v2::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::SynapseDriverOnHICANN const& driver,
+		halco::hicann::v2::VLineOnHICANN const& vline);
 
 	/**
 	 * @brief Connect adjacent synapse drivers.
 	 */
 	void connect_drivers(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HICANNOnWafer const& hicann,
 		results::ConnectedSynapseDrivers const& connected_drivers);
 
 	sthal::Wafer& m_hardware;

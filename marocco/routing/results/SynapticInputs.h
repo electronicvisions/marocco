@@ -4,9 +4,9 @@
 #include <iosfwd>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/Neuron.h"
+#include "halco/hicann/v2/neuron.h"
 #ifndef PYPLUSPLUS
-#include "hal/Coordinate/typed_array.h"
+#include "halco/common/typed_array.h"
 #endif // !PYPLUSPLUS
 #include "pywrap/compat/array.hpp"
 
@@ -29,8 +29,8 @@ namespace results {
 class SynapticInputs {
 public:
 #ifndef PYPLUSPLUS
-	typedef HMF::Coordinate::typed_array<SynapseType, HMF::Coordinate::SynapticInputOnNeuron> value_type;
-	typedef HMF::Coordinate::typed_array<value_type, HMF::Coordinate::NeuronOnHICANN> container_type;
+	typedef halco::common::typed_array<SynapseType, halco::hicann::v2::SynapticInputOnNeuron> value_type;
+	typedef halco::common::typed_array<value_type, halco::hicann::v2::NeuronOnHICANN> container_type;
 #endif // !PYPLUSPLUS
 
 	/**
@@ -39,8 +39,8 @@ public:
 	SynapticInputs();
 
 #ifndef PYPLUSPLUS
-	value_type& operator[](HMF::Coordinate::NeuronOnHICANN const& neuron);
-	value_type const& operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) const;
+	value_type& operator[](halco::hicann::v2::NeuronOnHICANN const& neuron);
+	value_type const& operator[](halco::hicann::v2::NeuronOnHICANN const& neuron) const;
 #endif // !PYPLUSPLUS
 
 	/// Checks whether synapse types are the same for top and bottom neurons.

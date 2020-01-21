@@ -6,7 +6,7 @@
 #include <boost/assert.hpp>
 #include <nanoflann.hpp>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/Logger.h"
 #include "marocco/placement/internal/FiringRateVisitor.h"
 #include "marocco/util/algorithm.h"
@@ -15,7 +15,8 @@
 #include "marocco/util/neighbors.h"
 #include "marocco/routing/SynapseDriverRequirementPerSource.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using marocco::assignment::PopulationSlice;
 
 namespace marocco {
@@ -262,7 +263,7 @@ void InputPlacement::run(
 }
 
 void InputPlacement::insertInput(
-    HMF::Coordinate::HICANNOnWafer const& target_hicann,
+    halco::hicann::v2::HICANNOnWafer const& target_hicann,
     results::Placement& neuron_placement,
     internal::L1AddressAssignment& address_assignment,
     std::vector<PopulationSlice>& bio_vector)
@@ -288,7 +289,7 @@ void InputPlacement::insertInput(
 	if (bio_vector.empty()) { // can happen by splitting populations and retrying via recursion;
 		return;
 	}
-	HMF::Coordinate::HICANNGlobal global_hicann(target_hicann, mMgr.wafers()[0]);
+	HICANNGlobal global_hicann(target_hicann, mMgr.wafers()[0]);
 
 	// As this special handling used to be done only for DNCMergerOnHICANN(7) they are
 	// processed in reverse order here to be backwards compatible with that mode of
@@ -562,7 +563,7 @@ void InputPlacement::configureGbitLinks(
 }
 
 
-InputPlacement::rate_type InputPlacement::availableRate(HMF::Coordinate::HICANNOnWafer const& h)
+InputPlacement::rate_type InputPlacement::availableRate(halco::hicann::v2::HICANNOnWafer const& h)
 {
 	// toFPGAOnWafer() is not available for HICANNOnWafer at the moment because wafer coordinate
 	// is used to flag old (non-kintex) lab wafers, which have multiple reticles per FPGA.
@@ -576,7 +577,7 @@ InputPlacement::rate_type InputPlacement::availableRate(HMF::Coordinate::HICANNO
 }
 
 
-void InputPlacement::allocateRate(HMF::Coordinate::HICANNOnWafer const& hicann, rate_type rate)
+void InputPlacement::allocateRate(halco::hicann::v2::HICANNOnWafer const& hicann, rate_type rate)
 {
 	// toFPGAOnWafer() is not available for HICANNOnWafer at the moment because wafer coordinate
 	// is used to flag old (non-kintex) lab wafers, which have multiple reticles per FPGA.

@@ -1,9 +1,9 @@
 #include "marocco/placement/internal/L1AddressPool.h"
 
 #include "calibtic/HMF/SynapseDecoderDisablingSynapse.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::common;
 using namespace HMF::HICANN;
 
 namespace marocco {

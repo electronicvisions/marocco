@@ -1,7 +1,7 @@
 #include "marocco/routing/SynapseLoss.h"
 #include "marocco/routing/SynapseLossImpl.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace routing {

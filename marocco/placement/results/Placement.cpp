@@ -6,7 +6,7 @@
 // definition of `hash_value(boost::optional<T> const&)` from lib-boost-patches (c/1573)
 #include "boost/optional/hash_value.tcc"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 using boost::multi_index::get;
 
 namespace marocco {
@@ -115,7 +115,7 @@ auto Placement::find(
 }
 
 auto Placement::find(
-	boost::optional<HMF::Coordinate::DNCMergerOnWafer> const& dnc_merger) const
+	boost::optional<halco::hicann::v2::DNCMergerOnWafer> const& dnc_merger) const
 	-> iterable<by_dnc_merger_type::iterator>
 {
 	return make_iterable(get<DNCMergerOnWafer>(m_container).equal_range(dnc_merger));
@@ -128,7 +128,7 @@ auto Placement::find(NeuronBlockOnWafer const& neuron_block) const
 }
 
 auto Placement::find(
-	HMF::Coordinate::DNCMergerOnWafer const& dnc_merger) const
+	halco::hicann::v2::DNCMergerOnWafer const& dnc_merger) const
 	-> iterable<by_dnc_merger_type::iterator>
 {
 	return make_iterable(get<DNCMergerOnWafer>(m_container).equal_range(dnc_merger));

@@ -6,7 +6,7 @@
 
 #include <boost/optional.hpp>
 
-#include "hal/Coordinate/L1.h"
+#include "halco/hicann/v2/l1.h"
 
 #include "marocco/BioGraph.h"
 #include "marocco/config.h"
@@ -24,13 +24,13 @@ namespace routing {
 
 class L1Routing {
 public:
-	typedef std::unordered_map<HMF::Coordinate::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
+	typedef std::unordered_map<halco::hicann::v2::HICANNOnWafer, std::set<BioGraph::edge_descriptor> >
 		targets_type;
 
 	struct request_type
 	{
-		HMF::Coordinate::DNCMergerOnWafer source;
-		HMF::Coordinate::HICANNOnWafer target;
+		halco::hicann::v2::DNCMergerOnWafer source;
+		halco::hicann::v2::HICANNOnWafer target;
 		std::set<BioGraph::edge_descriptor> projections;
 	}; // request_type
 
@@ -52,7 +52,7 @@ public:
 	 * @brief Returns a sequence of mergers, sorted by the priority of efferent projections.
 	 * @return Sequence of DNC mergers without duplicate entries.
 	 */
-	std::vector<HMF::Coordinate::DNCMergerOnWafer> sources_sorted_by_priority() const;
+	std::vector<halco::hicann::v2::DNCMergerOnWafer> sources_sorted_by_priority() const;
 
 	std::vector<request_type> const& failed_routes() const;
 
@@ -88,7 +88,7 @@ L1RouteTree toL1RouteTree(PathBundle::graph_type const& graph, PathBundle const&
  * @throw InvalidRouteError When this leads to invalid routes.
  */
 L1Route with_dnc_merger_prefix(
-    L1Route const& route, HMF::Coordinate::DNCMergerOnWafer const& merger);
+    L1Route const& route, halco::hicann::v2::DNCMergerOnWafer const& merger);
 
 /**
  * @brief function to discard branching candidates if too many L1-crossbar-switches are going to be

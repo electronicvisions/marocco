@@ -9,7 +9,7 @@
 #include <boost/iterator/iterator_facade.hpp>
 #include <boost/optional.hpp>
 #include <boost/serialization/shared_ptr.hpp>
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "redman/resources/Wafer.h"
 #include "marocco/resource/BackendLoaderCalib.h"
 #include "marocco/util/iterable.h"
@@ -41,13 +41,13 @@ namespace resource {
 template <typename T> struct RedmanResourcesType;
 
 template <>
-struct RedmanResourcesType<HMF::Coordinate::HICANNGlobal>
+struct RedmanResourcesType<halco::hicann::v2::HICANNGlobal>
 {
 	typedef redman::resources::Hicann type;
 };
 
 template <>
-struct RedmanResourcesType<HMF::Coordinate::FPGAGlobal>
+struct RedmanResourcesType<halco::hicann::v2::FPGAGlobal>
 {
 	typedef redman::resources::Fpga type;
 };
@@ -55,13 +55,13 @@ struct RedmanResourcesType<HMF::Coordinate::FPGAGlobal>
 template <typename T> struct RedmanManagerType;
 
 template <>
-struct RedmanManagerType<HMF::Coordinate::HICANNGlobal>
+struct RedmanManagerType<halco::hicann::v2::HICANNGlobal>
 {
 	typedef redman::resources::components::Hicanns type;
 };
 
 template <>
-struct RedmanManagerType<HMF::Coordinate::FPGAGlobal>
+struct RedmanManagerType<halco::hicann::v2::FPGAGlobal>
 {
 	typedef redman::resources::components::Fpgas type;
 };
@@ -74,7 +74,7 @@ public:
 	typedef T resource_type;
 
 private:
-	typedef HMF::Coordinate::Wafer wafer_type;
+	typedef halco::hicann::v2::Wafer wafer_type;
 	typedef redman::resources::Wafer manager_type;
 	typedef std::map<wafer_type, const manager_type> wafer_map_type;
 	typedef std::unordered_set<resource_type> allocation_type;
@@ -187,7 +187,7 @@ public:
 	 * if it is already loaded: it is loaded from that map.
 	 * thus it loads only when nescessary.
 	 */
-	boost::shared_ptr<HMF::HICANNCollection> loadCalib(HMF::Coordinate::HICANNGlobal const& hicann_global) const;
+	boost::shared_ptr<HMF::HICANNCollection> loadCalib(halco::hicann::v2::HICANNGlobal const& hicann_global) const;
 
 	/**
 	 * Returns the maximum number of crossbars, that are allowed to be used on this bus
@@ -204,7 +204,7 @@ public:
 	 *
 	 * if the maxima are 3,4,5 it returns 3.
 	 */
-	size_t getMaxChainLength(HMF::Coordinate::HICANNOnWafer const& hicann) const;
+	size_t getMaxChainLength(halco::hicann::v2::HICANNOnWafer const& hicann) const;
 
 	/**
 	 * Returns the maximum number of Switches from a specific bus into the synapse array.
@@ -235,7 +235,7 @@ private:
 	allocation_type mAllocated;
 
 	// Cache for Calibration data
-	mutable std::unordered_map<HMF::Coordinate::HICANNGlobal, boost::shared_ptr<HMF::HICANNCollection> > mCalibs;
+	mutable std::unordered_map<halco::hicann::v2::HICANNGlobal, boost::shared_ptr<HMF::HICANNCollection> > mCalibs;
 
 	class iterator_type
 		: public boost::iterator_facade<
@@ -327,11 +327,11 @@ public:
 	}
 };
 
-typedef Manager<HMF::Coordinate::HICANNGlobal> HICANNManager;
-typedef Manager<HMF::Coordinate::FPGAGlobal> FPGAManager;
+typedef Manager<halco::hicann::v2::HICANNGlobal> HICANNManager;
+typedef Manager<halco::hicann::v2::FPGAGlobal> FPGAManager;
 
-template class Manager<HMF::Coordinate::HICANNGlobal>;
-template class Manager<HMF::Coordinate::FPGAGlobal>;
+template class Manager<halco::hicann::v2::HICANNGlobal>;
+template class Manager<halco::hicann::v2::FPGAGlobal>;
 
 } // namespace resource
 } // namespace marocco

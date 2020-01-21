@@ -1,9 +1,10 @@
 #include "test/common.h"
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "marocco/routing/PathBundle.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {

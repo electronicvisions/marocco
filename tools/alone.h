@@ -35,19 +35,19 @@ public:
 		SWITCH_EXCLUSIVENESS_PER_ROUTE = 0x2
 	};
 
-	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
+	void add(halco::hicann::v2::HICANNOnWafer const& hicann);
 	void remove(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::HLineOnHICANN const& hline);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HLineOnHICANN const& hline);
 	void remove(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::VLineOnHICANN const& vline);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::VLineOnHICANN const& vline);
 	void remove(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::HRepeaterOnHICANN const& hrep);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HRepeaterOnHICANN const& hrep);
 	void remove(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::VRepeaterOnHICANN const& vrep);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::VRepeaterOnHICANN const& vrep);
 
 	/**
 	 * @brief Return all possible routes from the given bus to a bus matching
@@ -69,8 +69,8 @@ public:
 	 *       necessary to correctly configure the sending repeaters.
 	 */
 	std::vector<L1Route> find_routes(
-	    HMF::Coordinate::HICANNOnWafer const& hicann,
-	    HMF::Coordinate::DNCMergerOnHICANN const& merger,
+	    halco::hicann::v2::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::DNCMergerOnHICANN const& merger,
 	    routing::Target const& target,
 	    Options options = NONE);
 

@@ -7,7 +7,8 @@ import tempfile
 import unittest
 
 import pyhmf as pynn
-from pyhalbe.Coordinate import *
+from pyhalco_common import X, Y, Enum, top, bottom, left, right
+from pyhalco_hicann_v2 import *
 import pyhalbe.HICANN
 nrn_param = pyhalbe.HICANN.neuron_parameter
 import debug_config

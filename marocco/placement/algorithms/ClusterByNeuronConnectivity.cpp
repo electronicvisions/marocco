@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/BioGraph.h"
 #include "marocco/Logger.h"
 #include "marocco/coordinates/BioNeuron.h"
@@ -308,8 +308,8 @@ const BioNeuron ClusterByNeuronConnectivity::toBioNeuron(const NeuronPlacementRe
 
 std::pair<double, double> ClusterByNeuronConnectivity::center_of_partners() const
 {
-	double x = HMF::Coordinate::HICANNOnWafer::x_type::max / 2.;
-	double y = HMF::Coordinate::HICANNOnWafer::y_type::max / 2.;
+	double x = halco::hicann::v2::HICANNOnWafer::x_type::max / 2.;
+	double y = halco::hicann::v2::HICANNOnWafer::y_type::max / 2.;
 
 	if (m_queue->empty()) {
 		return std::pair<double, double>(x, y);
@@ -358,7 +358,7 @@ std::pair<double, double> ClusterByNeuronConnectivity::center_of_partners() cons
 }
 
 void ClusterByNeuronConnectivity::update_relations_to_placement(
-    NeuronPlacementRequest const& chunk, HMF::Coordinate::NeuronBlockOnWafer const& nb)
+    NeuronPlacementRequest const& chunk, halco::hicann::v2::NeuronBlockOnWafer const& nb)
 {
 	MAROCCO_TRACE(" update_relations_to_placement()");
 	// add the location of the population to a map, so clustering can be done, difficult to search

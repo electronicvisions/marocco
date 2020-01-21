@@ -4,10 +4,11 @@
 #include <iomanip>
 #include <string>
 
-#include "hal/Coordinate/Relations.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/relations.h"
+#include "halco/common/iter_all.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {
@@ -25,12 +26,12 @@ SynapticInputs::SynapticInputs()
 	}
 }
 
-auto SynapticInputs::operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) -> value_type&
+auto SynapticInputs::operator[](halco::hicann::v2::NeuronOnHICANN const& neuron) -> value_type&
 {
 	return m_neurons[neuron];
 }
 
-auto SynapticInputs::operator[](HMF::Coordinate::NeuronOnHICANN const& neuron) const
+auto SynapticInputs::operator[](halco::hicann::v2::NeuronOnHICANN const& neuron) const
 	-> value_type const&
 {
 	return m_neurons[neuron];

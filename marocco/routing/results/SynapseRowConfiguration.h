@@ -2,10 +2,10 @@
 
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/Neuron.h"
-#include "hal/Coordinate/Relations.h"
+#include "halco/hicann/v2/neuron.h"
+#include "halco/common/relations.h"
 #ifndef PYPLUSPLUS
-#include "hal/Coordinate/typed_array.h"
+#include "halco/common/typed_array.h"
 #endif // !PYPLUSPLUS
 #include "hal/HICANN/DriverDecoder.h"
 
@@ -25,20 +25,20 @@ public:
 
 	SynapseRowConfiguration();
 
-	SynapseRowConfiguration(HMF::Coordinate::SynapticInputOnNeuron const& synaptic_input);
+	SynapseRowConfiguration(halco::hicann::v2::SynapticInputOnNeuron const& synaptic_input);
 
-	address_type const& address(HMF::Coordinate::Parity const& parity) const;
+	address_type const& address(halco::common::Parity const& parity) const;
 
-	void set_address(HMF::Coordinate::Parity const& parity, address_type const& address);
+	void set_address(halco::common::Parity const& parity, address_type const& address);
 
-	HMF::Coordinate::SynapticInputOnNeuron const& synaptic_input() const;
+	halco::hicann::v2::SynapticInputOnNeuron const& synaptic_input() const;
 
-	void set_synaptic_input(HMF::Coordinate::SynapticInputOnNeuron const& synaptic_input);
+	void set_synaptic_input(halco::hicann::v2::SynapticInputOnNeuron const& synaptic_input);
 
 private:
-	HMF::Coordinate::SynapticInputOnNeuron m_synaptic_input;
+	halco::hicann::v2::SynapticInputOnNeuron m_synaptic_input;
 #ifndef PYPLUSPLUS
-	HMF::Coordinate::typed_array<address_type, HMF::Coordinate::Parity> m_address;
+	halco::common::typed_array<address_type, halco::common::Parity> m_address;
 #endif // !PYPLUSPLUS
 
 	friend class boost::serialization::access;

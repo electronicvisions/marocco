@@ -12,7 +12,7 @@ namespace placement {
 class AMergerTreeRouter : public ::testing::Test
 {
 public:
-	void add(HMF::Coordinate::NeuronBlockOnWafer nb, size_t bio_neurons_count)
+	void add(halco::hicann::v2::NeuronBlockOnWafer nb, size_t bio_neurons_count)
 	{
 		const internal::NeuronPlacementRequest dummy{
 		    assignment::PopulationSlice{{}, 0 /*offset*/, 1 /*size*/}, 2 /*hw_neuron_size*/};

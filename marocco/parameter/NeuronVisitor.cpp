@@ -3,9 +3,10 @@
 #include <tuple>
 
 #include "marocco/Logger.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 template<typename T,
 	T Max = std::numeric_limits<T>::max(),
@@ -39,7 +40,7 @@ HMF::NeuronCalibrationParameters calibration_parameters_for_neuron(
 	sthal::HICANN const& chip,
 	double const alphaV,
 	double const shiftV,
-	HMF::Coordinate::NeuronOnHICANN const& neuron_hw_id)
+	halco::hicann::v2::NeuronOnHICANN const& neuron_hw_id)
 {
 	HMF::NeuronCalibrationParameters params;
 

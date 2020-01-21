@@ -1,6 +1,7 @@
 #include "marocco/routing/Target.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {

@@ -1,14 +1,15 @@
 #include "marocco/routing/L1RoutingGraph.h"
 #include "marocco/Logger.h"
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "hal/HICANN/Crossbar.h"
 #include "marocco/routing/PathBundle.h"
 
 namespace marocco {
 namespace routing {
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 L1RoutingGraph::HICANN::HICANN(
     graph_type& graph,
@@ -169,21 +170,21 @@ void L1RoutingGraph::remove(PathBundle const& bundle)
 }
 
 void L1RoutingGraph::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::HLineOnHICANN const& hline)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::HLineOnHICANN const& hline)
 {
 	// See note on clear_vertex above.
 	clear_vertex(operator[](hicann)[hline], m_graph);
 }
 
 void L1RoutingGraph::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VLineOnHICANN const& vline)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::VLineOnHICANN const& vline)
 {
 	// See note on clear_vertex above.
 	clear_vertex(operator[](hicann)[vline], m_graph);
 }
 
 void L1RoutingGraph::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::HRepeaterOnHICANN const& hrep)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::HRepeaterOnHICANN const& hrep)
 {
 	auto hline = hrep.toHLineOnHICANN();
 	auto side = hrep.toSideHorizontal();
@@ -202,7 +203,7 @@ void L1RoutingGraph::remove(
 }
 
 void L1RoutingGraph::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VRepeaterOnHICANN const& vrep)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::VRepeaterOnHICANN const& vrep)
 {
 	auto vline = vrep.toVLineOnHICANN();
 	auto side = vrep.toSideVertical();

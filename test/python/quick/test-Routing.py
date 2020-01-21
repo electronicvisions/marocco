@@ -1,7 +1,8 @@
 import os
 import unittest
 
-import pyhalbe.Coordinate as C
+from pyhalco_common import Enum
+import pyhalco_hicann_v2 as C
 import pyhmf as pynn
 import pyredman
 
@@ -29,8 +30,8 @@ class TestRouting(utils.TestWithResults):
         proj = pynn.Projection(
             source, target, pynn.AllToAllConnector(weights=0.004))
 
-        source_hicann = C.HICANNOnWafer(C.Enum(167))
-        target_hicann = C.HICANNOnWafer(C.Enum(240))
+        source_hicann = C.HICANNOnWafer(Enum(167))
+        target_hicann = C.HICANNOnWafer(Enum(240))
         self.marocco.manual_placement.on_hicann(source, source_hicann)
         self.marocco.manual_placement.on_hicann(target, target_hicann)
 

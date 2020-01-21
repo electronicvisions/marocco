@@ -1,11 +1,12 @@
 #include "marocco/routing/SynapseManager.h"
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/routing/print_tuple.h"
 
 #include "marocco/Logger.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using HMF::HICANN::DriverDecoder;
 
 namespace marocco {
@@ -210,13 +211,13 @@ std::ostream& operator<<(std::ostream& os, SynapseManager const& mgr)
 
 
 SynapseManager::SubRows const& SynapseManager::getRows(
-	HMF::Coordinate::VLineOnHICANN const& vline, Side_Parity_Decoder_STP const& hw_synapse_property)
+	halco::hicann::v2::VLineOnHICANN const& vline, Side_Parity_Decoder_STP const& hw_synapse_property)
 {
 	return mAllocation[vline][hw_synapse_property];
 }
 
 SynapseManager::Assignment const&
-SynapseManager::get(HMF::Coordinate::VLineOnHICANN const& vline) const
+SynapseManager::get(halco::hicann::v2::VLineOnHICANN const& vline) const
 {
 	return mAllocation.at(vline);
 }
@@ -227,8 +228,8 @@ void SynapseManager::check(size_t /*chain_length*/)
 }
 
 SynapseManager::SynapsesOnVLine SynapseManager::getSynapses(
-	HMF::Coordinate::VLineOnHICANN const& vline,
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+	halco::hicann::v2::VLineOnHICANN const& vline,
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 					   std::map<SynapseType, SynapseColumnsMap> > const& synapse_columns)
 {
 	// assure that SynapsesOnVLine is only created once per vline
@@ -279,11 +280,11 @@ SynapseManager::SynapseStepper::SynapseStepper(
 	}
 }
 
-HMF::Coordinate::SynapseOnHICANN SynapseManager::SynapseStepper::get()
+halco::hicann::v2::SynapseOnHICANN SynapseManager::SynapseStepper::get()
 {
 	if (!_has_synapses)
 		throw std::runtime_error("no synapse left");
-	HMF::Coordinate::SynapseOnHICANN rv(*sub_row_it, *syn_col_it);
+	halco::hicann::v2::SynapseOnHICANN rv(*sub_row_it, *syn_col_it);
 	update();
 	return rv;
 }
@@ -334,7 +335,7 @@ void SynapseManager::SynapseStepper::update()
 }
 
 SynapseManager::SynapsesOnVLine::SynapsesOnVLine(
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN, TypeToSynapsesColumnsMap> const&
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN, TypeToSynapsesColumnsMap> const&
 		TypeToSynapseColumnsMapPerNeuron,
 	Assignment const& assignment)
 	: mTypeToSynapseColumnsMapPerNeuron(TypeToSynapseColumnsMapPerNeuron),
@@ -343,8 +344,8 @@ SynapseManager::SynapsesOnVLine::SynapsesOnVLine(
 }
 
 
-std::pair<HMF::Coordinate::SynapseOnHICANN, bool> SynapseManager::SynapsesOnVLine::getSynapse(
-	HMF::Coordinate::NeuronOnHICANN const& target_nrn, Type_Decoder_STP const& bio_synapse_property)
+std::pair<halco::hicann::v2::SynapseOnHICANN, bool> SynapseManager::SynapsesOnVLine::getSynapse(
+	halco::hicann::v2::NeuronOnHICANN const& target_nrn, Type_Decoder_STP const& bio_synapse_property)
 {
 	std::map<Type_Decoder_STP, SynapseStepper>& bio_synapses_on_target_neuron =
 		mBioSynapsesPerNeuron[target_nrn];
@@ -364,7 +365,7 @@ std::pair<HMF::Coordinate::SynapseOnHICANN, bool> SynapseManager::SynapsesOnVLin
 				 .first;
 	}
 
-	std::pair<HMF::Coordinate::SynapseOnHICANN, bool> rv;
+	std::pair<halco::hicann::v2::SynapseOnHICANN, bool> rv;
 	rv.second = it->second.has_synapses();
 	if (rv.second)
 		rv.first = it->second.get();

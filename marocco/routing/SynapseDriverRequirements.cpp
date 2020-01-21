@@ -1,14 +1,15 @@
 #include "marocco/routing/SynapseDriverRequirements.h"
 #include <tuple>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/routing/util.h"
 #include "marocco/util/chunked.h"
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/tuple.h>
 #include <boost/serialization/unordered_map.h>
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using HMF::HICANN::L1Address;
 using HMF::HICANN::DriverDecoder;
 
@@ -36,7 +37,7 @@ std::ostream& operator<<(std::ostream& os, TriParity p)
 }
 
 SynapseDriverRequirements::SynapseDriverRequirements(
-	HMF::Coordinate::HICANNOnWafer const& hicann,
+	halco::hicann::v2::HICANNOnWafer const& hicann,
 	placement::results::Placement const& placement_result,
 	results::SynapticInputs const& syn_tgt_mapping)
 	: mHICANN(hicann),
@@ -363,13 +364,13 @@ SynapseDriverRequirements::NeuronWidth SynapseDriverRequirements::extract_neuron
 	return rv;
 }
 
-std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 				   SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
 SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
 	NeuronWidth const& neuron_width, results::SynapticInputs const& syn_tgt_mapping)
 {
 
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN, Side_Parity_count_per_synapse_type> rv;
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN, Side_Parity_count_per_synapse_type> rv;
 
 	for (auto const& item : neuron_width) {
 		auto const& address = item.first;
@@ -402,7 +403,7 @@ SynapseDriverRequirements::calc_synapse_type_to_synapse_columns_map(
 		auto const& address = item.first;
 		const size_t width = item.second;
 		std::map<SynapseType,
-				 std::map<Side_Parity, std::vector<HMF::Coordinate::SynapseColumnOnHICANN> > >&
+				 std::map<Side_Parity, std::vector<halco::hicann::v2::SynapseColumnOnHICANN> > >&
 			synapse_columns_map_per_syntype = rv[address];
 
 		for (size_t xx = address.x(); xx < address.x() + width; ++xx) {
@@ -438,7 +439,7 @@ std::pair<size_t, size_t> SynapseDriverRequirements::calc(
 
 std::pair<size_t, size_t> SynapseDriverRequirements::_calc(
 	SynapseCounts const& syn_counts,
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN, Side_Parity_count_per_synapse_type> const&
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN, Side_Parity_count_per_synapse_type> const&
 		target_synapses_per_parity_and_synaptic_input,
 	std::map<Side_Parity_Decoder_STP, size_t>& synapse_histogram,
 	std::map<Side_Parity_Decoder_STP, size_t>& synrow_histogram)

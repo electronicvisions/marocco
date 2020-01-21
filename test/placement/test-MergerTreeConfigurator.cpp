@@ -1,9 +1,10 @@
 #include "test/placement/test-MergerTreeRouter.h"
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/placement/MergerTreeConfigurator.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using namespace HMF::HICANN;
 
 namespace marocco {

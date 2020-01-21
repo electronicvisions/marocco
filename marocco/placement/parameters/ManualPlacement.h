@@ -12,8 +12,8 @@
 #include "boost/serialization/unordered_map.h"
 #endif // !PYPLUSPLUS
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/Neuron.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/neuron.h"
 
 #include "marocco/coordinates/LogicalNeuron.h"
 #include "marocco/placement/parameters/NeuronPlacement.h"
@@ -38,8 +38,8 @@ public:
 
 	struct Location
 	{
-		boost::variant<std::vector<HMF::Coordinate::HICANNOnWafer>,
-		               std::vector<HMF::Coordinate::NeuronBlockOnWafer>,
+		boost::variant<std::vector<halco::hicann::v2::HICANNOnWafer>,
+		               std::vector<halco::hicann::v2::NeuronBlockOnWafer>,
 		               std::vector<LogicalNeuron> >
 			locations;
 		/// Size of hardware neuron.  0 ≙ default neuron size.
@@ -72,22 +72,22 @@ public:
 	void on_hicann(
 	    population_type pop,
 	    mask_type mask,
-	    HMF::Coordinate::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::HICANNOnWafer const& hicann,
 	    size_type size = 0);
 	void on_hicann(
 	    population_type pop,
 	    mask_type mask,
-	    std::vector<HMF::Coordinate::HICANNOnWafer> const& hicanns,
+	    std::vector<halco::hicann::v2::HICANNOnWafer> const& hicanns,
 	    size_type size = 0);
 	void on_neuron_block(
 	    population_type pop,
 	    mask_type mask,
-	    HMF::Coordinate::NeuronBlockOnWafer const& block,
+	    halco::hicann::v2::NeuronBlockOnWafer const& block,
 	    size_type size = 0);
 	void on_neuron_block(
 	    population_type pop,
 	    mask_type mask,
-	    std::vector<HMF::Coordinate::NeuronBlockOnWafer> const& blocks,
+	    std::vector<halco::hicann::v2::NeuronBlockOnWafer> const& blocks,
 	    size_type size = 0);
 	void on_neuron(population_type pop, mask_type mask, LogicalNeuron const& neuron);
 	void on_neuron(population_type pop, mask_type mask, std::vector<LogicalNeuron> const& neurons);

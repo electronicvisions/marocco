@@ -1,6 +1,6 @@
 #include "marocco/resource/CalibParameters.h"
 
-#include "hal/Coordinate/HICANN.h"
+#include "halco/hicann/v2/hicann.h"
 
 #include "calibtic/HMF/HICANNCollection.h"
 #include "calibtic/backend/Backend.h"
@@ -8,7 +8,7 @@
 #include "marocco/Logger.h"
 #include "pymarocco/PyMarocco.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace resource {

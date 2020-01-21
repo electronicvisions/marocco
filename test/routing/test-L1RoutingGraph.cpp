@@ -2,13 +2,14 @@
 
 #include <set>
 
-#include "hal/Coordinate/HMFGeometry.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/hicann/v2/fwd.h"
+#include "halco/common/iter_all.h"
 #include "marocco/routing/L1RoutingGraph.h"
 #include "marocco/routing/PathBundle.h"
 #include "marocco/util/iterable.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {

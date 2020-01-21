@@ -20,7 +20,7 @@ public:
 	typedef euter::Connector::matrix_type Matrix;
 	typedef graph_t::edge_descriptor Edge;
 	typedef graph_t::vertex_descriptor Vertex;
-	typedef HMF::Coordinate::HICANNOnWafer Index;
+	typedef halco::hicann::v2::HICANNOnWafer Index;
 	typedef assignment::PopulationSlice Assign;
 
 	SynapseLoss(graph_t const& graph);

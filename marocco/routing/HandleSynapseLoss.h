@@ -2,8 +2,8 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
 
 #include "marocco/BioGraph.h"
 #include "marocco/placement/results/Placement.h"
@@ -26,8 +26,8 @@ public:
 	void operator()(results::L1Routing::route_item_type const& route_item);
 
 	void operator()(
-		HMF::Coordinate::DNCMergerOnWafer const& source_merger,
-		HMF::Coordinate::HICANNOnWafer const& target_hicann,
+		halco::hicann::v2::DNCMergerOnWafer const& source_merger,
+		halco::hicann::v2::HICANNOnWafer const& target_hicann,
 		BioGraph::edge_descriptor const& projection);
 
 private:

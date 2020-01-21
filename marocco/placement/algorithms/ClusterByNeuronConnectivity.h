@@ -100,13 +100,13 @@ protected:
 	 *        • calls: calculation of the degree to related populations
 	 *        • calls: update of the priority list in relation to the just placed population
 	 * @param [in] NeuronPlacementRequest chunk: the PlacementRequest that was just placed.
-	 * @param [in] HMF::Coordinate::NeuronBlockOnWafer nb: the NeuronBlock that was used for the
+	 * @param [in] halco::hicann::v2::NeuronBlockOnWafer nb: the NeuronBlock that was used for the
 	 *placement.
 	 *
 	 **/
 	void update_relations_to_placement(
 	    NeuronPlacementRequest const& chunk,
-	    HMF::Coordinate::NeuronBlockOnWafer const& nb) PYPP_OVERRIDE;
+	    halco::hicann::v2::NeuronBlockOnWafer const& nb) PYPP_OVERRIDE;
 
 
 	/**
@@ -155,7 +155,7 @@ protected:
 	mutable boost::unordered_map<BioNeuron, std::vector<BioNeuron> > m_cached_sources;
 
 	boost::unordered_map<BioNeuron, size_t> m_precalculated_degree;
-	boost::unordered_map<BioNeuron, HMF::Coordinate::NeuronBlockOnWafer> m_placed;
+	boost::unordered_map<BioNeuron, halco::hicann::v2::NeuronBlockOnWafer> m_placed;
 
 	// history of placed neurons, used for some placement strategies
 	std::vector<BioNeuron> m_placed_hist;

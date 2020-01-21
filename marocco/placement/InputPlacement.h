@@ -74,7 +74,7 @@ public:
 
 private:
 	void configureGbitLinks(
-		HMF::Coordinate::HICANNGlobal const& hicann,
+		halco::hicann::v2::HICANNGlobal const& hicann,
 		internal::L1AddressAssignment& address_assignment);
 
 	/**
@@ -86,7 +86,7 @@ private:
 	 *       passed-in population slice vector. In this case it should try another HICANN.
 	 */
 	void insertInput(
-	    HMF::Coordinate::HICANNOnWafer const& target_hicann,
+	    halco::hicann::v2::HICANNOnWafer const& target_hicann,
 	    results::Placement& neuron_placement,
 	    internal::L1AddressAssignment& address_assignment,
 	    std::vector<marocco::assignment::PopulationSlice>& bio);
@@ -112,12 +112,12 @@ private:
 	/// as the PyMarocco.input_placement.bandwidth_utilization parameter.
 	/// @param hicann coordinate of HICANN
 	/// @return the available Rate in Hz
-	rate_type availableRate(HMF::Coordinate::HICANNOnWafer const& hicann);
+	rate_type availableRate(halco::hicann::v2::HICANNOnWafer const& hicann);
 
 	/// allocates a firing rate as used for a HICANN and the associated FPGA.
 	/// @param hicann coordinate of HICANN
 	/// @param the rate in Hz to be allocated
-	void allocateRate(HMF::Coordinate::HICANNOnWafer const& hicann, rate_type rate);
+	void allocateRate(halco::hicann::v2::HICANNOnWafer const& hicann, rate_type rate);
 
 	/// counts the number of neurons from a population size that do not exceed
 	/// the available rate.
@@ -139,10 +139,10 @@ private:
 
 
 	/// already used pulse rate in Hz per HICANN
-	std::unordered_map<HMF::Coordinate::HICANNOnWafer, rate_type> mUsedRateHICANN;
+	std::unordered_map<halco::hicann::v2::HICANNOnWafer, rate_type> mUsedRateHICANN;
 
 	/// already used pulse rate in Hz per FPGA
-	std::unordered_map<HMF::Coordinate::FPGAOnWafer, rate_type> mUsedRateFPGA;
+	std::unordered_map<halco::hicann::v2::FPGAOnWafer, rate_type> mUsedRateFPGA;
 
 	/// maximum pulse rate per HICANN in Hz (17.8 MHz)
 	/// assumed limitation: 1 pulse per 56 ns for slow LVDS mode

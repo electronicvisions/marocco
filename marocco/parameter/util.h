@@ -6,7 +6,7 @@
 #include "marocco/Logger.h"
 #include "euter/typedcellparametervector.h"
 #include "sthal/macros.h"
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 
 namespace marocco {
 namespace parameter {

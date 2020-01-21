@@ -2,7 +2,7 @@
 
 #include <boost/serialization/nvp.hpp>
 
-#include "hal/Coordinate/Neuron.h"
+#include "halco/hicann/v2/neuron.h"
 #include "marocco/coordinates/LogicalNeuron.h"
 
 #include "marocco/placement/algorithms/byNeuronBlockEnumAndPopulationIDasc.h"

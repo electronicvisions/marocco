@@ -2,11 +2,11 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
-#include "hal/Coordinate/Merger0OnHICANN.h"
-#include "hal/Coordinate/Merger1OnHICANN.h"
-#include "hal/Coordinate/Merger2OnHICANN.h"
-#include "hal/Coordinate/Merger3OnHICANN.h"
-#include "hal/Coordinate/Relations.h"
+#include "halco/hicann/v2/merger0onhicann.h"
+#include "halco/hicann/v2/merger1onhicann.h"
+#include "halco/hicann/v2/merger2onhicann.h"
+#include "halco/hicann/v2/merger3onhicann.h"
+#include "halco/common/relations.h"
 
 namespace marocco {
 namespace placement {
@@ -24,7 +24,7 @@ public:
 		size_t index;
 	}; // Merger
 
-	typedef HMF::Coordinate::SideHorizontal Port;
+	typedef halco::common::SideHorizontal Port;
 
 	typedef Merger vertex_type;
 	typedef Port edge_type;
@@ -36,11 +36,11 @@ public:
 
 	MergerTreeGraph();
 
-	vertex_descriptor operator[](HMF::Coordinate::DNCMergerOnHICANN const& merger) const;
-	vertex_descriptor operator[](HMF::Coordinate::Merger3OnHICANN const& merger) const;
-	vertex_descriptor operator[](HMF::Coordinate::Merger2OnHICANN const& merger) const;
-	vertex_descriptor operator[](HMF::Coordinate::Merger1OnHICANN const& merger) const;
-	vertex_descriptor operator[](HMF::Coordinate::Merger0OnHICANN const& merger) const;
+	vertex_descriptor operator[](halco::hicann::v2::DNCMergerOnHICANN const& merger) const;
+	vertex_descriptor operator[](halco::hicann::v2::Merger3OnHICANN const& merger) const;
+	vertex_descriptor operator[](halco::hicann::v2::Merger2OnHICANN const& merger) const;
+	vertex_descriptor operator[](halco::hicann::v2::Merger1OnHICANN const& merger) const;
+	vertex_descriptor operator[](halco::hicann::v2::Merger0OnHICANN const& merger) const;
 
 	/**
 	 * @brief Mark merger as defect by removing all edges of the corresponding vertex.
@@ -54,9 +54,9 @@ public:
 	static constexpr size_t vertices_count()
 	{
 		return (
-			HMF::Coordinate::DNCMergerOnHICANN::size + HMF::Coordinate::Merger0OnHICANN::size +
-			HMF::Coordinate::Merger1OnHICANN::size + HMF::Coordinate::Merger2OnHICANN::size +
-			HMF::Coordinate::Merger3OnHICANN::size);
+			halco::hicann::v2::DNCMergerOnHICANN::size + halco::hicann::v2::Merger0OnHICANN::size +
+			halco::hicann::v2::Merger1OnHICANN::size + halco::hicann::v2::Merger2OnHICANN::size +
+			halco::hicann::v2::Merger3OnHICANN::size);
 	}
 
 private:

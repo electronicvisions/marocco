@@ -1,6 +1,7 @@
 import unittest
 
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
+from pyhalco_common import *
 from pymarocco_coordinates import LogicalNeuron
 
 

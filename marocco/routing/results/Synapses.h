@@ -8,8 +8,8 @@
 #include <boost/optional.hpp>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/Synapse.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/synapse.h"
 
 #include "marocco/coordinates/BioNeuron.h"
 #include "marocco/routing/results/Edge.h"
@@ -32,7 +32,7 @@ public:
 	typedef Edge edge_type;
 	// projections are identified by their unique euter_id (which is by convention of type size_t)
 	typedef size_t projection_type;
-	typedef HMF::Coordinate::SynapseOnWafer hardware_synapse_type;
+	typedef halco::hicann::v2::SynapseOnWafer hardware_synapse_type;
 	typedef boost::optional<hardware_synapse_type> optional_hardware_synapse_type;
 
 	/**
@@ -180,11 +180,11 @@ public:
 		BioNeuron const& target_neuron) const;
 
 	iterable<by_hardware_synapse_type::iterator> find(
-		HMF::Coordinate::SynapseOnWafer const& hardware_synapse) const;
+		halco::hicann::v2::SynapseOnWafer const& hardware_synapse) const;
 
 	iterable<by_hardware_synapse_type::iterator> find(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::SynapseRowOnHICANN const& synapse_row) const;
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::SynapseRowOnHICANN const& synapse_row) const;
 
 	iterable<by_hardware_synapse_type::iterator> unrealized_synapses() const;
 

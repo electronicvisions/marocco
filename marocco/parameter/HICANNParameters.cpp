@@ -3,7 +3,7 @@
 #include "calibtic/HMF/NeuronCalibration.h"
 #include "calibtic/HMF/SynapseRowCalibration.h"
 #include "calibtic/backend/Backend.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
 #include "marocco/Logger.h"
 #include "marocco/parameter/CMVisitor.h"
@@ -11,7 +11,8 @@
 #include "marocco/parameter/SpikeInputVisitor.h"
 #include "marocco/routing/util.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace parameter {
@@ -267,7 +268,7 @@ void HICANNParameters::shared_parameters(
 {
 	using namespace HMF;
 
-	for (size_t ii=0; ii<HMF::Coordinate::FGBlockOnHICANN::enum_type::size; ++ii)
+	for (size_t ii=0; ii<halco::hicann::v2::FGBlockOnHICANN::enum_type::size; ++ii)
 	{
 		// default values for other parameters are also retrieved
 		auto hwparams = calib.applySharedCalibration(v_reset, ii);
@@ -279,7 +280,7 @@ void HICANNParameters::shared_parameters(
 
 void HICANNParameters::synapses(synapse_row_calib_type const& calib)
 {
-	HMF::Coordinate::typed_array<double, NeuronOnHICANN> const weight_scales = weight_scale_array();
+	halco::common::typed_array<double, NeuronOnHICANN> const weight_scales = weight_scale_array();
 
 	auto const& hicann = m_chip.index();
 	auto const& synapses = m_synapse_routing.synapses();
@@ -367,10 +368,10 @@ void HICANNParameters::synapses(synapse_row_calib_type const& calib)
 	}
 }
 
-HMF::Coordinate::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_scale_array() const
+halco::common::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_scale_array() const
 {
 	CMVisitor const cm_visitor{};
-	HMF::Coordinate::typed_array<double, NeuronOnHICANN> rv;
+	halco::common::typed_array<double, NeuronOnHICANN> rv;
 
 	//initialize all values to 0.
 	for (auto const& noh : iter_all<NeuronOnHICANN>())

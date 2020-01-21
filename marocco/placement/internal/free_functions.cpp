@@ -7,7 +7,7 @@ namespace placement {
 namespace internal {
 
 OnNeuronBlock& get_on_neuron_block_reference(
-    Result::denmem_assignment_type& denmem_state, HMF::Coordinate::NeuronBlockOnWafer const& nb)
+    Result::denmem_assignment_type& denmem_state, halco::hicann::v2::NeuronBlockOnWafer const& nb)
 {
 	auto const hicann = nb.toHICANNOnWafer();
 	auto it = denmem_state.find(hicann);

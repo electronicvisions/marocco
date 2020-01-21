@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "marocco/coordinates/L1RouteTree.h"
 
 namespace marocco {
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 class ASimpleL1Route : public ::testing::Test
 {

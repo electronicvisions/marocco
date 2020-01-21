@@ -7,14 +7,14 @@
 #include <boost/serialization/export.hpp>
 #include <boost/variant.hpp>
 
-#include "hal/Coordinate/External.h"
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/Merger0OnHICANN.h"
-#include "hal/Coordinate/Merger1OnHICANN.h"
-#include "hal/Coordinate/Merger2OnHICANN.h"
-#include "hal/Coordinate/Merger3OnHICANN.h"
-#include "hal/Coordinate/Synapse.h"
+#include "halco/hicann/v2/external.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/hicann/v2/merger0onhicann.h"
+#include "halco/hicann/v2/merger1onhicann.h"
+#include "halco/hicann/v2/merger2onhicann.h"
+#include "halco/hicann/v2/merger3onhicann.h"
+#include "halco/hicann/v2/synapse.h"
 #include "pywrap/compat/macros.hpp"
 #include "marocco/test.h"
 
@@ -37,25 +37,25 @@ public:
 class L1Route : public boost::equality_comparable<L1Route>
 {
 public:
-	typedef boost::variant<HMF::Coordinate::HICANNOnWafer,
-	                       HMF::Coordinate::Merger0OnHICANN,
-	                       HMF::Coordinate::Merger1OnHICANN,
-	                       HMF::Coordinate::Merger2OnHICANN,
-	                       HMF::Coordinate::Merger3OnHICANN,
-	                       HMF::Coordinate::GbitLinkOnHICANN,
+	typedef boost::variant<halco::hicann::v2::HICANNOnWafer,
+	                       halco::hicann::v2::Merger0OnHICANN,
+	                       halco::hicann::v2::Merger1OnHICANN,
+	                       halco::hicann::v2::Merger2OnHICANN,
+	                       halco::hicann::v2::Merger3OnHICANN,
+	                       halco::hicann::v2::GbitLinkOnHICANN,
 
 	                       // Events from merger tree/external input,
 	                       // to be sent via sending repeater.
-	                       HMF::Coordinate::DNCMergerOnHICANN,
+	                       halco::hicann::v2::DNCMergerOnHICANN,
 
 	                       // Events from test port on repeater block,
 	                       // can be sent to bus via corresponding repeater.
-	                       HMF::Coordinate::RepeaterBlockOnHICANN,
+	                       halco::hicann::v2::RepeaterBlockOnHICANN,
 
-	                       HMF::Coordinate::HLineOnHICANN,
-	                       HMF::Coordinate::VLineOnHICANN,
-	                       HMF::Coordinate::SynapseDriverOnHICANN,
-	                       HMF::Coordinate::SynapseOnHICANN>
+	                       halco::hicann::v2::HLineOnHICANN,
+	                       halco::hicann::v2::VLineOnHICANN,
+	                       halco::hicann::v2::SynapseDriverOnHICANN,
+	                       halco::hicann::v2::SynapseOnHICANN>
 	    segment_type;
 	typedef std::vector<segment_type> sequence_type;
 	typedef sequence_type::const_iterator iterator;
@@ -114,10 +114,10 @@ public:
 	segment_type const& back() const;
 
 	/// Returns the \c HICANNOnWafer this route starts from.
-	HMF::Coordinate::HICANNOnWafer const& source_hicann() const;
+	halco::hicann::v2::HICANNOnWafer const& source_hicann() const;
 
 	/// Returns the \c HICANNOnWafer this route leads to.
-	HMF::Coordinate::HICANNOnWafer const& target_hicann() const;
+	halco::hicann::v2::HICANNOnWafer const& target_hicann() const;
 
 	/**
 	 * @brief Extends this route by a single segment.
@@ -138,7 +138,7 @@ public:
 	 * @note This just dispatches to the one-argument version of #append() when passing in
 	 *       the current \c HICANNOnWafer, so you may prefer to directly use that function.
 	 */
-	void append(HMF::Coordinate::HICANNOnWafer const& hicann, segment_type const& segment);
+	void append(halco::hicann::v2::HICANNOnWafer const& hicann, segment_type const& segment);
 
 	/**
 	 * @brief Extends this route by appending the segments contained in another route.
@@ -177,9 +177,9 @@ private:
 	FRIEND_TEST(L1Route, findInvalid);
 
 	static iterator find_invalid(
-	    iterator beg, iterator end, HMF::Coordinate::HICANNOnWafer* store_last_hicann = nullptr);
+	    iterator beg, iterator end, halco::hicann::v2::HICANNOnWafer* store_last_hicann = nullptr);
 
-	HMF::Coordinate::HICANNOnWafer m_last_hicann;
+	halco::hicann::v2::HICANNOnWafer m_last_hicann;
 	sequence_type m_segments;
 
 	friend class boost::serialization::access;

@@ -3,11 +3,12 @@
 
 #include "marocco/routing/SynapseRoutingConfigurator.h"
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
 #include "marocco/Logger.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {
@@ -18,7 +19,7 @@ SynapseRoutingConfigurator::SynapseRoutingConfigurator(sthal::Wafer& hardware)
 }
 
 void SynapseRoutingConfigurator::run(
-	HMF::Coordinate::HICANNOnWafer const& hicann,
+	halco::hicann::v2::HICANNOnWafer const& hicann,
 	results::SynapseRouting::HICANN const& result)
 {
 
@@ -92,9 +93,9 @@ void SynapseRoutingConfigurator::run(
 }
 
 void SynapseRoutingConfigurator::set_synapse_switch(
-	HMF::Coordinate::HICANNOnWafer const& hicann,
-	HMF::Coordinate::SynapseDriverOnHICANN const& driver,
-	HMF::Coordinate::VLineOnHICANN const& vline)
+	halco::hicann::v2::HICANNOnWafer const& hicann,
+	halco::hicann::v2::SynapseDriverOnHICANN const& driver,
+	halco::hicann::v2::VLineOnHICANN const& vline)
 {
 	auto hicann_ = hicann;
 
@@ -108,7 +109,7 @@ void SynapseRoutingConfigurator::set_synapse_switch(
 }
 
 void SynapseRoutingConfigurator::connect_drivers(
-	HMF::Coordinate::HICANNOnWafer const& hicann, results::ConnectedSynapseDrivers const& connected_drivers)
+	halco::hicann::v2::HICANNOnWafer const& hicann, results::ConnectedSynapseDrivers const& connected_drivers)
 {
 	auto const& drivers = connected_drivers.drivers();
 	if (drivers.empty()) {

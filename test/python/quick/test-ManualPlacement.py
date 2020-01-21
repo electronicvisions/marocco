@@ -1,7 +1,8 @@
 import unittest
 
 from pymarocco.coordinates import LogicalNeuron
-import pyhalbe.Coordinate as C
+from pyhalco_common import X, Y, Enum
+import pyhalco_hicann_v2 as C
 import pyhmf as pynn
 
 import utils
@@ -16,7 +17,7 @@ class TestManualPlacement(utils.TestWithResults):
         from pymarocco import PyMarocco, Defects
         from pymarocco.results import Marocco
         pop_size = 5
-        hicanns = [C.HICANNOnWafer(C.Enum(180 + view)) for view in range(view_number)]
+        hicanns = [C.HICANNOnWafer(Enum(180 + view)) for view in range(view_number)]
         # generate possible mask lengths for Population Views
         pool = tuple(i for i in range(1, pop_size - view_number + 2))
         # generate all possible mask lengths for each PopulationView for a given total number of neurons
@@ -70,8 +71,8 @@ class TestManualPlacement(utils.TestWithResults):
             pynn.Projection(pop_ext, pop, connector, target='excitatory'),
             pynn.Projection(pop_ext_1, pop, connector, target='excitatory'),
         ]
-        hicann = C.HICANNOnWafer(C.Enum(121))
-        hicann_1 = C.HICANNOnWafer(C.Enum(122))
+        hicann = C.HICANNOnWafer(Enum(121))
+        hicann_1 = C.HICANNOnWafer(Enum(122))
 
         pop_view = pynn.PopulationView(pop_ext,range(1,size,2))
         pop_view_1 = pynn.PopulationView(pop_ext,range(0,size,2))
@@ -112,12 +113,12 @@ class TestManualPlacement(utils.TestWithResults):
         neuron_block = C.NeuronBlockOnWafer(C.NeuronBlockOnHICANN(3))
         neuron_block_1 = C.NeuronBlockOnWafer(C.NeuronBlockOnHICANN(2))
         logical_neuron = (LogicalNeuron.on(neuron_block)
-                          .add(C.NeuronOnNeuronBlock(C.X(3), C.Y(0)), 2)
-                          .add(C.NeuronOnNeuronBlock(C.X(3), C.Y(1)), 2)
+                          .add(C.NeuronOnNeuronBlock(X(3), Y(0)), 2)
+                          .add(C.NeuronOnNeuronBlock(X(3), Y(1)), 2)
                           .done())
         logical_neuron_1 = (LogicalNeuron.on(neuron_block_1)
-                          .add(C.NeuronOnNeuronBlock(C.X(4), C.Y(0)), 2)
-                          .add(C.NeuronOnNeuronBlock(C.X(4), C.Y(1)), 2)
+                          .add(C.NeuronOnNeuronBlock(X(4), Y(0)), 2)
+                          .add(C.NeuronOnNeuronBlock(X(4), Y(1)), 2)
                           .done())
 
         popview = pynn.PopulationView(pop,[0])
@@ -144,10 +145,10 @@ class TestManualPlacement(utils.TestWithResults):
         pynn.setup(marocco=self.marocco)
         neuron_size = 4
         self.marocco.neuron_placement.default_neuron_size(neuron_size)
-        hicann = C.HICANNOnWafer(C.Enum(122))
-        hicann_1 = C.HICANNOnWafer(C.Enum(123))
-        hicann_2 = C.HICANNOnWafer(C.Enum(124))
-        hicann_3 = C.HICANNOnWafer(C.Enum(125))
+        hicann = C.HICANNOnWafer(Enum(122))
+        hicann_1 = C.HICANNOnWafer(Enum(123))
+        hicann_2 = C.HICANNOnWafer(Enum(124))
+        hicann_3 = C.HICANNOnWafer(Enum(125))
         pop = pynn.Population(size, pynn.IF_cond_exp, {})
         pop_1 = pynn.Population(size, pynn.IF_cond_exp, {})
         pop_view = pynn.PopulationView(pop,range(0,size,2))
@@ -206,8 +207,8 @@ class TestManualPlacement(utils.TestWithResults):
         pynn.setup(marocco=self.marocco)
         neuron_size = 4
         self.marocco.neuron_placement.default_neuron_size(neuron_size)
-        hicann = C.HICANNOnWafer(C.Enum(123))
-        hicann_1 = C.HICANNOnWafer(C.Enum(122))
+        hicann = C.HICANNOnWafer(Enum(123))
+        hicann_1 = C.HICANNOnWafer(Enum(122))
         pop = pynn.Population(size, pynn.IF_cond_exp, {})
         pop_view = pynn.PopulationView(pop,[0])
         pop_view_1 = pynn.PopulationView(pop,[0])
@@ -224,7 +225,7 @@ class TestManualPlacement(utils.TestWithResults):
         neuron_size = 4
         self.marocco.neuron_placement.default_neuron_size(neuron_size)
 
-        hicann = C.HICANNOnWafer(C.Enum(123))
+        hicann = C.HICANNOnWafer(Enum(123))
         pop = pynn.Population(size, pynn.IF_cond_exp, {})
         self.marocco.manual_placement.on_hicann(pop, hicann)
 
@@ -308,8 +309,8 @@ class TestManualPlacement(utils.TestWithResults):
         pop = pynn.Population(1, pynn.IF_cond_exp, {})
         neuron_block = C.NeuronBlockOnWafer(C.NeuronBlockOnHICANN(3))
         logical_neuron = (LogicalNeuron.on(neuron_block)
-                          .add(C.NeuronOnNeuronBlock(C.X(3), C.Y(0)), 2)
-                          .add(C.NeuronOnNeuronBlock(C.X(3), C.Y(1)), 2)
+                          .add(C.NeuronOnNeuronBlock(X(3), Y(0)), 2)
+                          .add(C.NeuronOnNeuronBlock(X(3), Y(1)), 2)
                           .done())
         self.marocco.manual_placement.on_neuron(pop, logical_neuron)
 
@@ -325,7 +326,7 @@ class TestManualPlacement(utils.TestWithResults):
         pynn.setup(marocco=self.marocco)
 
         pop = pynn.Population(1, pynn.IF_cond_exp, {})
-        topleft = C.NeuronOnWafer(C.NeuronOnHICANN(C.X(2), C.Y(0)))
+        topleft = C.NeuronOnWafer(C.NeuronOnHICANN(X(2), Y(0)))
         logical_neuron = LogicalNeuron.rectangular(topleft, size=4)
         self.marocco.manual_placement.on_neuron(pop, logical_neuron)
 
@@ -345,12 +346,12 @@ class TestManualPlacement(utils.TestWithResults):
         neuron_block = C.NeuronBlockOnWafer(C.NeuronBlockOnHICANN(3))
         logical_neurons = [
             (LogicalNeuron.on(neuron_block)
-             .add(C.NeuronOnNeuronBlock(C.X(3), C.Y(0)), 2)
-             .add(C.NeuronOnNeuronBlock(C.X(3), C.Y(1)), 2)
+             .add(C.NeuronOnNeuronBlock(X(3), Y(0)), 2)
+             .add(C.NeuronOnNeuronBlock(X(3), Y(1)), 2)
              .done()),
             (LogicalNeuron.on(neuron_block)
-             .add(C.NeuronOnNeuronBlock(C.X(11), C.Y(0)), 2)
-             .add(C.NeuronOnNeuronBlock(C.X(11), C.Y(1)), 2)
+             .add(C.NeuronOnNeuronBlock(X(11), Y(0)), 2)
+             .add(C.NeuronOnNeuronBlock(X(11), Y(1)), 2)
              .done()),
         ]
         self.marocco.manual_placement.on_neuron(pop, logical_neurons)
@@ -376,8 +377,8 @@ class TestManualPlacement(utils.TestWithResults):
         pop = pynn.Population(1, pynn.IF_cond_exp, {})
         neuron_block = C.NeuronBlockOnWafer(C.NeuronBlockOnHICANN(3))
         logical_neuron = (LogicalNeuron.on(neuron_block)
-                          .add(C.NeuronOnNeuronBlock(C.X(2), C.Y(0)), 4)
-                          .add(C.NeuronOnNeuronBlock(C.X(3), C.Y(1)), 2)
+                          .add(C.NeuronOnNeuronBlock(X(2), Y(0)), 4)
+                          .add(C.NeuronOnNeuronBlock(X(3), Y(1)), 2)
                           .done())
         self.marocco.manual_placement.on_neuron(pop, logical_neuron)
 

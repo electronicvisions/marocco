@@ -247,16 +247,16 @@ EMSCRIPTEN_BINDINGS(marocco_results)
 		emscripten::register_vector<std::string>("VectorString");
 
 		// some opaque types (variants of marocco::L1Route::segment_type)
-		emscripten::class_<HMF::Coordinate::Merger0OnHICANN>("Merger0OnHICANN");
-		emscripten::class_<HMF::Coordinate::Merger1OnHICANN>("Merger1OnHICANN");
-		emscripten::class_<HMF::Coordinate::Merger2OnHICANN>("Merger2OnHICANN");
-		emscripten::class_<HMF::Coordinate::Merger3OnHICANN>("Merger3OnHICANN");
-		emscripten::class_<HMF::Coordinate::GbitLinkOnHICANN>("GbitLinkOnHICANN");
-		emscripten::class_<HMF::Coordinate::DNCMergerOnHICANN>("DNCMergerOnHICANN");
-		emscripten::class_<HMF::Coordinate::RepeaterBlockOnHICANN>("RepeaterBlockOnHICANN");
-		emscripten::class_<HMF::Coordinate::HLineOnHICANN>("HLineOnHICANN");
-		emscripten::class_<HMF::Coordinate::VLineOnHICANN>("VLineOnHICANN");
-		emscripten::class_<HMF::Coordinate::SynapseDriverOnHICANN>("SynapseDriverOnHICANN");
-		emscripten::class_<HMF::Coordinate::SynapseOnHICANN>("SynapseOnHICANN");
+		emscripten::class_<halco::hicann::v2::Merger0OnHICANN>("Merger0OnHICANN");
+		emscripten::class_<halco::hicann::v2::Merger1OnHICANN>("Merger1OnHICANN");
+		emscripten::class_<halco::hicann::v2::Merger2OnHICANN>("Merger2OnHICANN");
+		emscripten::class_<halco::hicann::v2::Merger3OnHICANN>("Merger3OnHICANN");
+		emscripten::class_<halco::hicann::v2::GbitLinkOnHICANN>("GbitLinkOnHICANN");
+		emscripten::class_<halco::hicann::v2::DNCMergerOnHICANN>("DNCMergerOnHICANN");
+		emscripten::class_<halco::hicann::v2::RepeaterBlockOnHICANN>("RepeaterBlockOnHICANN");
+		emscripten::class_<halco::hicann::v2::HLineOnHICANN>("HLineOnHICANN");
+		emscripten::class_<halco::hicann::v2::VLineOnHICANN>("VLineOnHICANN");
+		emscripten::class_<halco::hicann::v2::SynapseDriverOnHICANN>("SynapseDriverOnHICANN");
+		emscripten::class_<halco::hicann::v2::SynapseOnHICANN>("SynapseOnHICANN");
 	}
 }

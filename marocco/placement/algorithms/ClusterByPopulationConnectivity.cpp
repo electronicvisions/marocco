@@ -4,7 +4,7 @@
 #include <functional>
 #include <utility>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/BioGraph.h"
 #include "marocco/Logger.h"
 #include "marocco/placement/internal/free_functions.h"
@@ -75,11 +75,11 @@ void ClusterByPopulationConnectivity::finalise()
 }
 
 bool ClusterByPopulationConnectivity::nb_order_function(
-    HMF::Coordinate::NeuronBlockOnWafer const& a,
-    HMF::Coordinate::NeuronBlockOnWafer const& b,
+    halco::hicann::v2::NeuronBlockOnWafer const& a,
+    halco::hicann::v2::NeuronBlockOnWafer const& b,
     std::function<bool(
-        HMF::Coordinate::NeuronBlockOnWafer const&,
-        HMF::Coordinate::NeuronBlockOnWafer const&)> const& order) const
+        halco::hicann::v2::NeuronBlockOnWafer const&,
+        halco::hicann::v2::NeuronBlockOnWafer const&)> const& order) const
 {
 	if (a == b)
 		return false;
@@ -90,10 +90,10 @@ bool ClusterByPopulationConnectivity::nb_order_function(
 }
 
 bool ClusterByPopulationConnectivity::hicann_order_function(
-    HMF::Coordinate::HICANNOnWafer const& a,
-    HMF::Coordinate::HICANNOnWafer const& b,
+    halco::hicann::v2::HICANNOnWafer const& a,
+    halco::hicann::v2::HICANNOnWafer const& b,
     std::function<bool(
-        HMF::Coordinate::HICANNOnWafer const&, HMF::Coordinate::HICANNOnWafer const&)> const& order)
+        halco::hicann::v2::HICANNOnWafer const&, halco::hicann::v2::HICANNOnWafer const&)> const& order)
     const
 {
 	if (a == b)
@@ -105,14 +105,14 @@ bool ClusterByPopulationConnectivity::hicann_order_function(
 }
 
 bool ClusterByPopulationConnectivity::neuron_blocks_comparator_function(
-    HMF::Coordinate::NeuronBlockOnWafer const& a,
-    HMF::Coordinate::NeuronBlockOnWafer const& b,
+    halco::hicann::v2::NeuronBlockOnWafer const& a,
+    halco::hicann::v2::NeuronBlockOnWafer const& b,
     std::function<
-        bool(HMF::Coordinate::HICANNOnWafer const&, HMF::Coordinate::HICANNOnWafer const&)> const&
+        bool(halco::hicann::v2::HICANNOnWafer const&, halco::hicann::v2::HICANNOnWafer const&)> const&
         hicann_order,
     std::function<bool(
-        HMF::Coordinate::NeuronBlockOnWafer const&,
-        HMF::Coordinate::NeuronBlockOnWafer const&)> const& nb_order) const
+        halco::hicann::v2::NeuronBlockOnWafer const&,
+        halco::hicann::v2::NeuronBlockOnWafer const&)> const& nb_order) const
 {
 	if (a == b)
 		return false;
@@ -142,14 +142,14 @@ bool ClusterByPopulationConnectivity::neuron_blocks_comparator_function(
 void ClusterByPopulationConnectivity::sort_neuron_blocks()
 {
 	std::function<bool(
-	    HMF::Coordinate::NeuronBlockOnWafer const&, HMF::Coordinate::NeuronBlockOnWafer const&)>
+	    halco::hicann::v2::NeuronBlockOnWafer const&, halco::hicann::v2::NeuronBlockOnWafer const&)>
 	    nb_ordering;
 
 	switch (m_neuron_block_on_hicann_ordering) {
 		case NeuronBlockOnHICANNOrdering::neuron_block_on_hicann_enum_increasing: {
 			MAROCCO_TRACE("strat:increasing");
-			nb_ordering = [](HMF::Coordinate::NeuronBlockOnWafer const& a,
-			                 HMF::Coordinate::NeuronBlockOnWafer const& b) constexpr->bool
+			nb_ordering = [](halco::hicann::v2::NeuronBlockOnWafer const& a,
+			                 halco::hicann::v2::NeuronBlockOnWafer const& b) constexpr->bool
 			{
 				return a.toNeuronBlockOnHICANN() < b.toNeuronBlockOnHICANN();
 			};
@@ -157,8 +157,8 @@ void ClusterByPopulationConnectivity::sort_neuron_blocks()
 		}
 		case NeuronBlockOnHICANNOrdering::neuron_block_on_hicann_enum_decreasing: {
 			MAROCCO_TRACE("strat:decreasing");
-			nb_ordering = [](HMF::Coordinate::NeuronBlockOnWafer const& a,
-			                 HMF::Coordinate::NeuronBlockOnWafer const& b) constexpr->bool
+			nb_ordering = [](halco::hicann::v2::NeuronBlockOnWafer const& a,
+			                 halco::hicann::v2::NeuronBlockOnWafer const& b) constexpr->bool
 			{
 				return a.toNeuronBlockOnHICANN() > b.toNeuronBlockOnHICANN();
 			};
@@ -166,8 +166,8 @@ void ClusterByPopulationConnectivity::sort_neuron_blocks()
 		}
 		case NeuronBlockOnHICANNOrdering::merger_tree_friendly: {
 			MAROCCO_TRACE("strat:merger_friendly");
-			nb_ordering = [](HMF::Coordinate::NeuronBlockOnWafer const& a,
-			                 HMF::Coordinate::NeuronBlockOnWafer const& b) constexpr->bool
+			nb_ordering = [](halco::hicann::v2::NeuronBlockOnWafer const& a,
+			                 halco::hicann::v2::NeuronBlockOnWafer const& b) constexpr->bool
 			{
 				// 3 2 1 0 5 4 6 7  NB
 				// 0 1 2 3 4 5 6 7  Sorted to location
@@ -192,18 +192,18 @@ void ClusterByPopulationConnectivity::sort_neuron_blocks()
 	auto [center_x, center_y] = center_of_partners();
 
 	std::function<bool(
-	    HMF::Coordinate::HICANNOnWafer const&, HMF::Coordinate::HICANNOnWafer const&)>
+	    halco::hicann::v2::HICANNOnWafer const&, halco::hicann::v2::HICANNOnWafer const&)>
 	    hc_ordering;
 
 	switch (m_hicann_on_wafer_ordering) {
 		case HICANNOnWaferOrdering::spiral: {
-			spiral_ordering<HMF::Coordinate::HICANNOnWafer> spiral_order(center_x, center_y);
+			spiral_ordering<halco::hicann::v2::HICANNOnWafer> spiral_order(center_x, center_y);
 			hc_ordering = spiral_order;
 			MAROCCO_TRACE("spiral order");
 			break;
 		}
 		case HICANNOnWaferOrdering::vertical: {
-			vertical_ordering<HMF::Coordinate::HICANNOnWafer> vertical_order(center_x, center_y);
+			vertical_ordering<halco::hicann::v2::HICANNOnWafer> vertical_order(center_x, center_y);
 			hc_ordering = vertical_order;
 			MAROCCO_TRACE("vertical order");
 			break;
@@ -217,19 +217,19 @@ void ClusterByPopulationConnectivity::sort_neuron_blocks()
 	    &marocco::placement::algorithms::ClusterByPopulationConnectivity::hicann_order_function,
 	    this, std::placeholders::_1, std::placeholders::_2,
 	    [&hc_ordering](
-	        HMF::Coordinate::HICANNOnWafer const& a,
-	        HMF::Coordinate::HICANNOnWafer const& b) constexpr->bool { return hc_ordering(a, b); });
+	        halco::hicann::v2::HICANNOnWafer const& a,
+	        halco::hicann::v2::HICANNOnWafer const& b) constexpr->bool { return hc_ordering(a, b); });
 
 	auto sort_neuron_blocks_comparator = std::bind(
 	    &marocco::placement::algorithms::ClusterByPopulationConnectivity::
 	        neuron_blocks_comparator_function,
 	    this, std::placeholders::_1, std::placeholders::_2,
 	    [&hicann_order](
-	        HMF::Coordinate::HICANNOnWafer const& a,
-	        HMF::Coordinate::HICANNOnWafer const& b) constexpr->bool { return hicann_order(a, b); },
+	        halco::hicann::v2::HICANNOnWafer const& a,
+	        halco::hicann::v2::HICANNOnWafer const& b) constexpr->bool { return hicann_order(a, b); },
 	    [&nb_order](
-	        HMF::Coordinate::NeuronBlockOnWafer const& a,
-	        HMF::Coordinate::NeuronBlockOnWafer const& b) constexpr->bool {
+	        halco::hicann::v2::NeuronBlockOnWafer const& a,
+	        halco::hicann::v2::NeuronBlockOnWafer const& b) constexpr->bool {
 		    return nb_order(a, b);
 	    });
 
@@ -362,8 +362,8 @@ void ClusterByPopulationConnectivity::update_population_priority_list(
 
 std::pair<double, double> ClusterByPopulationConnectivity::center_of_partners() const
 {
-	double x = HMF::Coordinate::HICANNOnWafer::x_type::max / 2.;
-	double y = HMF::Coordinate::HICANNOnWafer::y_type::max / 2.;
+	double x = halco::hicann::v2::HICANNOnWafer::x_type::max / 2.;
+	double y = halco::hicann::v2::HICANNOnWafer::y_type::max / 2.;
 
 	if (m_queue->empty()) {
 		return std::pair<double, double>(x, y);
@@ -410,7 +410,7 @@ std::pair<double, double> ClusterByPopulationConnectivity::center_of_partners() 
 }
 
 void ClusterByPopulationConnectivity::update_relations_to_placement(
-    NeuronPlacementRequest const& chunk, HMF::Coordinate::NeuronBlockOnWafer const& nb)
+    NeuronPlacementRequest const& chunk, halco::hicann::v2::NeuronBlockOnWafer const& nb)
 {
 	MAROCCO_TRACE("update relations");
 	// add the location of the population to a map, so clustering can be done, difficult to search

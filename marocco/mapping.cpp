@@ -26,7 +26,7 @@
 #include "pymarocco/PyMarocco.h"
 #include "pymarocco/runtime/Runtime.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 using pymarocco::PyMarocco;
 
 namespace redman {

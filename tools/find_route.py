@@ -3,7 +3,7 @@
 import argparse
 
 from pysthal.command_line_util import parse_hicann
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
 import pyalone
 import pymarocco_coordinates
 import pylogging

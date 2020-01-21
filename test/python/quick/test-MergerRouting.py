@@ -1,6 +1,7 @@
 import unittest
 
-import pyhalbe.Coordinate as C
+from pyhalco_common import Enum
+import pyhalco_hicann_v2 as C
 import pyhmf as pynn
 
 import utils
@@ -23,7 +24,7 @@ class TestMergerRouting(utils.TestWithResults):
             self.marocco.merger_routing.minimize_number_of_sending_repeaters)
         self.marocco.neuron_placement.restrict_rightmost_neuron_blocks(True)
 
-        hicann = C.HICANNOnWafer(C.Enum(123))
+        hicann = C.HICANNOnWafer(Enum(123))
         pop = pynn.Population(1, pynn.IF_cond_exp, {})
         self.marocco.manual_placement.on_hicann(pop, hicann)
         in_pop = pynn.Population(1, pynn.SpikeSourceArray, {})
@@ -60,7 +61,7 @@ class TestMergerRouting(utils.TestWithResults):
             self.marocco.merger_routing.minimize_number_of_sending_repeaters)
         self.marocco.neuron_placement.restrict_rightmost_neuron_blocks(True)
 
-        hicann = C.HICANNOnWafer(C.Enum(123))
+        hicann = C.HICANNOnWafer(Enum(123))
         pops = []
         for nb in nbs:
             pop = pynn.Population(1, pynn.IF_cond_exp, {})
@@ -117,7 +118,7 @@ class TestMergerRouting(utils.TestWithResults):
         # Do not reserve rightmost neuron block / DNC merger for external input.
         self.marocco.neuron_placement.restrict_rightmost_neuron_blocks(False)
 
-        hicann = C.HICANNOnWafer(C.Enum(123))
+        hicann = C.HICANNOnWafer(Enum(123))
         pops = []
         # All but the first neuron block are occupied.
         for nb in range(1, C.NeuronBlockOnHICANN.end):
@@ -187,7 +188,7 @@ class TestMergerRouting(utils.TestWithResults):
         # restrict to 3 driver, so that this test is hardware agnostic
         self.marocco.synapse_routing.driver_chain_length(3)
 
-        hicann = C.HICANNOnWafer(C.Enum(123))
+        hicann = C.HICANNOnWafer(Enum(123))
         pops = []
         # All but the first neuron block are occupied.
         for nb in range(C.NeuronBlockOnHICANN.end):

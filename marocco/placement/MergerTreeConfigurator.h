@@ -28,7 +28,7 @@ public:
 	void run(MergerTreeRouter::result_type const& mapping);
 
 private:
-	void connect(HMF::Coordinate::NeuronBlockOnHICANN const& nb, HMF::Coordinate::DNCMergerOnHICANN const& dnc_merger);
+	void connect(halco::hicann::v2::NeuronBlockOnHICANN const& nb, halco::hicann::v2::DNCMergerOnHICANN const& dnc_merger);
 	void connect(MergerTreeGraph::vertex_descriptor src, MergerTreeGraph::vertex_descriptor dest);
 
 	sthal::Layer1& m_layer1;

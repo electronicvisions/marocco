@@ -7,7 +7,8 @@ import tempfile
 import unittest
 
 import pyhmf as pynn
-from pyhalbe.Coordinate import *
+from pyhalco_common import Enum
+from pyhalco_hicann_v2 import *
 import debug_config
 
 import pymarocco

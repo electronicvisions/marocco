@@ -4,7 +4,7 @@
 #include <tbb/concurrent_unordered_map.h>
 #include <tbb/mutex.h>
 
-#include "hal/Coordinate/HICANN.h"
+#include "halco/hicann/v2/hicann.h"
 
 #include "marocco/assignment/PopulationSlice.h"
 #include "marocco/graph.h"
@@ -24,7 +24,7 @@ public:
 	typedef SynapseLossProxy::value_type value_Type;
 
 	typedef graph_t::edge_descriptor Edge;
-	typedef HMF::Coordinate::HICANNOnWafer Index;
+	typedef halco::hicann::v2::HICANNOnWafer Index;
 	typedef assignment::PopulationSlice Assign;
 
 	SynapseLossImpl(graph_t const& graph);

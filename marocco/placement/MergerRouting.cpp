@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <boost/optional.hpp>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/Logger.h"
 #include "marocco/placement/ConstrainMergers.h"
 #include "marocco/placement/MergerTreeConfigurator.h"
@@ -14,7 +14,8 @@
 #include "marocco/util.h"
 #include "marocco/util/chunked.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using marocco::assignment::PopulationSlice;
 
 namespace marocco {
@@ -38,7 +39,7 @@ MergerRouting::MergerRouting(
 {
 }
 
-void MergerRouting::run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnWafer const& hicann)
+void MergerRouting::run(MergerTreeGraph const& graph, halco::hicann::v2::HICANNOnWafer const& hicann)
 {
 	MAROCCO_TRACE("Running merger routing for " << hicann);
 

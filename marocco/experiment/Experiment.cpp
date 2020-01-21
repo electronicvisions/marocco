@@ -5,9 +5,9 @@
 #include <memory>
 #include <boost/filesystem.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/External.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/external.h"
+#include "halco/common/iter_all.h"
 
 #include "sthal/DontProgramFloatingGatesHICANNConfigurator.h"
 #include "sthal/ESSHardwareDatabase.h"
@@ -20,7 +20,7 @@
 #include "marocco/Logger.h"
 #include "marocco/experiment/RecordSpikesVisitor.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace experiment {

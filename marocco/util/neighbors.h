@@ -6,7 +6,7 @@
 
 #include <nanoflann.hpp>
 
-#include "hal/Coordinate/geometry.h"
+#include "halco/common/geometry.h"
 
 namespace marocco {
 

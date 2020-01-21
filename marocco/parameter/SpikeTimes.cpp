@@ -5,7 +5,7 @@
 
 #include "marocco/parameter/SpikeInputVisitor.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace parameter {

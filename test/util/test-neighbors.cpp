@@ -5,10 +5,11 @@
 #include "marocco/util/neighbors.h"
 #include "test/common.h"
 
-#include "hal/Coordinate/iter_all.h"
-#include "hal/Coordinate/HICANN.h"
+#include "halco/common/iter_all.h"
+#include "halco/hicann/v2/hicann.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 

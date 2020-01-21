@@ -7,9 +7,9 @@
 #include <boost/make_shared.hpp>
 
 #include "calibtic/HMF/SynapseDecoderDisablingSynapse.h"
-#include "hal/Coordinate/Synapse.h"
-#include "hal/Coordinate/iter_all.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/hicann/v2/synapse.h"
+#include "halco/common/iter_all.h"
+#include "halco/common/typed_array.h"
 
 #include "marocco/Logger.h"
 #include "marocco/routing/Fieres.h"
@@ -24,7 +24,8 @@
 // because we have a rather dynamically changing graph.
 // Resource allocate for e.g. synapse driver will remove edges.
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using namespace HMF::HICANN;
 
 namespace marocco {
@@ -39,7 +40,7 @@ template <typename T>
 using by_vline_type = std::unordered_map<VLineOnHICANN, T>;
 
 SynapseRouting::SynapseRouting(
-	HMF::Coordinate::HICANNGlobal const& hicann,
+	halco::hicann::v2::HICANNGlobal const& hicann,
 	BioGraph const& bio_graph,
 	hardware_type& hardware,
 	resource_manager_t& resource_manager,
@@ -145,7 +146,7 @@ void SynapseRouting::run()
 	}
 
 
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 					   std::map<SynapseType, SynapseDriverRequirements::SynapseColumnsMap> >
 		synapse_type_to_synapse_columns_map =
 			drivers_required.get_synapse_type_to_synapse_columns_map();

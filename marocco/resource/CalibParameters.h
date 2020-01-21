@@ -1,8 +1,7 @@
 #pragma once
 
 #include "boost/shared_ptr.hpp"
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/hicann.h"
 
 namespace HMF {
 class HICANNCollection;
@@ -25,7 +24,7 @@ namespace resource {
 class CalibParameters
 {
 public:
-	typedef HMF::Coordinate::HICANNGlobal hicann_type;
+	typedef halco::hicann::v2::HICANNGlobal hicann_type;
 	typedef HMF::HICANNCollection calib_type;
 
 	/**

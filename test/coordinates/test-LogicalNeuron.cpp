@@ -4,12 +4,13 @@
 #include <iterator>
 #include <vector>
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "marocco/coordinates/LogicalNeuron.h"
 
 namespace marocco {
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 TEST(LogicalNeuron, checksOverlap)
 {

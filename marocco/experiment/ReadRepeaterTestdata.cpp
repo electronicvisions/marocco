@@ -7,7 +7,7 @@
 
 #include "marocco/Logger.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace experiment {

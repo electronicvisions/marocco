@@ -4,10 +4,11 @@
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/variant.hpp>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/Logger.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace placement {

@@ -149,13 +149,13 @@ protected:
 	 *        • calls: calculation of the degree to related populations
 	 *        • calls: update of the priority list in relation to the just placed population
 	 * @param [in] NeuronPlacementRequest chunk: the PlacementRequest that was just placed.
-	 * @param [in] HMF::Coordinate::NeuronBlockOnWafer nb: the NeuronBlock that was used for the
+	 * @param [in] halco::hicann::v2::NeuronBlockOnWafer nb: the NeuronBlock that was used for the
 	 *placement.
 	 *
 	 **/
 	void update_relations_to_placement(
 	    NeuronPlacementRequest const& chunk,
-	    HMF::Coordinate::NeuronBlockOnWafer const& nb) PYPP_OVERRIDE;
+	    halco::hicann::v2::NeuronBlockOnWafer const& nb) PYPP_OVERRIDE;
 
 	/**
 	 * @brief sorts the populations by the degree stored in m_precalculated_degree
@@ -183,29 +183,29 @@ protected:
 
 #ifndef PYPLUSPLUS
 	virtual bool nb_order_function(
-	    HMF::Coordinate::NeuronBlockOnWafer const& a,
-	    HMF::Coordinate::NeuronBlockOnWafer const& b,
+	    halco::hicann::v2::NeuronBlockOnWafer const& a,
+	    halco::hicann::v2::NeuronBlockOnWafer const& b,
 	    std::function<bool(
-	        HMF::Coordinate::NeuronBlockOnWafer const&,
-	        HMF::Coordinate::NeuronBlockOnWafer const&)> const& order) const;
+	        halco::hicann::v2::NeuronBlockOnWafer const&,
+	        halco::hicann::v2::NeuronBlockOnWafer const&)> const& order) const;
 
 
 	virtual bool hicann_order_function(
-	    HMF::Coordinate::HICANNOnWafer const& a,
-	    HMF::Coordinate::HICANNOnWafer const& b,
+	    halco::hicann::v2::HICANNOnWafer const& a,
+	    halco::hicann::v2::HICANNOnWafer const& b,
 	    std::function<bool(
-	        HMF::Coordinate::HICANNOnWafer const&, HMF::Coordinate::HICANNOnWafer const&)> const&
+	        halco::hicann::v2::HICANNOnWafer const&, halco::hicann::v2::HICANNOnWafer const&)> const&
 	        order) const;
 
 	virtual bool neuron_blocks_comparator_function(
-	    HMF::Coordinate::NeuronBlockOnWafer const& a,
-	    HMF::Coordinate::NeuronBlockOnWafer const& b,
+	    halco::hicann::v2::NeuronBlockOnWafer const& a,
+	    halco::hicann::v2::NeuronBlockOnWafer const& b,
 	    std::function<bool(
-	        HMF::Coordinate::HICANNOnWafer const&, HMF::Coordinate::HICANNOnWafer const&)> const&
+	        halco::hicann::v2::HICANNOnWafer const&, halco::hicann::v2::HICANNOnWafer const&)> const&
 	        hicann_order,
 	    std::function<bool(
-	        HMF::Coordinate::NeuronBlockOnWafer const&,
-	        HMF::Coordinate::NeuronBlockOnWafer const&)> const& nb_order) const;
+	        halco::hicann::v2::NeuronBlockOnWafer const&,
+	        halco::hicann::v2::NeuronBlockOnWafer const&)> const& nb_order) const;
 #endif
 
 	/**
@@ -243,7 +243,7 @@ protected:
 #ifndef PYPLUSPLUS
 	mutable std::unordered_map<size_t /*Population->id()*/, size_t /*placement amount*/>
 	    m_placed_mset;
-	std::unordered_multimap<NeuronPlacementRequest, HMF::Coordinate::NeuronBlockOnWafer> m_placed;
+	std::unordered_multimap<NeuronPlacementRequest, halco::hicann::v2::NeuronBlockOnWafer> m_placed;
 	std::unordered_map<graph_t::vertex_descriptor, size_t> m_precalculated_degree;
 #endif
 

@@ -1,7 +1,8 @@
 import os
 import unittest
 
-import pyhalbe.Coordinate as C
+from pyhalco_common import Enum
+import pyhalco_hicann_v2 as C
 import pyhmf as pynn
 
 import utils
@@ -76,7 +77,7 @@ class TestResults(utils.TestWithResults):
         mapping fails if per-HICANN constraints are broken.
         """
         pynn.setup(marocco=self.marocco)
-        hicann = C.HICANNOnWafer(C.Enum(210))
+        hicann = C.HICANNOnWafer(Enum(210))
 
         pops = []
         for i in range(num_recorded_populations):

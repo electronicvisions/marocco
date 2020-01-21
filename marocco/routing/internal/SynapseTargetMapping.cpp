@@ -1,10 +1,11 @@
 #include "marocco/routing/internal/SynapseTargetMapping.h"
 
-#include "hal/Coordinate/Relations.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/relations.h"
+#include "halco/common/iter_all.h"
 #include "marocco/routing/internal/SynapseTargetVisitor.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {
@@ -116,7 +117,7 @@ void map_targets(
 } // namespace
 
 void SynapseTargetMapping::simple_mapping(
-	HMF::Coordinate::HICANNOnWafer const& hicann,
+	halco::hicann::v2::HICANNOnWafer const& hicann,
 	placement::results::Placement const& neuron_placement,
 	graph_t const& graph,
 	results::SynapticInputs& synaptic_inputs)

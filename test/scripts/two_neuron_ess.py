@@ -1,6 +1,7 @@
 import copy
 from pymarocco import *
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
+from pyhalco_common import *
 from pyhmf import *
 
 marocco = PyMarocco()

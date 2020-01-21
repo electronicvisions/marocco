@@ -5,7 +5,8 @@ import pyredman
 import pylogging
 from pymarocco import PyMarocco, Defects
 
-from pyhalbe.Coordinate import *
+from pyhalco_common import Enum
+from pyhalco_hicann_v2 import *
 import pyhmf as sim
 
 import utils

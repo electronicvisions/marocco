@@ -127,7 +127,7 @@ public:
 	 *  on \c HICANNManager.wafers() instead.
 	 *  Defaults to \c 33.
 	 */
-	HMF::Coordinate::Wafer default_wafer;
+	halco::hicann::v2::Wafer default_wafer;
 
 	/**
 	 * @brief Do not run mapping step but load results from previous run.

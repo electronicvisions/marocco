@@ -12,7 +12,8 @@
 
 namespace marocco {
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 bool is_hicann(L1Route::segment_type const& segment) {
 	return boost::get<HICANNOnWafer>(&segment) != nullptr;
@@ -527,7 +528,7 @@ void L1Route::update_target_hicann()
 
 auto
 L1Route::find_invalid(
-    iterator const beg, iterator const end, HMF::Coordinate::HICANNOnWafer* store_last_hicann)
+    iterator const beg, iterator const end, HICANNOnWafer* store_last_hicann)
     -> iterator
 {
 	if (beg == end) {

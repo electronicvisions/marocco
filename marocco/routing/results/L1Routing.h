@@ -6,8 +6,8 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
 
 #include "marocco/coordinates/L1Route.h"
 #include "marocco/routing/results/Edge.h"
@@ -28,8 +28,8 @@ public:
 	typedef size_t vertex_descriptor;
 	typedef Edge edge_type;
 	typedef size_t projection_type;
-	typedef HMF::Coordinate::DNCMergerOnWafer source_type;
-	typedef HMF::Coordinate::HICANNOnWafer target_type;
+	typedef halco::hicann::v2::DNCMergerOnWafer source_type;
+	typedef halco::hicann::v2::HICANNOnWafer target_type;
 	typedef boost::tuple<source_type, target_type> source_and_target_type;
 
 	/**

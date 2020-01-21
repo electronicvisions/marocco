@@ -7,7 +7,8 @@ from pymarocco_runtime import bySmallerNeuronBlockAndPopulationID as placer_smal
 from pymarocco_runtime import ClusterByPopulationConnectivity as placer_pop_cluster
 from pymarocco_runtime import ClusterByNeuronConnectivity as placer_neuron_cluster
 # further placement strategies MUST also be added to the parameterized tests
-import pyhalbe.Coordinate as C
+from pyhalco_common import Enum
+import pyhalco_hicann_v2 as C
 
 import pylogging
 import utils
@@ -140,8 +141,8 @@ class PlacementAlgorithms(utils.TestWithResults):
         self.network()
 
         result = self.load_results()
-        hicann = C.HICANNOnWafer(C.Enum(42))
-        nb = C.NeuronBlockOnHICANN(C.Enum(4))
+        hicann = C.HICANNOnWafer(Enum(42))
+        nb = C.NeuronBlockOnHICANN(Enum(4))
         for pop in self.pops:
             for nrn in pop:
                 placement_item, = result.placement.find(nrn)
@@ -200,8 +201,8 @@ class PlacementAlgorithms(utils.TestWithResults):
         self.network()
 
         result = self.load_results()
-        hicann = C.HICANNOnWafer(C.Enum(42))
-        nb = C.NeuronBlockOnHICANN(C.Enum(4))
+        hicann = C.HICANNOnWafer(Enum(42))
+        nb = C.NeuronBlockOnHICANN(Enum(4))
         for pop in self.pops:
             for nrn in pop:
                 placement_item, = result.placement.find(nrn)
@@ -237,8 +238,8 @@ class PlacementAlgorithms(utils.TestWithResults):
         self.network()
 
         result = self.load_results()
-        hicann = C.HICANNOnWafer(C.Enum(42))
-        nb = C.NeuronBlockOnHICANN(C.Enum(4))
+        hicann = C.HICANNOnWafer(Enum(42))
+        nb = C.NeuronBlockOnHICANN(Enum(4))
         for pop in self.pops:
             for nrn in pop:
                 placement_item, = result.placement.find(nrn)

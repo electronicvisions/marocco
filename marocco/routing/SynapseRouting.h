@@ -1,7 +1,7 @@
 #pragma once
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
 #include "sthal/Wafer.h"
 
 #include "marocco/BioGraph.h"
@@ -24,7 +24,7 @@ public:
 	typedef sthal::Wafer hardware_type;
 
 	SynapseRouting(
-		HMF::Coordinate::HICANNGlobal const& hicann,
+		halco::hicann::v2::HICANNGlobal const& hicann,
 		BioGraph const& bio_graph,
 		hardware_type& hardware,
 		resource_manager_t& resource_manager,
@@ -49,7 +49,7 @@ private:
 	void disableDefectSynapes();
 
 	/// Coordinate of HICANN chip we are currently working on.
-	HMF::Coordinate::HICANNGlobal const& m_hicann;
+	halco::hicann::v2::HICANNGlobal const& m_hicann;
 	BioGraph const& m_bio_graph;
 	hardware_type& m_hardware;
 	resource_manager_t& m_resource_manager;

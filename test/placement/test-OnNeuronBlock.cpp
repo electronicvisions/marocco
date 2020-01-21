@@ -6,7 +6,8 @@
 #include "marocco/placement/internal/OnNeuronBlock.h"
 #include "marocco/util.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace placement {

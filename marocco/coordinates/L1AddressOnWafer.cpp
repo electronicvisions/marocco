@@ -6,7 +6,7 @@
 namespace marocco {
 
 L1AddressOnWafer::L1AddressOnWafer(
-    HMF::Coordinate::DNCMergerOnWafer const& dnc_merger,
+    halco::hicann::v2::DNCMergerOnWafer const& dnc_merger,
     HMF::HICANN::L1Address const& address)
     : m_dnc_merger(dnc_merger), m_address(address)
 {
@@ -17,17 +17,17 @@ L1AddressOnWafer::L1AddressOnWafer()
 {
 }
 
-HMF::Coordinate::HICANNOnWafer L1AddressOnWafer::toHICANNOnWafer() const
+halco::hicann::v2::HICANNOnWafer L1AddressOnWafer::toHICANNOnWafer() const
 {
 	return m_dnc_merger.toHICANNOnWafer();
 }
 
-HMF::Coordinate::DNCMergerOnWafer const& L1AddressOnWafer::toDNCMergerOnWafer() const
+halco::hicann::v2::DNCMergerOnWafer const& L1AddressOnWafer::toDNCMergerOnWafer() const
 {
 	return m_dnc_merger;
 }
 
-HMF::Coordinate::DNCMergerOnHICANN L1AddressOnWafer::toDNCMergerOnHICANN() const
+halco::hicann::v2::DNCMergerOnHICANN L1AddressOnWafer::toDNCMergerOnHICANN() const
 {
 	return m_dnc_merger.toDNCMergerOnHICANN();
 }

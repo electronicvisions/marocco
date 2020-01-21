@@ -1,10 +1,10 @@
 #include "alone.h"
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/routing/L1DijkstraRouter.h"
 #include "marocco/routing/L1Routing.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace alone {
@@ -14,31 +14,31 @@ Alone::Alone() : m_routing_graph()
 }
 
 
-void Alone::add(HMF::Coordinate::HICANNOnWafer const& hicann)
+void Alone::add(halco::hicann::v2::HICANNOnWafer const& hicann)
 {
 	m_routing_graph.add(hicann);
 }
 
 void Alone::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::HLineOnHICANN const& hline)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::HLineOnHICANN const& hline)
 {
 	m_routing_graph.remove(hicann, hline);
 }
 
 void Alone::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VLineOnHICANN const& vline)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::VLineOnHICANN const& vline)
 {
 	m_routing_graph.remove(hicann, vline);
 }
 
 void Alone::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::HRepeaterOnHICANN const& hrep)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::HRepeaterOnHICANN const& hrep)
 {
 	m_routing_graph.remove(hicann, hrep);
 }
 
 void Alone::remove(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VRepeaterOnHICANN const& vrep)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::VRepeaterOnHICANN const& vrep)
 {
 	m_routing_graph.remove(hicann, vrep);
 }
@@ -83,8 +83,8 @@ std::vector<L1Route> Alone::find_routes(
 }
 
 std::vector<L1Route> Alone::find_routes(
-    HMF::Coordinate::HICANNOnWafer const& hicann,
-    HMF::Coordinate::DNCMergerOnHICANN const& merger,
+    halco::hicann::v2::HICANNOnWafer const& hicann,
+    halco::hicann::v2::DNCMergerOnHICANN const& merger,
     routing::Target const& target,
 	Options const options)
 {

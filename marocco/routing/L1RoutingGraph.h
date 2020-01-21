@@ -6,9 +6,9 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <unordered_map>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/common/typed_array.h"
 #include "marocco/routing/L1BusOnWafer.h"
 #include "marocco/routing/parameters/L1Routing.h"
 #include "marocco/util.h"
@@ -40,43 +40,43 @@ public:
 	public:
 		HICANN(
 		    graph_type& graph,
-		    HMF::Coordinate::HICANNOnWafer const& hicann,
+		    halco::hicann::v2::HICANNOnWafer const& hicann,
 		    parameters::L1Routing::SwitchOrdering switch_ordering,
 		    std::default_random_engine& random_engine);
 
-		vertex_descriptor operator[](HMF::Coordinate::HLineOnHICANN const& hline) const;
-		vertex_descriptor operator[](HMF::Coordinate::VLineOnHICANN const& vline) const;
+		vertex_descriptor operator[](halco::hicann::v2::HLineOnHICANN const& hline) const;
+		vertex_descriptor operator[](halco::hicann::v2::VLineOnHICANN const& vline) const;
 
 	private:
 		template <typename V, typename K>
-		using typed_array = HMF::Coordinate::typed_array<V, K>;
-		typed_array<vertex_descriptor, HMF::Coordinate::HLineOnHICANN> m_horizontal;
-		typed_array<vertex_descriptor, HMF::Coordinate::VLineOnHICANN> m_vertical;
+		using typed_array = halco::common::typed_array<V, K>;
+		typed_array<vertex_descriptor, halco::hicann::v2::HLineOnHICANN> m_horizontal;
+		typed_array<vertex_descriptor, halco::hicann::v2::VLineOnHICANN> m_vertical;
 	}; // HICANN
 
 	graph_type& graph();
 	graph_type const& graph() const;
 
-	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
+	void add(halco::hicann::v2::HICANNOnWafer const& hicann);
 
 	void remove(PathBundle const& bundle);
 	void remove(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::HLineOnHICANN const& hline);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HLineOnHICANN const& hline);
 	void remove(
-	    HMF::Coordinate::HICANNOnWafer const& hicann,
-	    HMF::Coordinate::VLineOnHICANN const& vline);
+	    halco::hicann::v2::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::VLineOnHICANN const& vline);
 	void remove(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::HRepeaterOnHICANN const& hrep);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HRepeaterOnHICANN const& hrep);
 	void remove(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::VRepeaterOnHICANN const& vrep);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::VRepeaterOnHICANN const& vrep);
 
 	/**
 	 * @throw ResourceNotPresentError when HICANN has not been added yet.
 	 */
-	HICANN const& operator[](HMF::Coordinate::HICANNOnWafer const& hicann) const;
+	HICANN const& operator[](halco::hicann::v2::HICANNOnWafer const& hicann) const;
 
 	value_type& operator[](vertex_descriptor vertex);
 
@@ -94,12 +94,12 @@ private:
 	 */
 	template <typename LineT>
 	bool connect(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::HICANNOnWafer (HMF::Coordinate::HICANNOnWafer::*conv)() const,
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HICANNOnWafer (halco::hicann::v2::HICANNOnWafer::*conv)() const,
 		LineT (LineT::*line_conv)() const);
 
 	graph_type m_graph;
-	std::unordered_map<HMF::Coordinate::HICANNOnWafer, HICANN> m_hicanns;
+	std::unordered_map<halco::hicann::v2::HICANNOnWafer, HICANN> m_hicanns;
 	parameters::L1Routing m_l1_routing_parameters;
 	std::default_random_engine m_random_engine_shuffle_switches;
 }; // L1RoutingGraph

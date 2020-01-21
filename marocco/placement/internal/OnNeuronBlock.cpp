@@ -5,11 +5,12 @@
 #include <limits>
 #include <stdexcept>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
 #include "marocco/util.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace placement {
@@ -280,8 +281,7 @@ void neuron_iterator::increment() {
 OnNeuronBlock::neuron_coordinate neuron_iterator::dereference() const {
 	size_t diff = std::distance(mBeg, this->base());
 	constexpr size_t height = OnNeuronBlock::neuron_coordinate::y_type::size;
-	return OnNeuronBlock::neuron_coordinate{HMF::Coordinate::X{diff / height},
-	                                        HMF::Coordinate::Y{diff % height}};
+	return OnNeuronBlock::neuron_coordinate{X{diff / height}, Y{diff % height}};
 }
 
 } // namespace on_neuron_block

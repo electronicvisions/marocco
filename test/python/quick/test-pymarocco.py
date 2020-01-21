@@ -1,6 +1,6 @@
 import unittest, random, exceptions
 from pymarocco import *
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
 import pyhmf as pynn
 
 class TestPyMarocco(unittest.TestCase):

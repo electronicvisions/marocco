@@ -4,7 +4,7 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/unordered_map.h>
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace routing {
@@ -42,37 +42,37 @@ bool SynapseRouting::HICANN::has(SynapseRowOnHICANN const& row) const
 }
 
 SynapseDriverConfiguration& SynapseRouting::HICANN::operator[](
-    HMF::Coordinate::SynapseDriverOnHICANN const& driver)
+    halco::hicann::v2::SynapseDriverOnHICANN const& driver)
 {
 	return m_synapse_driver_configurations[driver];
 }
 
 SynapseDriverConfiguration const& SynapseRouting::HICANN::operator[](
-    HMF::Coordinate::SynapseDriverOnHICANN const& driver) const
+    halco::hicann::v2::SynapseDriverOnHICANN const& driver) const
 {
 	return m_synapse_driver_configurations.at(driver);
 }
 
 SynapseRowConfiguration& SynapseRouting::HICANN::operator[](
-    HMF::Coordinate::SynapseRowOnHICANN const& row)
+    halco::hicann::v2::SynapseRowOnHICANN const& row)
 {
 	return m_synapse_rows[row];
 }
 
 SynapseRowConfiguration const& SynapseRouting::HICANN::operator[](
-    HMF::Coordinate::SynapseRowOnHICANN const& row) const
+    halco::hicann::v2::SynapseRowOnHICANN const& row) const
 {
 	return m_synapse_rows.at(row);
 }
 
 void SynapseRouting::HICANN::add_synapse_switch(
-	HMF::Coordinate::VLineOnHICANN const& vline,
+	halco::hicann::v2::VLineOnHICANN const& vline,
 	ConnectedSynapseDrivers const& drivers)
 {
 	m_synapse_switches.insert(synapse_switches_item_type(vline, drivers));
 }
 
-auto SynapseRouting::HICANN::operator[](HMF::Coordinate::VLineOnHICANN const& vline) const
+auto SynapseRouting::HICANN::operator[](halco::hicann::v2::VLineOnHICANN const& vline) const
 	-> iterable<synapse_switches_type::iterator>
 {
 	return make_iterable(m_synapse_switches.equal_range(vline));
@@ -94,16 +94,16 @@ SynapticInputs const& SynapseRouting::HICANN::synaptic_inputs() const
 	return m_synaptic_inputs;
 }
 
-bool SynapseRouting::has(HMF::Coordinate::HICANNOnWafer const& hicann) const{
+bool SynapseRouting::has(halco::hicann::v2::HICANNOnWafer const& hicann) const{
 	return m_hicanns.find(hicann) != m_hicanns.end();
 }
 
-auto SynapseRouting::operator[](HMF::Coordinate::HICANNOnWafer const& hicann) -> HICANN&
+auto SynapseRouting::operator[](halco::hicann::v2::HICANNOnWafer const& hicann) -> HICANN&
 {
 	return m_hicanns[hicann];
 }
 
-auto SynapseRouting::operator[](HMF::Coordinate::HICANNOnWafer const& hicann) const -> HICANN const&
+auto SynapseRouting::operator[](halco::hicann::v2::HICANNOnWafer const& hicann) const -> HICANN const&
 {
 	return m_hicanns.at(hicann);
 }

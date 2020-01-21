@@ -8,7 +8,8 @@ import unittest
 import pylogging
 import pyhmf as pynn
 import pyhalbe
-import Coordinate as C
+import pyhalco_common
+import pyhalco_hicann_v2 as C
 import numpy as np
 import debug_config
 
@@ -66,7 +67,7 @@ class TestRateDependentInputPlacement(unittest.TestCase):
         # place target onto a hicann in the center of reticle and at the border of the wafer
         # such that hicanns from the same reticle are used with preference (1 reticle -> same fpga)
         marocco.manual_placement.on_hicann(
-            exc_pop, pyhalbe.Coordinate.HICANNOnWafer(pyhalbe.Coordinate.Enum(1)))
+            exc_pop, C.HICANNOnWafer(pyhalco_common.Enum(1)))
 
         if poisson:
             pop_stim = pynn.Population(n_stim, pynn.SpikeSourcePoisson, {'rate':rate, 'duration':sim_duration})
@@ -92,8 +93,8 @@ class TestRateDependentInputPlacement(unittest.TestCase):
             address = items[0].address()
             hicann_str = str(address.toHICANNOnWafer())
             hicanns[hicann_str] = hicanns.get(hicann_str, 0) + 1
-            hicann_global = pyhalbe.Coordinate.HICANNGlobal(
-                address.toHICANNOnWafer(), pyhalbe.Coordinate.Wafer())
+            hicann_global = C.HICANNGlobal(
+                address.toHICANNOnWafer(), C.Wafer())
             fpga_str = str(hicann_global.toFPGAGlobal())
             fpgas[fpga_str] = fpgas.get(fpga_str, 0) + 1
 

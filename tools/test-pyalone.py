@@ -1,6 +1,7 @@
 import unittest
 
-from pyhalbe.Coordinate import *
+from pyhalco_common import X, Y, vertical, horizontal
+from pyhalco_hicann_v2 import *
 from pymarocco_coordinates import L1Route
 import pyalone
 import pysthal

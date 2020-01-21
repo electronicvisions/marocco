@@ -2,13 +2,13 @@
 
 #include <boost/serialization/nvp.hpp>
 
-#include "hal/Coordinate/Wafer.h"
+#include "halco/hicann/v2/wafer.h"
 #include "marocco/routing/L1BusOnWafer.h"
 
 namespace marocco {
 namespace routing {
 
-L1BusGlobal::L1BusGlobal(L1BusOnWafer const& bus, HMF::Coordinate::Wafer const& wafer)
+L1BusGlobal::L1BusGlobal(L1BusOnWafer const& bus, halco::hicann::v2::Wafer const& wafer)
     : m_bus(bus), m_wafer(wafer)
 {}
 
@@ -17,7 +17,7 @@ L1BusOnWafer L1BusGlobal::toL1BusOnWafer() const
 	return m_bus;
 }
 
-HMF::Coordinate::Wafer L1BusGlobal::toWafer() const
+halco::hicann::v2::Wafer L1BusGlobal::toWafer() const
 {
 	return m_wafer;
 }

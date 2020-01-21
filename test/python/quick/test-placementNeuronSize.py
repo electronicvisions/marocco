@@ -2,7 +2,8 @@ import unittest
 import pyhmf as pynn
 import pyhalbe, pymarocco
 from pymarocco import PyMarocco
-from pyhalbe.Coordinate import HICANNOnWafer, Enum
+from pyhalco_common import Enum
+from pyhalco_hicann_v2 import HICANNOnWafer
 
 class PlacementNeuronSize(unittest.TestCase):
     """

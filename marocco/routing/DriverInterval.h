@@ -8,8 +8,8 @@
 
 #include <boost/icl/interval_map.hpp>
 
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/Synapse.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/hicann/v2/synapse.h"
 
 namespace marocco {
 namespace routing {
@@ -94,13 +94,13 @@ struct DriverInterval
 {
 	typedef boost::icl::discrete_interval<int> Interval;
 
-	DriverInterval(HMF::Coordinate::VLineOnHICANN const& vline,
+	DriverInterval(halco::hicann::v2::VLineOnHICANN const& vline,
 				   size_t drivers, size_t syns=0);
 	DriverInterval() = default;
 	DriverInterval(DriverInterval const&) = default;
 
 	/// corresponding line
-	HMF::Coordinate::VLineOnHICANN line;
+	halco::hicann::v2::VLineOnHICANN line;
 
 	/// number of theoretically required driver to have no synapse loss
 	size_t driver;
@@ -109,7 +109,7 @@ struct DriverInterval
 	/// intervals associated with this route, can be two at max, one on top and
 	/// one on bottom.
 	typedef std::vector<std::pair<
-			HMF::Coordinate::SynapseSwitchRowOnHICANN,
+			halco::hicann::v2::SynapseSwitchRowOnHICANN,
 			std::pair<Interval, Entry>
 		> > Vector;
 	Vector intervals;

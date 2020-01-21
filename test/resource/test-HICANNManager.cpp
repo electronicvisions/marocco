@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "redman/backend/MockBackend.h"
 
 #include "marocco/resource/Manager.h"
@@ -15,7 +15,8 @@ void unused(T&&...) {}
 namespace marocco {
 namespace resource {
 
-namespace Co = HMF::Coordinate;
+namespace Co = halco::hicann::v2;
+namespace Hc = halco::common;
 
 void disable_hicann(boost::shared_ptr<redman::backend::Backend> backend,
                     Co::HICANNGlobal r) {
@@ -52,7 +53,7 @@ class AHICANNManagerWithHICANN : public AHICANNManager,
                                  public ::testing::WithParamInterface<size_t> {
 public:
 	AHICANNManagerWithHICANN()
-		: hicann(Co::HICANNOnWafer(Co::Enum(GetParam())), wafer) {};
+		: hicann(Co::HICANNOnWafer(Hc::Enum(GetParam())), wafer) {};
 
 	Co::HICANNGlobal hicann;
 };
@@ -74,7 +75,7 @@ class AHICANNManagerWithOmittedHICANN
       public ::testing::WithParamInterface< ::testing::tuple<OmittingMethod, size_t>> {
 public:
 	AHICANNManagerWithOmittedHICANN()
-		: hicann(Co::HICANNOnWafer(Co::Enum(::testing::get<1>(GetParam()))), wafer)
+		: hicann(Co::HICANNOnWafer(Hc::Enum(::testing::get<1>(GetParam()))), wafer)
 	{
 		switch (::testing::get<0>(GetParam())) {
 			case OmittingMethod::RESOURCE_MANAGER:
@@ -115,7 +116,7 @@ public:
 		for (size_t ii = 0; ii < GetParam(); ++ii) {
 			while (true) {
 				size_t id = dist(gen);
-				auto hicann = Co::HICANNGlobal{Co::HICANNOnWafer(Co::Enum(id)), wafer};
+				auto hicann = Co::HICANNGlobal{Co::HICANNOnWafer(Hc::Enum(id)), wafer};
 				if (manager.available(hicann)) {
 					allocated.insert(hicann);
 					manager.allocate(hicann);
@@ -157,7 +158,7 @@ TEST_F(AHICANNManager, ReturnsLoadedWafers) {
 }
 
 TEST_P(AHICANNManagerWithHICANN, CanCheckIfHicannIsPresent) {
-	Co::HICANNGlobal different_wafer{Co::HICANNOnWafer{Co::Enum{2}}, Co::Wafer{42}};
+	Co::HICANNGlobal different_wafer{Co::HICANNOnWafer{Hc::Enum{2}}, Co::Wafer{42}};
 
 	ASSERT_TRUE(manager.has(hicann));
 	ASSERT_FALSE(manager.has(different_wafer));
@@ -165,7 +166,7 @@ TEST_P(AHICANNManagerWithHICANN, CanCheckIfHicannIsPresent) {
 
 TEST_F(AHICANNManager, AllowsToInjectWaferResources) {
 	redman::resources::WaferWithBackend res{backend, Co::Wafer{42}};
-	Co::HICANNGlobal absent{Co::HICANNOnWafer{Co::Enum{2}}, Co::Wafer{42}};
+	Co::HICANNGlobal absent{Co::HICANNOnWafer{Hc::Enum{2}}, Co::Wafer{42}};
 	res.hicanns()->disable(absent.toHICANNOnWafer());
 	ASSERT_NO_THROW(manager.inject(res));
 	ASSERT_FALSE(manager.has(absent));
@@ -199,7 +200,7 @@ TEST_P(AHICANNManagerWithHICANN, ThrowsOnMultipleAllocations) {
 }
 
 TEST_F(AHICANNManager, CanAllocateOnlyHicannsOnExistingWafers) {
-	Co::HICANNGlobal hicann{Co::HICANNOnWafer{Co::Enum{42}}, Co::Wafer{42}};
+	Co::HICANNGlobal hicann{Co::HICANNOnWafer{Hc::Enum{42}}, Co::Wafer{42}};
 	ASSERT_ANY_THROW(manager.allocate(hicann));
 }
 
@@ -210,7 +211,7 @@ TEST_P(AHICANNManagerWithHICANN, CanCheckAvailabilityOfHicann) {
 }
 
 TEST_F(AHICANNManager, CanReloadWithoutForgettingWafers) {
-	Co::HICANNGlobal hicann{Co::HICANNOnWafer{Co::Enum{42}}, Co::Wafer{42}};
+	Co::HICANNGlobal hicann{Co::HICANNOnWafer{Hc::Enum{42}}, Co::Wafer{42}};
 	manager.load(hicann.toWafer());
 	ASSERT_TRUE(manager.has(hicann));
 	reload();
@@ -341,7 +342,7 @@ TEST_F(AHICANNManager, AllowsAllocationDuringIteration) {
 		manager.allocate(hicann);
 		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id > 0) {
-			ASSERT_FALSE(manager.available(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id - 1}}, wafer}));
+			ASSERT_FALSE(manager.available(Co::HICANNGlobal{Co::HICANNOnWafer{Hc::Enum{id - 1}}, wafer}));
 		}
 		++count;
 	}
@@ -358,7 +359,7 @@ TEST_F(AHICANNManager, AllowsAllocationOfYetToComeHicannsDuringIteration) {
 	for (auto hicann : manager.available()) {
 		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id < size - 1) {
-			manager.allocate(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id + 1}}, wafer});
+			manager.allocate(Co::HICANNGlobal{Co::HICANNOnWafer{Hc::Enum{id + 1}}, wafer});
 		}
 		++count;
 	}
@@ -374,7 +375,7 @@ TEST_F(AHICANNManager, AllowsMaskingDuringIteration) {
 		manager.mask(hicann);
 		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id > 0) {
-			ASSERT_FALSE(manager.has(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id - 1}}, wafer}));
+			ASSERT_FALSE(manager.has(Co::HICANNGlobal{Co::HICANNOnWafer{Hc::Enum{id - 1}}, wafer}));
 		}
 		++count;
 	}
@@ -391,7 +392,7 @@ TEST_F(AHICANNManager, AllowsMaskingOfYetToComeHicannsDuringIteration) {
 	for (auto hicann : manager.present()) {
 		auto id = hicann.toHICANNOnWafer().toEnum();
 		if (id < size - 1) {
-			manager.mask(Co::HICANNGlobal{Co::HICANNOnWafer{Co::Enum{id + 1}}, wafer});
+			manager.mask(Co::HICANNGlobal{Co::HICANNOnWafer{Hc::Enum{id + 1}}, wafer});
 		}
 		++count;
 	}

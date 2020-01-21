@@ -28,10 +28,10 @@ namespace routing {
 class SynapseManager
 {
 public:
-	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN,
+	typedef std::unordered_map<halco::hicann::v2::VLineOnHICANN,
 	                           std::vector<results::ConnectedSynapseDrivers> >
 		Result;
-	typedef std::vector<HMF::Coordinate::SynapseRowOnHICANN> SubRows; // vector of synapse row
+	typedef std::vector<halco::hicann::v2::SynapseRowOnHICANN> SubRows; // vector of synapse row
 	                                                                  // coordinates, used to map
 	                                                                  // half synapse rows HW
 	                                                                  // synapse properties
@@ -39,7 +39,7 @@ public:
 																   // each HW synapse property
 
 	typedef std::map<Side_Parity_Decoder_STP, size_t> Histogram;
-	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN, Histogram> HistMap;
+	typedef std::unordered_map<halco::hicann::v2::VLineOnHICANN, Histogram> HistMap;
 
 	/// constructs the synapse row manager with results from driver assignment
 	/// algorithm
@@ -65,13 +65,13 @@ public:
 	/// Returns the list of half synapse rows assigned to a vline for a given
 	/// HW Synapse Property
 	SubRows const& getRows(
-		HMF::Coordinate::VLineOnHICANN const& vline,
+		halco::hicann::v2::VLineOnHICANN const& vline,
 		Side_Parity_Decoder_STP const& hw_synapse_property);
 
 	/// get the assignment for on vline.
 	/// this is used to get the STP mode, the Side and Decoder settings to
 	/// configure the synapse drivers.
-	Assignment const& get(HMF::Coordinate::VLineOnHICANN const& vline) const;
+	Assignment const& get(halco::hicann::v2::VLineOnHICANN const& vline) const;
 
 	/// checks that for all incoming routes (vlines), that the number of
 	/// concatenated synapses drivers does not exceed the maximumm allowed
@@ -83,7 +83,7 @@ public:
 
 	// pre-decl
 	struct SynapsesOnVLine;
-	typedef std::map<Side_Parity, std::vector<HMF::Coordinate::SynapseColumnOnHICANN> >
+	typedef std::map<Side_Parity, std::vector<halco::hicann::v2::SynapseColumnOnHICANN> >
 		SynapseColumnsMap;
 
 	/// get the manager for the synapses for one vline (incoming route).
@@ -92,8 +92,8 @@ public:
 	/// synapse columns and input sides.
 	/// @note can be called only once per vline.
 	SynapsesOnVLine getSynapses(
-		HMF::Coordinate::VLineOnHICANN const& vline,
-		std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+		halco::hicann::v2::VLineOnHICANN const& vline,
+		std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 						   std::map<SynapseType, SynapseColumnsMap> > const& synapse_columns);
 
 
@@ -136,7 +136,7 @@ public:
 		/// @note each synapse is returned only once, i.e. a call to get()
 		/// advances the internal cursors to point to the next free synapse.
 		/// @throws std::runtime_error if no synapse is available.
-		HMF::Coordinate::SynapseOnHICANN get();
+		halco::hicann::v2::SynapseOnHICANN get();
 
 	private:
 		/// advances the iterators to point to the next free synapse.
@@ -155,7 +155,7 @@ public:
 		SynapseColumnsMap const& side_parity_to_columns_map;
 
 		/// iterator pointing to the column of the next free synapse.
-		std::vector<HMF::Coordinate::SynapseColumnOnHICANN>::const_iterator syn_col_it;
+		std::vector<halco::hicann::v2::SynapseColumnOnHICANN>::const_iterator syn_col_it;
 
 		/// iterator pointing to the currently active (Side,Parity) combination
 		SynapseColumnsMap::const_iterator side_parity_it;
@@ -186,7 +186,7 @@ public:
 		/// @param assignment assigment of hardware synapse properties to half
 		/// synapse rows.
 		SynapsesOnVLine(
-			std::unordered_map<HMF::Coordinate::NeuronOnHICANN, TypeToSynapsesColumnsMap> const&
+			std::unordered_map<halco::hicann::v2::NeuronOnHICANN, TypeToSynapsesColumnsMap> const&
 				TypeToSynapseColumnsMapPerNeuron,
 			Assignment const& assignment);
 
@@ -200,14 +200,14 @@ public:
 		/// coordinate in the first element is valid.  If the bool is set to
 		/// false, no suitable synapse is available, and the returned synapse
 		/// coordinate must not be used.
-		std::pair<HMF::Coordinate::SynapseOnHICANN, bool> getSynapse(
-			HMF::Coordinate::NeuronOnHICANN const& target_nrn,
+		std::pair<halco::hicann::v2::SynapseOnHICANN, bool> getSynapse(
+			halco::hicann::v2::NeuronOnHICANN const& target_nrn,
 			Type_Decoder_STP const& bio_synapse_property);
 
 	private:
 		/// for each neuron a map from bio synapse type to synapse columns and
 		/// input sides.
-		std::unordered_map<HMF::Coordinate::NeuronOnHICANN, TypeToSynapsesColumnsMap> const&
+		std::unordered_map<halco::hicann::v2::NeuronOnHICANN, TypeToSynapsesColumnsMap> const&
 			mTypeToSynapseColumnsMapPerNeuron;
 
 		/// assigment of hardware synapse properties to half synapse rows
@@ -215,7 +215,7 @@ public:
 
 		/// for each target neuron, a map from bio synapse property to a
 		/// SynapseStepper managing all suitable synapses.
-		std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+		std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 						   std::map<Type_Decoder_STP, SynapseStepper> > mBioSynapsesPerNeuron;
 	};
 
@@ -265,19 +265,19 @@ private:
 	/// combination of MSBs and exc/inh. For all this combinations we need /
 	/// individual SynapseRows, because the necessary configuration is part of /
 	/// that row and not the individual synapse.
-	std::unordered_map<HMF::Coordinate::VLineOnHICANN /*route id*/, Assignment> mAllocation;
+	std::unordered_map<halco::hicann::v2::VLineOnHICANN /*route id*/, Assignment> mAllocation;
 
 	/// mapping of vlines to assigned Synapse Drivers
-	std::unordered_map<HMF::Coordinate::VLineOnHICANN,
-	                   std::list<HMF::Coordinate::SynapseDriverOnHICANN> >
+	std::unordered_map<halco::hicann::v2::VLineOnHICANN,
+	                   std::list<halco::hicann::v2::SynapseDriverOnHICANN> >
 		mDrivers;
 
 	/// the number of drivers assigned to each vline
-	std::unordered_map<HMF::Coordinate::VLineOnHICANN, size_t> mLines;
+	std::unordered_map<halco::hicann::v2::VLineOnHICANN, size_t> mLines;
 
 	/// holds all vlines, for which a SynapsesOnVLine instance was created
 	/// helps to ensure that getSynapses(..) is only called once per vline.
-	std::unordered_set<HMF::Coordinate::VLineOnHICANN> mSynapsesOnVLineCreated;
+	std::unordered_set<halco::hicann::v2::VLineOnHICANN> mSynapsesOnVLineCreated;
 
 	FRIEND_TEST(SynapseManager, SynapseStepper);
 };

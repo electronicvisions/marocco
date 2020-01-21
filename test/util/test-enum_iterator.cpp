@@ -5,7 +5,7 @@
 
 #include "marocco/util/enum_iterator.h"
 #include "test/common.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/common/typed_array.h"
 
 namespace marocco {
 
@@ -54,7 +54,7 @@ TEST(EnumIterator, MayStartAtArbitraryPosition)
 
 TEST(EnumIterator, CanProvideLimitsForTypedArray)
 {
-	HMF::Coordinate::typed_array<bool, ABC, it_type> test;
+	halco::common::typed_array<bool, ABC, it_type> test;
 	test.fill(false);
 	EXPECT_EQ(3, test.size());
 	test[ABC::A] = true;

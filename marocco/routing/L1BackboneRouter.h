@@ -31,7 +31,7 @@ public:
 	typedef L1RoutingGraph::graph_type graph_type;
 	typedef L1RoutingGraph::vertex_descriptor vertex_descriptor;
 	typedef L1RoutingGraph::edge_descriptor edge_descriptor;
-	typedef HMF::Coordinate::HICANNOnWafer target_type;
+	typedef halco::hicann::v2::HICANNOnWafer target_type;
 	typedef std::function<size_t(vertex_descriptor const&)> score_function_type;
 
 	/**
@@ -102,8 +102,8 @@ private:
 	 * This is used in the algorithm to calculate the required x limits for the backbone
 	 * and look up all targets for a given x coordinate.
 	 */
-	std::map<HMF::Coordinate::HICANNOnWafer::x_type,
-	         std::map<HMF::Coordinate::HICANNOnWafer::y_type, target_type> >
+	std::map<halco::hicann::v2::HICANNOnWafer::x_type,
+	         std::map<halco::hicann::v2::HICANNOnWafer::y_type, target_type> >
 	    m_targets;
 
 	/**

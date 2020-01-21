@@ -1,7 +1,7 @@
 import copy, unittest, random
 from ester import Ester
 from pymarocco import *
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
 from pyhmf import *
 
 class TestBig(unittest.TestCase):

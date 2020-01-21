@@ -1,6 +1,7 @@
 import unittest
 
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
+from pyhalco_common import *
 from pyhalbe.HICANN import L1Address
 from pymarocco_coordinates import BioNeuron, LogicalNeuron, L1AddressOnWafer
 from pymarocco_results import Placement

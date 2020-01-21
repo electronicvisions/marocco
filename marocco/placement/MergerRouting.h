@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hal/Coordinate/HICANN.h"
+#include "halco/hicann/v2/hicann.h"
 
 #include "marocco/placement/MergerRoutingResult.h"
 #include "marocco/placement/internal/Result.h"
@@ -18,7 +18,7 @@ class MergerRouting;
 namespace resource {
 template <class T>
 class Manager;
-typedef Manager<HMF::Coordinate::HICANNGlobal> HICANNManager;
+typedef Manager<halco::hicann::v2::HICANNGlobal> HICANNManager;
 } // namespace resource
 } // namespace marocco
 
@@ -54,7 +54,7 @@ public:
 	    graph_t const& bio_graph,
 	    parameters::L1AddressAssignment const& address_parameters);
 
-	void run(MergerTreeGraph const& graph, HMF::Coordinate::HICANNOnWafer const& hicann);
+	void run(MergerTreeGraph const& graph, halco::hicann::v2::HICANNOnWafer const& hicann);
 
 private:
 	parameters::MergerRouting const& m_parameters;

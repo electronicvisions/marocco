@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sthal/Wafer.h"
-#include "hal/Coordinate/HICANN.h"
+#include "halco/hicann/v2/hicann.h"
 
 #include "marocco/parameter/results/SpikeTimes.h"
 #include "marocco/experiment/parameters/Experiment.h"
@@ -17,7 +17,7 @@ public:
 		parameter::results::SpikeTimes const& spike_times,
 		parameters::Experiment const& experiment_parameters);
 
-	void configure(sthal::Wafer& hardware, HMF::Coordinate::HICANNOnWafer const& hicann) const;
+	void configure(sthal::Wafer& hardware, halco::hicann::v2::HICANNOnWafer const& hicann) const;
 
 private:
 	placement::results::Placement const& m_placement;

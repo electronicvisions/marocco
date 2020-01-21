@@ -11,7 +11,8 @@ import pyhmf as pynn
 from pymarocco import PyMarocco
 from pymarocco.coordinates import LogicalNeuron
 
-import Coordinate as C
+from pyhalco_common import X, Y, Enum
+import pyhalco_hicann_v2 as C
 
 init_logger("TRACE", [])
 
@@ -29,7 +30,7 @@ class issue3086(unittest.TestCase):
         marocco.default_wafer = C.Wafer(wafer)
 
         used_hicann = C.HICANNGlobal(
-            C.HICANNOnWafer(C.Enum(hicann)),
+            C.HICANNOnWafer(Enum(hicann)),
             C.Wafer(wafer))
 
         used_hicann  # prevent pep8 warning of unused variable
@@ -37,8 +38,8 @@ class issue3086(unittest.TestCase):
         pynn.setup(marocco=marocco)
 
         pop = pynn.Population(1, pynn.IF_cond_exp)
-        topleft = C.NeuronOnWafer(C.NeuronOnHICANN(C.X(neuron_number), C.Y(0)),
-                                  C.HICANNOnWafer(C.Enum(hicann)))
+        topleft = C.NeuronOnWafer(C.NeuronOnHICANN(X(neuron_number), Y(0)),
+                                  C.HICANNOnWafer(Enum(hicann)))
         logical_neuron = LogicalNeuron.rectangular(topleft, size=4)
         marocco.manual_placement.on_neuron(pop, logical_neuron)
 

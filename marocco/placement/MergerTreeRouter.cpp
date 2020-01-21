@@ -6,11 +6,12 @@
 #include <numeric>
 #include <experimental/array>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 #include "marocco/Logger.h"
 #include "marocco/placement/internal/L1AddressPool.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace placement {
@@ -30,7 +31,7 @@ MergerTreeRouter::MergerTreeRouter(
     m_constraints_checker(constrainer)
 {}
 
-void MergerTreeRouter::run(HMF::Coordinate::HICANNOnWafer const& hicann)
+void MergerTreeRouter::run(halco::hicann::v2::HICANNOnWafer const& hicann)
 {
 	// Count the number of mapped bio neurons for each neuron block.
 	for (auto const& nb : iter_all<NeuronBlockOnHICANN>()) {
@@ -161,7 +162,7 @@ void MergerTreeRouter::run(HMF::Coordinate::HICANNOnWafer const& hicann)
 	}
 }
 
-std::pair<std::set<HMF::Coordinate::NeuronBlockOnHICANN>,
+std::pair<std::set<halco::hicann::v2::NeuronBlockOnHICANN>,
           std::vector<MergerTreeGraph::vertex_descriptor> >
 MergerTreeRouter::mergeable(
     DNCMergerOnHICANN const& merger)

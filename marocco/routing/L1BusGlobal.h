@@ -5,7 +5,7 @@
 #include <boost/operators.hpp>
 #include <boost/serialization/serialization.hpp>
 
-#include "hal/Coordinate/Wafer.h"
+#include "halco/hicann/v2/wafer.h"
 #include "marocco/routing/L1BusOnWafer.h"
 
 namespace marocco {
@@ -17,10 +17,10 @@ namespace routing {
 class L1BusGlobal : boost::equality_comparable<L1BusGlobal>
 {
 public:
-	L1BusGlobal(L1BusOnWafer const& bus, HMF::Coordinate::Wafer const& wafer);
+	L1BusGlobal(L1BusOnWafer const& bus, halco::hicann::v2::Wafer const& wafer);
 	L1BusGlobal(){};
 
-	HMF::Coordinate::Wafer toWafer() const;
+	halco::hicann::v2::Wafer toWafer() const;
 	L1BusOnWafer toL1BusOnWafer() const;
 
 	bool operator==(L1BusGlobal const& other) const;
@@ -34,7 +34,7 @@ private:
 #endif // !PYPLUSPLUS
 
 	L1BusOnWafer m_bus;
-	HMF::Coordinate::Wafer m_wafer;
+	halco::hicann::v2::Wafer m_wafer;
 }; // L1BusGlobal
 
 std::ostream& operator<<(std::ostream& os, L1BusGlobal const& bus);

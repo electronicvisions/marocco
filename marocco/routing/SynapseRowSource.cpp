@@ -62,7 +62,7 @@ SynapseRowSource::SynapseMapping &      SynapseRowSource::synapses()
 	return mSynapses;
 }
 
-HMF::Coordinate::Side const& SynapseRowSource::synaptic_input() const
+halco::common::Side const& SynapseRowSource::synaptic_input() const
 {
 	return mSynapticInput;
 }
@@ -78,7 +78,7 @@ bool SynapseRowSource::operator!= (SynapseRowSource const& rhs) const
 	return !(*this == rhs);
 }
 
-SynapseRowSource::SynapseRowSource(HMF::Coordinate::Side const& syn_input)
+SynapseRowSource::SynapseRowSource(halco::common::Side const& syn_input)
 	: mPrefix(), mSynapticInput(syn_input)
 {}
 

@@ -15,7 +15,7 @@
 
 #include "calibtic/HMF/HICANNCollection.h"
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
 namespace calibtic {
 namespace backend {
@@ -32,15 +32,15 @@ boost::shared_ptr<const typename RedmanManagerType<T>::type> get_components(
     redman::resources::Wafer const& manager);
 
 template <>
-boost::shared_ptr<const typename RedmanManagerType<HMF::Coordinate::HICANNGlobal>::type>
-get_components<HMF::Coordinate::HICANNGlobal>(redman::resources::Wafer const& manager)
+boost::shared_ptr<const typename RedmanManagerType<halco::hicann::v2::HICANNGlobal>::type>
+get_components<halco::hicann::v2::HICANNGlobal>(redman::resources::Wafer const& manager)
 {
 	return manager.hicanns();
 }
 
 template <>
-boost::shared_ptr<const typename RedmanManagerType<HMF::Coordinate::FPGAGlobal>::type>
-get_components<HMF::Coordinate::FPGAGlobal>(redman::resources::Wafer const& manager)
+boost::shared_ptr<const typename RedmanManagerType<halco::hicann::v2::FPGAGlobal>::type>
+get_components<halco::hicann::v2::FPGAGlobal>(redman::resources::Wafer const& manager)
 {
 	return manager.fpgas();
 }
@@ -319,7 +319,7 @@ auto Manager<T>::iterator_type::dereference() const -> resource_type {
 template <class T>
 void Manager<T>::iterator_type::pop() {
 	if (mQueue.empty()) {
-		mWafer = HMF::Coordinate::Wafer{};
+		mWafer = halco::hicann::v2::Wafer{};
 		mCurrent.reset();
 		mIter = underlying_iterator_type{};
 		return;
@@ -333,7 +333,7 @@ void Manager<T>::iterator_type::pop() {
 }
 
 template <class T>
-boost::shared_ptr<HMF::HICANNCollection> Manager<T>::loadCalib(HMF::Coordinate::HICANNGlobal const& hicann_global) const
+boost::shared_ptr<HMF::HICANNCollection> Manager<T>::loadCalib(halco::hicann::v2::HICANNGlobal const& hicann_global) const
 {
 	// if calib is in storage return that
 	if (mCalibs.find(hicann_global) == mCalibs.end()) {
@@ -380,7 +380,7 @@ size_t Manager<T>::getMaxL1Crossbars(marocco::routing::L1BusOnWafer const& bus) 
 		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
 		// load calib data for this bus_g
 		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
-		auto const hicann_global = HMF::Coordinate::HICANNGlobal(hicann_on_wafer, wafer.first);
+		auto const hicann_global = halco::hicann::v2::HICANNGlobal(hicann_on_wafer, wafer.first);
 
 		auto const calib = loadCalib(hicann_global);
 
@@ -407,10 +407,10 @@ size_t Manager<T>::getMaxL1Crossbars(marocco::routing::L1BusOnWafer const& bus) 
 }
 
 template <class T>
-size_t Manager<T>::getMaxChainLength(HMF::Coordinate::HICANNOnWafer const& hicann) const
+size_t Manager<T>::getMaxChainLength(halco::hicann::v2::HICANNOnWafer const& hicann) const
 {
 	size_t max_chainLength = 0;
-	for( auto const bus : HMF::Coordinate::iter_all<HMF::Coordinate::VLineOnHICANN>() ){
+	for( auto const bus : halco::common::iter_all<halco::hicann::v2::VLineOnHICANN>() ){
 		size_t const length = getMaxChainLength( marocco::routing::L1BusOnWafer(hicann, bus) );
 		if ( max_chainLength == 0 || length < max_chainLength){
 			max_chainLength = length;
@@ -428,7 +428,7 @@ size_t Manager<T>::getMaxChainLength(marocco::routing::L1BusOnWafer const& bus) 
 		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
 
 		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
-		auto const hicann_global = HMF::Coordinate::HICANNGlobal(hicann_on_wafer, wafer.first);
+		auto const hicann_global = halco::hicann::v2::HICANNGlobal(hicann_on_wafer, wafer.first);
 
 		auto const calib = loadCalib(hicann_global);
 
@@ -449,7 +449,7 @@ size_t Manager<T>::getMaxSynapseSwitches(marocco::routing::L1BusOnWafer const& b
 		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
 
 		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
-		auto const hicann_global = HMF::Coordinate::HICANNGlobal(hicann_on_wafer, wafer.first);
+		auto const hicann_global = halco::hicann::v2::HICANNGlobal(hicann_on_wafer, wafer.first);
 
 		auto const calib = loadCalib(hicann_global);
 

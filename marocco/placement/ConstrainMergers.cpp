@@ -8,7 +8,7 @@
 #include "marocco/resource/Manager.h"
 #include "marocco/routing/SynapseDriverRequirementPerSource.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace placement {
@@ -25,9 +25,9 @@ ConstrainMergers::ConstrainMergers(
 {}
 
 bool ConstrainMergers::operator()(
-    HMF::Coordinate::DNCMergerOnHICANN const& dnc_merger,
-    std::set<HMF::Coordinate::NeuronBlockOnHICANN> const& adjacent_nbs,
-    HMF::Coordinate::HICANNOnWafer const& hicann) const
+    halco::hicann::v2::DNCMergerOnHICANN const& dnc_merger,
+    std::set<halco::hicann::v2::NeuronBlockOnHICANN> const& adjacent_nbs,
+    halco::hicann::v2::HICANNOnWafer const& hicann) const
 {
 	// simulate L1Address assigment for this merger configuration and return if it would violate HW
 	// constrains.

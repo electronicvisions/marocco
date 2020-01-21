@@ -1,6 +1,6 @@
 import copy, unittest, random
 from pymarocco import *
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
 import pyhmf as pynn
 
 @unittest.skip("ECM disabled (it's not working currently, and we need Jenkins to get BLUE)")

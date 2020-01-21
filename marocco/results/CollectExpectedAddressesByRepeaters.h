@@ -17,7 +17,7 @@ namespace results {
 struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 {
 	typedef std::vector<HMF::HICANN::L1Address> addresses_type;
-	typedef boost::variant<HMF::Coordinate::HRepeaterOnHICANN, HMF::Coordinate::VRepeaterOnHICANN>
+	typedef boost::variant<halco::hicann::v2::HRepeaterOnHICANN, halco::hicann::v2::VRepeaterOnHICANN>
 		repeater_type;
 
 	/// \brief Expected source addresses of all possible events fed into the current route.
@@ -27,7 +27,7 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 
 	/// \brief Expected event addresses for every repeater actively involved in a L1 route
 	///        of the network.
-	std::map<HMF::Coordinate::HICANNOnWafer, std::map<repeater_type, addresses_type> >
+	std::map<halco::hicann::v2::HICANNOnWafer, std::map<repeater_type, addresses_type> >
 		expected_addresses;
 
 	/// \brief Expected event addresses for repeaters adjacent to L1 routes of the network.
@@ -41,9 +41,9 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 	///       been added to \c passive_addresses as it is adjacent to a L1 route, but is
 	///       later also used as the sending repeater for a different route and thus end
 	///       up in \c expected_addresses.
-	std::map<HMF::Coordinate::HICANNOnWafer, std::map<repeater_type, addresses_type> >
+	std::map<halco::hicann::v2::HICANNOnWafer, std::map<repeater_type, addresses_type> >
 		passive_addresses;
-	HMF::Coordinate::HICANNOnWafer current_hicann;
+	halco::hicann::v2::HICANNOnWafer current_hicann;
 
 	void apply(marocco::results::Marocco const& results)
 	{
@@ -66,7 +66,7 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 		auto next = std::next(it);
 
 		while (next != end) {
-			if (auto const* hicann = boost::get<HMF::Coordinate::HICANNOnWafer>(&*it)) {
+			if (auto const* hicann = boost::get<halco::hicann::v2::HICANNOnWafer>(&*it)) {
 				current_hicann = *hicann;
 			}
 
@@ -88,7 +88,7 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 	{}
 
 	void operator()(
-		HMF::Coordinate::HLineOnHICANN const& current, HMF::Coordinate::VLineOnHICANN const& next)
+		halco::hicann::v2::HLineOnHICANN const& current, halco::hicann::v2::VLineOnHICANN const& next)
 	{
 		passive_addresses[current_hicann][current.toHRepeaterOnHICANN()] =
 			source_addresses_of_current_route;
@@ -97,7 +97,7 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 	}
 
 	void operator()(
-		HMF::Coordinate::VLineOnHICANN const& current, HMF::Coordinate::HLineOnHICANN const& next)
+		halco::hicann::v2::VLineOnHICANN const& current, halco::hicann::v2::HLineOnHICANN const& next)
 	{
 		passive_addresses[current_hicann][current.toVRepeaterOnHICANN()] =
 			source_addresses_of_current_route;
@@ -110,9 +110,9 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 	{}
 
 	void operator()(
-		HMF::Coordinate::HLineOnHICANN const& current,
-		HMF::Coordinate::HICANNOnWafer hicann,
-		HMF::Coordinate::HLineOnHICANN const& next)
+		halco::hicann::v2::HLineOnHICANN const& current,
+		halco::hicann::v2::HICANNOnWafer hicann,
+		halco::hicann::v2::HLineOnHICANN const& next)
 	{
 		auto repeater = current.toHRepeaterOnHICANN();
 		if (current.east() == next && repeater.isRight()) {
@@ -133,9 +133,9 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 	}
 
 	void operator()(
-		HMF::Coordinate::VLineOnHICANN const& current,
-		HMF::Coordinate::HICANNOnWafer hicann,
-		HMF::Coordinate::VLineOnHICANN const& next)
+		halco::hicann::v2::VLineOnHICANN const& current,
+		halco::hicann::v2::HICANNOnWafer hicann,
+		halco::hicann::v2::VLineOnHICANN const& next)
 	{
 		auto repeater = current.toVRepeaterOnHICANN();
 		if (current.south() == next && repeater.isBottom()) {
@@ -157,9 +157,9 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 
 	// "output to the left" case of sending repeater
 	void operator()(
-		HMF::Coordinate::DNCMergerOnHICANN const& current,
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::HLineOnHICANN const& /*next*/)
+		halco::hicann::v2::DNCMergerOnHICANN const& current,
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::HLineOnHICANN const& /*next*/)
 	{
 		auto const repeater = current.toSendingRepeaterOnHICANN().toHRepeaterOnHICANN();
 		expected_addresses[hicann.east()][repeater] = source_addresses_of_current_route;
@@ -167,9 +167,9 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 
 	// "output to the right" case of sending repeater
 	void operator()(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::DNCMergerOnHICANN const& current,
-		HMF::Coordinate::HLineOnHICANN const& /*next*/)
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::DNCMergerOnHICANN const& current,
+		halco::hicann::v2::HLineOnHICANN const& /*next*/)
 	{
 		auto const repeater = current.toSendingRepeaterOnHICANN().toHRepeaterOnHICANN();
 		expected_addresses[hicann][repeater] = source_addresses_of_current_route;

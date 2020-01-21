@@ -5,8 +5,8 @@
 #include <boost/variant.hpp>
 #include <unordered_map>
 
-#include "hal/Coordinate/iter_all.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/common/iter_all.h"
+#include "halco/common/typed_array.h"
 
 #include "marocco/Logger.h"
 #include "marocco/placement/internal/free_functions.h"
@@ -14,7 +14,8 @@
 #include "marocco/util/chunked.h"
 #include "marocco/util/iterable.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using marocco::placement::internal::NeuronPlacementRequest;
 
 namespace marocco {
@@ -78,13 +79,13 @@ NeuronPlacement::NeuronPlacement(
 {
 }
 
-void NeuronPlacement::add(HMF::Coordinate::HICANNOnWafer const& hicann)
+void NeuronPlacement::add(halco::hicann::v2::HICANNOnWafer const& hicann)
 {
 	m_denmem_assignment[hicann];
 }
 
 void NeuronPlacement::add_defect(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::NeuronOnHICANN const& neuron)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::NeuronOnHICANN const& neuron)
 {
 	MAROCCO_TRACE("Marked " << neuron << " on " << hicann << " as defect/disabled");
 	m_denmem_assignment.at(hicann)[neuron.toNeuronBlockOnHICANN()].add_defect(

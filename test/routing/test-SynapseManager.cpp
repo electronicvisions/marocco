@@ -1,8 +1,8 @@
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/fwd.h"
 #include "test/common.h"
 #include "marocco/routing/SynapseManager.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 using HMF::HICANN::DriverDecoder;
 
 namespace marocco {
@@ -122,14 +122,14 @@ TEST(SynapseManager, SynapseStepper)
 	// simple stuff:
 	// Neuron of 4x2=8 denmems, with standard left right mapping.
 	// 1 driver: -> 4 half rows assigned, -> 8 synapses.
-	side_parity_map[Side_Parity(geometry::left, Parity::even)] = {SynapseColumnOnHICANN(0),
+	side_parity_map[Side_Parity(halco::common::left, Parity::even)] = {SynapseColumnOnHICANN(0),
 																  SynapseColumnOnHICANN(2)};
-	assignment[Side_Parity_Decoder_STP(geometry::left, Parity::even, decoder, stp)] = {
+	assignment[Side_Parity_Decoder_STP(halco::common::left, Parity::even, decoder, stp)] = {
 		SynapseRowOnHICANN(0), SynapseRowOnHICANN(1)};
 
-	side_parity_map[Side_Parity(geometry::left, Parity::odd)] = {SynapseColumnOnHICANN(1),
+	side_parity_map[Side_Parity(halco::common::left, Parity::odd)] = {SynapseColumnOnHICANN(1),
 																 SynapseColumnOnHICANN(3)};
-	assignment[Side_Parity_Decoder_STP(geometry::left, Parity::odd, decoder, stp)] = {
+	assignment[Side_Parity_Decoder_STP(halco::common::left, Parity::odd, decoder, stp)] = {
 		SynapseRowOnHICANN(0), SynapseRowOnHICANN(1)};
 
 	SynapseManager::SynapseStepper stepper(assignment, dec_stp, side_parity_map);

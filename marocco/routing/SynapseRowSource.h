@@ -9,7 +9,8 @@
 #include "pywrap/compat/array.hpp"
 
 #include "marocco/graph.h"
-#include "hal/Coordinate/HMFGeometry.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/hicann/v2/synapse.h"
 #include "hal/HICANN/DriverDecoder.h"
 #include "hal/HICANN/RowConfig.h"
 #include "marocco/routing/STPMode.h"
@@ -58,9 +59,9 @@ public:
 	typedef HMF::HICANN::DriverDecoder Address;
 
 	// TODO: typed_array<…, SynapseColumnOnHICANN>
-	typedef std::array< SynapseSource, HMF::Coordinate::NeuronOnHICANN::x_type::end > SynapseMapping;
+	typedef std::array< SynapseSource, halco::hicann::v2::NeuronOnHICANN::x_type::end > SynapseMapping;
 
-	SynapseRowSource(HMF::Coordinate::Side const& syn_input);
+	SynapseRowSource(halco::common::Side const& syn_input);
 
 	/// 2bit MSB of L1 Addresses forwarded on this line.
 	Address const& prefix(size_t ii) const;
@@ -74,7 +75,7 @@ public:
 #endif
 
 	/// Synaptic input of the neurons to which all synapses of a row connect (left or right)
-	HMF::Coordinate::Side const& synaptic_input() const;
+	halco::common::Side const& synaptic_input() const;
 
 	bool operator== (SynapseRowSource const& rhs) const;
 	bool operator!= (SynapseRowSource const& rhs) const;
@@ -91,7 +92,7 @@ private:
 	std::array<Address, HMF::HICANN::RowConfig::num_syn_ins> mPrefix;
 
 	/// Synaptic input of the neurons to which all synapses of a row connect (left or right)
-	HMF::Coordinate::Side mSynapticInput;
+	halco::common::Side mSynapticInput;
 
 	/// holds the biological synapses mapped to hw synapses
 	SynapseMapping mSynapses;
@@ -105,8 +106,8 @@ private:
 class DriverResult
 {
 public:
-	typedef HMF::Coordinate::SynapseDriverOnHICANN SynapseDriverOnHICANN;
-	typedef HMF::Coordinate::VLineOnHICANN VLineOnHICANN;
+	typedef halco::hicann::v2::SynapseDriverOnHICANN SynapseDriverOnHICANN;
+	typedef halco::hicann::v2::VLineOnHICANN VLineOnHICANN;
 
 	typedef std::map<
 			SynapseDriverOnHICANN,
@@ -115,7 +116,7 @@ public:
 
 	typedef std::map<SynapseDriverOnHICANN, STPMode> STPSettings;
 
-	typedef std::map<HMF::Coordinate::SynapseRowOnHICANN, SynapseRowSource> Rows;
+	typedef std::map<halco::hicann::v2::SynapseRowOnHICANN, SynapseRowSource> Rows;
 
 	DriverResult(VLineOnHICANN const& vline);
 
@@ -150,8 +151,8 @@ public:
 	void check() const;
 
 	/// ugly hack, in due to crapy PY++ bindings
-	std::vector<HMF::Coordinate::SynapseDriverOnHICANN> const&
-	getDrivers(HMF::Coordinate::SynapseDriverOnHICANN const& drv) const
+	std::vector<halco::hicann::v2::SynapseDriverOnHICANN> const&
+	getDrivers(halco::hicann::v2::SynapseDriverOnHICANN const& drv) const
 	{
 		return mDrivers.at(drv);
 	}

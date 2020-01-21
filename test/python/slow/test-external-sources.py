@@ -1,6 +1,7 @@
 import unittest
 
-import pyhalbe.Coordinate as C
+from pyhalco_common import Enum
+import pyhalco_hicann_v2 as C
 import pyhmf as pynn
 import pylogging
 import itertools
@@ -37,7 +38,7 @@ class TestExternalSources(utils.TestWithResults):
         self.marocco.continue_despite_synapse_loss = True
 
         target = pynn.Population(1, pynn.IF_cond_exp, {})
-        hicann = C.HICANNOnWafer(C.Enum(100))
+        hicann = C.HICANNOnWafer(Enum(100))
         self.marocco.manual_placement.on_hicann(target, hicann)
 
         exsource = pynn.Population(nsources,
@@ -89,7 +90,7 @@ class TestExternalSources(utils.TestWithResults):
         self.marocco.continue_despite_synapse_loss = True
 
         target = pynn.Population(1, pynn.IF_cond_exp, {})
-        hicann = C.HICANNOnWafer(C.Enum(100))
+        hicann = C.HICANNOnWafer(Enum(100))
         self.marocco.manual_placement.on_hicann(target, hicann)
 
         exsource = pynn.Population(nsources,
@@ -156,7 +157,7 @@ class TestExternalSources(utils.TestWithResults):
         self.marocco.continue_despite_synapse_loss = True
 
         target = pynn.Population(1, pynn.IF_cond_exp, {})
-        hicann = C.HICANNOnWafer(C.Enum(100))
+        hicann = C.HICANNOnWafer(Enum(100))
         self.marocco.manual_placement.on_hicann(target, hicann)
 
         exsource = pynn.Population(nsources,

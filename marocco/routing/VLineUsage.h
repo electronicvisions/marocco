@@ -2,9 +2,9 @@
 
 #include <array>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/L1.h"
-#include "hal/Coordinate/typed_array.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/l1.h"
+#include "halco/common/typed_array.h"
 
 namespace marocco {
 namespace routing {
@@ -16,9 +16,9 @@ namespace routing {
  * already overused.
  */
 class VLineUsage {
-	typedef HMF::Coordinate::typed_array<
-	    std::array<size_t, 2 * HMF::Coordinate::SynapseSwitchOnHICANN::periods>,
-	    HMF::Coordinate::HICANNOnWafer>
+	typedef halco::common::typed_array<
+	    std::array<size_t, 2 * halco::hicann::v2::SynapseSwitchOnHICANN::periods>,
+	    halco::hicann::v2::HICANNOnWafer>
 	    array_type;
 
 public:
@@ -27,18 +27,18 @@ public:
 	static constexpr size_t max()
 	{
 		static_assert(
-		    HMF::Coordinate::SynapseSwitchOnHICANN::per_column / 2 == 14,
+		    halco::hicann::v2::SynapseSwitchOnHICANN::per_column / 2 == 14,
 		    "unexpected number of reachable synapse drivers");
-		return HMF::Coordinate::SynapseSwitchOnHICANN::per_column / 2;
+		return halco::hicann::v2::SynapseSwitchOnHICANN::per_column / 2;
 	}
 
 	void increment(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-	    HMF::Coordinate::VLineOnHICANN const& vline);
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::VLineOnHICANN const& vline);
 
 	size_t get(
-		HMF::Coordinate::HICANNOnWafer const& hicann,
-		HMF::Coordinate::VLineOnHICANN const& vline) const;
+		halco::hicann::v2::HICANNOnWafer const& hicann,
+		halco::hicann::v2::VLineOnHICANN const& vline) const;
 
 private:
 	array_type m_usage;

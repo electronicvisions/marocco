@@ -33,7 +33,7 @@ public:
 	void run(results::SynapseRouting& result);
 
 private:
-	void run(HMF::Coordinate::HICANNGlobal const& hicann, results::SynapseRouting& result);
+	void run(halco::hicann::v2::HICANNGlobal const& hicann, results::SynapseRouting& result);
 
 	BioGraph const& m_bio_graph;
 	hardware_type& m_hardware;

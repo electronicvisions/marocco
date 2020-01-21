@@ -2,11 +2,13 @@
 
 #include <boost/serialization/nvp.hpp>
 
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
 #include "marocco/util/iterable.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
+
 using boost::multi_index::get;
 
 namespace marocco {

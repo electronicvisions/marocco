@@ -8,8 +8,8 @@
 #include <boost/operators.hpp>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/Neuron.h"
-#include "hal/Coordinate/Wafer.h"
+#include "halco/hicann/v2/neuron.h"
+#include "halco/hicann/v2/wafer.h"
 #include "marocco/util/iterable.h"
 
 namespace marocco {
@@ -50,9 +50,9 @@ class LogicalNeuron : boost::equality_comparable<LogicalNeuron>
 	};
 
 public:
-	typedef HMF::Coordinate::NeuronOnWafer neuron_type;
-	typedef HMF::Coordinate::NeuronBlockOnWafer neuron_block_type;
-	typedef HMF::Coordinate::NeuronOnNeuronBlock neuron_on_block_type;
+	typedef halco::hicann::v2::NeuronOnWafer neuron_type;
+	typedef halco::hicann::v2::NeuronBlockOnWafer neuron_block_type;
+	typedef halco::hicann::v2::NeuronOnNeuronBlock neuron_on_block_type;
 	/**
 	 * @brief Chunk of neurons starting at offset with specified width/size.
 	 * @note Chunks can not span multiple rows of neurons, thus the maximum size of a

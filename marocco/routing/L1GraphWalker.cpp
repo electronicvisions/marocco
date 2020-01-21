@@ -1,10 +1,11 @@
 #include "marocco/routing/L1GraphWalker.h"
 
-#include "hal/Coordinate/geometry.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/geometry.h"
+#include "halco/common/iter_all.h"
 #include "marocco/util/iterable.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {

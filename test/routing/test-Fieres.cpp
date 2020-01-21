@@ -3,9 +3,10 @@
 
 #include "test/common.h"
 #include "marocco/routing/Fieres.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 namespace routing {
@@ -235,7 +236,7 @@ TEST(Fieres, Issue1666_Case1) {
 		DriverInterval(VLineOnHICANN(203), 4, 325)
 	};
 
-	Fieres fieres(list, HMF::Coordinate::right);
+	Fieres fieres(list, halco::common::right);
 
 	size_t const drivers_requested = std::accumulate(list.begin(), list.end(), 0,
 			[](size_t cnt, DriverInterval const& entry) {
@@ -276,7 +277,7 @@ TEST(Fieres, Issue1666_Case2) {
 		DriverInterval(VLineOnHICANN(200), 4, 332)
 	};
 
-	Fieres fieres(list, HMF::Coordinate::right);
+	Fieres fieres(list, halco::common::right);
 
 	size_t const drivers_requested = std::accumulate(list.begin(), list.end(), 0,
 			[](size_t cnt, DriverInterval const& entry) {
@@ -312,7 +313,7 @@ TEST(Fieres, Issue1666_Case3) {
 		DriverInterval(VLineOnHICANN(111), 4, 315)
 	};
 
-	Fieres fieres(list, HMF::Coordinate::left);
+	Fieres fieres(list, halco::common::left);
 
 	size_t const drivers_requested = std::accumulate(list.begin(), list.end(), 0,
 			[](size_t cnt, DriverInterval const& entry) {

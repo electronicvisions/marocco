@@ -3,9 +3,9 @@
 #include <stdexcept>
 #include <boost/serialization/nvp.hpp>
 
-#include "hal/Coordinate/Synapse.h"
+#include "halco/hicann/v2/synapse.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace routing {

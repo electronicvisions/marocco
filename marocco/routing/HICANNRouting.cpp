@@ -2,7 +2,7 @@
 
 #include "marocco/routing/SynapseRouting.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace routing {
@@ -33,7 +33,7 @@ void HICANNRouting::run(results::SynapseRouting& result)
 }
 
 void HICANNRouting::run(
-	HMF::Coordinate::HICANNGlobal const& hicann, results::SynapseRouting& result)
+	halco::hicann::v2::HICANNGlobal const& hicann, results::SynapseRouting& result)
 {
 	if (m_neuron_placement.find(hicann).empty()) {
 		// No local neurons, we can skip synapse routing for this HICANN.  This is the

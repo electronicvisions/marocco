@@ -4,8 +4,8 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 
-#include "hal/Coordinate/HICANN.h"
-#include "hal/Coordinate/Neuron.h"
+#include "halco/hicann/v2/hicann.h"
+#include "halco/hicann/v2/neuron.h"
 
 #include "marocco/config.h"
 #include "marocco/placement/algorithms/PlacePopulationsBase.h"
@@ -32,11 +32,11 @@ public:
 		results::Placement& result,
 		internal::Result& internal);
 
-	void add(HMF::Coordinate::HICANNOnWafer const& hicann);
+	void add(halco::hicann::v2::HICANNOnWafer const& hicann);
 
 	void add_defect(
-	    HMF::Coordinate::HICANNOnWafer const& hicann,
-	    HMF::Coordinate::NeuronOnHICANN const& neuron);
+	    halco::hicann::v2::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::NeuronOnHICANN const& neuron);
 
 	void run();
 
@@ -71,7 +71,7 @@ private:
 	 * assignments are stored in \c m_internal.
 	 */
 	internal::Result::denmem_assignment_type m_denmem_assignment;
-	std::set<HMF::Coordinate::HICANNOnWafer> m_used_hicanns;
+	std::set<halco::hicann::v2::HICANNOnWafer> m_used_hicanns;
 };
 
 } // namespace placement

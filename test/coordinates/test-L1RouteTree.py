@@ -1,7 +1,8 @@
 import itertools
 import unittest
 
-from pyhalbe.Coordinate import *
+from pyhalco_hicann_v2 import *
+from pyhalco_common import *
 from pymarocco_coordinates import L1Route, L1RouteTree
 
 

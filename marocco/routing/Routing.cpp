@@ -15,7 +15,7 @@
 
 #include <boost/make_shared.hpp>
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace routing {

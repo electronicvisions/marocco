@@ -1,6 +1,6 @@
 #include "marocco/routing/VLineUsage.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace {
 
@@ -26,13 +26,13 @@ VLineUsage::VLineUsage()
 }
 
 void VLineUsage::increment(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VLineOnHICANN const& vline)
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::VLineOnHICANN const& vline)
 {
 	m_usage[hicann][synapse_switch_period(vline)]++;
 }
 
 size_t VLineUsage::get(
-    HMF::Coordinate::HICANNOnWafer const& hicann, HMF::Coordinate::VLineOnHICANN const& vline) const
+    halco::hicann::v2::HICANNOnWafer const& hicann, halco::hicann::v2::VLineOnHICANN const& vline) const
 {
 	return m_usage[hicann][synapse_switch_period(vline)];
 }

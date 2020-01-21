@@ -8,18 +8,19 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/utility.hpp>
 
-#include "hal/Coordinate/geometry.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/geometry.h"
+#include "halco/common/iter_all.h"
 #include "marocco/coordinates/printers.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 
 namespace marocco {
 
 void check_neuron_size(size_t size)
 {
 	if (size == 0 || ((size % 2) != 0) ||
-	    (size > HMF::Coordinate::NeuronOnNeuronBlock::enum_type::size)) {
+	    (size > NeuronOnNeuronBlock::enum_type::size)) {
 		throw std::invalid_argument(
 		    "marocco requires multiple-of-two neuron size, must fit on neuron block");
 	}

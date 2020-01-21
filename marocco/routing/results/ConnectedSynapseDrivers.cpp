@@ -5,9 +5,9 @@
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/set.hpp>
 
-#include "hal/Coordinate/Quadrant.h"
+#include "halco/hicann/v2/quadrant.h"
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
 
 namespace marocco {
 namespace routing {

@@ -1,13 +1,14 @@
 #include "test/common.h"
 #include "marocco/routing/SynapseDriverRequirements.h"
-#include "hal/Coordinate/iter_all.h"
+#include "halco/common/iter_all.h"
 
 #include <fstream>
 #include <numeric>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/unordered_map.h>
 
-using namespace HMF::Coordinate;
+using namespace halco::hicann::v2;
+using namespace halco::common;
 using HMF::HICANN::DriverDecoder;
 using HMF::HICANN::L1Address;
 
@@ -32,13 +33,13 @@ TEST(SynapseDriverRequirements, Base)
 	std::map<SynapseType, std::map<Side_Parity, size_t> >
 		target_synapses_per_parity_and_synaptic_input;
 	target_synapses_per_parity_and_synaptic_input[SynapseType::excitatory][Side_Parity(
-		geometry::left, Parity::even)] = 1;
+		halco::common::left, Parity::even)] = 1;
 	target_synapses_per_parity_and_synaptic_input[SynapseType::excitatory][Side_Parity(
-		geometry::left, Parity::odd)] = 1;
+		halco::common::left, Parity::odd)] = 1;
 	target_synapses_per_parity_and_synaptic_input[SynapseType::inhibitory][Side_Parity(
-		geometry::right, Parity::even)] = 1;
+		halco::common::right, Parity::even)] = 1;
 	target_synapses_per_parity_and_synaptic_input[SynapseType::inhibitory][Side_Parity(
-		geometry::right, Parity::odd)] = 1;
+		halco::common::right, Parity::odd)] = 1;
 
 	std::map<Type_Decoder_STP, std::map<Side_Parity, size_t> > required_half_rows =
 		SynapseDriverRequirements::count_half_rows_per_input_granularity(
@@ -50,17 +51,17 @@ TEST(SynapseDriverRequirements, Base)
 	// 4 half rows for left, even/odd, DD(2)
 	// 2 half rows for right, even/odd, DD(3)
 	ASSERT_EQ(required_half_rows.size(), 4);
-	ASSERT_EQ(required_half_rows[sp1][Side_Parity(geometry::left, Parity::even)], 2);
-	ASSERT_EQ(required_half_rows[sp1][Side_Parity(geometry::left, Parity::odd)], 2);
+	ASSERT_EQ(required_half_rows[sp1][Side_Parity(halco::common::left, Parity::even)], 2);
+	ASSERT_EQ(required_half_rows[sp1][Side_Parity(halco::common::left, Parity::odd)], 2);
 
-	ASSERT_EQ(required_half_rows[sp2][Side_Parity(geometry::left, Parity::even)], 3);
-	ASSERT_EQ(required_half_rows[sp2][Side_Parity(geometry::left, Parity::odd)], 3);
+	ASSERT_EQ(required_half_rows[sp2][Side_Parity(halco::common::left, Parity::even)], 3);
+	ASSERT_EQ(required_half_rows[sp2][Side_Parity(halco::common::left, Parity::odd)], 3);
 
-	ASSERT_EQ(required_half_rows[sp3][Side_Parity(geometry::left, Parity::even)], 4);
-	ASSERT_EQ(required_half_rows[sp3][Side_Parity(geometry::left, Parity::odd)], 4);
+	ASSERT_EQ(required_half_rows[sp3][Side_Parity(halco::common::left, Parity::even)], 4);
+	ASSERT_EQ(required_half_rows[sp3][Side_Parity(halco::common::left, Parity::odd)], 4);
 
-	ASSERT_EQ(required_half_rows[sp4][Side_Parity(geometry::right, Parity::even)], 2);
-	ASSERT_EQ(required_half_rows[sp4][Side_Parity(geometry::right, Parity::odd)], 2);
+	ASSERT_EQ(required_half_rows[sp4][Side_Parity(halco::common::right, Parity::even)], 2);
+	ASSERT_EQ(required_half_rows[sp4][Side_Parity(halco::common::right, Parity::odd)], 2);
 
 
 	std::map<Type_Decoder_STP, Side_TriParity> bio_to_hw_assignment;
@@ -69,34 +70,34 @@ TEST(SynapseDriverRequirements, Base)
 
 	ASSERT_EQ(
 		half_rows_per_parity[TriParity::any][Side_Decoder_STP(
-			geometry::left, DriverDecoder(0), STPMode::off)],
+			halco::common::left, DriverDecoder(0), STPMode::off)],
 		2);
 	ASSERT_EQ(
 		half_rows_per_parity[TriParity::any][Side_Decoder_STP(
-			geometry::left, DriverDecoder(1), STPMode::off)],
+			halco::common::left, DriverDecoder(1), STPMode::off)],
 		3);
 	ASSERT_EQ(
 		half_rows_per_parity[TriParity::any][Side_Decoder_STP(
-			geometry::left, DriverDecoder(2), STPMode::off)],
+			halco::common::left, DriverDecoder(2), STPMode::off)],
 		4);
 	ASSERT_EQ(
 		half_rows_per_parity[TriParity::any][Side_Decoder_STP(
-			geometry::right, DriverDecoder(3), STPMode::off)],
+			halco::common::right, DriverDecoder(3), STPMode::off)],
 		2);
 
-	ASSERT_EQ(Side_TriParity(geometry::left, TriParity::any), bio_to_hw_assignment[sp1]);
-	ASSERT_EQ(Side_TriParity(geometry::left, TriParity::any), bio_to_hw_assignment[sp2]);
-	ASSERT_EQ(Side_TriParity(geometry::left, TriParity::any), bio_to_hw_assignment[sp3]);
-	ASSERT_EQ(Side_TriParity(geometry::right, TriParity::any), bio_to_hw_assignment[sp4]);
+	ASSERT_EQ(Side_TriParity(halco::common::left, TriParity::any), bio_to_hw_assignment[sp1]);
+	ASSERT_EQ(Side_TriParity(halco::common::left, TriParity::any), bio_to_hw_assignment[sp2]);
+	ASSERT_EQ(Side_TriParity(halco::common::left, TriParity::any), bio_to_hw_assignment[sp3]);
+	ASSERT_EQ(Side_TriParity(halco::common::right, TriParity::any), bio_to_hw_assignment[sp4]);
 }
 
 TEST(SynapseDriverRequirements, SeveralTargets)
 {
 	std::vector<std::map<TriParity, std::map<Side_Decoder_STP, size_t> > > half_rows_per_parity;
 
-	Side_Decoder_STP c1(geometry::left, DriverDecoder(0), STPMode::off);
-	Side_Decoder_STP c2(geometry::right, DriverDecoder(1), STPMode::off);
-	Side_Decoder_STP c3(geometry::right, DriverDecoder(1), STPMode::off);
+	Side_Decoder_STP c1(halco::common::left, DriverDecoder(0), STPMode::off);
+	Side_Decoder_STP c2(halco::common::right, DriverDecoder(1), STPMode::off);
+	Side_Decoder_STP c3(halco::common::right, DriverDecoder(1), STPMode::off);
 
 	{
 		std::map<TriParity, std::map<Side_Decoder_STP, size_t> > nrn;
@@ -129,13 +130,13 @@ TEST(SynapseDriverRequirements, resolve_triparity)
 {
 	std::map<TriParity, std::map<Side_Decoder_STP, size_t> > required_half_rows;
 
-	Side_Decoder_STP c1(geometry::left, DriverDecoder(0), STPMode::off);
-	Side_Decoder_STP c2(geometry::left, DriverDecoder(1), STPMode::off);
-	Side_Decoder_STP c3(geometry::left, DriverDecoder(2), STPMode::off);
-	Side_Decoder_STP c4(geometry::left, DriverDecoder(3), STPMode::off);
+	Side_Decoder_STP c1(halco::common::left, DriverDecoder(0), STPMode::off);
+	Side_Decoder_STP c2(halco::common::left, DriverDecoder(1), STPMode::off);
+	Side_Decoder_STP c3(halco::common::left, DriverDecoder(2), STPMode::off);
+	Side_Decoder_STP c4(halco::common::left, DriverDecoder(3), STPMode::off);
 
-	Side_Decoder_STP c5(geometry::right, DriverDecoder(0), STPMode::off);
-	Side_Decoder_STP c6(geometry::right, DriverDecoder(1), STPMode::off);
+	Side_Decoder_STP c5(halco::common::right, DriverDecoder(0), STPMode::off);
+	Side_Decoder_STP c6(halco::common::right, DriverDecoder(1), STPMode::off);
 
 	required_half_rows[TriParity::even][c1] = 2;
 	required_half_rows[TriParity::even][c2] = 3;
@@ -157,8 +158,8 @@ TEST(SynapseDriverRequirements, resolve_triparity)
 	// For c4, which has TriParity::any, we expect that the 2 requested half
 	// rows are split evenly among even and odd columns, as there are 2+3=5
 	// even half rows requested from c1 and c2, and 4 odd half rows from c3.
-	EXPECT_EQ(2+3+1, half_rows_per_parity[Side_Parity_STP(geometry::left,Parity::even, STPMode::off)]);
-	EXPECT_EQ(4+1, half_rows_per_parity[Side_Parity_STP(geometry::left,Parity::odd, STPMode::off)]);
+	EXPECT_EQ(2+3+1, half_rows_per_parity[Side_Parity_STP(halco::common::left,Parity::even, STPMode::off)]);
+	EXPECT_EQ(4+1, half_rows_per_parity[Side_Parity_STP(halco::common::left,Parity::odd, STPMode::off)]);
 
 	// check assignment from triparity to parity
 	// As there are 2+3 even half rows requested from c1 and c2, and 4 odd half
@@ -169,26 +170,26 @@ TEST(SynapseDriverRequirements, resolve_triparity)
 	EXPECT_EQ(Parity::even, triparity_assignmemt_to_parity[c4][1]);
 
 	// check synrow histogram
-	Side_Parity_Decoder_STP p1(geometry::left, Parity::even, DriverDecoder(0), STPMode::off);
+	Side_Parity_Decoder_STP p1(halco::common::left, Parity::even, DriverDecoder(0), STPMode::off);
 	EXPECT_EQ(2, synrow_hist[p1]);
 
-	Side_Parity_Decoder_STP p2(geometry::left, Parity::even, DriverDecoder(1), STPMode::off);
+	Side_Parity_Decoder_STP p2(halco::common::left, Parity::even, DriverDecoder(1), STPMode::off);
 	EXPECT_EQ(3, synrow_hist[p2]);
 
-	Side_Parity_Decoder_STP p3(geometry::left, Parity::odd, DriverDecoder(2), STPMode::off);
+	Side_Parity_Decoder_STP p3(halco::common::left, Parity::odd, DriverDecoder(2), STPMode::off);
 	EXPECT_EQ(4, synrow_hist[p3]);
 
 	// Again, check that half rows of c4 are split to p4e and p4e
-	Side_Parity_Decoder_STP p4o(geometry::left, Parity::odd, DriverDecoder(3), STPMode::off);
+	Side_Parity_Decoder_STP p4o(halco::common::left, Parity::odd, DriverDecoder(3), STPMode::off);
 	EXPECT_EQ(1, synrow_hist[p4o]);
 
-	Side_Parity_Decoder_STP p4e(geometry::left, Parity::even, DriverDecoder(3), STPMode::off);
+	Side_Parity_Decoder_STP p4e(halco::common::left, Parity::even, DriverDecoder(3), STPMode::off);
 	EXPECT_EQ(1, synrow_hist[p4e]);
 
-	Side_Parity_Decoder_STP p5(geometry::right, Parity::odd, DriverDecoder(0), STPMode::off);
+	Side_Parity_Decoder_STP p5(halco::common::right, Parity::odd, DriverDecoder(0), STPMode::off);
 	EXPECT_EQ(1, synrow_hist[p5]);
 
-	Side_Parity_Decoder_STP p6(geometry::right, Parity::odd, DriverDecoder(1), STPMode::off);
+	Side_Parity_Decoder_STP p6(halco::common::right, Parity::odd, DriverDecoder(1), STPMode::off);
 	EXPECT_EQ(3, synrow_hist[p6]);
 }
 
@@ -196,13 +197,13 @@ TEST(SynapseDriverRequirements, count_rows_per_side)
 {
 	std::map<Side_Parity_STP, size_t> required_half_rows_per_parity;
 
-	Side_Parity_STP c1(geometry::left, Parity::even, STPMode::off);
-	Side_Parity_STP c2(geometry::left, Parity::odd, STPMode::off);
-	Side_Parity_STP c3(geometry::right, Parity::even, STPMode::off);
-	Side_Parity_STP c4(geometry::right, Parity::odd, STPMode::off);
-	Side_Parity_STP c5(geometry::left, Parity::even, STPMode::depression);
-	Side_Parity_STP c6(geometry::left, Parity::odd, STPMode::depression);
-	Side_Parity_STP c7(geometry::left, Parity::even, STPMode::facilitation);
+	Side_Parity_STP c1(halco::common::left, Parity::even, STPMode::off);
+	Side_Parity_STP c2(halco::common::left, Parity::odd, STPMode::off);
+	Side_Parity_STP c3(halco::common::right, Parity::even, STPMode::off);
+	Side_Parity_STP c4(halco::common::right, Parity::odd, STPMode::off);
+	Side_Parity_STP c5(halco::common::left, Parity::even, STPMode::depression);
+	Side_Parity_STP c6(halco::common::left, Parity::odd, STPMode::depression);
+	Side_Parity_STP c7(halco::common::left, Parity::even, STPMode::facilitation);
 
 	// even is higher
 	required_half_rows_per_parity[c1] = 4;
@@ -220,23 +221,23 @@ TEST(SynapseDriverRequirements, count_rows_per_side)
 		SynapseDriverRequirements::count_rows_per_side(
 				required_half_rows_per_parity);
 
-	EXPECT_EQ( 4, rows_per_side[ Side_STP(geometry::left, STPMode::off) ]);
-	EXPECT_EQ( 5, rows_per_side[ Side_STP(geometry::right, STPMode::off) ]);
-	EXPECT_EQ( 2, rows_per_side[ Side_STP(geometry::left, STPMode::depression) ]);
-	EXPECT_EQ( 1, rows_per_side[ Side_STP(geometry::left, STPMode::facilitation) ]);
+	EXPECT_EQ( 4, rows_per_side[ Side_STP(halco::common::left, STPMode::off) ]);
+	EXPECT_EQ( 5, rows_per_side[ Side_STP(halco::common::right, STPMode::off) ]);
+	EXPECT_EQ( 2, rows_per_side[ Side_STP(halco::common::left, STPMode::depression) ]);
+	EXPECT_EQ( 1, rows_per_side[ Side_STP(halco::common::left, STPMode::facilitation) ]);
 }
 
 TEST(SynapseDriverRequirements, count_drivers)
 {
 	std::map<Side_STP, size_t> rows_per_side;
 
-	rows_per_side[Side_STP(geometry::left, STPMode::off)] = 2;
-	rows_per_side[Side_STP(geometry::right, STPMode::off)] = 3;
+	rows_per_side[Side_STP(halco::common::left, STPMode::off)] = 2;
+	rows_per_side[Side_STP(halco::common::right, STPMode::off)] = 3;
 
-	rows_per_side[Side_STP(geometry::left, STPMode::depression)] = 1;
-	rows_per_side[Side_STP(geometry::right, STPMode::depression)] = 1;
+	rows_per_side[Side_STP(halco::common::left, STPMode::depression)] = 1;
+	rows_per_side[Side_STP(halco::common::right, STPMode::depression)] = 1;
 
-	rows_per_side[Side_STP(geometry::left, STPMode::facilitation)] = 3;
+	rows_per_side[Side_STP(halco::common::left, STPMode::facilitation)] = 3;
 
 
 	std::map<STPMode, size_t> rows_per_stp =
@@ -262,8 +263,8 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputSimple)
 	results::SynapticInputs synaptic_inputs;
 
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
-		synaptic_inputs[nrn][geometry::left] = SynapseType::excitatory;
-		synaptic_inputs[nrn][geometry::right] = SynapseType::inhibitory;
+		synaptic_inputs[nrn][halco::common::left] = SynapseType::excitatory;
+		synaptic_inputs[nrn][halco::common::right] = SynapseType::inhibitory;
 	}
 
 	neuron_width[NeuronOnHICANN(Enum(0))] = 2;
@@ -283,38 +284,38 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputSimple)
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(0)))
 			   .at(SynapseType::excitatory)
-			   .at(Side_Parity(geometry::left, Parity::even)));
+			   .at(Side_Parity(halco::common::left, Parity::even)));
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(0)))
 			   .at(SynapseType::excitatory)
-			   .at(Side_Parity(geometry::left, Parity::odd)));
+			   .at(Side_Parity(halco::common::left, Parity::odd)));
 
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(2)))
 			   .at(SynapseType::inhibitory)
-			   .at(Side_Parity(geometry::right, Parity::even)));
+			   .at(Side_Parity(halco::common::right, Parity::even)));
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(2)))
 			   .at(SynapseType::inhibitory)
-			   .at(Side_Parity(geometry::right, Parity::odd)));
+			   .at(Side_Parity(halco::common::right, Parity::odd)));
 
 	ASSERT_EQ(
 		2, targets.at(NeuronOnHICANN(Enum(8)))
 			   .at(SynapseType::excitatory)
-			   .at(Side_Parity(geometry::left, Parity::even)));
+			   .at(Side_Parity(halco::common::left, Parity::even)));
 	ASSERT_EQ(
 		2, targets.at(NeuronOnHICANN(Enum(8)))
 			   .at(SynapseType::excitatory)
-			   .at(Side_Parity(geometry::left, Parity::odd)));
+			   .at(Side_Parity(halco::common::left, Parity::odd)));
 
 	ASSERT_EQ(
 		4, targets.at(NeuronOnHICANN(Enum(16)))
 			   .at(SynapseType::inhibitory)
-			   .at(Side_Parity(geometry::right, Parity::even)));
+			   .at(Side_Parity(halco::common::right, Parity::even)));
 	ASSERT_EQ(
 		4, targets.at(NeuronOnHICANN(Enum(16)))
 			   .at(SynapseType::inhibitory)
-			   .at(Side_Parity(geometry::right, Parity::odd)));
+			   .at(Side_Parity(halco::common::right, Parity::odd)));
 }
 
 TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputAdvanced)
@@ -325,11 +326,11 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputAdvanced)
 	// 3 time constants
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
 		if (nrn.x() % 2 == 0) {
-			synaptic_inputs[nrn][geometry::left] = SynapseType(0);
-			synaptic_inputs[nrn][geometry::right] = SynapseType(1);
+			synaptic_inputs[nrn][halco::common::left] = SynapseType(0);
+			synaptic_inputs[nrn][halco::common::right] = SynapseType(1);
 		} else {
-			synaptic_inputs[nrn][geometry::left] = SynapseType(0);
-			synaptic_inputs[nrn][geometry::right] = SynapseType(2);
+			synaptic_inputs[nrn][halco::common::left] = SynapseType(0);
+			synaptic_inputs[nrn][halco::common::right] = SynapseType(2);
 		}
 	}
 
@@ -345,56 +346,56 @@ TEST(SynapseDriverRequirements, TargetSynapsesPerSynapticInputAdvanced)
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(0)))
 			   .at(SynapseType(0))
-			   .at(Side_Parity(geometry::left, Parity::even)));
+			   .at(Side_Parity(halco::common::left, Parity::even)));
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(0)))
 			   .at(SynapseType(0))
-			   .at(Side_Parity(geometry::left, Parity::odd)));
+			   .at(Side_Parity(halco::common::left, Parity::odd)));
 
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(2)))
 			   .at(SynapseType(1))
-			   .at(Side_Parity(geometry::right, Parity::even)));
+			   .at(Side_Parity(halco::common::right, Parity::even)));
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(2)))
 			   .at(SynapseType(2))
-			   .at(Side_Parity(geometry::right, Parity::odd)));
+			   .at(Side_Parity(halco::common::right, Parity::odd)));
 
 	ASSERT_EQ(
 		2, targets.at(NeuronOnHICANN(Enum(4)))
 			   .at(SynapseType(0))
-			   .at(Side_Parity(geometry::left, Parity::even)));
+			   .at(Side_Parity(halco::common::left, Parity::even)));
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(4)))
 			   .at(SynapseType(0))
-			   .at(Side_Parity(geometry::left, Parity::odd)));
+			   .at(Side_Parity(halco::common::left, Parity::odd)));
 
 	ASSERT_EQ(
 		2, targets.at(NeuronOnHICANN(Enum(4)))
 			   .at(SynapseType(1))
-			   .at(Side_Parity(geometry::right, Parity::even)));
+			   .at(Side_Parity(halco::common::right, Parity::even)));
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(4)))
 			   .at(SynapseType(2))
-			   .at(Side_Parity(geometry::right, Parity::odd)));
+			   .at(Side_Parity(halco::common::right, Parity::odd)));
 
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(7)))
 			   .at(SynapseType(0))
-			   .at(Side_Parity(geometry::left, Parity::even)));
+			   .at(Side_Parity(halco::common::left, Parity::even)));
 	ASSERT_EQ(
 		2, targets.at(NeuronOnHICANN(Enum(7)))
 			   .at(SynapseType(0))
-			   .at(Side_Parity(geometry::left, Parity::odd)));
+			   .at(Side_Parity(halco::common::left, Parity::odd)));
 
 	ASSERT_EQ(
 		1, targets.at(NeuronOnHICANN(Enum(7)))
 			   .at(SynapseType(1))
-			   .at(Side_Parity(geometry::right, Parity::even)));
+			   .at(Side_Parity(halco::common::right, Parity::even)));
 	ASSERT_EQ(
 		2, targets.at(NeuronOnHICANN(Enum(7)))
 			   .at(SynapseType(2))
-			   .at(Side_Parity(geometry::right, Parity::odd)));
+			   .at(Side_Parity(halco::common::right, Parity::odd)));
 }
 
 TEST(SynapseDriverRequirements, _calc)
@@ -403,15 +404,15 @@ TEST(SynapseDriverRequirements, _calc)
 	results::SynapticInputs synaptic_inputs;
 
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
-		synaptic_inputs[nrn][geometry::left] = SynapseType::excitatory;
-		synaptic_inputs[nrn][geometry::right] = SynapseType::inhibitory;
+		synaptic_inputs[nrn][halco::common::left] = SynapseType::excitatory;
+		synaptic_inputs[nrn][halco::common::right] = SynapseType::inhibitory;
 	}
 	//  NeuronSize = 4 -> neuron_width = 2, 1 row = 2 inputs.
 	for (size_t xx = 0; xx < NeuronOnHICANN::x_type::end; xx += 2) {
 		neuron_width[NeuronOnHICANN(X(xx), Y(0))] = 2;
 	}
 
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 					   SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
 		target_synapses_per_synaptic_input_granularity =
 			SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(
@@ -454,32 +455,32 @@ TEST(SynapseDriverRequirements, count_synapses_per_hardware_property)
 	std::map<SynapseType, std::map<Side_Parity, size_t> >
 		target_synapses_per_parity_and_synaptic_input;
 	target_synapses_per_parity_and_synaptic_input[SynapseType(0)][Side_Parity(
-		geometry::left, Parity::even)] = 2;
+		halco::common::left, Parity::even)] = 2;
 	target_synapses_per_parity_and_synaptic_input[SynapseType(0)][Side_Parity(
-		geometry::left, Parity::odd)] = 1;
+		halco::common::left, Parity::odd)] = 1;
 	target_synapses_per_parity_and_synaptic_input[SynapseType(1)][Side_Parity(
-		geometry::right, Parity::even)] = 2;
+		halco::common::right, Parity::even)] = 2;
 	target_synapses_per_parity_and_synaptic_input[SynapseType(2)][Side_Parity(
-		geometry::right, Parity::odd)] = 1;
+		halco::common::right, Parity::odd)] = 1;
 
 	std::map<Type_Decoder_STP, Side_TriParity> bio_to_hw_assignment;
-	bio_to_hw_assignment[bio1] = Side_TriParity(geometry::left, TriParity::any);
-	bio_to_hw_assignment[bio2] = Side_TriParity(geometry::right, TriParity::even);
-	bio_to_hw_assignment[bio3] = Side_TriParity(geometry::right, TriParity::odd);
+	bio_to_hw_assignment[bio1] = Side_TriParity(halco::common::left, TriParity::any);
+	bio_to_hw_assignment[bio2] = Side_TriParity(halco::common::right, TriParity::even);
+	bio_to_hw_assignment[bio3] = Side_TriParity(halco::common::right, TriParity::odd);
 
 	// synapse row histogram
 	std::map<Side_Parity_Decoder_STP, size_t> half_rows_assigned_per_parity;
 	// synapse type 1: requires 2 half rows for 4 synapses, as there are 2 target synapses per (right, even) config.
-	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(geometry::right, Parity::even, DriverDecoder(0), STPMode::off)] = 2;
+	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(halco::common::right, Parity::even, DriverDecoder(0), STPMode::off)] = 2;
 	// synapse type 2: requires 3 half rows for 3 synapses on (right, odd) config.
-	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(geometry::right, Parity::odd, DriverDecoder(0), STPMode::off)] = 3;
+	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(halco::common::right, Parity::odd, DriverDecoder(0), STPMode::off)] = 3;
 	// synapse type 0: TriParity::any is resolved to even columns, which is prioritized over odd columns
-	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(geometry::left, Parity::even, DriverDecoder(0), STPMode::off)] = 1;
+	half_rows_assigned_per_parity[Side_Parity_Decoder_STP(halco::common::left, Parity::even, DriverDecoder(0), STPMode::off)] = 1;
 
 	// assignment to parity for TriParity::any requests
 	std::map<Side_Decoder_STP, std::vector<Parity> > assignmemt_to_parity;
 	// only for synapse type 0. Even columns have priority over odd columns.
-	assignmemt_to_parity[ Side_Decoder_STP(geometry::left, DriverDecoder(0), STPMode::off) ].push_back(Parity::even);
+	assignmemt_to_parity[ Side_Decoder_STP(halco::common::left, DriverDecoder(0), STPMode::off) ].push_back(Parity::even);
 
 	std::map<Side_Parity_Decoder_STP, size_t> hardware_property_counts =
 		SynapseDriverRequirements::count_synapses_per_hardware_property(
@@ -488,9 +489,9 @@ TEST(SynapseDriverRequirements, count_synapses_per_hardware_property)
 			assignmemt_to_parity, half_rows_assigned_per_parity);
 
 	// check hardware property counts
-	EXPECT_EQ(1, hardware_property_counts[ Side_Parity_Decoder_STP(geometry::left, Parity::even, DriverDecoder(0), STPMode::off) ]);
-	EXPECT_EQ(4, hardware_property_counts[ Side_Parity_Decoder_STP(geometry::right, Parity::even, DriverDecoder(0), STPMode::off) ]);
-	EXPECT_EQ(3, hardware_property_counts[ Side_Parity_Decoder_STP(geometry::right, Parity::odd, DriverDecoder(0), STPMode::off) ]);
+	EXPECT_EQ(1, hardware_property_counts[ Side_Parity_Decoder_STP(halco::common::left, Parity::even, DriverDecoder(0), STPMode::off) ]);
+	EXPECT_EQ(4, hardware_property_counts[ Side_Parity_Decoder_STP(halco::common::right, Parity::even, DriverDecoder(0), STPMode::off) ]);
+	EXPECT_EQ(3, hardware_property_counts[ Side_Parity_Decoder_STP(halco::common::right, Parity::odd, DriverDecoder(0), STPMode::off) ]);
 }
 
 // helper for next tests
@@ -569,15 +570,15 @@ TEST(SynapseDriverRequirements, Issue2115_minimal)
 	results::SynapticInputs synaptic_inputs;
 
 	for (auto nrn : iter_all<NeuronOnHICANN>()) {
-		synaptic_inputs[nrn][geometry::left] = SynapseType::excitatory;
-		synaptic_inputs[nrn][geometry::right] = SynapseType::inhibitory;
+		synaptic_inputs[nrn][halco::common::left] = SynapseType::excitatory;
+		synaptic_inputs[nrn][halco::common::right] = SynapseType::inhibitory;
 	}
 	//  NeuronSize = 4 -> neuron_width = 2, 1 row = 2 inputs.
 	for (size_t xx = 0; xx < NeuronOnHICANN::x_type::end; xx += 2) {
 		neuron_width[NeuronOnHICANN(X(xx), Y(0))] = 2;
 	}
 
-	std::unordered_map<HMF::Coordinate::NeuronOnHICANN,
+	std::unordered_map<halco::hicann::v2::NeuronOnHICANN,
 		SynapseDriverRequirements::Side_Parity_count_per_synapse_type>
 			target_synapses_per_synaptic_input_granularity =
 			SynapseDriverRequirements::calc_target_synapses_per_synaptic_input_granularity(

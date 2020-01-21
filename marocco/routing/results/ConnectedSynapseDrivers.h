@@ -4,7 +4,7 @@
 #include <set>
 #include <boost/serialization/export.hpp>
 
-#include "hal/Coordinate/Synapse.h"
+#include "halco/hicann/v2/synapse.h"
 
 namespace boost {
 namespace serialization {
@@ -18,7 +18,7 @@ namespace results {
 
 class ConnectedSynapseDrivers {
 public:
-	typedef HMF::Coordinate::SynapseDriverOnHICANN coordinate_type;
+	typedef halco::hicann::v2::SynapseDriverOnHICANN coordinate_type;
 	typedef std::set<coordinate_type> container_type;
 
 	ConnectedSynapseDrivers();
@@ -31,7 +31,7 @@ public:
 	/**
 	 * @brief Add specified synapse driver and all intermediate drivers.
 	 */
-	void connect(HMF::Coordinate::SynapseDriverOnQuadrant const& driver);
+	void connect(halco::hicann::v2::SynapseDriverOnQuadrant const& driver);
 
 	/**
 	 * @brief Add specified synapse driver and all intermediate drivers.

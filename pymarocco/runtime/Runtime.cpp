@@ -17,7 +17,7 @@ boost::shared_ptr<Runtime> Runtime::create()
 	return {};
 }
 
-boost::shared_ptr<Runtime> Runtime::create(HMF::Coordinate::Wafer const& wafer)
+boost::shared_ptr<Runtime> Runtime::create(halco::hicann::v2::Wafer const& wafer)
 {
 #ifndef __ESTER_BREACHED__
 	throw std::runtime_error("only supported in --without-ester mode");
@@ -44,7 +44,7 @@ Runtime::Runtime()
 {
 }
 
-Runtime::Runtime(HMF::Coordinate::Wafer const& wafer)
+Runtime::Runtime(halco::hicann::v2::Wafer const& wafer)
 	: m_wafer(new sthal::Wafer(wafer)), m_results(new marocco::results::Marocco())
 {
 }

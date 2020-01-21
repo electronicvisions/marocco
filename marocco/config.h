@@ -1,7 +1,7 @@
 #pragma once
 
 // the Hardware stuff
-#include "hal/Coordinate/geometry.h"
+#include "halco/common/geometry.h"
 #include "hal/FPGAContainer.h"
 
 #include "sthal/Wafer.h"

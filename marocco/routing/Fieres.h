@@ -9,7 +9,7 @@
 #include <boost/icl/interval_map.hpp>
 #include <boost/shared_ptr.hpp>
 
-#include "hal/Coordinate/typed_array.h"
+#include "halco/common/typed_array.h"
 
 #include "marocco/config.h"
 #include "marocco/routing/DriverInterval.h"
@@ -23,13 +23,13 @@ namespace fieres {
 struct InboundRoute {
 	InboundRoute() = default;
 	InboundRoute(InboundRoute const&) = default;
-	InboundRoute(HMF::Coordinate::VLineOnHICANN const& vline, int drv, double syns,
+	InboundRoute(halco::hicann::v2::VLineOnHICANN const& vline, int drv, double syns,
 	             size_t ass)
 	    : line(vline), drivers(drv), synapses(syns), assigned(ass) {}
 
 	static const int DEFECT;
 
-	HMF::Coordinate::VLineOnHICANN line;
+	halco::hicann::v2::VLineOnHICANN line;
 
 	/// number of requested synapse drivers
 	int drivers = -1; // "defect" by default
@@ -44,18 +44,18 @@ struct InboundRoute {
 /// Holds assignment data for all synapse drivers of one side
 /// (left/right) of the HICANN.
 class Assignment {
-	typedef HMF::Coordinate::SynapseDriverOnQuadrant coordinate_type;
+	typedef halco::hicann::v2::SynapseDriverOnQuadrant coordinate_type;
 
 public:
-	typedef std::unordered_map<HMF::Coordinate::VLineOnHICANN,
+	typedef std::unordered_map<halco::hicann::v2::VLineOnHICANN,
 	                           std::vector<results::ConnectedSynapseDrivers> >
 		result_type;
 
-	Assignment(HMF::Coordinate::SideHorizontal const& side) : mSide(side) {}
+	Assignment(halco::common::SideHorizontal const& side) : mSide(side) {}
 
 	/// Disable a synapse driver for further use.
 	/// Note that you HAVE to mark defects before doing anything else.
-	void add_defect(HMF::Coordinate::SideVertical const& side, coordinate_type const& drv);
+	void add_defect(halco::common::SideVertical const& side, coordinate_type const& drv);
 
 	/// Find an appropriate gap with enough unused adjacent drivers and
 	/// insert this incoming route.  Returns true on success and false
@@ -66,7 +66,7 @@ public:
 
 protected:
 	void insert(
-		HMF::Coordinate::SideVertical const& side,
+		halco::common::SideVertical const& side,
 		coordinate_type const& drv,
 		InboundRoute const& route);
 
@@ -79,7 +79,7 @@ protected:
 
 		interval_type(
 			InboundRoute val,
-			HMF::Coordinate::SynapseDriverOnQuadrant drv,
+			halco::hicann::v2::SynapseDriverOnQuadrant drv,
 			std::ptrdiff_t b,
 			std::ptrdiff_t e)
 			: route(val), primary(drv), begin(b), end(e)
@@ -87,13 +87,13 @@ protected:
 		}
 
 		InboundRoute route;
-		HMF::Coordinate::SynapseDriverOnQuadrant primary;
+		halco::hicann::v2::SynapseDriverOnQuadrant primary;
 		std::ptrdiff_t begin;
 		std::ptrdiff_t end;
 	};
 
 	typedef std::shared_ptr<interval_type> value_type;
-	typedef HMF::Coordinate::typed_array<value_type, coordinate_type> array_type;
+	typedef halco::common::typed_array<value_type, coordinate_type> array_type;
 
 	static bool unassigned_p(value_type const& val)
 	{
@@ -105,8 +105,8 @@ protected:
 		return !!val;
 	}
 
-	HMF::Coordinate::typed_array<array_type, HMF::Coordinate::SideVertical> mData;
-	HMF::Coordinate::SideHorizontal mSide;
+	halco::common::typed_array<array_type, halco::common::SideVertical> mData;
+	halco::common::SideHorizontal mSide;
 };
 
 } // namespace fieres
@@ -117,7 +117,7 @@ protected:
 class Fieres
 {
 public:
-	typedef HMF::Coordinate::VLineOnHICANN VLineOnHICANN;
+	typedef halco::hicann::v2::VLineOnHICANN VLineOnHICANN;
 	typedef std::vector<DriverInterval> IntervalList;
 	typedef std::unordered_map<VLineOnHICANN, std::vector<results::ConnectedSynapseDrivers> >
 	    Result;
@@ -125,20 +125,20 @@ public:
 
 	Fieres(
 	    IntervalList const& list,
-	    HMF::Coordinate::Side const& side,
-	    size_t max_chain_length = HMF::Coordinate::SynapseDriverOnQuadrant::end);
+	    halco::common::Side const& side,
+	    size_t max_chain_length = halco::hicann::v2::SynapseDriverOnQuadrant::end);
 
 	Fieres(
 	    IntervalList const& list,
-	    HMF::Coordinate::Side const& side,
+	    halco::common::Side const& side,
 	    size_t max_chain_length,
-	    std::vector<HMF::Coordinate::SynapseDriverOnHICANN> const& defect);
+	    std::vector<halco::hicann::v2::SynapseDriverOnHICANN> const& defect);
 
 	Result result() const;
 	Rejected rejected() const;
 
 private:
-	HMF::Coordinate::Side const mSide;
+	halco::common::Side const mSide;
 
 	Result mResult;
 	Rejected mRejected;
