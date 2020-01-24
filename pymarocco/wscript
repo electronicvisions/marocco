@@ -84,8 +84,6 @@ def build(bld):
         export_includes='..')
 
     runtime_defines = []
-    if not bld.options.with_ester:
-        runtime_defines.append('__ESTER_BREACHED__')
 
     bld(target='marocco_runtime',
         features='cxx cxxshlib',

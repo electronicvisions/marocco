@@ -1,6 +1,5 @@
 import copy, unittest, random, logging
 import numpy as np
-#from ester import Ester
 from pymarocco import *
 from pyhalco_common import Enum
 from pyhalco_hicann_v2 import *
@@ -30,9 +29,6 @@ class TestSynapseLoss(unittest.TestCase):
         del self.marocco
 
     def test_Normal(self):
-        # FIXME: this test currently runs only in ester-breached mode
-        #with Ester() as ester:
-
         # map network
         synapses = self.big_network()
 

@@ -14,8 +14,6 @@ def depends(ctx):
     ctx('hate')
     ctx('rant')
     ctx('halbe')
-    ctx('ester')
-    ctx('ester', 'mpi')
     ctx('sthal')
     ctx('pyhmf')
     ctx('redman')
@@ -174,21 +172,9 @@ def build(bld):
         cxxflags=cxxflags)
 
     mapper_uses = ['marocco',
-                   'mpiconfig', # adds MPI includes, linkflags, ...
                    'pyhmf',
                    'pyredman',
                   ]
-
-    if bld.options.with_ester:
-        mapper_uses.append('ester')
-        mapper_uses.append('pyester')
-
-    bld(target          = 'mapper',
-        features        = 'cxx cxxprogram',
-        source          = ['main.cpp', 'marocco/Mapper.cpp'],
-        install_path    = 'bin',
-        use             = mapper_uses,
-        cxxflags=cxxflags)
 
     bld.install_files(
         '${PREFIX}/bin/tools',

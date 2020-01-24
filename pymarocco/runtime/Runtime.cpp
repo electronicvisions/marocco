@@ -19,10 +19,6 @@ boost::shared_ptr<Runtime> Runtime::create()
 
 boost::shared_ptr<Runtime> Runtime::create(halco::hicann::v2::Wafer const& wafer)
 {
-#ifndef __ESTER_BREACHED__
-	throw std::runtime_error("only supported in --without-ester mode");
-#endif // !__ESTER_BREACHED__
-
 	return boost::shared_ptr<Runtime>(new Runtime(wafer));
 }
 

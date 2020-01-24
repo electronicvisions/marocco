@@ -72,9 +72,9 @@ namespace mapping {
 
 using namespace euter;
 
-std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
+std::set<Wafer> wafers_used_in(ObjectStore& store)
 {
-	auto mi = store->getMetaData<PyMarocco>("marocco");
+	auto mi = store.getMetaData<PyMarocco>("marocco");
 
 	std::set<Wafer> wafers;
 
@@ -85,12 +85,12 @@ std::set<Wafer> wafers_used_in(boost::shared_ptr<ObjectStore> store)
 	return wafers;
 }
 
-MappingResult run(boost::shared_ptr<ObjectStore> store) {
+void run(ObjectStore& store) {
 	using pymarocco::PyMarocco;
 
 	log4cxx::LoggerPtr const logger = log4cxx::Logger::getLogger("marocco");
 
-	auto mi = store->getMetaData<PyMarocco>("marocco");
+	auto mi = store.getMetaData<PyMarocco>("marocco");
 	auto wafers = wafers_used_in(store);
 
 	if (wafers.size() > 1) {
@@ -101,7 +101,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 	// config pointer to work around the overhead of dumping / loading the configuration
 	// and connecting / resetting the hardware in “in the loop”-style experiments.
 	// Yes, this is heavy frickelei.
-	auto runtime_container = store->getMetaData<pymarocco::runtime::Runtime>("marocco_runtime");
+	auto runtime_container = store.getMetaData<pymarocco::runtime::Runtime>("marocco_runtime");
 
 	if (runtime_container != nullptr && (!mi->persist.empty() || !mi->wafer_cfg.empty())) {
 		throw std::runtime_error("usage of runtime and persist or wafer_cfg are mutally exclusive");
@@ -221,7 +221,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	// Even when skip_mapping is true we need to setup the bio graph.
 	// (Alternatively the bio graph could be persisted to the mapping results object, too).
-	mapper.run(*store);
+	mapper.run(store);
 	mi->setStats(mapper.getStats());
 
 	//  ——— CONFIGURE HARDWARE —————————————————————————————————————————————————
@@ -234,7 +234,7 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 			logger, "Discarded experiment duration set via mapping parameters "
 			"in favor of duration specified via argument to pynn.run()");
 	}
-	exp_params.bio_duration_in_s(store->getDuration() * ms_to_s);
+	exp_params.bio_duration_in_s(store.getDuration() * ms_to_s);
 
 	results = mapper.results();
 
@@ -277,14 +277,10 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 		}
 	}
 
-	MappingResult result;
-	result.error = 0;
-	result.store = store;
-
 	//  ——— RUN EXPERIMENT —————————————————————————————————————————————————————
 
 	if (mi->backend == PyMarocco::Backend::None) {
-		return result;
+		return;
 	}
 
 	DeleteRecursivelyOnScopeExit cleanup;
@@ -395,10 +391,10 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	//  ——— EXTRACT RESULTS ————————————————————————————————————————————————————
 
-	experiment.extract_results(*store);
+	experiment.extract_results(store);
 
 	LOG4CXX_INFO(logger, "Finished");
-	return result;
+	return;
 }
 
 } // namespace mapping
