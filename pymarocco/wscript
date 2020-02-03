@@ -46,7 +46,7 @@ def build(bld):
         use=[
             'BOOST4PYMAROCCO',
             'marocco_parameters',
-            'euter_inc',
+            'euter',
             'redman',
             'halbe_coordinate',
             'sthal',
@@ -93,7 +93,7 @@ def build(bld):
         defines=runtime_defines,
         use=[
             'BOOST4PYMAROCCO',
-            'euter_inc',
+            'euter',
             'marocco_results',
             'marocco_runtime_inc',
             'sthal',
@@ -110,7 +110,7 @@ def build(bld):
         headers=bld.path.ant_glob('runtime/*.h'),
         use=[
             'BOOST4PYMAROCCO',
-            'euter_inc',
+            'euter',
             'marocco_runtime',
             'marocco_algorithms',
             'pysthal',

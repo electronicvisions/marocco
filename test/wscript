@@ -28,7 +28,7 @@ def build(bld):
         test_timeout    = 60,
         use             = [
             'marocco',
-            'sthal_inc',
+            'sthal',
             ],
         )
 
