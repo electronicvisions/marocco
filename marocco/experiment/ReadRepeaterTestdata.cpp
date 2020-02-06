@@ -28,30 +28,6 @@ void ReadRepeaterTestdata::configure(sthal::Wafer& hardware)
 				MAROCCO_DEBUG("\t\t" << addr);
 			}
 		}
-
-		for (auto kv : m_visitor.passive_addresses[hicann]) {
-			if (m_visitor.expected_addresses[hicann].find(kv.first) ==
-				m_visitor.expected_addresses[hicann].end()) {
-				MAROCCO_DEBUG("\t passive " << kv.first);
-
-				if (auto const* r = boost::get<HRepeaterOnHICANN>(&kv.first)) {
-					// sending repeaters don't have support for test output
-					if(!r->isSending()) {
-						MAROCCO_DEBUG("\t setting input for " << *r);
-						m_configurator.add_passive_hrepeater(HRepeaterOnWafer(*r, hicann));
-					}
-				}
-
-				if (auto const* r = boost::get<VRepeaterOnHICANN>(&kv.first)) {
-					MAROCCO_DEBUG("\t setting input for " << *r);
-					m_configurator.add_passive_vrepeater(VRepeaterOnWafer(*r, hicann));
-				}
-
-				for (auto addr : kv.second) {
-					MAROCCO_DEBUG("\t\t" << addr);
-				}
-			}
-		}
 	}
 }
 
