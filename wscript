@@ -94,7 +94,7 @@ def build(bld):
             'marocco_algorithms',
             'marocco_results',
             'pymarocco_cpp',
-            'pymarocco_runtime',
+            'marocco_runtime',
             'nanoflann_inc'
             ],
         defines=['BOOST_DYNAMIC_BITSET_DONT_USE_FRIENDS'],
