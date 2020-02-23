@@ -41,6 +41,10 @@ struct CollectExpectedAddressesByRepeaters : public boost::static_visitor<>
 	///       been added to \c passive_addresses as it is adjacent to a L1 route, but is
 	///       later also used as the sending repeater for a different route and thus end
 	///       up in \c expected_addresses.
+	/// \note For testing these repeaters have to be set in forwarding mode and the sending
+	//        direction has to be set accordingly. Furthermore, one has to make sure that
+	//        the forwarding of addresses by these passive repeaters does not affect other
+	//        parts of the route, e.g. by forwarding addresses in used lines.
 	std::map<halco::hicann::v2::HICANNOnWafer, std::map<repeater_type, addresses_type> >
 		passive_addresses;
 	halco::hicann::v2::HICANNOnWafer current_hicann;
