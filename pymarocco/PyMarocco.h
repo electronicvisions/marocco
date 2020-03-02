@@ -161,6 +161,18 @@ public:
 	size_t n_locking_retest;
 
 	/**
+	 * @brief: number of times locking is rechecked after initial successful lock
+	 * Defaults to 5.
+	 */
+	size_t n_locking_recheck_after_ok;
+
+	/**
+	 * @brief: waiting time in ms between rechecks (after successful initial lock).
+	 * Defaults to 200.
+	 */
+	size_t time_between_rechecks;
+
+	/**
 	 * @brief Path to file to which is used to store wafer configuration.
 	 * @note Existing files will be overwritten.
 	 * If this parameter is empty, no file will be written.

@@ -1,3 +1,6 @@
+#include <chrono>
+#include <thread>
+
 #include "marocco/experiment/ReadRepeaterTestdata.h"
 
 #include "sthal/Neurons.h"
@@ -12,8 +15,14 @@ using namespace halco::hicann::v2;
 namespace marocco {
 namespace experiment {
 
-ReadRepeaterTestdata::ReadRepeaterTestdata(results::Marocco const& results, size_t n_locking_retest)
-    : m_results(results), m_n_locking_retest(n_locking_retest)
+ReadRepeaterTestdata::ReadRepeaterTestdata(results::Marocco const& results,
+                                           size_t n_locking_retest,
+                                           size_t n_locking_recheck_after_ok,
+                                           size_t time_between_rechecks)
+    : m_results(results),
+      m_n_locking_retest(n_locking_retest),
+      m_n_locking_recheck_after_ok(n_locking_recheck_after_ok),
+      m_time_between_rechecks(time_between_rechecks)
 {
 	m_visitor.apply(results);
 }
@@ -135,15 +144,55 @@ bool ReadRepeaterTestdata::check(sthal::Wafer& hardware, ::HMF::HICANN::BkgRegul
 	if (locked) {
 		if (n_good != 0) {
 			MAROCCO_INFO("All " << n_good << " checked repeater(s) are locked.");
+			// Check if repeaters stay locked
+			locked = recheck(hardware,
+			                 bkg_gen_isi,
+			                 m_n_locking_recheck_after_ok,
+			                 m_time_between_rechecks);
+			if (!locked) {
+				MAROCCO_WARN("Unlocked repeaters were found during rechecking.");
+			}
 		} else {
 			MAROCCO_WARN("No repeaters found to be checked for locking!");
 		}
-		return true;
+		return locked;
 	} else {
 		MAROCCO_WARN("After " << m_n_locking_retest <<  " relocking cycles only "
 		             << n_good << " of " << n_total << " checked repeater(s) are locked!");
 		return false;
 	}
+}
+bool ReadRepeaterTestdata::recheck(sthal::Wafer& hardware,
+                                   ::HMF::HICANN::BkgRegularISI bkg_gen_isi,
+                                   size_t const n_rechecks,
+                                   size_t const waiting_time)
+{
+	bool locked = true;
+	for (size_t i = 0; i < n_rechecks; ++i)
+	{
+		hardware.configure(m_configurator);
+		MAROCCO_DEBUG(m_configurator);
+
+		MAROCCO_INFO("Rechecking locking " << i + 1 << " of " << n_rechecks)
+		auto const bad_good_hr =
+		    m_configurator.analyze_hrepeater({::HMF::HICANN::L1Address(0)}, {bkg_gen_isi.value()});
+		auto const bad_good_vr =
+		    m_configurator.analyze_vrepeater({::HMF::HICANN::L1Address(0)}, {bkg_gen_isi.value()});
+
+		size_t const n_bad = bad_good_hr.first.size() + bad_good_vr.first.size();
+		size_t const n_good = bad_good_hr.second.size() + bad_good_vr.second.size();
+		size_t const n_total = n_bad + n_good;
+
+		if (n_good != n_total)
+		{
+			MAROCCO_WARN("Only " << n_good << " of " << n_total << " repeater(s) are locked in recheck " <<  i + 1 << "!");
+			locked = false;
+		} else {
+			MAROCCO_INFO("All " << n_total << " repeater(s) are still locked in recheck " << i + 1 << ".");
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(waiting_time));
+	}
+	return locked;
 }
 
 } // namespace experiment

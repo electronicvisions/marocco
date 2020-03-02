@@ -238,7 +238,11 @@ MappingResult run(boost::shared_ptr<ObjectStore> store) {
 
 	results = mapper.results();
 
-	experiment::ReadRepeaterTestdata repeater_test(*results, mi->n_locking_retest);
+	experiment::ReadRepeaterTestdata
+		repeater_test(*results,
+		              mi->n_locking_retest,
+		              mi->n_locking_recheck_after_ok,
+		              mi->time_between_rechecks);
 
 	if (mi->checkl1locking == PyMarocco::CheckL1Locking::Check ||
 		mi->checkl1locking == PyMarocco::CheckL1Locking::CheckButIgnore) {

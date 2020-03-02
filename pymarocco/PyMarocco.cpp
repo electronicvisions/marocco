@@ -34,6 +34,8 @@ PyMarocco::PyMarocco()
       verification(Verification::Verify),
       checkl1locking(CheckL1Locking::Check),
       n_locking_retest(5),
+      n_locking_recheck_after_ok(5),
+      time_between_rechecks(0),
       bkg_gen_isi(125),
       pll_freq(125e6),
       hicann_configurator(new sthal::ParallelHICANNv4SmartConfigurator()),
@@ -68,6 +70,8 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("verification", verification)
 	   & make_nvp("checkl1locking", checkl1locking)
 	   & make_nvp("n_locking_retest", n_locking_retest)
+	   & make_nvp("n_locking_recheck_after_ok", n_locking_recheck_after_ok)
+	   & make_nvp("time_between_rechecks", time_between_rechecks)
 	   & make_nvp("bkg_gen_isi", bkg_gen_isi)
 	   & make_nvp("pll_freq", pll_freq)
 	   & make_nvp("hicann_configurator", hicann_configurator)
