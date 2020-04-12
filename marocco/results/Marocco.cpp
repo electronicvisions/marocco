@@ -94,6 +94,9 @@ void Marocco::serialize(Archiver& ar, const unsigned int version)
 	if (version >= 2) {
 		ar& make_nvp("bio_graph", bio_graph);
 	}
+	if (version >= 3) {
+		ar& make_nvp("parameter", parameter);
+	}
 }
 
 HICANNOnWaferProperties Marocco::properties(halco::hicann::v2::HICANNOnWafer const& hicann) const

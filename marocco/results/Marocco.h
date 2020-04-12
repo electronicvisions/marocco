@@ -14,6 +14,7 @@
 #include "marocco/results/Resources.h"
 #include "marocco/routing/results/L1Routing.h"
 #include "marocco/routing/results/SynapseRouting.h"
+#include "marocco/parameter/results/Parameter.h"
 
 #include "hal/HICANN/L1Address.h"
 
@@ -62,6 +63,7 @@ public:
 	Resources resources;
 	parameter::results::AnalogOutputs analog_outputs;
 	parameter::results::SpikeTimes spike_times;
+	parameter::results::Parameter parameter;
 	placement::results::Placement placement;
 	routing::results::L1Routing l1_routing;
 	routing::results::SynapseRouting synapse_routing;
@@ -132,4 +134,4 @@ private:
 } // namespace marocco
 
 BOOST_CLASS_EXPORT_KEY(::marocco::results::Marocco)
-BOOST_CLASS_VERSION(::marocco::results::Marocco, 2)
+BOOST_CLASS_VERSION(::marocco::results::Marocco, 3)

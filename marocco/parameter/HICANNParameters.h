@@ -12,6 +12,7 @@
 #include "marocco/placement/results/Placement.h"
 #include "marocco/placement/Result.h"
 #include "marocco/routing/results/SynapseRouting.h"
+#include "marocco/parameter/results/Parameter.h"
 #include "pymarocco/PyMarocco.h"
 
 namespace calibtic {
@@ -44,6 +45,7 @@ public:
 		placement::results::Placement const& neuron_placement,
 		placement::MergerRoutingResult const& merger_routing,
 		routing::results::SynapseRouting const& synapse_routing,
+		parameter::results::Parameter& parameter,
 		boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
 		double duration);
 
@@ -83,6 +85,7 @@ private:
 	placement::results::Placement const& m_neuron_placement;
 	marocco::placement::MergerRoutingResult const& m_merger_routing;
 	routing::results::SynapseRouting const& m_synapse_routing;
+	parameter::results::Parameter& m_parameter;
 	boost::shared_ptr<calibtic::backend::Backend> m_calib_backend;
 	double m_duration;
 

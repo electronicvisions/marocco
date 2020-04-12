@@ -165,7 +165,7 @@ void Mapper::run(ObjectStore const& pynn)
 		auto& chip = mHW[hicann];
 		parameter::HICANNParameters hicann_parameters(
 		    mBioGraph, chip, *mPyMarocco, m_results->placement, placement->merger_routing,
-		    m_results->synapse_routing, calib_backend, pynn.getDuration());
+		    m_results->synapse_routing, m_results->parameter, calib_backend, pynn.getDuration());
 		hicann_parameters.run();
 	}
 

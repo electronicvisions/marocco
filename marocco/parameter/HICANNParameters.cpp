@@ -26,6 +26,7 @@ HICANNParameters::HICANNParameters(
     placement::results::Placement const& neuron_placement,
     placement::MergerRoutingResult const& merger_routing,
     routing::results::SynapseRouting const& synapse_routing,
+    parameter::results::Parameter& parameter,
     boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
     double duration)
     : m_bio_graph(bio_graph),
@@ -34,6 +35,7 @@ HICANNParameters::HICANNParameters(
       m_neuron_placement(neuron_placement),
       m_merger_routing(merger_routing),
       m_synapse_routing(synapse_routing),
+      m_parameter(parameter),
       m_calib_backend(calib_backend),
       m_duration(duration)
 {
@@ -340,15 +342,15 @@ void HICANNParameters::synapses(synapse_row_calib_type const& calib)
 				// store weight
 				row_config_proxy.weights[col] = hw_weight;
 
-#ifndef MAROCCO_NDEBUG
-				SynapseOnHICANN syn_addr(row, SynapseColumnOnHICANN(col));
-				double clipped_weight = synapse_trafo->getAnalogWeight(hw_weight);
-				clipped_weight = clipped_weight / weight_scales[syn_addr.toNeuronOnHICANN()] /
-				                 1000. /*nS to uS*/;
+				SynapseOnHICANN const syn_addr(row, SynapseColumnOnHICANN(col));
+				double const clipped_weight = synapse_trafo->getAnalogWeight(hw_weight) /
+				                              weight_scales[syn_addr.toNeuronOnHICANN()] /
+				                              1000. /*nS to uS*/;
 				MAROCCO_TRACE(
-					"synapse weight of " << syn_addr << " set to " << hw_weight << ", bio weight "
-				    << bio_weights[col] << ", clipped bio weight " << clipped_weight);
-#endif // MAROCCO_NDEBUG
+				    "synapse weight of " << syn_addr << " set to " << hw_weight << ", bio weight "
+				                         << bio_weights[col] << ", clipped bio weight "
+				                         << clipped_weight);
+				m_parameter.set_weight(SynapseOnWafer(syn_addr, m_chip.index()), clipped_weight);
 			}
 		}
 
