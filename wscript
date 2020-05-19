@@ -179,7 +179,7 @@ def build(bld):
     bld.install_files(
         '${PREFIX}/bin/tools',
         bld.path.ant_glob('tools/*.py'),
-        chmod=0755,
+        chmod=0o755,
         relative_trick=False
     )
 

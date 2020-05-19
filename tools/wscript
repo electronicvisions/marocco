@@ -47,7 +47,7 @@ def build(bld):
         ])
 
     bld.install_as(
-        '${PREFIX}/bin/marocco_find_route', 'find_route.py', chmod=0755)
+        '${PREFIX}/bin/marocco_find_route', 'find_route.py', chmod=0o755)
 
     from waflib.extras.gtest import summary
     bld.add_post_fun(summary)
