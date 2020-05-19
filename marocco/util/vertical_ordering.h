@@ -27,9 +27,7 @@ public:
 
 	bool operator()(T const& lhs, T const& rhs) const
 	{
-#ifdef __cpp_impl_three_way_comparison
-		return lhs < rhs;
-#else
+		// TODO: three-way comparision would be nicer
 		if (distance_x(lhs) != distance_x(rhs)) {
 			return distance_x(lhs) < distance_x(rhs);
 		}
@@ -37,21 +35,7 @@ public:
 			return distance_y(lhs) < distance_y(rhs);
 		}
 		return lhs.toEnum() < rhs.toEnum();
-#endif
 	}
-
-#ifdef __cpp_impl_three_way_comparison
-	std::strong_ordering operator<=>(T const& lhs, T const& rhs) const
-	{
-		if (distance_x(lhs) != distance_x(rhs)) {
-			return distance_x(lhs) <=> distance_x(rhs);
-		}
-		if (distance_y(lhs) != distance_y(rhs)) {
-			return distance_y(lhs) <=> distance_y(rhs);
-		}
-		return lhs.toEnum() <=> rhs.toEnum();
-	}
-#endif
 
 	float x(T const& val) const { return float(val.x()) - m_center_x; }
 
