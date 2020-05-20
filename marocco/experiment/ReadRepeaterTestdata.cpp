@@ -94,8 +94,9 @@ bool ReadRepeaterTestdata::check(sthal::Wafer& hardware, ::HMF::HICANN::BkgRegul
 					auto it = std::find(
 					    bad_good_vr.first.begin(), bad_good_vr.first.end(), vrepeater_on_wafer);
 					if (it != bad_good_vr.first.end()) {
-						MAROCCO_WARN(rs << " is bad (" << it->toVRepeaterOnHICANN()
-						                << " unlocked)");
+						MAROCCO_WARN(
+						    short_format(VLineOnWafer(*r, current_hicann))
+						    << " is bad (" << short_format(*it) << " unlocked)");
 					} else {
 						MAROCCO_TRACE(rs);
 					}
@@ -105,8 +106,9 @@ bool ReadRepeaterTestdata::check(sthal::Wafer& hardware, ::HMF::HICANN::BkgRegul
 					auto it = std::find(
 					    bad_good_hr.first.begin(), bad_good_hr.first.end(), hrepeater_on_wafer);
 					if (it != bad_good_hr.first.end()) {
-						MAROCCO_WARN(rs << " is bad (" << it->toHRepeaterOnHICANN()
-						                << " unlocked)");
+						MAROCCO_WARN(
+						    short_format(HLineOnWafer(*r, current_hicann))
+						    << " is bad (" << short_format(*it) << " unlocked)");
 					} else {
 						MAROCCO_TRACE(rs);
 					}
