@@ -15,7 +15,6 @@ NeuronPlacement::NeuronPlacement() :
     m_default_neuron_size(4),
     m_restrict_rightmost_neuron_blocks(false),
     m_minimize_number_of_sending_repeaters(false),
-    m_skip_hicanns_without_neuron_blacklisting(true),
     m_default_placement_strategy(
         boost::make_shared<algorithms::byNeuronBlockEnumAndPopulationIDasc>())
 {
@@ -52,14 +51,16 @@ bool NeuronPlacement::minimize_number_of_sending_repeaters() const
 	return m_minimize_number_of_sending_repeaters;
 }
 
-void NeuronPlacement::skip_hicanns_without_neuron_blacklisting(bool enable)
+void NeuronPlacement::skip_hicanns_without_neuron_blacklisting(bool /*enable*/)
 {
-	m_skip_hicanns_without_neuron_blacklisting = enable;
+	throw std::runtime_error(
+	    "NeuronPlacement::skip_hicanns_without_neuron_blacklisting(bool) is deprecated");
 }
 
 bool NeuronPlacement::skip_hicanns_without_neuron_blacklisting() const
 {
-	return m_skip_hicanns_without_neuron_blacklisting;
+	throw std::runtime_error(
+	    "NeuronPlacement::skip_hicanns_without_neuron_blacklisting() is deprecated");
 }
 
 void NeuronPlacement::default_placement_strategy(
@@ -75,16 +76,20 @@ boost::shared_ptr<algorithms::PlacePopulationsBase> NeuronPlacement::default_pla
 }
 
 template <typename Archive>
-void NeuronPlacement::serialize(Archive& ar, unsigned int const /* version */)
+void NeuronPlacement::serialize(Archive& ar, unsigned int const version)
 {
 	using namespace boost::serialization;
 	// clang-format off
 	ar & make_nvp("default_neuron_size", m_default_neuron_size)
 	   & make_nvp("restrict_rightmost_neuron_blocks", m_restrict_rightmost_neuron_blocks)
-	   & make_nvp("minimize_number_of_sending_repeaters", m_minimize_number_of_sending_repeaters)
-	   & make_nvp("skip_hicanns_without_neuron_blacklisting", m_skip_hicanns_without_neuron_blacklisting)
-	   & make_nvp("default_placement_strategy", *m_default_placement_strategy)
-	   ;
+	   & make_nvp("minimize_number_of_sending_repeaters", m_minimize_number_of_sending_repeaters);
+
+	if (version == 0) {
+		bool dummy = false;
+		ar & make_nvp("skip_hicanns_without_neuron_blacklisting", dummy);
+	};
+
+	ar & make_nvp("default_placement_strategy", *m_default_placement_strategy);
 	// clang-format on
 }
 

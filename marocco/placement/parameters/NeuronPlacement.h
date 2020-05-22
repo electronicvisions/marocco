@@ -56,10 +56,8 @@ public:
 	bool minimize_number_of_sending_repeaters() const;
 
 	/**
-	 * @brief Skip HICANN for automatic placement if neuron
-	 * blacklisting information is not available. This can be used as
-	 * a proxy for skipping HICANN without calibration data.
-	 * default: true
+	 * @deprecated Was used to skip HICANNs for automatic placement if
+	 * neuron blacklisting information was not available
 	*/
 	void skip_hicanns_without_neuron_blacklisting(bool enable);
 	bool skip_hicanns_without_neuron_blacklisting() const;
@@ -81,7 +79,6 @@ private:
 	size_type m_default_neuron_size;
 	bool m_restrict_rightmost_neuron_blocks;
 	bool m_minimize_number_of_sending_repeaters;
-	bool m_skip_hicanns_without_neuron_blacklisting;
 	boost::shared_ptr<algorithms::PlacePopulationsBase> m_default_placement_strategy;
 
 	friend class boost::serialization::access;
@@ -94,3 +91,4 @@ private:
 } // namespace marocco
 
 BOOST_CLASS_EXPORT_KEY(::marocco::placement::parameters::NeuronPlacement)
+BOOST_CLASS_VERSION(::marocco::placement::parameters::NeuronPlacement, 1)

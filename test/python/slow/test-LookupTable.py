@@ -24,7 +24,6 @@ class TestLookupTable(unittest.TestCase):
         self.marocco.persist = os.path.join(
             self.temporary_directory, "results.bin")
         self.marocco.neuron_placement.default_neuron_size(4)
-        self.marocco.neuron_placement.skip_hicanns_without_neuron_blacklisting(False)
         self.marocco.continue_despite_synapse_loss = True
         self.marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
         self.marocco.defects.backend = pymarocco.Defects.Backend.None

@@ -41,7 +41,6 @@ class TestWithResults(unittest.TestCase):
         self.marocco.backend = pymarocco.PyMarocco.None
         self.marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
         self.marocco.defects.backend = pymarocco.Defects.Backend.None
-        self.marocco.neuron_placement.skip_hicanns_without_neuron_blacklisting(False)
         self.marocco.persist = os.path.join(
             self.temporary_directory, "results.bin")
 

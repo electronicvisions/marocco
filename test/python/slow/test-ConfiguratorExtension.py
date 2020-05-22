@@ -12,7 +12,6 @@ class TestConfiguratorExtension(unittest.TestCase):
         self.marocco.backend = backend
         self.marocco.calib_backend = PyMarocco.CalibBackend.Default
         self.marocco.defects.backend = Defects.Backend.None
-        self.marocco.neuron_placement.skip_hicanns_without_neuron_blacklisting(False)
 
     def tearDown(self):
         del self.marocco

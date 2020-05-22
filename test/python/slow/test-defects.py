@@ -23,7 +23,6 @@ class MaroccoFixture(unittest.TestCase):
         self.marocco.calib_backend = PyMarocco.CalibBackend.Default
         self.marocco.defects.backend = Defects.Backend.None
         self.marocco.merger_routing.strategy(self.marocco.merger_routing.minimize_number_of_sending_repeaters)
-        self.marocco.neuron_placement.skip_hicanns_without_neuron_blacklisting(False)
 
         sim.setup(marocco=self.marocco)
 

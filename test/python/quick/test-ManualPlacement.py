@@ -31,7 +31,6 @@ class TestManualPlacement(utils.TestWithResults):
             marocco.backend = PyMarocco.None
             marocco.persist = "results.bin"
             marocco.defects.backend = Defects.Backend.None
-            marocco.neuron_placement.skip_hicanns_without_neuron_blacklisting(False)
             neuron_size = 4
             marocco.neuron_placement.default_neuron_size(neuron_size)
             pynn.setup(marocco=marocco)

@@ -18,7 +18,6 @@ class TestSynapseLoss(unittest.TestCase):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
         self.marocco.neuron_placement.default_neuron_size(2)
-        self.marocco.neuron_placement.skip_hicanns_without_neuron_blacklisting(False)
         self.marocco.continue_despite_synapse_loss = True
         self.marocco.synapse_routing.driver_chain_length(SynapseDriverOnQuadrant.size)
         self.marocco.calib_backend = PyMarocco.CalibBackend.Default
