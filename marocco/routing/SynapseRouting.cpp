@@ -163,15 +163,13 @@ void SynapseRouting::run()
 		auto const& defects = m_resource_manager.get(m_hicann);
 		auto const& drvs = defects->drivers();
 		MAROCCO_INFO("Collecting defect synapse drivers");
-		for (auto it=drvs->begin_disabled(); it!=drvs->end_disabled(); ++it)
+		for (auto const& drv : drvs->disabled())
 		{
-			defect_list.push_back(*it);
-			MAROCCO_TRACE("Marked " << *it << " on " << m_hicann
-			                        << " as defect/disabled");
+			defect_list.push_back(drv);
+			MAROCCO_TRACE("Marked " << drv << " on " << m_hicann << " as defect/disabled");
 		}
 
-		size_t const n_marked_syndrvs =
-		    std::distance(drvs->begin_disabled(), drvs->end_disabled());
+		size_t const n_marked_syndrvs = boost::size(drvs->disabled());
 		if (n_marked_syndrvs != 0) {
 			MAROCCO_DEBUG("Marked " << n_marked_syndrvs << " synapse driver(s) on "
 			                        << m_hicann << " as defect/disabled");
@@ -448,11 +446,11 @@ void SynapseRouting::tagDefectSynapses()
 	auto const& syns = defects->synapses();
 
 	MAROCCO_INFO("Handling defect synapses");
-	for (auto it=syns->begin_disabled(); it!=syns->end_disabled(); ++it)
+	for (auto const& syn : syns->disabled())
 	{
-		auto proxy = chip.synapses[*it];
+		auto proxy = chip.synapses[syn];
 		proxy.weight = SynapseWeight(1);
-		MAROCCO_DEBUG("Marked " << *it << " on " << m_hicann << " as defect/disabled");
+		MAROCCO_DEBUG("Marked " << syn << " on " << m_hicann << " as defect/disabled");
 	}
 }
 

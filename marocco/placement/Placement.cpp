@@ -21,9 +21,9 @@ namespace {
 template <typename T>
 void handle_defects(MergerTreeGraph& graph, HICANNOnWafer const& hicann, T const& res)
 {
-	for (auto it = res->begin_disabled(); it != res->end_disabled(); ++it) {
-		graph.remove(*it);
-		trace(&graph) << "Marked " << *it << " on " << hicann << " as defect/disabled";
+	for (auto const& merger : res->disabled()) {
+		graph.remove(merger);
+		trace(&graph) << "Marked " << merger << " on " << hicann << " as defect/disabled";
 	}
 }
 
@@ -73,11 +73,10 @@ auto Placement::run(results::Placement& neuron_placement) -> std::unique_ptr<res
 		}
 		nrn_placement.add(hicann);
 		auto const& neurons = m_resource_manager.get(hicann)->neurons();
-		for (auto it = neurons->begin_disabled(); it != neurons->end_disabled(); ++it) {
-			nrn_placement.add_defect(hicann, *it);
+		for (auto const& nrn : neurons->disabled()) {
+			nrn_placement.add_defect(hicann, nrn);
 		}
-		size_t const n_marked_neurons =
-		    std::distance(neurons->begin_disabled(), neurons->end_disabled());
+		size_t const n_marked_neurons = boost::size(neurons->disabled());
 		if (n_marked_neurons != 0) {
 			MAROCCO_DEBUG("Marked " << n_marked_neurons << " neuron(s) on " << hicann
 			                        << " as defect/disabled");

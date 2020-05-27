@@ -54,24 +54,23 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 			// Directly unavailable hbuses because of blacklisting
 			auto const hbuses = defects->hbuses();
 
-			size_t n_marked_hbuses =
-			    std::distance(hbuses->begin_disabled(), hbuses->end_disabled());
+			size_t n_marked_hbuses = boost::size(hbuses->disabled());
 
-			for (auto it = hbuses->begin_disabled(); it != hbuses->end_disabled(); ++it) {
-				l1_graph.remove(hicann, *it);
-				MAROCCO_TRACE("Marked " << *it << " on " << hicann << " as defect/disabled");
+			for (auto const& hb : hbuses->disabled()) {
+				l1_graph.remove(hicann, hb);
+				MAROCCO_TRACE("Marked " << hb << " on " << hicann << " as defect/disabled");
 			}
 
 			// Unavailable hbuses because connected to unavailable hrepeater
 			auto const hrepeaters = defects->hrepeaters();
-			for (auto it = hrepeaters->begin_disabled(); it != hrepeaters->end_disabled(); ++it) {
-				auto const hbuses = HRepeaterOnWafer(*it, hicann).toHLineOnWafer();
+			for (auto const& hr : hrepeaters->disabled()) {
+				auto const hbuses = HRepeaterOnWafer(hr, hicann).toHLineOnWafer();
 
 				HLineOnHICANN const hbus(hbuses.get<0>());
 				l1_graph.remove(hicann, hbus);
 				MAROCCO_TRACE(
 				    "Marked " << hbus << " on " << hicann
-				              << " as defect/disabled (connected to defect/disabled " << *it
+				              << " as defect/disabled (connected to defect/disabled " << hr
 				              << ")");
 				++n_marked_hbuses;
 
@@ -80,7 +79,7 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 					l1_graph.remove(hicann, hbus);
 					MAROCCO_TRACE(
 					    "Marked " << hbus << " on " << hicann
-					              << " as defect/disabled (connected to defect/disabled " << *it
+					              << " as defect/disabled (connected to defect/disabled " << hr
 					              << ")");
 					++n_marked_hbuses;
 				}
@@ -94,24 +93,23 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 			// Directly unavailable vbuses because of blacklisting
 			auto const vbuses = defects->vbuses();
 
-			size_t n_marked_vbuses =
-				std::distance(vbuses->begin_disabled(), vbuses->end_disabled());
+			size_t n_marked_vbuses = boost::size(vbuses->disabled());
 
-			for (auto it = vbuses->begin_disabled(); it != vbuses->end_disabled(); ++it) {
-				l1_graph.remove(hicann, *it);
-				MAROCCO_TRACE("Marked " << *it << " on " << hicann << " as defect/disabled");
+			for (auto const& vb : vbuses->disabled()) {
+				l1_graph.remove(hicann, vb);
+				MAROCCO_TRACE("Marked " << vb << " on " << hicann << " as defect/disabled");
 			}
 
 			// Unavailable vbuses because connected to unavailable vrepeater
 			auto const vrepeaters = defects->vrepeaters();
-			for (auto it = vrepeaters->begin_disabled(); it != vrepeaters->end_disabled(); ++it) {
-				auto const vbuses = VRepeaterOnWafer(*it, hicann).toVLineOnWafer();
+			for (auto const& vr : vrepeaters->disabled()) {
+				auto const vbuses = VRepeaterOnWafer(vr, hicann).toVLineOnWafer();
 
 				VLineOnHICANN const vbus(vbuses.get<0>());
 				l1_graph.remove(hicann, vbus);
 				MAROCCO_TRACE(
 				    "Marked " << vbus << " on " << hicann
-				              << " as defect/disabled (connected to defect/disabled " << *it
+				              << " as defect/disabled (connected to defect/disabled " << vr
 				              << ")");
 				++n_marked_vbuses;
 
@@ -120,7 +118,7 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 					l1_graph.remove(hicann, vbus);
 					MAROCCO_TRACE(
 					    "Marked " << vbus << " on " << hicann
-					              << " as defect/disabled (connected to defect/disabled " << *it
+					              << " as defect/disabled (connected to defect/disabled " << vr
 					              << ")");
 					++n_marked_vbuses;
 				}

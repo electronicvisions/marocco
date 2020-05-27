@@ -168,12 +168,11 @@ void run(ObjectStore& store) {
 		auto const hicanns = res.hicanns();
 
 		// HICANNs
-		for (auto it = hicanns->begin_disabled(); it != hicanns->end_disabled(); ++it) {
-			LOG4CXX_TRACE(log4cxx::Logger::getLogger("marocco"), "Marked " << *it << " as defect/disabled");
+		for (auto const& h : hicanns->disabled()) {
+			LOG4CXX_TRACE(log4cxx::Logger::getLogger("marocco"), "Marked " << h << " as defect/disabled");
 		}
 
-		size_t const n_marked_hicanns =
-		    std::distance(hicanns->begin_disabled(), hicanns->end_disabled());
+		size_t const n_marked_hicanns = boost::size(hicanns->disabled());
 		if (n_marked_hicanns != 0) {
 			LOG4CXX_DEBUG(log4cxx::Logger::getLogger("marocco"),
 			              "Marked " << n_marked_hicanns
@@ -184,12 +183,12 @@ void run(ObjectStore& store) {
 
 		auto const fpgas = res_fpga.fpgas();
 		// FPGAS
-		for (auto it = fpgas->begin_disabled(); it != fpgas->end_disabled(); ++it) {
+		for (auto const& f : fpgas->disabled()) {
 			LOG4CXX_TRACE(
-			    log4cxx::Logger::getLogger("marocco"), "Marked " << *it << " as defect/disabled");
+			    log4cxx::Logger::getLogger("marocco"), "Marked " << f << " as defect/disabled");
 		}
 
-		size_t const n_marked_fpgas = std::distance(fpgas->begin_disabled(), fpgas->end_disabled());
+		size_t const n_marked_fpgas = boost::size(fpgas->disabled());
 		if (n_marked_fpgas != 0) {
 			LOG4CXX_DEBUG(
 			    log4cxx::Logger::getLogger("marocco"),
