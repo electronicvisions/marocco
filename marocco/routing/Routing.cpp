@@ -51,83 +51,56 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 		for (auto const& hicann : m_resource_manager.present()) {
 			auto const defects = m_resource_manager.get(hicann);
 
-			// Directly unavailable hbuses because of blacklisting
+			// horizontal buses and repeaters
 			auto const hbuses = defects->hbuses();
-
-			size_t n_marked_hbuses = boost::size(hbuses->disabled());
-
 			for (auto const& hb : hbuses->disabled()) {
 				l1_graph.remove(hicann, hb);
 				MAROCCO_TRACE("Marked " << hb << " on " << hicann << " as defect/disabled");
 			}
 
-			// Unavailable hbuses because connected to unavailable hrepeater
-			auto const hrepeaters = defects->hrepeaters();
-			for (auto const& hr : hrepeaters->disabled()) {
-				auto const hbuses = HRepeaterOnWafer(hr, hicann).toHLineOnWafer();
-
-				HLineOnHICANN const hbus(hbuses.get<0>());
-				l1_graph.remove(hicann, hbus);
-				MAROCCO_TRACE(
-				    "Marked " << hbus << " on " << hicann
-				              << " as defect/disabled (connected to defect/disabled " << hr
-				              << ")");
-				++n_marked_hbuses;
-
-				if (hbuses.get<1>().has_value()) {
-					HLineOnHICANN const hbus(hbuses.get<1>()->toHLineOnHICANN());
-					l1_graph.remove(hicann, hbus);
-					MAROCCO_TRACE(
-					    "Marked " << hbus << " on " << hicann
-					              << " as defect/disabled (connected to defect/disabled " << hr
-					              << ")");
-					++n_marked_hbuses;
-				}
-			}
-
+			size_t const n_marked_hbuses = boost::size(hbuses->disabled());
 			if (n_marked_hbuses != 0) {
 				MAROCCO_DEBUG("Marked " << n_marked_hbuses << " horizontal L1 bus(es) on "
 				                        << hicann << " as defect/disabled");
 			}
 
-			// Directly unavailable vbuses because of blacklisting
+			auto const hrepeaters = defects->hrepeaters();
+			for (auto const& hr : hrepeaters->disabled()) {
+				l1_graph.remove(hicann, hr);
+				MAROCCO_TRACE("Marked " << hr << " on " << hicann << " as defect/disabled");
+			}
+
+			size_t const n_marked_hrepeaters = boost::size(hrepeaters->disabled());
+			if (n_marked_hrepeaters != 0) {
+				MAROCCO_DEBUG("Marked " << n_marked_hrepeaters << " horizontal L1 repeater(s) on "
+				                        << hicann << " as defect/disabled");
+			}
+
+			// vertical buses and repeaters
 			auto const vbuses = defects->vbuses();
-
-			size_t n_marked_vbuses = boost::size(vbuses->disabled());
-
 			for (auto const& vb : vbuses->disabled()) {
 				l1_graph.remove(hicann, vb);
 				MAROCCO_TRACE("Marked " << vb << " on " << hicann << " as defect/disabled");
 			}
 
-			// Unavailable vbuses because connected to unavailable vrepeater
-			auto const vrepeaters = defects->vrepeaters();
-			for (auto const& vr : vrepeaters->disabled()) {
-				auto const vbuses = VRepeaterOnWafer(vr, hicann).toVLineOnWafer();
-
-				VLineOnHICANN const vbus(vbuses.get<0>());
-				l1_graph.remove(hicann, vbus);
-				MAROCCO_TRACE(
-				    "Marked " << vbus << " on " << hicann
-				              << " as defect/disabled (connected to defect/disabled " << vr
-				              << ")");
-				++n_marked_vbuses;
-
-				if (vbuses.get<1>().has_value()) {
-					VLineOnHICANN const vbus(vbuses.get<1>()->toVLineOnHICANN());
-					l1_graph.remove(hicann, vbus);
-					MAROCCO_TRACE(
-					    "Marked " << vbus << " on " << hicann
-					              << " as defect/disabled (connected to defect/disabled " << vr
-					              << ")");
-					++n_marked_vbuses;
-				}
-			}
-
+			size_t const n_marked_vbuses = boost::size(vbuses->disabled());
 			if (n_marked_vbuses != 0) {
 				MAROCCO_DEBUG("Marked " << n_marked_vbuses << " vertical L1 bus(es) on "
 				                        << hicann << " as defect/disabled");
 			}
+
+			auto const vrepeaters = defects->vrepeaters();
+			for (auto const& vr : vrepeaters->disabled()) {
+				l1_graph.remove(hicann, vr);
+				MAROCCO_TRACE("Marked " << vr << " on " << hicann << " as defect/disabled");
+			}
+
+			size_t const n_marked_vrepeaters = boost::size(vrepeaters->disabled());
+			if (n_marked_vrepeaters != 0) {
+				MAROCCO_DEBUG("Marked " << n_marked_vrepeaters << " vertical L1 repeater(s) on "
+				                        << hicann << " as defect/disabled");
+			}
+
 		}
 
 		auto startL1Routing = std::chrono::system_clock::now();
