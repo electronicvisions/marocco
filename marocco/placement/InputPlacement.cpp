@@ -551,9 +551,9 @@ void InputPlacement::configureGbitLinks(
 			//     chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
 			//     chip.layer1[dnc].slow = false;
 		} else if (address_assignment.mode(dnc) == internal::L1AddressAssignment::Mode::unused) {
-			// set gbit_link and DNC merger to external input to avoid unwanted transmission of
+			// set gbit_link off and DNC merger to external input to avoid unwanted transmission of
 			// events from neuron blocks
-			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::TO_HICANN;
+			chip.layer1[gbit_link] = HMF::HICANN::GbitLink::Direction::OFF;
 			chip.layer1[dnc] = HMF::HICANN::DNCMerger::LEFT_ONLY;
 			chip.layer1[dnc].slow = false;
 		} else {
