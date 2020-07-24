@@ -149,7 +149,7 @@ bool Experiment::extract_membrane(PopulationPtr population, placement_item_type 
 	auto v_it = voltages.begin();
 	auto const v_eit = voltages.end();
 	auto t_it = times.begin();
-	auto const t_eit = voltages.end();
+	auto const t_eit = times.end();
 
 	trace.reserve(times.size());
 	if (m_parameters.truncate_membrane_traces()) {
