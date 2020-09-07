@@ -63,12 +63,12 @@ enum class OmittingMethod {
 	MASK
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
 	AllPossibleHicanns,
 	AHICANNManagerWithHICANN,
 	::testing::Range(
 		Co::HICANNOnWafer::enum_type::begin,
-		Co::HICANNOnWafer::enum_type::end),);
+		Co::HICANNOnWafer::enum_type::end));
 
 class AHICANNManagerWithOmittedHICANN
     : public AHICANNManager,
@@ -91,7 +91,7 @@ public:
 	Co::HICANNGlobal hicann;
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
 	AllPossibleHicanns,
 	AHICANNManagerWithOmittedHICANN,
 	::testing::Combine(
@@ -100,7 +100,7 @@ INSTANTIATE_TEST_CASE_P(
 			OmittingMethod::MASK),
 		::testing::Range(
 			Co::HICANNOnWafer::enum_type::begin,
-			Co::HICANNOnWafer::enum_type::end)),);
+			Co::HICANNOnWafer::enum_type::end)));
 
 class AHICANNManagerWithRandomlyAllocatedHICANNS
 	: public AHICANNManager,
@@ -129,12 +129,12 @@ public:
 	std::unordered_set<Co::HICANNGlobal> allocated;
 };
 
-INSTANTIATE_TEST_CASE_P(
+INSTANTIATE_TEST_SUITE_P(
 	ManyDiceRolls,
 	AHICANNManagerWithRandomlyAllocatedHICANNS,
 	::testing::Range(
 		Co::HICANNOnWafer::enum_type::min,
-		Co::HICANNOnWafer::enum_type::size),);
+		Co::HICANNOnWafer::enum_type::size));
 
 TEST_F(AHICANNManager, AcceptsASetOfWafersOnConstruction) {
 	std::set<Co::Wafer> set;
