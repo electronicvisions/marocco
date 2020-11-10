@@ -79,8 +79,11 @@ void HICANNParameters::run()
 						  nb) != merger_routing_result.end()) {
 				auto const& item = merger_routing_result[nb];
 				// Use the background generator of the first neuron block connected to
-				// each DNC merger.
-				if (first || last_merger != item) {
+				// each DNC merger if sending to HICANN (using slow as proxy)
+				// FIXME: Depends on the order of configuration.
+				// The slow property could be set later in the code, see #4002.
+				bool const active = (m_chip.layer1[item].slow == true);
+				if (active && (first || last_merger != item)) {
 					auto const bg = BackgroundGeneratorOnHICANN(nb.toEnum().value());
 					MAROCCO_TRACE("Enabling " << bg << " for background on " << nb);
 					background_generator(bg, m_pymarocco.bkg_gen_isi);
