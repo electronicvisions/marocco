@@ -40,6 +40,7 @@ class TestIssue1586(unittest.TestCase):
         marocco.continue_despite_synapse_loss = True
         marocco.backend = pymarocco.PyMarocco.ESS
         marocco.experiment_time_offset=5e-7
+        marocco.scrutinize_mapping = pymarocco.PyMarocco.ScrutinizeMapping.SkipScrutinize
 
         n_exc = 100 # Number of excitatory neurons per group
 

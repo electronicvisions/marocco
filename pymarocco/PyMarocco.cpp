@@ -40,7 +40,8 @@ PyMarocco::PyMarocco()
       pll_freq(125e6),
       hicann_configurator(new sthal::ParallelHICANNv4SmartConfigurator()),
       continue_despite_synapse_loss(false),
-      ensure_analog_trigger(EnsureAnalogTrigger::Ensure)
+      ensure_analog_trigger(EnsureAnalogTrigger::Ensure),
+      scrutinize_mapping(ScrutinizeMapping::Scrutinize)
 {}
 
 boost::shared_ptr<PyMarocco> PyMarocco::create()
@@ -85,13 +86,19 @@ void PyMarocco::serialize(Archive& ar, unsigned int const version)
 	if (version > 0) {
 		ar & make_nvp("ensure_analog_trigger", ensure_analog_trigger);
 	}
+	if (version < 2) {
+		scrutinize_mapping = ScrutinizeMapping::Scrutinize;
+	}
+	if (version > 1) {
+		ar & make_nvp("scrutinize_mapping", scrutinize_mapping);
+	}
 	// clang-format on
 }
 
 } // pymarocco
 
 BOOST_CLASS_EXPORT_IMPLEMENT(::pymarocco::PyMarocco)
-BOOST_CLASS_VERSION(::pymarocco::PyMarocco, 1)
+BOOST_CLASS_VERSION(::pymarocco::PyMarocco, 2)
 
 #include "boost/serialization/serialization_helper.tcc"
 EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::pymarocco::PyMarocco)

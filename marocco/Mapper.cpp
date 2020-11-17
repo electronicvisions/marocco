@@ -48,6 +48,92 @@ size_t num_neurons(Graph const& g)
 	return cnt;
 }
 
+// check layer 1 configuration for disagreement with marocco's assumptions
+bool check_layer1(sthal::Layer1 const& l1)
+{
+	using namespace halco::hicann::v2;
+
+	log4cxx::LoggerPtr const logger = log4cxx::Logger::getLogger("marocco");
+
+	// count number of any background generator send to a dnc merger
+	halco::common::typed_array<size_t, DNCMergerOnHICANN> bkg_gen_counts = {0};
+
+	// count on how many dnc mergers a neuron block is send to
+	halco::common::typed_array<size_t, NeuronBlockOnHICANN> nb_counts = {0};
+
+	// flag if a DNCMerger receives neuron or external events but no background
+	halco::common::typed_array<bool, DNCMergerOnHICANN> has_neurons_or_gbit_but_no_bkg = {false};
+
+	auto const dnc_merger_output = l1.getDNCMergerOutput();
+	for (auto const& dnc_merger_coord : halco::common::iter_all<DNCMergerOnHICANN>()) {
+		bool has_neurons = false;
+		bool has_gbit_input = false;
+		bool has_bkg = false;
+
+		for (auto const& o : dnc_merger_output[dnc_merger_coord]) {
+			if (boost::get<BackgroundGeneratorOnHICANN>(&o)) {
+				++bkg_gen_counts[dnc_merger_coord];
+				has_bkg = true;
+			} else if (auto* p_nb = boost::get<NeuronBlockOnHICANN>(&o)) {
+				++nb_counts[*p_nb];
+				has_neurons = true;
+			} else if (boost::get<GbitLinkOnHICANN>(&o)) {
+				has_gbit_input = true;
+			}
+		}
+
+		if ((has_neurons || has_gbit_input) && !has_bkg) {
+			has_neurons_or_gbit_but_no_bkg[dnc_merger_coord] = true;
+		}
+	}
+
+	bool any_has_neurons_or_gbit_but_no_bkg = false;
+
+	for (auto const& k : halco::common::iter_all<DNCMergerOnHICANN>()) {
+		if (has_neurons_or_gbit_but_no_bkg[k]) {
+			LOG4CXX_ERROR(
+			    logger,
+			    k << " has neurons or external (gbit) input but no enabled background generator");
+			any_has_neurons_or_gbit_but_no_bkg = true;
+		}
+	}
+
+	bool multiple_output_detected = false;
+
+	for (auto const& k : halco::common::iter_all<DNCMergerOnHICANN>()) {
+		if (bkg_gen_counts[k] > 1) {
+			LOG4CXX_ERROR(
+			    logger,
+			    k << " receives events from " << bkg_gen_counts[k] << " background generators");
+			multiple_output_detected = true;
+		}
+	}
+
+	for (auto const& k : halco::common::iter_all<NeuronBlockOnHICANN>()) {
+		if (nb_counts[k] > 1) {
+			// Could be correct if bg generator is used to lock external inputs and
+			// L1 addresses of NeuronBlock are not used by the connected buses
+			// but not yet implemented so it is checked
+			LOG4CXX_ERROR(logger, k << " is send " << nb_counts[k] << " times to L1");
+			multiple_output_detected = true;
+		}
+	}
+
+	return !multiple_output_detected && !any_has_neurons_or_gbit_but_no_bkg;
+}
+
+// check configuration for discrepancy with marocco's assumptions
+bool check(sthal::Wafer const& w)
+{
+	for (auto const& hicann_coord : w.getAllocatedHicannCoordinates()) {
+		auto const& chip = w[hicann_coord];
+		if (!check_layer1(chip.layer1)) {
+			return false;
+		}
+	}
+	return true;
+}
+
 } // namespace
 
 Mapper::Mapper(
@@ -221,6 +307,32 @@ void Mapper::run(ObjectStore const& pynn)
 	// generate Hardware stats
 	HardwareUsage usage(mHW, mMgr, *placement);
 	usage.fill(getStats());
+
+	bool const check_mapping =
+	    (mPyMarocco->scrutinize_mapping == PyMarocco::ScrutinizeMapping::SkipScrutinize)
+	        ? true
+	        : check(mHW);
+
+	switch (mPyMarocco->scrutinize_mapping) {
+		case PyMarocco::ScrutinizeMapping::Scrutinize:
+			if (!check_mapping) {
+				MAROCCO_ERROR("Mapping checks failed. Set scrutinize_mapping to "
+				              "ScrutinizeButIgnore to ignore.");
+				throw std::runtime_error("mapping checks failed");
+			}
+			break;
+		case PyMarocco::ScrutinizeMapping::ScrutinizeButIgnore:
+			if (!check_mapping) {
+				MAROCCO_WARN("mapping checks failed");
+			}
+			break;
+		case PyMarocco::ScrutinizeMapping::SkipScrutinize:
+			break;
+		default:
+			MAROCCO_ERROR("Unknown option for scrutinize_mapping. Choose one of "
+			              "Scrutinize, SkipScrutinze or ScrutinizeButIgnore.");
+			throw std::runtime_error("Unknown option for scrutinize_mapping.");
+	}
 }
 
 Mapper::hardware_type&

@@ -88,6 +88,12 @@ public:
 		EnsureButIgnore
 	};
 
+	PYPP_CLASS_ENUM(ScrutinizeMapping) {
+		Scrutinize,
+		SkipScrutinize,
+		ScrutinizeButIgnore
+	};
+
 	/// choose emulation backend
 	/// one of [Without, ESS, Hardware]
 	/// default: Without
@@ -232,6 +238,16 @@ public:
 	* default: Ensure
 	*/
 	EnsureAnalogTrigger ensure_analog_trigger;
+
+	/**
+	* @brief: checks if mapping is OK for experiments, e.g., correct configuration wrt. L1 locking
+	* one of [Scrutinize, SkipScrutinize, ScrutinizeButIgnore]
+	* Scrutinize: Abort if mapping not OK
+	* SkipScrutinize: Do not check for mapping
+	* ScrutinizeButIgnore: Report if mapping is not OK but do not abort
+	* default: Scrutinize
+	*/
+	ScrutinizeMapping scrutinize_mapping;
 
 private:
 	PyMarocco();

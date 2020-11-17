@@ -41,6 +41,7 @@ class TestWithResults(unittest.TestCase):
         self.marocco.backend = pymarocco.PyMarocco.Without
         self.marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
         self.marocco.defects.backend = pymarocco.Defects.Backend.Without
+        self.marocco.scrutinize_mapping = pymarocco.PyMarocco.ScrutinizeMapping.SkipScrutinize
         self.marocco.persist = os.path.join(
             self.temporary_directory, "results.bin")
 
