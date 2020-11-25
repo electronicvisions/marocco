@@ -39,7 +39,8 @@ PyMarocco::PyMarocco()
       bkg_gen_isi(125),
       pll_freq(125e6),
       hicann_configurator(new sthal::ParallelHICANNv4SmartConfigurator()),
-      continue_despite_synapse_loss(false)
+      continue_despite_synapse_loss(false),
+      ensure_analog_trigger(EnsureAnalogTrigger::Ensure)
 {}
 
 boost::shared_ptr<PyMarocco> PyMarocco::create()
@@ -48,7 +49,7 @@ boost::shared_ptr<PyMarocco> PyMarocco::create()
 }
 
 template<typename Archive>
-void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
+void PyMarocco::serialize(Archive& ar, unsigned int const version)
 {
 	using namespace boost::serialization;
 	// clang-format off
@@ -78,12 +79,19 @@ void PyMarocco::serialize(Archive& ar, unsigned int const /* version */)
 	   & make_nvp("ess_config", ess_config)
 	   & make_nvp("ess_temp_directory", ess_temp_directory)
 	   & make_nvp("continue_despite_synapse_loss", continue_despite_synapse_loss);
+	if (version == 0) {
+		ensure_analog_trigger = EnsureAnalogTrigger::EnsureButIgnore;
+	}
+	if (version > 0) {
+		ar & make_nvp("ensure_analog_trigger", ensure_analog_trigger);
+	}
 	// clang-format on
 }
 
 } // pymarocco
 
 BOOST_CLASS_EXPORT_IMPLEMENT(::pymarocco::PyMarocco)
+BOOST_CLASS_VERSION(::pymarocco::PyMarocco, 1)
 
 #include "boost/serialization/serialization_helper.tcc"
 EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::pymarocco::PyMarocco)

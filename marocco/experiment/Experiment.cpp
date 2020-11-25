@@ -130,7 +130,24 @@ bool Experiment::extract_membrane(PopulationPtr population, placement_item_type 
 	auto const& recorder = it->second;
 
 	if (!recorder.hasTriggered()) {
-		MAROCCO_WARN(recorder << " failed to trigger while recording " << logical_neuron);
+		switch (m_pymarocco.ensure_analog_trigger){
+			case PyMarocco::EnsureAnalogTrigger::Ensure:
+				MAROCCO_ERROR(recorder << " failed to trigger while recording "
+				              << logical_neuron << ". Set ensure_analog_trigger to "
+					      "EnsureButIgnore to ignore.");
+				throw std::runtime_error("Trigger failed while recording.");
+				break;
+			case PyMarocco::EnsureAnalogTrigger::EnsureButIgnore:
+				MAROCCO_WARN(recorder << " failed to trigger while recording "
+				             << logical_neuron);
+				break;
+			case PyMarocco::EnsureAnalogTrigger::SkipEnsure:
+				break;
+			default:
+				MAROCCO_ERROR("Unknown option for ensure_analog_trigger. Choose one of "
+				              "Ensure, SkipEnsure or EnsureButIgnore.");
+				throw std::runtime_error("Unknown option for ensure_analog_trigger.");
+		}
 		return false;
 	}
 

@@ -76,6 +76,12 @@ public:
 		CheckButIgnore
 	};
 
+	PYPP_CLASS_ENUM(EnsureAnalogTrigger) {
+		Ensure,
+		SkipEnsure,
+		EnsureButIgnore
+	};
+
 	/// choose emulation backend
 	/// one of [None, ESS, Hardware]
 	/// default: None
@@ -210,6 +216,16 @@ public:
 	/// if true, the run continues although synapses were lost
 	/// default: false
 	bool continue_despite_synapse_loss;
+
+	/**
+	* @brief: checks if trigger failed during analog readout
+	* one of [Ensure, SkipEnsure, EnsureButIgnore]
+	* Ensure: Abort if trigger failed
+	* SkipEnsure: Do not report if trigger failed
+	* EnsureButIgnore: Report if trigger failed but do not abort
+	* default: Ensure
+	*/
+	EnsureAnalogTrigger ensure_analog_trigger;
 
 private:
 	PyMarocco();
