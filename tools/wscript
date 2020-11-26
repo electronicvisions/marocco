@@ -46,6 +46,15 @@ def build(bld):
             'marocco_coordinates',
         ])
 
+    bld(target='marocco-test-tools',
+        features='pytest',
+        tests='test-tools.py',
+        test_timeout=5,
+        use=['pymarocco', 'pyalone'],
+        )
+
+    # deploy and rename find_route.py
+    # original script is tested in marocco-test-tools
     bld.install_as(
         '${PREFIX}/bin/marocco_find_route', 'find_route.py', chmod=0o755)
 

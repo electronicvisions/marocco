@@ -4,6 +4,7 @@ import argparse
 
 from pysthal.command_line_util import parse_hicann
 from pyhalco_hicann_v2 import *
+from pyhalco_common import vertical, horizontal
 import pyalone
 import pymarocco_coordinates
 import pylogging
@@ -40,9 +41,9 @@ def main():
             continue
         alone.add(hicann)
 
-    if args.source_hline:
+    if args.source_hline is not None:
         line = HLineOnHICANN(args.source_hline)
-    elif args.source_vline:
+    elif args.source_vline is not None:
         line = VLineOnHICANN(args.source_vline)
     else:
         parser.error(
