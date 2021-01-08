@@ -128,7 +128,15 @@ void HICANNParameters::run()
 	}
 
 	{
-		const auto& shared_calib = calib->atBlockCollection();
+		auto shared_calib = calib->atBlockCollection();
+
+		// If there is no shared calibration for transit HICANNs we can fallback to default.
+		if (external_input_or_transit_only && shared_calib->size() == 0) {
+			MAROCCO_WARN(
+				"No shared calibration available for " << hicann << ", which is exclusively"
+				" used for routing and external input. Default values will be used instead.");
+			shared_calib->setDefaults();
+		}
 
 		// transforms global analog parameters
 		// this needs to be done, for any HICANN used in any way. For
