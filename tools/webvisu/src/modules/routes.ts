@@ -23,8 +23,8 @@ namespace internalModule {
 			let hicann = <number>undefined;
 			let index = <number>undefined;
 			for (let segmentIndex=0; segmentIndex<route.size(); segmentIndex++) {
-				// match for any sequence of number followed by closing paranthesis ")"
-				index = parseInt(route.get(segmentIndex).to_string().match(/\d+(?=\))/)[0]);
+				// match for last number in string which is always the Enum value
+				index = parseInt(route.get(segmentIndex).to_string().match(/(\d+)(?!.*\d)/)[0]);
 				const type = route.get(segmentIndex).which()
 				if (type === 0) {
 					hicann = index;
