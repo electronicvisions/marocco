@@ -326,7 +326,15 @@ void run(ObjectStore& store) {
 	if(mi->backend == PyMarocco::Backend::Hardware) {
 
 		if (mi->verification != PyMarocco::Verification::Skip) {
-			auto verify_configurator = sthal::VerifyConfigurator(true);
+			std::vector<SynapseOnWafer> synapses_to_be_verified;
+			for (auto const& syn : results->synapse_routing.synapses()) {
+				if (syn.hardware_synapse()) {
+					synapses_to_be_verified.push_back(*syn.hardware_synapse());
+				}
+			}
+			auto synapse_policy = sthal::VerifyConfigurator::SynapsePolicy::Mask;
+			auto verify_configurator = sthal::VerifyConfigurator(true, synapse_policy);
+			verify_configurator.set_synapse_mask(synapses_to_be_verified);
 			hardware->configure(verify_configurator);
 
 			if (verify_configurator.error_count() == 0) {
