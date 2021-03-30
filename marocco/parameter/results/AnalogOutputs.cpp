@@ -58,20 +58,31 @@ auto AnalogOutputs::record(LogicalNeuron const& logical_neuron) -> item_type con
 
 	// Find first free analog output.
 	for (auto const aout : iter_all<AnalogOnHICANN>()) {
-		auto it = m_container.find(boost::make_tuple(reticle, aout));
-		if (it == m_container.end()) {
+		bool adc_free = true;
+		auto const adc_group = reticle.toADCGroupOnWafer();
+		for (auto const test_reticle : iter_all<DNCOnWafer>()) {
+			// check if aout is already used on this ADCGroup
+			if (test_reticle.toADCGroupOnWafer() == adc_group) {
+				auto it = m_container.find(boost::make_tuple(test_reticle, aout));
+				if (it != m_container.end()) {
+					adc_free = false;
+
+					auto const& other_neuron = it->logical_neuron();
+					if (other_neuron == logical_neuron) {
+						return *it;
+					}
+					if (other_neuron.shares_denmems_with(logical_neuron)) {
+						throw ResourceInUseError("saw logical neurons with conflicting denmems");
+					}
+
+					break;
+				}
+			}
+		}
+		if (adc_free) {
 			auto res = m_container.insert(item_type(logical_neuron, aout));
 			assert(res.second);
 			return *res.first;
-		}
-
-		auto const& other_neuron = it->logical_neuron();
-		if (other_neuron == logical_neuron) {
-			return *it;
-		}
-
-		if (other_neuron.shares_denmems_with(logical_neuron)) {
-			throw ResourceInUseError("saw logical neurons with conflicting denmems");
 		}
 	}
 
