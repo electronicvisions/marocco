@@ -1,6 +1,13 @@
 #pragma once
 
 #include <boost/serialization/export.hpp>
+// GCCXML has problems with atomics -> removed before boost shared_prt is included
+#ifdef PYPLUSPLUS
+#undef __ATOMIC_RELAXED
+#undef __ATOMIC_ACQUIRE
+#undef __ATOMIC_RELEASE
+#undef __ATOMIC_ACQ_REL
+#endif // PYPLUSPLUS
 #include <boost/shared_ptr.hpp>
 
 #include "sthal/Wafer.h"
