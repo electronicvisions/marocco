@@ -48,7 +48,7 @@ class TestMergerRouting(utils.TestWithResults):
         self.assertTrue(logical_neuron.is_external())
         self.assertEqual(hicann, placement_item.address().toHICANNOnWafer())
 
-    @utils.parametrize([(0,), (1,), (0, 1), (1, 2), (4,), (4, 6), (3,), (5,), range(7)])
+    @utils.parametrize([(0,), (1,), (0, 1), (1, 2), (4,), (4, 6), (3,), (5,), list(range(7))])
     def test_min_spl1_is_nongreedy_when_pops_are_placed_to_nbs(self, nbs):
         """
         See above.  Instead of a single population placed to the HICANN, populations are placed to

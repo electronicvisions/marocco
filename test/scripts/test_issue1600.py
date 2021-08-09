@@ -13,16 +13,16 @@ con_fixednumberpre = pynn.FixedNumberPreConnector(n=6, weights=0.04)
 
 n_neurons = 112
 pop = pynn.Population(n_neurons, pynn.IF_cond_exp)
-neuron_pool = range(n_neurons)
+neuron_pool = list(range(n_neurons))
 
 in_0 = pynn.Population(1, pynn.SpikeSourceArray, {'spike_times': [0]})
-for _ in xrange(4):
+for _ in range(4):
     pynn.Projection(in_0, pop[neuron_pool[0:4]], con_alltoall, target='excitatory')
 
 n_pops = 6
 n_in_pop = 10
 
-for p in xrange(n_pops):
+for p in range(n_pops):
 
     l_a = neuron_pool[p*n_in_pop:(p+1)*n_in_pop-1]
     l_b = neuron_pool[(p+1)*n_in_pop:(p+2)*n_in_pop-1]

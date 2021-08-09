@@ -19,7 +19,7 @@ class TestESS(unittest.TestCase):
 
     @staticmethod
     def shuffle(a, *args):
-        r = range(a, *args)
+        r = list(range(a, *args))
         random.shuffle(r)
         return r
 
@@ -52,7 +52,7 @@ class TestESS(unittest.TestCase):
                             X(int(source_hicann.x())+ii%4),
                             Y(int(source_hicann.y())+ii/4))
                 self.marocco.manual_placement.on_hicann(pop, hicann)
-                print pop, hicann
+                print(pop, hicann)
 
             connector = pynn.AllToAllConnector(
                     allow_self_connections=True,

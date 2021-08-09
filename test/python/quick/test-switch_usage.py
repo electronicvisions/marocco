@@ -68,7 +68,7 @@ class Test_Switch_Usage(utils.TestWithResults):
 
         for hicann in runtime.wafer().getAllocatedHicannCoordinates():
             h = runtime.wafer()[hicann]
-            print hicann, h.check()
+            print(hicann, h.check())
             self.assertEqual(h.check(), "")
 
     def test_L1_detour_switch_usage(self):
@@ -125,7 +125,7 @@ class Test_Switch_Usage(utils.TestWithResults):
 
         for hicann in runtime.wafer().getAllocatedHicannCoordinates():
             h = runtime.wafer()[hicann]
-            print hicann, h.check()
+            print(hicann, h.check())
             self.assertEqual(h.check(), "")
 
 

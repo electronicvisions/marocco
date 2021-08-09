@@ -41,7 +41,7 @@ class TestRandom(unittest.TestCase):
         pynn.end()
 
         stats = self.marocco.getStats()
-        print "python synapse loss: ", stats.getSynapseLoss()
+        print("python synapse loss: ", stats.getSynapseLoss())
 
 
 if __name__ == '__main__':

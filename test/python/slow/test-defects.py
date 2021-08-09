@@ -84,7 +84,7 @@ class TestSynapseLoss(TrivialNetworkFixture):
         self.assertEqual(synapses, stats.getSynapses())
         self.assertEqual(synapses, stats.getSynapsesSet())
 
-    @utils.parametrize(resources.keys())
+    @utils.parametrize(list(resources.keys()))
     def test_disable_all(self, name):
         self.inject_disabled_component(
             name, iter_all(resources[name]))
@@ -102,7 +102,7 @@ class TestNeuronDefects(TrivialNetworkFixture):
     def test_disable_all_neurons(self):
         self.inject_disabled_component('neurons', iter_all(NeuronOnHICANN))
 
-        with self.assertRaisesRegexp(RuntimeError, 'unable to implement manual placement request'):
+        with self.assertRaisesRegex(RuntimeError, 'unable to implement manual placement request'):
             sim.run(10)
 
 merger_resources = {
@@ -117,12 +117,12 @@ class TestMergerDefects(TrivialNetworkFixture):
     """
     Tests that the mapping failes, if all merger are marked as defect.
     """
-    @utils.parametrize(merger_resources.keys())
+    @utils.parametrize(list(merger_resources.keys()))
     def test_disable_all(self, name):
         self.inject_disabled_component(
             name, iter_all(merger_resources[name]))
 
-        with self.assertRaisesRegexp(RuntimeError,
+        with self.assertRaisesRegex(RuntimeError,
                                      '(unroutable mergers)'):
             sim.run(10)
 

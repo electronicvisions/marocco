@@ -25,7 +25,7 @@ class TestManualPlacement(utils.TestWithResults):
         view_lengths = [([], 0)]
         for _ in range(view_number):
             view_lengths = [(x+[y], csum+y) for x, csum in view_lengths for y in pool if csum <= pop_size - y]
-        neurons = range(pop_size)
+        neurons = list(range(pop_size))
         for length in view_lengths:
             marocco = PyMarocco()
             marocco.backend = PyMarocco.None
@@ -73,10 +73,10 @@ class TestManualPlacement(utils.TestWithResults):
         hicann = C.HICANNOnWafer(Enum(121))
         hicann_1 = C.HICANNOnWafer(Enum(122))
 
-        pop_view = pynn.PopulationView(pop_ext,range(1,size,2))
-        pop_view_1 = pynn.PopulationView(pop_ext,range(0,size,2))
-        pop_1_view = pynn.PopulationView(pop_ext_1,range(1,size/2))
-        pop_1_view_1 = pynn.PopulationView(pop_ext_1,range(size-2,size/2,-1))
+        pop_view = pynn.PopulationView(pop_ext,list(range(1,size,2)))
+        pop_view_1 = pynn.PopulationView(pop_ext,list(range(0,size,2)))
+        pop_1_view = pynn.PopulationView(pop_ext_1,list(range(1,size/2)))
+        pop_1_view_1 = pynn.PopulationView(pop_ext_1,list(range(size-2,size/2,-1)))
         pop_1_auto_placement = pynn.PopulationView(pop_ext_1,[0,size/2,size-1])
 
         self.marocco.manual_placement.on_hicann(pop_view, hicann)
@@ -150,10 +150,10 @@ class TestManualPlacement(utils.TestWithResults):
         hicann_3 = C.HICANNOnWafer(Enum(125))
         pop = pynn.Population(size, pynn.IF_cond_exp, {})
         pop_1 = pynn.Population(size, pynn.IF_cond_exp, {})
-        pop_view = pynn.PopulationView(pop,range(0,size,2))
-        pop_view_1 = pynn.PopulationView(pop,range(1,size,2))
-        pop_1_view = pynn.PopulationView(pop_1,range(1,size/2))
-        pop_1_view_1 = pynn.PopulationView(pop_1,range(size-2,size/2,-1))
+        pop_view = pynn.PopulationView(pop,list(range(0,size,2)))
+        pop_view_1 = pynn.PopulationView(pop,list(range(1,size,2)))
+        pop_1_view = pynn.PopulationView(pop_1,list(range(1,size/2)))
+        pop_1_view_1 = pynn.PopulationView(pop_1,list(range(size-2,size/2,-1)))
         pop_auto_placement = pynn.PopulationView(pop_1,[0,size/2,size-1])
         self.marocco.manual_placement.on_hicann(pop_view, hicann)
         self.marocco.manual_placement.on_hicann(pop_view_1, hicann_1)
@@ -297,7 +297,7 @@ class TestManualPlacement(utils.TestWithResults):
 
         results = self.load_results()
 
-        for pop, size in sizes.iteritems():
+        for pop, size in sizes.items():
             placement_item, = results.placement.find(pop[0])
             logical_neuron = placement_item.logical_neuron()
             self.assertEqual(size, logical_neuron.size())

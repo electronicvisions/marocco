@@ -135,7 +135,7 @@ class TestExternalSources(utils.TestWithResults):
     def test_external_sources_projections(self, params ):
         nprojections = params[0]
         nsources = params[1]
-        print(nprojections, nsources)
+        print((nprojections, nsources))
         """
             An external sources has multiple projections
             so it should be split if it wuld not be of size 1

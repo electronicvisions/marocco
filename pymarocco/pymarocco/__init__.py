@@ -37,7 +37,7 @@ def _patch_ManualPlacement():
         @functools.wraps(fun)
         def wrapper(self, pop, *args):
             if isinstance(pop, pyhmf.Population):
-                return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(range(0,pop.size)), *args)
+                return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(list(range(0,pop.size))), *args)
             if isinstance(pop, pyhmf.PopulationView):
                 return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(pop.mask()), *args)
             else:

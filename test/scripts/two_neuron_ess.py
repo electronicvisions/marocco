@@ -31,7 +31,7 @@ stored_weights = copy.deepcopy(proj.getWeights())
 run(1)
 end()
 
-print "python synapse loss: ", marocco.stats.getSynapseLoss()
+print("python synapse loss: ", marocco.stats.getSynapseLoss())
 
 if marocco.stats.getWeights(proj) != stored_weights:
     raise RuntimeError("weights don't match")

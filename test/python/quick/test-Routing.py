@@ -35,7 +35,7 @@ class TestRouting(utils.TestWithResults):
         self.marocco.manual_placement.on_hicann(source, source_hicann)
         self.marocco.manual_placement.on_hicann(target, target_hicann)
 
-        allowed_hicanns = [206] + range(167, 171) + range(240, 243)
+        allowed_hicanns = [206] + list(range(167, 171)) + list(range(240, 243))
         wafer = self.marocco.default_wafer
         self.marocco.defects.set(pyredman.Wafer())
         for hicann in C.iter_all(C.HICANNOnWafer):

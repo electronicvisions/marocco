@@ -26,7 +26,7 @@ def _patch_methods():
                 return arg
 
             args = [convert(v) for v in args]
-            kwargs = {k: convert(v) for k, v in kwargs.iteritems()}
+            kwargs = {k: convert(v) for k, v in kwargs.items()}
             result = fun(self, *args, **kwargs)
 
             # Convert iterable results to list to allow random access.

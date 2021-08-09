@@ -111,7 +111,7 @@ class PlacementAlgorithms(utils.TestWithResults):
                            reverse=False)
 
                 for nb in c:
-                    print("will use : {}".format(nb))
+                    print(("will use : {}".format(nb)))
 
                 # There are two options to set it again:
                 # use access to set a full vector
@@ -224,9 +224,9 @@ class PlacementAlgorithms(utils.TestWithResults):
                 print("reversing populations")
 
                 # b = self.m_queue.access;  # use this or the following
-                print(dir(self.m_queue.value()[0]))
+                print((dir(self.m_queue.value()[0])))
                 b = self.m_queue.value()
-                print(dir(b))
+                print((dir(b)))
 
         marocco = self.marocco
         user_strat = myPlacer()

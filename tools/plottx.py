@@ -2,7 +2,7 @@ import os, sys, argparse
 from pylab import *
 
 def myplot(plots = {}, title='', xlabel='', ylabel=''):
-    for fname, cols in plots.iteritems():
+    for fname, cols in plots.items():
         a = loadtxt(fname)
         if not isinstance(cols, list):
             cols = [cols,]

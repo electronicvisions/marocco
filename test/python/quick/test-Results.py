@@ -46,7 +46,7 @@ class TestResults(utils.TestWithResults):
 
         self.assertEqual(sum(map(len, pops)), len(list(results.placement)))
         for pop in pops:
-            for n in xrange(len(pop)):
+            for n in range(len(pop)):
                 items = results.placement.find(pop[n])
                 self.assertTrue(isinstance(items, list))
                 self.assertEqual(1, len(items))

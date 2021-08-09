@@ -6,7 +6,7 @@ def remove_ndebug_from_pyext(cfg):
     for module in [ 'PYEMBED', 'PYEXT' ]:
         try:
             defines_module = 'DEFINES_%s' % module
-            cfg.env[defines_module] = filter(lambda a: a != 'NDEBUG', cfg.env[defines_module])
+            cfg.env[defines_module] = [a for a in cfg.env[defines_module] if a != 'NDEBUG']
         except:
             pass
 

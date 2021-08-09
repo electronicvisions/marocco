@@ -39,18 +39,18 @@ class TestLookupTable(unittest.TestCase):
         numNeuronsPerPopulation = numNeurons/numPopulations
 
         pops = []
-        for p in xrange(numPopulations):
+        for p in range(numPopulations):
             pops.append(pynn.Population(numNeuronsPerPopulation, pynn.IF_cond_exp, {}))
         pynn.run(0)
         pynn.end()
 
         self.assertEqual(numPopulations*numNeuronsPerPopulation, self.marocco.getStats().getNumNeurons())
 
-        map(self.helper_test_mapping, pops)
+        list(map(self.helper_test_mapping, pops))
 
     def helper_test_mapping(self, pop):
         results = Marocco.from_file(self.marocco.persist)
-        for n in xrange(len(pop)):
+        for n in range(len(pop)):
             items = list(results.placement.find(pop[n]))
             if not items:
                 self.fail("Neuron {} of population {} not placed".format(
@@ -73,7 +73,7 @@ class TestLookupTable(unittest.TestCase):
             target = pynn.Population(pop_size, pynn.IF_cond_exp, {})
 
             populations = [target]
-            for i in xrange(3):
+            for i in range(3):
                 p1 = pynn.Population(
                     pop_size,
                     pynn.SpikeSourceArray,
@@ -96,7 +96,7 @@ class TestLookupTable(unittest.TestCase):
 
             results = Marocco.from_file(self.marocco.persist)
             for pop in populations:
-                for nrn in xrange(pop_size):
+                for nrn in range(pop_size):
                     for item in results.placement.find(pop[nrn]):
                         self.assertFalse(item.logical_neuron().is_external())
                         self.assertEqual(neuron_size, item.logical_neuron().size())
@@ -118,7 +118,7 @@ class TestLookupTable(unittest.TestCase):
 
         pynn.run(0)
         all_pops = [pop1, ipu1, pop2, ipu2]
-        map(self.helper_test_mapping, all_pops)
+        list(map(self.helper_test_mapping, all_pops))
         pynn.end()
 
 
@@ -141,7 +141,7 @@ class TestLookupTable(unittest.TestCase):
 
         pynn.run(0)
         all_pops = [ipu1, pop1, pop2, pop3]
-        map(self.helper_test_mapping, all_pops)
+        list(map(self.helper_test_mapping, all_pops))
         pynn.end()
 
 

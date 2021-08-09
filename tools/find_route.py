@@ -54,7 +54,7 @@ def main():
         vertical if args.target_vertical else horizontal)
     routes = alone.find_routes(source, target)
     for route in routes:
-        print route
+        print(route)
 
 if __name__ == '__main__':
     main()
