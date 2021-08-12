@@ -4,7 +4,8 @@ from _pymarocco import *
 def _patch_Version():
     global __version__
     import os
-    __version__ = open(os.path.join(os.path.dirname(__file__), 'VERSION')).read().strip()
+    path = os.getenv('MAROCCO_VERSION_DATADIR', os.path.dirname(__file__))
+    __version__ = open(os.path.join(path, 'VERSION')).read().strip()
     PyMarocco.__version__ = __version__
 
 _patch_Version()

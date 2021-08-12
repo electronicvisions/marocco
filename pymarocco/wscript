@@ -76,9 +76,11 @@ def build(bld):
         install_path    = 'lib',
         **flags)
 
-    bld.install_files('lib',
-            bld.path.ant_glob('pymarocco/**/*.py'),
-            relative_trick=True)
+    bld(target='pymarocco_scripts',
+        features ='py use',
+        source=bld.path.ant_glob('pymarocco/**/*.py'),
+        use='pymarocco',
+        relative_trick=True)
 
     bld(target='marocco_runtime_inc',
         export_includes='..')

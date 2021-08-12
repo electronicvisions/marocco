@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 
 
 def remove_ndebug_from_pyext(cfg):
@@ -49,6 +50,7 @@ def configure(cfg):
             # '-D_GLIBCXX_PROFILE',
             # '-D_GLIBCXX_DEBUG',
         ]
+    cfg.env.MAROCCO_VERSION_DATADIR = os.path.join(cfg.path.get_bld().abspath(),'pymarocco')
 
     # finally remove NDEBUG from env, previously added by python feature
     remove_ndebug_from_pyext(cfg)
