@@ -7,7 +7,7 @@
 
 namespace redman {
 namespace backend {
-class None;
+class Without;
 class Backend;
 class MockBackend;
 class XMLBackend;
@@ -46,7 +46,7 @@ BackendLoaderRedman::load_redman_backend<redman::backend::XMLBackend>(std::strin
 
 template <>
 boost::shared_ptr<redman::backend::Backend>
-BackendLoaderRedman::load_redman_backend<redman::backend::None>(std::string& defects_path)
+BackendLoaderRedman::load_redman_backend<redman::backend::Without>(std::string& defects_path)
 {
 	(void) defects_path; // supress unused variable warning
 

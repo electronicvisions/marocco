@@ -26,7 +26,7 @@ class issue3086(unittest.TestCase):
 
         marocco = PyMarocco()
         marocco.neuron_placement.default_neuron_size(4)
-        marocco.backend = PyMarocco.None
+        marocco.backend = PyMarocco.Without
         marocco.default_wafer = C.Wafer(wafer)
 
         used_hicann = C.HICANNGlobal(

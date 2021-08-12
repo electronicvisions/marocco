@@ -59,7 +59,7 @@ class PyMarocco : public euter::DerivedMetaData<PyMarocco>
 public:
 
 	PYPP_CLASS_ENUM(Backend) {
-		None,
+		Without,
 		ESS,
 		Hardware
 	};
@@ -90,8 +90,8 @@ public:
 	};
 
 	/// choose emulation backend
-	/// one of [None, ESS, Hardware]
-	/// default: None
+	/// one of [Without, ESS, Hardware]
+	/// default: Without
 	Backend backend;
 
 	/// choose backend for calibration data

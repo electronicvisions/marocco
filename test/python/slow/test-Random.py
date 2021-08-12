@@ -6,7 +6,7 @@ import pyhmf as pynn
 @unittest.skip("ECM disabled (it's not working currently, and we need Jenkins to get BLUE)")
 class TestRandom(unittest.TestCase):
 
-    def setUp(self, backend=PyMarocco.None):
+    def setUp(self, backend=PyMarocco.Without):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
         self.marocco.neuron_placement.default_neuron_size(4)

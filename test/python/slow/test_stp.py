@@ -33,7 +33,7 @@ class STPTest(unittest.TestCase):
         drivers and that STP mode of the synapse drivers is as expected.
         """
         marocco=pymarocco.PyMarocco()
-        marocco.backend = pymarocco.PyMarocco.None
+        marocco.backend = pymarocco.PyMarocco.Without
         marocco.neuron_placement.default_neuron_size(4)
         marocco.wafer_cfg = os.path.join(self.temporary_directory, "wafer.bin")
         marocco.persist = os.path.join(self.temporary_directory, "results.bin")

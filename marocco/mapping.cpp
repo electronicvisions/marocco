@@ -32,7 +32,7 @@ using pymarocco::PyMarocco;
 namespace redman {
 namespace backend {
 class XMLBackend;
-class None;
+class Without;
 }
 }
 
@@ -141,9 +141,9 @@ void run(ObjectStore& store) {
 			redman_backend = marocco::resource::BackendLoaderRedman::load_redman_backend<
 			    redman::backend::XMLBackend>(mi->defects.path);
 			break;
-		case pymarocco::Defects::Backend::None:
+		case pymarocco::Defects::Backend::Without:
 			redman_backend =
-			    marocco::resource::BackendLoaderRedman::load_redman_backend<redman::backend::None>(
+			    marocco::resource::BackendLoaderRedman::load_redman_backend<redman::backend::Without>(
 			        mi->defects.path);
 			break;
 		default:
@@ -278,7 +278,7 @@ void run(ObjectStore& store) {
 
 	//  ——— RUN EXPERIMENT —————————————————————————————————————————————————————
 
-	if (mi->backend == PyMarocco::Backend::None) {
+	if (mi->backend == PyMarocco::Backend::Without) {
 		return;
 	}
 

@@ -19,9 +19,9 @@ class MaroccoFixture(unittest.TestCase):
     def setUp(self):
         super(MaroccoFixture, self).setUp()
         self.marocco = PyMarocco()
-        self.marocco.backend = PyMarocco.None
+        self.marocco.backend = PyMarocco.Without
         self.marocco.calib_backend = PyMarocco.CalibBackend.Default
-        self.marocco.defects.backend = Defects.Backend.None
+        self.marocco.defects.backend = Defects.Backend.Without
         self.marocco.merger_routing.strategy(self.marocco.merger_routing.minimize_number_of_sending_repeaters)
 
         sim.setup(marocco=self.marocco)

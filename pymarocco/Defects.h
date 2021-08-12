@@ -21,7 +21,7 @@ public:
 
 	PYPP_CLASS_ENUM(Backend) {
 		XML,
-		None
+		Without
 	};
 
 	Defects();

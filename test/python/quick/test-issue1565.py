@@ -3,7 +3,7 @@ import pyhmf as pynn
 import pymarocco
 
 class TestIssue1565(unittest.TestCase):
-    def setUp(self, backend=pymarocco.PyMarocco.None):
+    def setUp(self, backend=pymarocco.PyMarocco.Without):
         self.marocco = pymarocco.PyMarocco()
         self.marocco.backend = backend
 

@@ -26,7 +26,7 @@ PyMarocco::name() const
 }
 
 PyMarocco::PyMarocco()
-    : backend(Backend::None),
+    : backend(Backend::Without),
       calib_backend(CalibBackend::Binary),
       calib_path("/wang/data/calibration/brainscales/default"),
       default_wafer(33),

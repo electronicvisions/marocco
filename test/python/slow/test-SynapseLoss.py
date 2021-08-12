@@ -14,14 +14,14 @@ pylogging.set_loglevel(pylogging.get("marocco"), pylogging.LogLevel.INFO)
 
 class TestSynapseLoss(unittest.TestCase):
 
-    def setUp(self, backend=PyMarocco.None):
+    def setUp(self, backend=PyMarocco.Without):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
         self.marocco.neuron_placement.default_neuron_size(2)
         self.marocco.continue_despite_synapse_loss = True
         self.marocco.synapse_routing.driver_chain_length(SynapseDriverOnQuadrant.size)
         self.marocco.calib_backend = PyMarocco.CalibBackend.Default
-        self.marocco.defects.backend = Defects.Backend.None
+        self.marocco.defects.backend = Defects.Backend.Without
 
     def tearDown(self):
         pynn.reset() # pynn reset

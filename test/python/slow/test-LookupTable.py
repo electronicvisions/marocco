@@ -20,13 +20,13 @@ class TestLookupTable(unittest.TestCase):
         self.temporary_directory = tempfile.mkdtemp(prefix="marocco-test-")
 
         self.marocco = pymarocco.PyMarocco()
-        self.marocco.backend = pymarocco.PyMarocco.None
+        self.marocco.backend = pymarocco.PyMarocco.Without
         self.marocco.persist = os.path.join(
             self.temporary_directory, "results.bin")
         self.marocco.neuron_placement.default_neuron_size(4)
         self.marocco.continue_despite_synapse_loss = True
         self.marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
-        self.marocco.defects.backend = pymarocco.Defects.Backend.None
+        self.marocco.defects.backend = pymarocco.Defects.Backend.Without
 
     def tearDown(self):
         shutil.rmtree(self.temporary_directory, ignore_errors=True)

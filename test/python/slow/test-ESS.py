@@ -11,7 +11,7 @@ class TestESS(unittest.TestCase):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
         self.marocco.calib_backend = PyMarocco.CalibBackend.Default
-        self.marocco.defects.backend = Defects.Backend.None
+        self.marocco.defects.backend = Defects.Backend.Without
         self.marocco.hicann_configurator = pysthal.HICANNConfigurator()
 
     def tearDown(self):

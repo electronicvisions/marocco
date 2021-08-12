@@ -24,7 +24,7 @@ requirements from the log output.
 """
 class TestSynapseRouting(unittest.TestCase):
 
-    def setUp(self, backend=PyMarocco.None):
+    def setUp(self, backend=PyMarocco.Without):
         self.marocco = PyMarocco()
         self.marocco.backend = backend
 

@@ -46,7 +46,7 @@ It is specified using:
 marocco.calib_backend = PyMarocco.CalibBackend.XML
 marocco.calib_path = /wang/data/commissioning/BSS-1/rackplace/$WAFER/calibration/current
 ```
-**Caution, `CalibBackend.Default == CalibBackend.None`, which means no calibration is used!**
+**Caution, `CalibBackend.Default` means no calibration is used!**
 
 ## Skip checks
 Per default, marocco executes checks before an experiment is run on the hardware, to verify the usability of the used components.
