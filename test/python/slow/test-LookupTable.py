@@ -36,7 +36,7 @@ class TestLookupTable(unittest.TestCase):
         pynn.setup(marocco=self.marocco)
         numNeurons = 1000
         numPopulations = 42
-        numNeuronsPerPopulation = numNeurons/numPopulations
+        numNeuronsPerPopulation = numNeurons//numPopulations
 
         pops = []
         for p in range(numPopulations):

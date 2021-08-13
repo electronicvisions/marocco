@@ -13,7 +13,7 @@ def ESS_available():
         pynn.run(1.)
         return True
     except RuntimeError as err:
-        if err.message == "ESS not available (compile with ESS)":
+        if str(err) == "ESS not available (compile with ESS)":
             return False
         else:
             raise err

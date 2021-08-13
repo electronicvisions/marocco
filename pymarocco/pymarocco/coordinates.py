@@ -20,7 +20,7 @@ def _patch_BioNeuron():
                 if hasattr(parent, "mask"):
                     # Correct for offset of parent[0], when parent is
                     # a PopulationView.
-                    index += parent.mask()[0]
+                    index += int(parent.mask()[0])
                 return ctor(self, parent.euter_id(), index, *args)
             return ctor(self, arg, *args)
         return wrapper

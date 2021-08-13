@@ -72,7 +72,7 @@ class TestSynapseRouting(unittest.TestCase):
             # of source neurons divided by half the neuron size (half the
             # denmem is only reachable via the other synapse array) and divided
             # by two (two sources can connect via a single SynapseDriver).
-            EXPECTED_NUM_SYNAPSEDRIVER = N/(NEURON_SIZE/2)/2
+            EXPECTED_NUM_SYNAPSEDRIVER = N//(NEURON_SIZE//2)//2
             print('EXPECTED %d' % EXPECTED_NUM_SYNAPSEDRIVER)
 
             # make sure we have no synapse loss

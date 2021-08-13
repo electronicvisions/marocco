@@ -22,7 +22,7 @@ def parametrize(params):
             new_method_name = '{}_{}'.format(method.__name__, param)
             wrapper.__name__ = new_method_name
 
-            frame = inspect.currentframe(1)
+            frame = inspect.currentframe().f_back
             frame.f_locals[new_method_name] = wrapper
         return None
     return decorator

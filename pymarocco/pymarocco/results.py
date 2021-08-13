@@ -45,8 +45,8 @@ def _patch_methods():
         if klassname[0].islower() or klassname.startswith("_"):
             continue
 
-        for (name, fun) in inspect.getmembers(klass, inspect.ismethod):
-            if name.startswith("_"):
+        for (name, fun) in inspect.getmembers(klass, inspect.isbuiltin):
+            if name.startswith("_") or name == 'from_file':
                 continue
 
             setattr(klass, name, wrap(fun))

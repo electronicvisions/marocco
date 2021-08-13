@@ -1,4 +1,4 @@
-import unittest, random, exceptions
+import unittest, random, builtins
 from pymarocco import *
 from pyhalco_hicann_v2 import *
 import pyhmf as pynn
@@ -23,7 +23,7 @@ class TestPyMarocco(unittest.TestCase):
 
         proj = pynn.Projection(pops[0], pops[1], connector, target='excitatory')
 
-        with self.assertRaises(exceptions.IndexError) as e:
+        with self.assertRaises(builtins.IndexError) as e:
             marocco.stats.getWeights(proj)
 
     def test_hicann_configurator(self):

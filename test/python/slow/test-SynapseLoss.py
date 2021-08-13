@@ -113,8 +113,8 @@ class TestSynapseLoss(unittest.TestCase):
             tgt = p2
             exp_loss = len(src)*n_post
         elif mode == "PopulationView":
-            src = p1[n1/2:n1]
-            tgt = p2[n2/2:n2]
+            src = p1[n1//2:n1]
+            tgt = p2[n2//2:n2]
             exp_loss = len(src)*n_post
         elif mode == "Assembly":
             src = pynn.Assembly(p1,p2)

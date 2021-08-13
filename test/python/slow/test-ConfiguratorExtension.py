@@ -60,7 +60,7 @@ class TestConfiguratorExtension(unittest.TestCase):
         for ii, pop in enumerate(p):
             hicann = HICANNGlobal(
                         X(int(source_hicann.x())+ii%4),
-                        Y(int(source_hicann.y())+ii/4))
+                        Y(int(source_hicann.y())+ii//4))
             self.marocco.manual_placement.on_hicann(pop, hicann)
             print(pop, hicann)
 

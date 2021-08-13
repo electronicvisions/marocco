@@ -39,12 +39,12 @@ def _patch_ManualPlacement():
             if isinstance(pop, pyhmf.Population):
                 return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(list(range(0,pop.size))), *args)
             if isinstance(pop, pyhmf.PopulationView):
-                return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(pop.mask()), *args)
+                return fun(self, pop.euter_id(), pywrapstdvector.Vector_Int32(pop.mask().tolist()), *args)
             else:
                 raise TypeError('first argument has to be a pyhmf Population or PopulationView')
         return wrapper
 
-    for (name, fun) in inspect.getmembers(ManualPlacement, inspect.ismethod):
+    for (name, fun) in inspect.getmembers(ManualPlacement, inspect.isbuiltin):
         if name not in ['on_hicann', 'on_neuron_block', 'on_neuron', 'with_size']:
             continue
         setattr(ManualPlacement, name, wrap(fun))

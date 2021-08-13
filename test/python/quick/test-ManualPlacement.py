@@ -75,9 +75,9 @@ class TestManualPlacement(utils.TestWithResults):
 
         pop_view = pynn.PopulationView(pop_ext,list(range(1,size,2)))
         pop_view_1 = pynn.PopulationView(pop_ext,list(range(0,size,2)))
-        pop_1_view = pynn.PopulationView(pop_ext_1,list(range(1,size/2)))
-        pop_1_view_1 = pynn.PopulationView(pop_ext_1,list(range(size-2,size/2,-1)))
-        pop_1_auto_placement = pynn.PopulationView(pop_ext_1,[0,size/2,size-1])
+        pop_1_view = pynn.PopulationView(pop_ext_1,list(range(1,size//2)))
+        pop_1_view_1 = pynn.PopulationView(pop_ext_1,list(range(size-2,size//2,-1)))
+        pop_1_auto_placement = pynn.PopulationView(pop_ext_1,[0,size//2,size-1])
 
         self.marocco.manual_placement.on_hicann(pop_view, hicann)
         self.marocco.manual_placement.on_hicann(pop_view_1, hicann_1)
@@ -152,15 +152,15 @@ class TestManualPlacement(utils.TestWithResults):
         pop_1 = pynn.Population(size, pynn.IF_cond_exp, {})
         pop_view = pynn.PopulationView(pop,list(range(0,size,2)))
         pop_view_1 = pynn.PopulationView(pop,list(range(1,size,2)))
-        pop_1_view = pynn.PopulationView(pop_1,list(range(1,size/2)))
-        pop_1_view_1 = pynn.PopulationView(pop_1,list(range(size-2,size/2,-1)))
-        pop_auto_placement = pynn.PopulationView(pop_1,[0,size/2,size-1])
+        pop_1_view = pynn.PopulationView(pop_1,list(range(1,size//2)))
+        pop_1_view_1 = pynn.PopulationView(pop_1,list(range(size-2,size//2,-1)))
+        pop_auto_placement = pynn.PopulationView(pop_1,[0,size//2,size-1])
         self.marocco.manual_placement.on_hicann(pop_view, hicann)
         self.marocco.manual_placement.on_hicann(pop_view_1, hicann_1)
         self.marocco.manual_placement.on_hicann(pop_1_view, hicann_2)
         self.marocco.manual_placement.on_hicann(pop_1_view_1, hicann_3)
 
-        if neuron_size * size/2 > C.NeuronOnHICANN.enum_type.size:
+        if neuron_size * size//2 > C.NeuronOnHICANN.enum_type.size:
             with self.assertRaises(RuntimeError):
                 pynn.run(0)
                 pynn.end()
