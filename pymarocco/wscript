@@ -80,7 +80,8 @@ def build(bld):
         features ='py use',
         source=bld.path.ant_glob('pymarocco/**/*.py'),
         use='pymarocco',
-        relative_trick=True)
+        relative_trick=True,
+        install_path='lib')
 
     bld(target='marocco_runtime_inc',
         export_includes='..')
