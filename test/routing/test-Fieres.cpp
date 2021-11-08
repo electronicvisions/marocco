@@ -90,7 +90,7 @@ TEST_P(AssignmentTest, DoesNotAssignDefectDrivers) {
 	EXPECT_FALSE(assignment.add(route));
 	size_t count = 0;
 	for (auto const side_vertical : iter_all<SideVertical>()) {
-		for (auto const interval_ptr : raw(side_vertical)) {
+		for (auto const& interval_ptr : raw(side_vertical)) {
 			if (interval_ptr) {
 				EXPECT_EQ(InboundRoute::DEFECT, interval_ptr->route.drivers);
 				++count;
