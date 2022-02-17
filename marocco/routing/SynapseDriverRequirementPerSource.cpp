@@ -45,7 +45,7 @@ bool SynapseDriverRequirementPerSource::drivers_possible(
 	}
 
 	size_t max_chain_global = 0;
-	for(auto const target_with_edges : m_cached_targets.at(merger) ){
+	for (auto const& target_with_edges : m_cached_targets.at(merger)) {
 		size_t max_chain_local = mgr.getMaxChainLength(target_with_edges.first);
 		if(max_chain_local < max_chain_global || max_chain_global == 0){
 			max_chain_global = max_chain_local;
@@ -66,7 +66,7 @@ bool SynapseDriverRequirementPerSource::more_drivers_possible(
 	}
 
 	size_t max_chain_global = 0;
-	for(auto const target_with_edges : m_cached_targets.at(merger) ){
+	for (auto const& target_with_edges : m_cached_targets.at(merger)) {
 		size_t max_chain_local = mgr.getMaxChainLength(target_with_edges.first);
 		if(max_chain_local < max_chain_global || max_chain_global == 0){
 			max_chain_global = max_chain_local;

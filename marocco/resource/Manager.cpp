@@ -376,7 +376,7 @@ size_t Manager<T>::getMaxL1Crossbars(marocco::routing::L1BusOnWafer const& bus) 
 	size_t max_switches = 0;
 	// load data from "cache" if present. load from calib if needed.
 	// TODO deduce correct wafer from somewhere
-	for (auto const wafer : mWafers) {
+	for (auto const& wafer : mWafers) {
 		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
 		// load calib data for this bus_g
 		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
@@ -424,7 +424,7 @@ size_t Manager<T>::getMaxChainLength(marocco::routing::L1BusOnWafer const& bus) 
 {
 	size_t max_chainLength = 0;
 
-	for (auto const wafer : mWafers) {
+	for (auto const& wafer : mWafers) {
 		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
 
 		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
@@ -445,7 +445,7 @@ size_t Manager<T>::getMaxSynapseSwitches(marocco::routing::L1BusOnWafer const& b
 {
 	size_t max_synapseSwitches = 0;
 
-	for (auto const wafer : mWafers) {
+	for (auto const& wafer : mWafers) {
 		marocco::routing::L1BusGlobal bus_g{bus, wafer.first};
 
 		auto const hicann_on_wafer = bus_g.toL1BusOnWafer().toHICANNOnWafer();
