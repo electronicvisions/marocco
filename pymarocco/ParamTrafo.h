@@ -26,6 +26,21 @@ public:
 	/// default: 1.2.
 	double shift_v;
 
+	/// sets shift and scaling factor so that the largest (smallest) used bio voltage
+        /// max_experiment_voltage (min_experiment_voltage) is represented by the maximum (minimum)
+        /// hardware voltage max_hw_voltage (min_hw_voltage).
+        /// Maximum and minimum is normally given by the reversal potentials.
+        /// Values should be chosen which allow the membrane to operate in region b/w 0.3 V and 1 V.
+        /// Caveat: calibration shows a saturation above 1.4 V for the exc reversal potential
+	void set_trafo_with_bio_to_hw_ratio(
+	    double const max_experiment_voltage,
+	    double const min_experiment_voltage,
+	    double const max_hw_voltage = 1.4,
+	    double const min_hw_voltage = 0.3);
+
+	/// Helper to check transformation
+	double calculate_hw_value(double const bio_value);
+
 private:
 
 	friend class boost::serialization::access;
