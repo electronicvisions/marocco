@@ -45,6 +45,8 @@ HMF::NeuronCalibrationParameters calibration_parameters_for_neuron(
 	HMF::NeuronCalibrationParameters params;
 
 	params.bigcap = chip.neurons.config.bigcap[neuron_hw_id.y()];
+	params.I_gl_slow = chip.neurons.config.slow_I_gl[neuron_hw_id.y()];
+	params.I_gl_fast = chip.neurons.config.fast_I_gl[neuron_hw_id.y()];
 	params.hw_neuron_size = 1; // always use neuron size = 1, cf. #1559
 
 	params.shiftV = shiftV;

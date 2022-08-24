@@ -1,6 +1,7 @@
 #pragma once
 
 #include <boost/serialization/nvp.hpp>
+#include "sthal/SpeedUp.h"
 
 namespace pymarocco {
 
@@ -17,6 +18,10 @@ public:
 	/// @note: in the future, the choice of the capacitor should be done by the parameter transformation algorithm,
 	///        so that the parameters are optimally mapped to the hardware, depending on the available calibrations
 	bool use_big_capacitors;
+
+	/// Choose whether the SLOW, NORMAL or FAST i_gl setting should be used.
+	/// default: NORMAL
+	sthal::SpeedUp i_gl_speedup;
 
 	/// voltage scaling factor for potentials.
 	/// default: 10.

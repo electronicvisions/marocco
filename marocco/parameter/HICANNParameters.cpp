@@ -157,6 +157,7 @@ void HICANNParameters::neuron_config(neuron_calib_type const& /*unused*/)
 {
 
 	m_chip.use_big_capacitors(m_pymarocco.param_trafo.use_big_capacitors);
+	m_chip.set_speed_up_gl(m_pymarocco.param_trafo.i_gl_speedup);
 
 	// use defaults so far
 	//auto& config = m_chip.neurons.config;

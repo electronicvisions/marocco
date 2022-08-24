@@ -4,6 +4,7 @@ namespace pymarocco {
 
 ParamTrafo::ParamTrafo():
 	use_big_capacitors(true),
+	i_gl_speedup(sthal::SpeedUp::NORMAL),
 	alpha_v(10.),
 	shift_v(1.2)
 	{}
