@@ -45,7 +45,9 @@ class TestSynapseLoss(unittest.TestCase):
         pynn.setup(marocco=self.marocco)
 
         synapses = 0
-        numberOfPopulations = random.randint(100, 150)
+        # Random values lead to stochasticity in ci
+        # numberOfPopulations = random.randint(100, 150)
+        numberOfPopulations = 119
         logging.debug("number of populations: %d" % (numberOfPopulations))
         #print "numPops: %d" % (numberOfPopulations)
 
