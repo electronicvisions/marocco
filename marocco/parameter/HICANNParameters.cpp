@@ -89,6 +89,20 @@ void HICANNParameters::run()
 				}
 			}
 		}
+	} else {
+		// set all DNC mergers to external input to avoid unwanted transmission of
+		// events from neuron blocks.
+		// Gbit_links should be off by default. To be sure we check again.
+		for (auto const& gbit_link : iter_all<GbitLinkOnHICANN>()) {
+			assert(m_chip.layer1[gbit_link] == HMF::HICANN::GbitLink::Direction::OFF);
+		}
+		for (auto const& dnc_merger : iter_all<DNCMergerOnHICANN>()) {
+			MAROCCO_TRACE(
+			    "Set DNCMerger " << dnc_merger << " of transit only HICANN "
+			                     << hicann.toHICANNOnWafer() << " to LEFT_ONLY");
+			m_chip.layer1[dnc_merger] = HMF::HICANN::DNCMerger::LEFT_ONLY;
+			m_chip.layer1[dnc_merger].slow = false;
+		}
 	}
 
 	// load calibration data from DB
