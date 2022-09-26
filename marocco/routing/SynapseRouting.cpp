@@ -159,15 +159,30 @@ void SynapseRouting::run()
 		}
 
 		// prepare defect list first.
-		std::vector<SynapseDriverOnHICANN> defect_list;
+		// Use std set first to prevent duplicates
+		std::set<SynapseDriverOnHICANN> defect_set;
 		auto const& defects = m_resource_manager.get(m_hicann);
 		auto const& drvs = defects->drivers();
 		MAROCCO_INFO("Collecting defect synapse drivers");
 		for (auto const& drv : drvs->disabled())
 		{
-			defect_list.push_back(drv);
+			defect_set.insert(drv);
 			MAROCCO_TRACE("Marked " << drv << " on " << m_hicann << " as defect/disabled");
 		}
+		// Also disable drivers of defect synapse arrays
+		// Disabling synapses instead would lead to L1 loss
+		auto const& arrays = defects->synapsearrays();
+		MAROCCO_INFO("Collecting defect synapse arrays and disable related synapse drivers");
+		for (auto const& array : arrays->disabled()) {
+			for (auto const& drv : iter_all<SynapseDriverOnHICANN>()) {
+				if (drv.toSynapseArrayOnHICANN() == array) {
+					defect_set.insert(drv);
+					MAROCCO_TRACE("Marked " << drv << " on " << m_hicann << " as defect/disabled");
+				}
+			}
+		}
+
+		std::vector<SynapseDriverOnHICANN> defect_list(defect_set.begin(), defect_set.end());
 
 		size_t const n_marked_syndrvs = boost::size(drvs->disabled());
 		if (n_marked_syndrvs != 0) {
