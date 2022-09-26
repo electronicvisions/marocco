@@ -467,6 +467,20 @@ void SynapseRouting::tagDefectSynapses()
 		proxy.weight = SynapseWeight(1);
 		MAROCCO_DEBUG("Marked " << syn << " on " << m_hicann << " as defect/disabled");
 	}
+	// Consider using a database with blocklisted drivers in addition to their
+	// connected individual blocklisted synapse rows
+	// Removal of synapses through single blocklisted synapse rows is used
+	// here to keep one of the two driver's rows available
+	auto const& srows = defects->synapserows();
+	for (auto const& srow : srows->disabled()) {
+		for (auto const& scol : iter_all<SynapseColumnOnHICANN>()) {
+			SynapseOnHICANN const syn(srow, scol);
+			auto proxy = chip.synapses[syn];
+			proxy.weight = SynapseWeight(1);
+			MAROCCO_DEBUG("Marked " << syn << " on " << m_hicann << " as defect/disabled");
+		}
+	}
+	// For defect synapse arrays the synapse drivers are disabled
 }
 
 void SynapseRouting::disableDefectSynapes()
