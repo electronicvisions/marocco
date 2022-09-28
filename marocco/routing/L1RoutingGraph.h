@@ -72,6 +72,9 @@ public:
 	void remove(
 		halco::hicann::v2::HICANNOnWafer const& hicann,
 		halco::hicann::v2::VRepeaterOnHICANN const& vrep);
+	void remove(
+	    halco::hicann::v2::HICANNOnWafer const& hicann,
+	    halco::hicann::v2::CrossbarSwitchOnHICANN const& cs);
 
 	/**
 	 * @throw ResourceNotPresentError when HICANN has not been added yet.

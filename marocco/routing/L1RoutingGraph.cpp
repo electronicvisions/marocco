@@ -221,5 +221,16 @@ void L1RoutingGraph::remove(
 	remove_edge(vertex, other_vertex, m_graph);
 }
 
+void L1RoutingGraph::remove(
+    halco::hicann::v2::HICANNOnWafer const& hicann,
+    halco::hicann::v2::CrossbarSwitchOnHICANN const& cs)
+{
+	halco::hicann::v2::VLineOnHICANN vline(cs.x());
+	halco::hicann::v2::HLineOnHICANN hline(cs.y());
+	auto vertex = operator[](hicann)[vline];
+	auto other_vertex = operator[](hicann)[hline];
+	remove_edge(vertex, other_vertex, m_graph);
+}
+
 } // namespace routing
 } // namespace marocco

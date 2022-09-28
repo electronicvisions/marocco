@@ -101,6 +101,19 @@ void Routing::run(results::L1Routing& l1_routing_result, results::SynapseRouting
 				                        << hicann << " as defect/disabled");
 			}
 
+			// crossbar switches
+			auto const cswitches = defects->crossbarswitches();
+			for (auto const& cs : cswitches->disabled()) {
+				l1_graph.remove(hicann, cs);
+				MAROCCO_TRACE("Marked " << cs << " on " << hicann << " as defect/disabled");
+			}
+
+			size_t const n_marked_cswitches = boost::size(cswitches->disabled());
+			if (n_marked_cswitches != 0) {
+				MAROCCO_DEBUG(
+				    "Marked " << n_marked_cswitches << " Crossbar Switch(es) on " << hicann
+				              << " as defect/disabled");
+			}
 		}
 
 		auto startL1Routing = std::chrono::system_clock::now();
