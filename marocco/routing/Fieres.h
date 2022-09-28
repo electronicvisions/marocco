@@ -51,7 +51,14 @@ public:
 	                           std::vector<results::ConnectedSynapseDrivers> >
 		result_type;
 
-	Assignment(halco::common::SideHorizontal const& side) : mSide(side) {}
+	Assignment(halco::common::SideHorizontal const& side) : mSide(side), m_defect_synapse_switches{}
+	{}
+
+	Assignment(
+	    halco::common::SideHorizontal const& side,
+	    std::set<halco::hicann::v2::SynapseSwitchOnHICANN> const& defect_synapse_switches) :
+	    mSide(side), m_defect_synapse_switches(defect_synapse_switches)
+	{}
 
 	/// Disable a synapse driver for further use.
 	/// Note that you HAVE to mark defects before doing anything else.
@@ -107,6 +114,7 @@ protected:
 
 	halco::common::typed_array<array_type, halco::common::SideVertical> mData;
 	halco::common::SideHorizontal mSide;
+	std::set<halco::hicann::v2::SynapseSwitchOnHICANN> const m_defect_synapse_switches;
 };
 
 } // namespace fieres
@@ -133,6 +141,13 @@ public:
 	    halco::common::Side const& side,
 	    size_t max_chain_length,
 	    std::vector<halco::hicann::v2::SynapseDriverOnHICANN> const& defect);
+
+	Fieres(
+	    IntervalList const& list,
+	    halco::common::Side const& side,
+	    size_t max_chain_length,
+	    std::vector<halco::hicann::v2::SynapseDriverOnHICANN> const& defect,
+	    std::set<halco::hicann::v2::SynapseSwitchOnHICANN> const& defect_synapse_switches);
 
 	Result result() const;
 	Rejected rejected() const;

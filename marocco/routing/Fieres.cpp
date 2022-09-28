@@ -97,6 +97,7 @@ bool Assignment::add(InboundRoute const& route) {
 	// at the desired number of synapse drivers.
 
 	auto const& drivers = route.line.toSynapseDriverOnHICANN(mSide);
+	auto const& vline = route.line;
 	size_t const length = route.assigned;
 	std::vector<Option> options;
 
@@ -108,6 +109,13 @@ bool Assignment::add(InboundRoute const& route) {
 
 		if (*it) {
 			// This synapse driver is already taken.
+			continue;
+		}
+
+		halco::hicann::v2::SynapseSwitchOnHICANN current_syn_switch(
+		    halco::common::X(vline), syndrv.y());
+		if (m_defect_synapse_switches.contains(current_syn_switch)) {
+			// Required switch to reach current driver is blacklisted.
 			continue;
 		}
 
@@ -230,19 +238,34 @@ void Fieres::defrag(
 	} // for all assignments
 }
 
-Fieres::Fieres(IntervalList const& _list,
-			   halco::common::Side const& side,
-			   size_t max_chain_length) :
-	// call delegate constructor with no defects
-	Fieres(_list, side, max_chain_length, std::vector<SynapseDriverOnHICANN>{})
+Fieres::Fieres(
+    IntervalList const& _list, halco::common::Side const& side, size_t max_chain_length) :
+    // call delegate constructor with no defects
+    Fieres(
+        _list,
+        side,
+        max_chain_length,
+        std::vector<SynapseDriverOnHICANN>{},
+        std::set<SynapseSwitchOnHICANN>{})
 {}
 
 
-Fieres::Fieres(IntervalList const& _list_unsorted,
-               halco::common::Side const& side,
-               size_t const max_chain_length,
-               std::vector<SynapseDriverOnHICANN> const& defects)
-	: mSide(side)
+Fieres::Fieres(
+    IntervalList const& _list_unsorted,
+    halco::common::Side const& side,
+    size_t const max_chain_length,
+    std::vector<SynapseDriverOnHICANN> const& defects) :
+    // call delegate constructor with no defect SynapseSwitches
+    Fieres(_list_unsorted, side, max_chain_length, defects, std::set<SynapseSwitchOnHICANN>{})
+{}
+
+Fieres::Fieres(
+    IntervalList const& _list_unsorted,
+    halco::common::Side const& side,
+    size_t const max_chain_length,
+    std::vector<SynapseDriverOnHICANN> const& defects,
+    std::set<SynapseSwitchOnHICANN> const& defect_synapse_switches) :
+    mSide(side)
 {
 	IntervalList _list = _list_unsorted;
 	// Sort by VLine to have a deterministic result
@@ -411,7 +434,7 @@ Fieres::Fieres(IntervalList const& _list_unsorted,
 
 
 	// do the defragmentation
-	fieres::Assignment assignment(mSide);
+	fieres::Assignment assignment(mSide, defect_synapse_switches);
 	for (auto const& entry : defects)
 	{
 		if (entry.toSideHorizontal()==mSide) {
