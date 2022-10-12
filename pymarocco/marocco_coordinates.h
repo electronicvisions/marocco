@@ -6,3 +6,4 @@
 #include "marocco/coordinates/L1RouteTree.h"
 #include "marocco/coordinates/LogicalNeuron.h"
 #include "marocco/coordinates/LogicalProjectionElement.h"
+#include "marocco/coordinates/SynapseType.h"
