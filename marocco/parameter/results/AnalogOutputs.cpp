@@ -20,11 +20,14 @@ AnalogOutputs::item_type::item_type()
 }
 
 AnalogOutputs::item_type::item_type(
-	LogicalNeuron const& logical_neuron, analog_output_type const& analog_output)
-	: m_logical_neuron(logical_neuron),
-	  m_analog_output(analog_output),
-	  m_hicann(logical_neuron.front().toHICANNOnWafer()),
-	  m_reticle(m_hicann.toDNCOnWafer())
+    LogicalNeuron const& logical_neuron,
+    analog_output_type const& analog_output,
+    denmem_type const& recorded_denmem) :
+    m_logical_neuron(logical_neuron),
+    m_analog_output(analog_output),
+    m_hicann(logical_neuron.front().toHICANNOnWafer()),
+    m_reticle(m_hicann.toDNCOnWafer()),
+    m_recorded_denmem(recorded_denmem)
 {
 }
 
@@ -48,6 +51,11 @@ auto AnalogOutputs::item_type::reticle() const -> reticle_type const&
 	return m_reticle;
 }
 
+auto AnalogOutputs::item_type::recorded_denmem() const -> denmem_type const&
+{
+	return m_recorded_denmem;
+}
+
 auto AnalogOutputs::record(LogicalNeuron const& logical_neuron) -> item_type const&
 {
 	if (logical_neuron.is_external()) {
@@ -56,7 +64,7 @@ auto AnalogOutputs::record(LogicalNeuron const& logical_neuron) -> item_type con
 
 	auto const reticle = logical_neuron.front().toHICANNOnWafer().toDNCOnWafer();
 
-	// Find first free analog output.
+	// Find first free analog output and choose correct denmem
 	for (auto const aout : iter_all<AnalogOnHICANN>()) {
 		bool adc_free = true;
 		auto const adc_group = reticle.toADCGroupOnWafer();
@@ -80,9 +88,30 @@ auto AnalogOutputs::record(LogicalNeuron const& logical_neuron) -> item_type con
 			}
 		}
 		if (adc_free) {
-			auto res = m_container.insert(item_type(logical_neuron, aout));
-			assert(res.second);
-			return *res.first;
+			// Iterate over all denmems of a logical neuron and check if it is connected to a
+			// different multiplexer line compared to the other recorded denmems.
+			auto const hicann = logical_neuron.front().toHICANNOnWafer();
+			for (auto const& recorded_denmem : logical_neuron) {
+				auto multiplexer_line = recorded_denmem.toNeuronOnQuad();
+				bool success = true;
+				for (auto const& item : m_container) {
+					auto const& other_recorded_denmem = item.recorded_denmem();
+					auto const other_multiplexer_line = other_recorded_denmem.toNeuronOnQuad();
+					auto const& other_hicann = item.hicann();
+					if (hicann == other_hicann && multiplexer_line == other_multiplexer_line) {
+						// Line already in use
+						success = false;
+						break;
+					}
+				}
+				if (success) {
+					auto res = m_container.insert(item_type(logical_neuron, aout, recorded_denmem));
+					assert(res.second);
+					return *res.first;
+				}
+			}
+			// No free mulitplexer line found
+			throw std::runtime_error("no free multiplexer line on HICANN");
 		}
 	}
 
@@ -129,7 +158,7 @@ auto AnalogOutputs::end() const -> iterator {
 }
 
 template <typename Archiver>
-void AnalogOutputs::item_type::serialize(Archiver& ar, const unsigned int /* version */)
+void AnalogOutputs::item_type::serialize(Archiver& ar, const unsigned int version)
 {
 	using namespace boost::serialization;
 	// clang-format off
@@ -137,6 +166,9 @@ void AnalogOutputs::item_type::serialize(Archiver& ar, const unsigned int /* ver
 	   & make_nvp("analog_output", m_analog_output)
 	   & make_nvp("hicann", m_hicann)
 	   & make_nvp("reticle", m_reticle);
+	if (version > 0) {
+		ar & make_nvp("recorded_denmem", m_recorded_denmem);
+	}
 	// clang-format on
 }
 
@@ -155,6 +187,7 @@ void AnalogOutputs::serialize(Archiver& ar, const unsigned int /* version */)
 
 BOOST_CLASS_EXPORT_IMPLEMENT(::marocco::parameter::results::AnalogOutputs)
 BOOST_CLASS_EXPORT_IMPLEMENT(::marocco::parameter::results::AnalogOutputs::item_type)
+BOOST_CLASS_VERSION(::marocco::parameter::results::AnalogOutputs::item_type, 1)
 
 #include "boost/serialization/serialization_helper.tcc"
 EXPLICIT_INSTANTIATE_BOOST_SERIALIZE(::marocco::parameter::results::AnalogOutputs)

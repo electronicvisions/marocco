@@ -54,7 +54,7 @@ namespace results {
  * record its membrane as that would e.g. lead to two denmems assigned to the same line
  * given two adjacent logical neurons of size 4.
  * To this effect we store the assignment of logical neurons to analog outputs here and
- * pick a sensible set of denmems during configuration.
+ * also store a sensible set of denmems.
  */
 class AnalogOutputs
 {
@@ -62,15 +62,20 @@ public:
 	typedef halco::hicann::v2::AnalogOnHICANN analog_output_type;
 	typedef halco::hicann::v2::DNCOnWafer reticle_type;
 	typedef halco::hicann::v2::HICANNOnWafer hicann_type;
+	typedef halco::hicann::v2::NeuronOnHICANN denmem_type;
 
-    class item_type {
+	class item_type {
     public:
-		item_type(LogicalNeuron const& logical_neuron, analog_output_type const& analog_output);
+		item_type(
+		    LogicalNeuron const& logical_neuron,
+		    analog_output_type const& analog_output,
+		    denmem_type const& recorded_denmem);
 
 		LogicalNeuron const& logical_neuron() const;
 		analog_output_type const& analog_output() const;
+		denmem_type const& recorded_denmem() const;
 
-	    hicann_type const& hicann() const;
+		hicann_type const& hicann() const;
 		reticle_type const& reticle() const;
 
 	private:
@@ -78,6 +83,7 @@ public:
 		analog_output_type m_analog_output;
 		hicann_type m_hicann;
 		reticle_type m_reticle;
+		denmem_type m_recorded_denmem;
 
 		friend class boost::serialization::access;
 		item_type();
