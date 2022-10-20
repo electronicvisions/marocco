@@ -5,6 +5,9 @@
 #include <memory>
 #include <boost/filesystem.hpp>
 
+#include "calibtic/HMF/HICANNCollection.h"
+#include "calibtic/HMF/NeuronCalibration.h"
+
 #include "halco/hicann/v2/hicann.h"
 #include "halco/hicann/v2/external.h"
 #include "halco/common/iter_all.h"
@@ -28,18 +31,20 @@ namespace experiment {
 using namespace euter;
 
 Experiment::Experiment(
-	sthal::Wafer& hardware,
-	results::Marocco const& results,
-	BioGraph const& bio_graph,
-	parameters::Experiment const& parameters,
-	pymarocco::PyMarocco const& pymarocco,
-	sthal::ExperimentRunner& experiment_runner)
-	: m_hardware(hardware),
-	  m_results(results),
-	  m_bio_graph(bio_graph),
-	  m_parameters(parameters),
-	  m_pymarocco(pymarocco),
-	  m_experiment_runner(experiment_runner)
+    sthal::Wafer& hardware,
+    results::Marocco const& results,
+    BioGraph const& bio_graph,
+    parameters::Experiment const& parameters,
+    pymarocco::PyMarocco const& pymarocco,
+    sthal::ExperimentRunner& experiment_runner,
+    resource_manager_t const& mgr) :
+    m_hardware(hardware),
+    m_results(results),
+    m_bio_graph(bio_graph),
+    m_parameters(parameters),
+    m_pymarocco(pymarocco),
+    m_experiment_runner(experiment_runner),
+    m_mgr(mgr)
 {
 	m_hardware.commonFPGASettings()->setPLL(m_pymarocco.pll_freq);
 }
@@ -151,6 +156,29 @@ bool Experiment::extract_membrane(PopulationPtr population, placement_item_type 
 		return false;
 	}
 
+	// Get denmem connected to adc
+	boost::optional<NeuronOnHICANN> recorded_denmem(boost::none);
+	for (auto const& item : m_results.analog_outputs) {
+		if (item.logical_neuron() == logical_neuron) {
+			recorded_denmem = item.recorded_denmem();
+			break;
+		}
+	}
+	// readout offset in V
+	double readout_offset = 0;
+
+	if (recorded_denmem) {
+		// Get calibration
+		HICANNGlobal const hicann(logical_neuron.front().toHICANNOnWafer(), m_hardware.index());
+		auto const& calib = m_mgr.loadCalib(hicann);
+		// Get readout offset from calibration
+		auto const& neuron_calib = boost::dynamic_pointer_cast<HMF::NeuronCalibration>(
+		    calib->atNeuronCollection()->at(recorded_denmem->toEnum().value()));
+		readout_offset =
+		    neuron_calib->at(HMF::NeuronCalibration::Calibrations::ReadoutShift)->apply(0);
+		MAROCCO_DEBUG("readout offset for " << *recorded_denmem << " :" << readout_offset << " V");
+	}
+
 	auto const voltages = recorder.trace();
 	auto const times = recorder.getTimestamps();
 
@@ -176,13 +204,14 @@ bool Experiment::extract_membrane(PopulationPtr population, placement_item_type 
 			if (time < 0 || time > exp_duration_in_ms) {
 				continue;
 			}
-			trace.push_back(std::make_pair(time, (*v_it - shift_v) * V_to_mV / alpha_v));
+			trace.push_back(
+			    std::make_pair(time, (*v_it - shift_v - readout_offset) * V_to_mV / alpha_v));
 		}
 	} else {
 		for (; v_it != v_eit && t_it != t_eit; ++v_it, ++t_it) {
-			trace.push_back(
-				std::make_pair(
-					(*t_it - offset_in_s) * speedup * s_to_ms, (*v_it - shift_v) * V_to_mV / alpha_v));
+			trace.push_back(std::make_pair(
+			    (*t_it - offset_in_s) * speedup * s_to_ms,
+			    (*v_it - shift_v - readout_offset) * V_to_mV / alpha_v));
 		}
 	}
 

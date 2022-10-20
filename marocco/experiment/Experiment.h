@@ -22,12 +22,13 @@ public:
 	typedef placement::results::Placement::item_type placement_item_type;
 
 	Experiment(
-		sthal::Wafer& hardware,
-		results::Marocco const& results,
+	    sthal::Wafer& hardware,
+	    results::Marocco const& results,
 	    BioGraph const& bio_graph,
-		parameters::Experiment const& parameters,
-		pymarocco::PyMarocco const& pymarocco,
-		sthal::ExperimentRunner& experiment_runner);
+	    parameters::Experiment const& parameters,
+	    pymarocco::PyMarocco const& pymarocco,
+	    sthal::ExperimentRunner& experiment_runner,
+	    resource_manager_t const& mgr);
 
 	void run();
 
@@ -50,6 +51,7 @@ private:
 
 	sthal::ExperimentRunner& m_experiment_runner;
 	std::unordered_map<LogicalNeuron, sthal::AnalogRecorder> m_analog_recorders;
+	resource_manager_t const& m_mgr;
 };
 
 } // namespace experiment

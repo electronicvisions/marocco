@@ -317,7 +317,7 @@ void run(ObjectStore& store) {
 	}
 
 	experiment::Experiment experiment(
-		*hardware, *results, mapper.bio_graph(), exp_params, *mi, *runner);
+	    *hardware, *results, mapper.bio_graph(), exp_params, *mi, *runner, resources);
 
 	hardware->connect(*hwdb);
 	boost::shared_ptr<sthal::HICANNConfigurator> configurator = mi->hicann_configurator;
