@@ -360,7 +360,8 @@ boost::shared_ptr<HMF::HICANNCollection> Manager<T>::loadCalib(halco::hicann::v2
 					throw std::runtime_error("unknown calibration backend type");
 			}
 			CalibParameters calib_parameters(hicann_global, *m_pymarocco, calib_backend);
-			auto calib = calib_parameters.getCalibrationData(/*fallback to default*/ true);
+			// There must be a calibration file if HICANN is used (Could also be a default calib)
+			auto calib = calib_parameters.getCalibrationData(/*fallback to default*/ false);
 			mCalibs[hicann_global] = calib;
 		} else {
 			MAROCCO_WARN("failed to load Calib data for: " << hicann_global);

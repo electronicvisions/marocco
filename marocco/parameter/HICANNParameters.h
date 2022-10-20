@@ -46,7 +46,7 @@ public:
 		placement::MergerRoutingResult const& merger_routing,
 		routing::results::SynapseRouting const& synapse_routing,
 		parameter::results::Parameter& parameter,
-		boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
+		boost::shared_ptr<HMF::HICANNCollection> const& calib_backend,
 		double duration);
 
 	void run();
@@ -86,7 +86,7 @@ private:
 	marocco::placement::MergerRoutingResult const& m_merger_routing;
 	routing::results::SynapseRouting const& m_synapse_routing;
 	parameter::results::Parameter& m_parameter;
-	boost::shared_ptr<calibtic::backend::Backend> m_calib_backend;
+	boost::shared_ptr<HMF::HICANNCollection> m_calib;
 	double m_duration;
 
 	halco::common::typed_array<std::vector<sthal::Spike>, halco::hicann::v2::DNCMergerOnHICANN> m_spikes;

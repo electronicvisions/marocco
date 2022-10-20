@@ -26,6 +26,7 @@ def default_marocco():
     marocco.neuron_placement.default_neuron_size(4)
     marocco.synapse_routing.driver_chain_length(C.SynapseDriverOnQuadrant.size)
     marocco.experiment.speedup(10000.)
+    marocco.calib_backend = pymarocco.PyMarocco.CalibBackend.Default
     marocco.defects.backend = pymarocco.Defects.Backend.Without
 
     return marocco

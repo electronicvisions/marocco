@@ -27,7 +27,7 @@ HICANNParameters::HICANNParameters(
     placement::MergerRoutingResult const& merger_routing,
     routing::results::SynapseRouting const& synapse_routing,
     parameter::results::Parameter& parameter,
-    boost::shared_ptr<calibtic::backend::Backend> const& calib_backend,
+    boost::shared_ptr<HMF::HICANNCollection> const& calib,
     double duration)
     : m_bio_graph(bio_graph),
       m_chip(chip),
@@ -36,7 +36,7 @@ HICANNParameters::HICANNParameters(
       m_merger_routing(merger_routing),
       m_synapse_routing(synapse_routing),
       m_parameter(parameter),
-      m_calib_backend(calib_backend),
+      m_calib(calib),
       m_duration(duration)
 {
 }
@@ -108,11 +108,6 @@ void HICANNParameters::run()
 		}
 	}
 
-	// load calibration data from DB
-	// const auto calib = getCalibrationData();
-	// FIXME: get const calibration not possible, because we need to set speedup. see #1542
-	auto calib = getCalibrationData(/*fallback_to_defaults=*/external_input_or_transit_only);
-
 	// v reset for all FG blocks in bio mV
 	double v_reset = 0;
 
@@ -120,7 +115,7 @@ void HICANNParameters::run()
 	{
 		//const auto& neuron_calib = calib->atNeuronCollection();
 		// FIXME: get const calibration not possible, because we need to set speedup. see #1542
-		auto neuron_calib = calib->atNeuronCollection();
+		auto neuron_calib = m_calib->atNeuronCollection();
 		neuron_calib->setSpeedup(m_pymarocco.experiment.speedup());
 
 		{
@@ -129,7 +124,7 @@ void HICANNParameters::run()
 
 			if (local_synapses) {
 				// transform synapses
-				auto synapse_row_calib = calib->atSynapseRowCollection();
+				auto synapse_row_calib = m_calib->atSynapseRowCollection();
 
 				// set default synapse calibration if not existing
 				if (synapse_row_calib->size() == 0) {
@@ -145,7 +140,7 @@ void HICANNParameters::run()
 	}
 
 	{
-		auto shared_calib = calib->atBlockCollection();
+		auto shared_calib = m_calib->atBlockCollection();
 
 		// If there is no shared calibration for transit HICANNs we can fallback to default.
 		if (external_input_or_transit_only && shared_calib->size() == 0) {
@@ -433,46 +428,6 @@ halco::common::typed_array<double, NeuronOnHICANN> HICANNParameters::weight_scal
 		}
 	}
 	return rv;
-}
-
-boost::shared_ptr<HICANNParameters::calib_type>
-HICANNParameters::getCalibrationData(bool fallback_to_defaults)
-{
-	using pymarocco::PyMarocco;
-
-	auto calib = boost::make_shared<calib_type>();
-	if (!m_calib_backend) {
-		calib->setDefaults();
-	} else {
-		calibtic::MetaData md;
-
-		const size_t hicann_id = m_chip.index().toHICANNOnWafer().toEnum().value();
-		std::stringstream calib_file;
-		calib_file << "w" << size_t(m_chip.index().toWafer()) << "-h";
-		calib_file << hicann_id;
-		const std::string calib_file_string = calib_file.str();
-
-		MAROCCO_TRACE("loading calibration for " << calib_file_string << " from "
-		                                         << m_pymarocco.calib_path);
-		try {
-			m_calib_backend->load(calib_file_string, md, *calib);
-		} catch (std::runtime_error const& err) {
-			if (!fallback_to_defaults) {
-				throw;
-			}
-			MAROCCO_WARN(err.what());
-			MAROCCO_WARN("Will use default calibtration");
-			calib->setDefaults();
-		}
-	}
-
-	if(calib->getPLLFrequency() != m_pymarocco.pll_freq) {
-		MAROCCO_WARN("PLL stored in HICANNCollection "
-		             << int(calib->getPLLFrequency()/1e6) << " MHz != "
-		             << int(m_pymarocco.pll_freq/1e6) << " MHz set here.");
-	}
-
-	return calib;
 }
 
 } // namespace parameter

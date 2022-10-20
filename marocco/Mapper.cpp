@@ -230,28 +230,13 @@ void Mapper::run(ObjectStore const& pynn)
 
 	// 3.  P A R A M E T E R   T R A N S L A T I O N
 	auto startParameterTranslation = std::chrono::system_clock::now();
-	boost::shared_ptr<calibtic::backend::Backend> calib_backend;
-	switch (mPyMarocco->calib_backend) {
-		case pymarocco::PyMarocco::CalibBackend::XML:
-			calib_backend =
-			    resource::BackendLoaderCalib::load_calibtic_backend<calibtic::backend::XMLBackend>(
-			        mPyMarocco->calib_path);
-			break;
-		case pymarocco::PyMarocco::CalibBackend::Binary:
-			calib_backend = resource::BackendLoaderCalib::load_calibtic_backend<
-			    calibtic::backend::BinaryBackend>(mPyMarocco->calib_path);
-			break;
-		case pymarocco::PyMarocco::CalibBackend::Default:
-			break;
-		default:
-			throw std::runtime_error("unknown calibration backend type");
-	}
-
 	for (auto const& hicann : mMgr.allocated()) {
 		auto& chip = mHW[hicann];
+		// Speedup of calib is adjusted in parameter transformation see #1542
+		auto const& calib = mMgr.loadCalib(hicann);
 		parameter::HICANNParameters hicann_parameters(
 		    mBioGraph, chip, *mPyMarocco, m_results->placement, placement->merger_routing,
-		    m_results->synapse_routing, m_results->parameter, calib_backend, pynn.getDuration());
+		    m_results->synapse_routing, m_results->parameter, calib, pynn.getDuration());
 		hicann_parameters.run();
 	}
 
