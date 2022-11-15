@@ -383,7 +383,7 @@ void NeuronPlacement::run()
 
 	m_placer = m_parameters.default_placement_strategy();
 	if (m_placer == nullptr) {
-		MAROCCO_FATAL("no placement strategy defined")
+		MAROCCO_FATAL("no placement strategy defined");
 		throw std::runtime_error("Specify a placement strategy");
 	}
 

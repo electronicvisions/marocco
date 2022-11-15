@@ -436,7 +436,7 @@ void InputPlacement::insertInput(
 			if (population_slice.size() == 1 && pool.size() == pool.capacity() - 1) {
 				MAROCCO_WARN("An external spike source needs more drivers than allowed, but it is "
 				             "of size 1, it cant be split. " << population_slice << " is placed on "
-							 << dnc_on_wafer << " requiring " << new_drv_per_source.drivers(dnc_on_wafer))
+							 << dnc_on_wafer << " requiring " << new_drv_per_source.drivers(dnc_on_wafer));
 				continue;
 			}
 

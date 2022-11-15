@@ -175,7 +175,7 @@ bool ReadRepeaterTestdata::recheck(sthal::Wafer& hardware,
 		hardware.configure(m_configurator);
 		MAROCCO_DEBUG(m_configurator);
 
-		MAROCCO_INFO("Rechecking locking " << i + 1 << " of " << n_rechecks)
+		MAROCCO_INFO("Rechecking locking " << i + 1 << " of " << n_rechecks);
 		auto const bad_good_hr =
 		    m_configurator.analyze_hrepeater({::HMF::HICANN::L1Address(0)}, {bkg_gen_isi.value()});
 		auto const bad_good_vr =
