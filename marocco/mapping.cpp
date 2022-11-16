@@ -6,6 +6,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/make_shared.hpp>
 
+#include "halco/common/iter_all.h"
 #include "redman/resources/Wafer.h"
 #include "sthal/ESSHardwareDatabase.h"
 #include "sthal/ESSRunner.h"
@@ -38,6 +39,118 @@ class Without;
 
 
 namespace {
+
+// Helper to extract crossbar switches from routing results
+// Used by the verify configurator to limit checks to used switches
+void extract_switches_from_l1_routing(
+    std::set<CrossbarSwitchOnWafer>& crossbar_switch_set,
+    std::set<SynapseSwitchOnWafer>& synapse_switch_set,
+    marocco::results::Marocco const& results)
+{
+	for (auto const& route : results.l1_routing) {
+		// Store current hicann
+		// Optional to track if there was already a value
+		// In the routing there must be a HICANN entry before there is a H/VLine
+		// To prevent -Wmaybe-uninitialized warning use std optional instead of boost
+		std::optional<HICANNOnWafer> hicann;
+		// Add all CrossbarSwitches of used H/VLines. Wrongly set switches could send data to
+		// H/Vlines even if they should not be connected.
+		// In principle it would be enough to check switches connected to
+		// one linetype only since if there would be a wrong connection to a different line the
+		// switch is already added by the other line but wrongly connected switches can change the
+		// signal on the bus even if the connected line is not used
+		// -> add all switches of used H/VLines.
+		// Additionally add all SynapseSwitches connected to used VLines. SynapseSwitches connected
+		// to used SynapseSwitchRows can not be extracted from L1Routing and have to be treated
+		// separately.
+		for (auto const& elem : route.route()) {
+			// Use size to distinguish objects
+			auto size = boost::apply_visitor([](auto arg) { return arg.size; }, elem);
+			switch (size) {
+				case (HICANNOnWafer::size): {
+					hicann = boost::get<HICANNOnWafer>(elem);
+					break;
+				}
+				case (VLineOnHICANN::size): {
+					assert(hicann && "Routing results must have a hicann entry before H/VLines");
+					auto vline = boost::get<VLineOnHICANN>(elem);
+					// add all connected crossbar switches
+					for (auto const& hline : vline.toHLineOnHICANN()) {
+						CrossbarSwitchOnHICANN cs(
+						    halco::common::X(vline.value()), halco::common::Y(hline.value()));
+						CrossbarSwitchOnWafer cs_on_wafer(cs, *hicann);
+						crossbar_switch_set.insert(cs_on_wafer);
+					}
+					// add all connected synapse switches
+					for (auto const& syn_sw_row : vline.toSynapseSwitchRowOnHICANN()) {
+						SynapseSwitchOnHICANN ss(halco::common::X(vline.value()), syn_sw_row.y());
+						SynapseSwitchOnWafer ss_on_wafer(ss, *hicann);
+						synapse_switch_set.insert(ss_on_wafer);
+					}
+					break;
+				}
+				case (HLineOnHICANN::size): {
+					assert(hicann && "Routing results must have a hicann entry before H/VLines");
+					auto hline = boost::get<HLineOnHICANN>(elem);
+					for (auto const& vline : hline.toVLineOnHICANN()) {
+						CrossbarSwitchOnHICANN cs(
+						    halco::common::X(vline.value()), halco::common::Y(hline.value()));
+						CrossbarSwitchOnWafer cs_on_wafer(cs, *hicann);
+						crossbar_switch_set.insert(cs_on_wafer);
+					}
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	}
+}
+
+// Helper to add synapse switches from switch row
+void add_switches_of_switch_row(
+    std::set<SynapseSwitchOnWafer>& synapse_switch_set,
+    SynapseSwitchRowOnHICANN const& switch_row,
+    HICANNOnWafer const& h)
+{
+	for (auto const switch_on_row : halco::common::iter_all<SynapseSwitchOnSynapseSwitchRow>()) {
+		SynapseSwitchOnWafer used_switch(SynapseSwitchOnHICANN(switch_row, switch_on_row), h);
+		synapse_switch_set.insert(used_switch);
+	}
+}
+
+// Helper to add synapse switches from synapse routing
+// Add all switches connected to used SynapseSwitchRow
+void extract_switches_from_synapse_routing(
+    std::set<SynapseSwitchOnWafer>& synapse_switch_set, marocco::results::Marocco const& results)
+{
+	for (HICANNOnWafer const& h : halco::common::iter_all<HICANNOnWafer>()) {
+		if (results.synapse_routing.has(h)) {
+			auto const& hicann = results.synapse_routing[h];
+			for (auto const& syn_switch : hicann.synapse_switches()) {
+				SynapseDriverOnHICANN const& driver =
+				    syn_switch.connected_drivers().primary_driver();
+				// Get all synapse switches connected to this driver.
+				SynapseSwitchRowOnHICANN switch_row = driver.toSynapseSwitchRowOnHICANN();
+				add_switches_of_switch_row(synapse_switch_set, switch_row, h);
+				// Some of them are on neighboring hicann
+				if (driver.isLeft() && h.has_west()) {
+					HICANNOnWafer const neighboring_hicann(h.west());
+					SynapseSwitchRowOnHICANN const neighboring_switch_row(
+					    switch_row.y(), halco::common::right);
+					add_switches_of_switch_row(
+					    synapse_switch_set, neighboring_switch_row, neighboring_hicann);
+				} else if (driver.isRight() && h.has_east()) {
+					HICANNOnWafer const neighboring_hicann(h.east());
+					SynapseSwitchRowOnHICANN const neighboring_switch_row(
+					    switch_row.y(), halco::common::left);
+					add_switches_of_switch_row(
+					    synapse_switch_set, neighboring_switch_row, neighboring_hicann);
+				}
+			}
+		}
+	}
+}
 
 #ifdef HAVE_ESS
 std::string create_temporary_directory(char const* tpl) {
@@ -326,15 +439,32 @@ void run(ObjectStore& store) {
 	if(mi->backend == PyMarocco::Backend::Hardware) {
 
 		if (mi->verification != PyMarocco::Verification::Skip) {
+			// Only check used components
+			// Extract used synapses from routing and only check these
 			std::vector<SynapseOnWafer> synapses_to_be_verified;
 			for (auto const& syn : results->synapse_routing.synapses()) {
 				if (syn.hardware_synapse()) {
 					synapses_to_be_verified.push_back(*syn.hardware_synapse());
 				}
 			}
-			auto synapse_policy = sthal::VerifyConfigurator::SynapsePolicy::Mask;
-			auto verify_configurator = sthal::VerifyConfigurator(true, synapse_policy);
+			// Extract used crossbar/synapse switches from routing and only check these
+			std::set<CrossbarSwitchOnWafer> crossbar_switch_set;
+			std::set<SynapseSwitchOnWafer> synapse_switch_set;
+			extract_switches_from_l1_routing(crossbar_switch_set, synapse_switch_set, *results);
+			extract_switches_from_synapse_routing(synapse_switch_set, *results);
+
+			std::vector<CrossbarSwitchOnWafer> crossbar_switches_to_be_verified(
+			    crossbar_switch_set.begin(), crossbar_switch_set.end());
+			std::vector<SynapseSwitchOnWafer> synapse_switches_to_be_verified(
+			    synapse_switch_set.begin(), synapse_switch_set.end());
+			auto synapse_policy = sthal::VerifyConfigurator::VerifyPolicy::Mask;
+			auto synapse_switch_policy = sthal::VerifyConfigurator::VerifyPolicy::Mask;
+			auto crossbar_switch_policy = sthal::VerifyConfigurator::VerifyPolicy::Mask;
+			auto verify_configurator = sthal::VerifyConfigurator(
+			    true, synapse_policy, synapse_switch_policy, crossbar_switch_policy);
 			verify_configurator.set_synapse_mask(synapses_to_be_verified);
+			verify_configurator.set_synapse_switch_mask(synapse_switches_to_be_verified);
+			verify_configurator.set_crossbar_switch_mask(crossbar_switches_to_be_verified);
 			hardware->configure(verify_configurator);
 
 			if (verify_configurator.error_count() == 0) {
