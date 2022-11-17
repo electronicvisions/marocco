@@ -119,10 +119,12 @@ void add_switches_of_switch_row(
 	}
 }
 
-// Helper to add synapse switches from synapse routing
+// Helper to extract synapse switches and synapse arrays from synapse routing.
 // Add all switches connected to used SynapseSwitchRow
-void extract_switches_from_synapse_routing(
-    std::set<SynapseSwitchOnWafer>& synapse_switch_set, marocco::results::Marocco const& results)
+void extract_components_from_synapse_routing(
+    std::set<SynapseSwitchOnWafer>& synapse_switch_set,
+    std::set<SynapseArrayOnWafer>& synapse_array_set,
+    marocco::results::Marocco const& results)
 {
 	for (HICANNOnWafer const& h : halco::common::iter_all<HICANNOnWafer>()) {
 		if (results.synapse_routing.has(h)) {
@@ -147,6 +149,9 @@ void extract_switches_from_synapse_routing(
 					add_switches_of_switch_row(
 					    synapse_switch_set, neighboring_switch_row, neighboring_hicann);
 				}
+				// If at least one driver is used we have to check the synapse controller
+				// of this synapse array
+				synapse_array_set.insert(SynapseArrayOnWafer(driver.toSynapseArrayOnHICANN(), h));
 			}
 		}
 	}
@@ -447,24 +452,32 @@ void run(ObjectStore& store) {
 					synapses_to_be_verified.push_back(*syn.hardware_synapse());
 				}
 			}
-			// Extract used crossbar/synapse switches from routing and only check these
+			// Extract used crossbar/synapse switches and synapse arrays from routing and only check these
 			std::set<CrossbarSwitchOnWafer> crossbar_switch_set;
 			std::set<SynapseSwitchOnWafer> synapse_switch_set;
+			std::set<SynapseArrayOnWafer> synapse_array_set;
 			extract_switches_from_l1_routing(crossbar_switch_set, synapse_switch_set, *results);
-			extract_switches_from_synapse_routing(synapse_switch_set, *results);
+			extract_components_from_synapse_routing(
+			    synapse_switch_set, synapse_array_set, *results);
 
 			std::vector<CrossbarSwitchOnWafer> crossbar_switches_to_be_verified(
 			    crossbar_switch_set.begin(), crossbar_switch_set.end());
 			std::vector<SynapseSwitchOnWafer> synapse_switches_to_be_verified(
 			    synapse_switch_set.begin(), synapse_switch_set.end());
+			std::vector<SynapseArrayOnWafer> synapse_arrays_to_be_verified(
+			    synapse_array_set.begin(), synapse_array_set.end());
+			// generate configurator
 			auto synapse_policy = sthal::VerifyConfigurator::VerifyPolicy::Mask;
 			auto synapse_switch_policy = sthal::VerifyConfigurator::VerifyPolicy::Mask;
 			auto crossbar_switch_policy = sthal::VerifyConfigurator::VerifyPolicy::Mask;
+			auto synapse_array_policy = sthal::VerifyConfigurator::VerifyPolicy::Mask;
 			auto verify_configurator = sthal::VerifyConfigurator(
-			    true, synapse_policy, synapse_switch_policy, crossbar_switch_policy);
+			    true, synapse_policy, synapse_switch_policy, crossbar_switch_policy,
+			    synapse_array_policy);
 			verify_configurator.set_synapse_mask(synapses_to_be_verified);
 			verify_configurator.set_synapse_switch_mask(synapse_switches_to_be_verified);
 			verify_configurator.set_crossbar_switch_mask(crossbar_switches_to_be_verified);
+			verify_configurator.set_synapse_array_mask(synapse_arrays_to_be_verified);
 			hardware->configure(verify_configurator);
 
 			if (verify_configurator.error_count() == 0) {
