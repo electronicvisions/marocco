@@ -206,6 +206,24 @@ void SynapseRouting::run()
 			              << " as defect/disabled");
 		}
 
+		// Add all switches of blacklisted SynapseSwitchRows
+		auto const& syn_switch_rows = defects->synapseswitchrows();
+		for (auto const& syn_switch_row : syn_switch_rows->disabled()) {
+			for (auto const syn_switch_on_row : iter_all<SynapseSwitchOnSynapseSwitchRow>()) {
+				SynapseSwitchOnHICANN const syn_switch(syn_switch_row, syn_switch_on_row);
+				defect_synapse_switches.insert(syn_switch);
+				MAROCCO_TRACE(
+				    "Marked " << syn_switch << " on " << m_hicann << " as defect/disabled");
+			}
+		}
+
+		size_t const n_marked_syn_switch_rows = boost::size(syn_switch_rows->disabled());
+		if (n_marked_syn_switch_rows != 0) {
+			MAROCCO_DEBUG(
+			    "Marked " << n_marked_syn_switch_rows << " synapse switch row(s) on " << m_hicann
+			              << " as defect/disabled");
+		}
+
 		Fieres fieres(
 		    requested_drivers, drv_side, chain_length, defect_list, defect_synapse_switches);
 		std::vector<VLineOnHICANN> const rejected = fieres.rejected();
