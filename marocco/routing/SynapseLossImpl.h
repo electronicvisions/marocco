@@ -2,7 +2,7 @@
 
 #include <boost/serialization/concurrent_unordered_map.h>
 #include <tbb/concurrent_unordered_map.h>
-#include <tbb/mutex.h>
+#include <oneapi/tbb/mutex.h>
 
 #include "halco/hicann/v2/hicann.h"
 
