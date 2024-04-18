@@ -3,7 +3,7 @@
 #include <memory>
 #include <log4cxx/basicconfigurator.h>
 #include <log4cxx/consoleappender.h>
-#include <colorlayout.h>
+#include <log4cxx/patternlayout.h>
 
 #define DEFAULT_LOGGER "marocco"
 
@@ -36,8 +36,8 @@ void Logger::init(vector<pair<string, log4cxx::LevelPtr>> const& levels)
 		// clever way to ensure propper configuration.
 		BasicConfigurator::resetConfiguration();
 
-		ConsoleAppender* console = new ConsoleAppender(
-			LayoutPtr(new ColorLayout()));
+		ConsoleAppender* console =
+		    new ConsoleAppender(LayoutPtr(new PatternLayout("%Y%-5p%y %d{HH:mm:ss,SSS}  %c %m\n")));
 		BasicConfigurator::configure(AppenderPtr(console));
 
 		for (auto const& lvl : levels)
