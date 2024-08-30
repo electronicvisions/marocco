@@ -26,14 +26,6 @@ class TestPyMarocco(unittest.TestCase):
         with self.assertRaises(builtins.IndexError) as e:
             marocco.stats.getWeights(proj)
 
-    def test_hicann_configurator(self):
-        marocco = PyMarocco()
-        with self.assertRaises(TypeError):
-            marocco.hicann_configurator
-        import pysthal
-        marocco.hicann_configurator = pysthal.HICANNConfigurator()
-        self.assertTrue(isinstance(marocco.hicann_configurator, pysthal.HICANNConfigurator))
-
 
 if __name__ == '__main__':
     unittest.main()

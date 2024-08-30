@@ -25,6 +25,9 @@ for name in ['PyMarocco']:
     createFactory = cl.mem_funs('create')
     cl.add_fake_constructors( createFactory )
 
+# Allow for by value conversion of hicann_configurator object
+mb.add_registration_code('bp::register_ptr_to_python<boost::shared_ptr<sthal::HICANNConfigurator>>();')
+
 # Do not expose typedefs (prevent AttributeErrors on import)
 for td in mb.typedefs(allow_empty=True):
     td.exclude()
