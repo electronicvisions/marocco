@@ -83,7 +83,7 @@ def build(bld):
             'LOG4CXXMAROCCO',
             'TBB4MAROCCO',
             'marocco_inc',
-            'logger_obj',
+            'logger',
             'ZTL',
             'rant',
             'euter',
