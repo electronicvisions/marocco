@@ -10,20 +10,27 @@
 		"copy-static-assets": "ts-node copyStaticAssets.ts"
 	},
 	"devDependencies": {
-		"typescript": ">=2.8.0",
-		"typedoc": ">=0.9.0 <0.12.0",
-		"@types/shelljs": "^0.7.8",
-		"shelljs": "^0.8.1",
-		"ts-node": "^5.0.0",
-		"highlight.js": "<=9.14.2",
-		"@types/pixi.js": ">=4.5.6 <5",
-		"@types/jquery": ">=3.2.1"
+		"typescript": "3.5.3",
+		"typedoc": "0.11.1",
+		"@types/node": "12.7.3",
+		"@types/shelljs": "0.7.8",
+		"shelljs": "0.8.3",
+		"ts-node": "5.0.1",
+		"highlight.js": "9.12.0",
+		"@types/pixi.js": "4.8.8",
+		"@types/jquery": "3.3.30"
 	},
 	"dependencies": {
-		"pixi.js": ">=4.5.6",
-		"jquery": ">=3.2.1",
-		"jquery-ui-dist": ">=1.12.1",
-		"jquery-ui-touch-punch": ">=0.2.3"
+		"pixi.js": "4.8.8",
+		"jquery": "3.4.1",
+		"jquery-ui-dist": "1.12.1",
+		"jquery-ui-touch-punch": "0.2.3"
+	},
+	"overrides": {
+	  "glob": "7.1.4",
+	  "minimatch": "3.0.4",
+	  "@types/glob": "7.1.1",
+	  "@types/minimatch": "3.0.3"
 	},
 	"_comment": { "FIXME": "We should explicitly include the libraries (i.e. rm *.js and add those as dependencies here)" },
 	"files": [
